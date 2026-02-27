@@ -1,0 +1,763 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>GLU</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-ktessellation/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-ktessellation/commonMain" data-filter=":openrndr-ktessellation/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-ktessellation::org.openrndr.ktessellation/GLU///PointingToDeclaration//107835390">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-ktessellation</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.ktessellation</a><span class="delimiter">/</span><span class="current">GLU</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>GLU</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">GLU</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-ktessellation/src/commonMain/kotlin/GLU.kt#L44">source</a>)</span></span></div><p class="paragraph">GLU.java</p><p class="paragraph">Created 23-dec-2003</p><span class="kdoc-tag"><h4 class="">Author</h4><p class="paragraph">Erik Duijs</p></span></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="609183827%2FProperties%2F107835390" anchor-label="GLU_INVALID_ENUM" id="609183827%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-i-n-v-a-l-i-d_-e-n-u-m.html"><span>GLU_</span><wbr><span>INVALID_</span><wbr><span>ENUM</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="609183827%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-i-n-v-a-l-i-d_-e-n-u-m.html">GLU_INVALID_ENUM</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100900</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1283201035%2FProperties%2F107835390" anchor-label="GLU_INVALID_VALUE" id="-1283201035%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-i-n-v-a-l-i-d_-v-a-l-u-e.html"><span>GLU_</span><wbr><span>INVALID_</span><wbr><span>VALUE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1283201035%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-i-n-v-a-l-i-d_-v-a-l-u-e.html">GLU_INVALID_VALUE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100901</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-62597338%2FProperties%2F107835390" anchor-label="GLU_OUT_OF_MEMORY" id="-62597338%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-o-u-t_-o-f_-m-e-m-o-r-y.html"><span>GLU_</span><wbr><span>OUT_</span><wbr><span>OF_</span><wbr><span>MEMORY</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-62597338%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-o-u-t_-o-f_-m-e-m-o-r-y.html">GLU_OUT_OF_MEMORY</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100902</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1852092575%2FProperties%2F107835390" anchor-label="GLU_TESS_BEGIN" id="-1852092575%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-b-e-g-i-n.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>BEGIN</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1852092575%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-b-e-g-i-n.html">GLU_TESS_BEGIN</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100100</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="497580592%2FProperties%2F107835390" anchor-label="GLU_TESS_BEGIN_DATA" id="497580592%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-b-e-g-i-n_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>BEGIN_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="497580592%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-b-e-g-i-n_-d-a-t-a.html">GLU_TESS_BEGIN_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100106</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1875639113%2FProperties%2F107835390" anchor-label="GLU_TESS_BOUNDARY_ONLY" id="1875639113%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-b-o-u-n-d-a-r-y_-o-n-l-y.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>BOUNDARY_</span><wbr><span>ONLY</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1875639113%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-b-o-u-n-d-a-r-y_-o-n-l-y.html">GLU_TESS_BOUNDARY_ONLY</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100141</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="766848075%2FProperties%2F107835390" anchor-label="GLU_TESS_COMBINE" id="766848075%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-c-o-m-b-i-n-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>COMBINE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="766848075%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-c-o-m-b-i-n-e.html">GLU_TESS_COMBINE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100105</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="581312390%2FProperties%2F107835390" anchor-label="GLU_TESS_COMBINE_DATA" id="581312390%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-c-o-m-b-i-n-e_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>COMBINE_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="581312390%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-c-o-m-b-i-n-e_-d-a-t-a.html">GLU_TESS_COMBINE_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100111</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1842169116%2FProperties%2F107835390" anchor-label="GLU_TESS_COORD_TOO_LARGE" id="-1842169116%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-c-o-o-r-d_-t-o-o_-l-a-r-g-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>COORD_</span><wbr><span>TOO_</span><wbr><span>LARGE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1842169116%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-c-o-o-r-d_-t-o-o_-l-a-r-g-e.html">GLU_TESS_COORD_TOO_LARGE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="921873500%2FProperties%2F107835390" anchor-label="GLU_TESS_EDGE_FLAG" id="921873500%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-d-g-e_-f-l-a-g.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>EDGE_</span><wbr><span>FLAG</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="921873500%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-d-g-e_-f-l-a-g.html">GLU_TESS_EDGE_FLAG</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100104</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-522517995%2FProperties%2F107835390" anchor-label="GLU_TESS_EDGE_FLAG_DATA" id="-522517995%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-d-g-e_-f-l-a-g_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>EDGE_</span><wbr><span>FLAG_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-522517995%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-d-g-e_-f-l-a-g_-d-a-t-a.html">GLU_TESS_EDGE_FLAG_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100110</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1348788561%2FProperties%2F107835390" anchor-label="GLU_TESS_END" id="-1348788561%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-n-d.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>END</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1348788561%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-n-d.html">GLU_TESS_END</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100102</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1488188510%2FProperties%2F107835390" anchor-label="GLU_TESS_END_DATA" id="-1488188510%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-n-d_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>END_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1488188510%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-n-d_-d-a-t-a.html">GLU_TESS_END_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100108</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1693904610%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR" id="1693904610%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1693904610%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r.html">GLU_TESS_ERROR</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100103</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="490382887%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR1" id="490382887%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r1.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR1</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="490382887%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r1.html">GLU_TESS_ERROR1</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100151</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="521402694%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR2" id="521402694%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r2.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR2</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="521402694%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r2.html">GLU_TESS_ERROR2</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100152</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="552422501%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR3" id="552422501%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r3.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR3</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="552422501%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r3.html">GLU_TESS_ERROR3</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100153</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="583442308%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR4" id="583442308%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r4.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR4</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="583442308%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r4.html">GLU_TESS_ERROR4</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100154</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="614462115%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR5" id="614462115%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r5.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR5</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="614462115%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r5.html">GLU_TESS_ERROR5</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100155</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="645481922%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR6" id="645481922%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r6.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR6</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="645481922%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r6.html">GLU_TESS_ERROR6</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100156</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="676501729%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR7" id="676501729%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r7.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR7</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="676501729%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r7.html">GLU_TESS_ERROR7</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100157</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="707521536%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR8" id="707521536%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r8.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR8</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="707521536%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r8.html">GLU_TESS_ERROR8</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100158</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1507418959%2FProperties%2F107835390" anchor-label="GLU_TESS_ERROR_DATA" id="1507418959%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>ERROR_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1507418959%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-e-r-r-o-r_-d-a-t-a.html">GLU_TESS_ERROR_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100109</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-847795600%2FProperties%2F107835390" anchor-label="GLU_TESS_MAX_COORD" id="-847795600%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-m-a-x_-c-o-o-r-d.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>MAX_</span><wbr><span>COORD</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-847795600%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-m-a-x_-c-o-o-r-d.html">GLU_TESS_MAX_COORD</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0E150</span></div><div class="brief "><p class="paragraph">**           Tesselation constants</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-781450657%2FProperties%2F107835390" anchor-label="GLU_TESS_MISSING_BEGIN_CONTOUR" id="-781450657%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-b-e-g-i-n_-c-o-n-t-o-u-r.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>MISSING_</span><wbr><span>BEGIN_</span><wbr><span>CONTOUR</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-781450657%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-b-e-g-i-n_-c-o-n-t-o-u-r.html">GLU_TESS_MISSING_BEGIN_CONTOUR</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1555991553%2FProperties%2F107835390" anchor-label="GLU_TESS_MISSING_BEGIN_POLYGON" id="-1555991553%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-b-e-g-i-n_-p-o-l-y-g-o-n.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>MISSING_</span><wbr><span>BEGIN_</span><wbr><span>POLYGON</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1555991553%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-b-e-g-i-n_-p-o-l-y-g-o-n.html">GLU_TESS_MISSING_BEGIN_POLYGON</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1725879789%2FProperties%2F107835390" anchor-label="GLU_TESS_MISSING_END_CONTOUR" id="1725879789%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-e-n-d_-c-o-n-t-o-u-r.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>MISSING_</span><wbr><span>END_</span><wbr><span>CONTOUR</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1725879789%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-e-n-d_-c-o-n-t-o-u-r.html">GLU_TESS_MISSING_END_CONTOUR</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="951338893%2FProperties%2F107835390" anchor-label="GLU_TESS_MISSING_END_POLYGON" id="951338893%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-e-n-d_-p-o-l-y-g-o-n.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>MISSING_</span><wbr><span>END_</span><wbr><span>POLYGON</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="951338893%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-m-i-s-s-i-n-g_-e-n-d_-p-o-l-y-g-o-n.html">GLU_TESS_MISSING_END_POLYGON</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-341748324%2FProperties%2F107835390" anchor-label="GLU_TESS_NEED_COMBINE_CALLBACK" id="-341748324%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-n-e-e-d_-c-o-m-b-i-n-e_-c-a-l-l-b-a-c-k.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>NEED_</span><wbr><span>COMBINE_</span><wbr><span>CALLBACK</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-341748324%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-n-e-e-d_-c-o-m-b-i-n-e_-c-a-l-l-b-a-c-k.html">GLU_TESS_NEED_COMBINE_CALLBACK</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1447221757%2FProperties%2F107835390" anchor-label="GLU_TESS_TOLERANCE" id="1447221757%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-t-o-l-e-r-a-n-c-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>TOLERANCE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1447221757%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-t-o-l-e-r-a-n-c-e.html">GLU_TESS_TOLERANCE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100142</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1963053012%2FProperties%2F107835390" anchor-label="GLU_TESS_VERTEX" id="-1963053012%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-v-e-r-t-e-x.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>VERTEX</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1963053012%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-v-e-r-t-e-x.html">GLU_TESS_VERTEX</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100101</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1232691269%2FProperties%2F107835390" anchor-label="GLU_TESS_VERTEX_DATA" id="1232691269%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-v-e-r-t-e-x_-d-a-t-a.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>VERTEX_</span><wbr><span>DATA</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1232691269%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-v-e-r-t-e-x_-d-a-t-a.html">GLU_TESS_VERTEX_DATA</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100107</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-859942244%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_ABS_GEQ_TWO" id="-859942244%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-a-b-s_-g-e-q_-t-w-o.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>ABS_</span><wbr><span>GEQ_</span><wbr><span>TWO</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-859942244%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-a-b-s_-g-e-q_-t-w-o.html">GLU_TESS_WINDING_ABS_GEQ_TWO</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100134</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="489013942%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_NEGATIVE" id="489013942%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-n-e-g-a-t-i-v-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>NEGATIVE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="489013942%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-n-e-g-a-t-i-v-e.html">GLU_TESS_WINDING_NEGATIVE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100133</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-343984326%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_NONZERO" id="-343984326%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-n-o-n-z-e-r-o.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>NONZERO</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-343984326%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-n-o-n-z-e-r-o.html">GLU_TESS_WINDING_NONZERO</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100131</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1108325568%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_ODD" id="-1108325568%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-o-d-d.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>ODD</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1108325568%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-o-d-d.html">GLU_TESS_WINDING_ODD</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100130</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1795586418%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_POSITIVE" id="1795586418%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-p-o-s-i-t-i-v-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>POSITIVE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1795586418%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-p-o-s-i-t-i-v-e.html">GLU_TESS_WINDING_POSITIVE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100132</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1287718095%2FProperties%2F107835390" anchor-label="GLU_TESS_WINDING_RULE" id="1287718095%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-r-u-l-e.html"><span>GLU_</span><wbr><span>TESS_</span><wbr><span>WINDING_</span><wbr><span>RULE</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1287718095%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-g-l-u_-t-e-s-s_-w-i-n-d-i-n-g_-r-u-l-e.html">GLU_TESS_WINDING_RULE</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">100140</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1547325490%2FProperties%2F107835390" anchor-label="PI" id="1547325490%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-p-i.html"><span><span>PI</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1547325490%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-p-i.html">PI</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1125918049%2FProperties%2F107835390" anchor-label="TESS_MAX_COORD" id="-1125918049%2FProperties%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-t-e-s-s_-m-a-x_-c-o-o-r-d.html"><span>TESS_</span><wbr><span>MAX_</span><wbr><span>COORD</span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1125918049%2FProperties%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-t-e-s-s_-m-a-x_-c-o-o-r-d.html">TESS_MAX_COORD</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0E150</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-2026741664%2FFunctions%2F107835390" anchor-label="gluErrorString" id="-2026741664%2FFunctions%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="glu-error-string.html"><span>glu</span><wbr><span>Error</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2026741664%2FFunctions%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="glu-error-string.html"><span class="token function">gluErrorString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">error_code<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-402194134%2FFunctions%2F107835390" anchor-label="gluNewTess" id="-402194134%2FFunctions%2F107835390" data-filterable-set=":openrndr-ktessellation/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-ktessellation/commonMain" data-filterable-set=":openrndr-ktessellation/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="glu-new-tess.html"><span>glu</span><wbr><span>New</span><wbr><span><span>Tess</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-402194134%2FFunctions%2F107835390"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="glu-new-tess.html"><span class="token function">gluNewTess</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-g-l-utessellator/index.html">GLUtessellator</a></div><div class="brief "><p class="paragraph">Creates and returns a new GLU tessellation object. The GLU tessellation object is used to process complex polygons, turning them into simpler primitives like triangles for rendering in OpenGL. This method initializes and allocates resources for a new tessellator.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

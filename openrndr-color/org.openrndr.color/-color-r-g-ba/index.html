@@ -1,0 +1,696 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ColorRGBa</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-color/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-color/commonMain" data-filter=":openrndr-color/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-color::org.openrndr.color/ColorRGBa///PointingToDeclaration//-1192805387">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-color</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.color</a><span class="delimiter">/</span><span class="current">ColorRGBa</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Color</span><wbr><span><span>RGBa</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">ColorRGBa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>r<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>g<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>b<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>linearity<span class="token operator">: </span><a href="../-linearity/index.html">Linearity</a><span class="token operator"> = </span>Linearity.LINEAR</span></span><span class="token punctuation">)</span> : <a href="../-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="index.html">ColorRGBa</a><span class="token operator">&gt; </span>, <a href="../-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="index.html">ColorRGBa</a><span class="token operator">&gt; </span>, <a href="../-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="index.html">ColorRGBa</a><span class="token operator">&gt; </span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-color/src/commonMain/kotlin/org/openrndr/color/ColorRGBa.kt#L59">source</a>)</span></span></div><p class="paragraph">Represents a color in the RGBA color space. Each component, including red, green, blue, and alpha (opacity), is represented as a <code class="lang-kotlin">Double</code> in the range <code class="lang-kotlin">[0.0, 1.0]</code>. The color can be defined in either linear or sRGB space, determined by the <code class="lang-kotlin">linearity</code> property.</p><p class="paragraph">This class provides a wide variety of utility functions for manipulating and converting colors, such as shading, opacity adjustment, and format transformations. It also includes methods for parsing colors from hexadecimal notation or vectors.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="1911030648%2FConstructors%2F-1192805387" anchor-label="ColorRGBa" id="1911030648%2FConstructors%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-r-g-ba.html"><span>Color</span><wbr><span><span>RGBa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1911030648%2FConstructors%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">g<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter ">linearity<span class="token operator">: </span><a href="../-linearity/index.html">Linearity</a><span class="token operator"> = </span>Linearity.LINEAR</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="1977208120%2FClasslikes%2F-1192805387" anchor-label="Companion" id="1977208120%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1977208120%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1915882393%2FClasslikes%2F-1192805387" anchor-label="Component" id="-1915882393%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-component/index.html"><span><span>Component</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1915882393%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-component/index.html">Component</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-component/index.html">ColorRGBa.Component</a><span class="token operator">&gt; </span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1334498733%2FProperties%2F-1192805387" anchor-label="alpha" id="-1334498733%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="alpha.html"><span><span>alpha</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1334498733%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="alpha.html">alpha</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Alpha (opacity) component of the color as a value between <code class="lang-kotlin">0.0</code> and <code class="lang-kotlin">1.0</code>. Defaults to <code class="lang-kotlin">1.0</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-676155296%2FProperties%2F-1192805387" anchor-label="alphaMultiplied" id="-676155296%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="alpha-multiplied.html"><span>alpha</span><wbr><span><span>Multiplied</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-676155296%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="alpha-multiplied.html">alphaMultiplied</a><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Returns a new instance of <a href="index.html">ColorRGBa</a> where the red, green, and blue components are multiplied by the alpha value of the original color. The alpha value and linearity remain unchanged.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-969653809%2FProperties%2F-1192805387" anchor-label="b" id="-969653809%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="b.html"><span><span>b</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-969653809%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="b.html">b</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Blue component of the color as a value between <code class="lang-kotlin">0.0</code> and <code class="lang-kotlin">1.0</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-814554774%2FProperties%2F-1192805387" anchor-label="g" id="-814554774%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="g.html"><span><span>g</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-814554774%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="g.html">g</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Green component of the color as a value between <code class="lang-kotlin">0.0</code> and <code class="lang-kotlin">1.0</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1577253032%2FProperties%2F-1192805387" anchor-label="linearity" id="1577253032%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="linearity.html"><span><span>linearity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1577253032%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="linearity.html">linearity</a><span class="token operator">: </span><a href="../-linearity/index.html">Linearity</a></div><div class="brief "><p class="paragraph">Indicates whether the color is defined in linear or sRGB space. Defaults to <a href="../-linearity/-l-i-n-e-a-r/index.html">Linearity.LINEAR</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="448904697%2FProperties%2F-1192805387" anchor-label="luminance" id="448904697%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="luminance.html"><span><span>luminance</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="448904697%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="luminance.html">luminance</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">calculate luminance value luminance value is according to <a>https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="460218172%2FProperties%2F-1192805387" anchor-label="maxValue" id="460218172%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="max-value.html"><span>max</span><wbr><span><span>Value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="460218172%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="max-value.html">maxValue</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The maximum value over <code class="lang-kotlin">r</code>, <code class="lang-kotlin">g</code>, <code class="lang-kotlin">b</code></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1948742742%2FProperties%2F-1192805387" anchor-label="minValue" id="-1948742742%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="min-value.html"><span>min</span><wbr><span><span>Value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1948742742%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="min-value.html">minValue</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The minimum value over <code class="lang-kotlin">r</code>, <code class="lang-kotlin">g</code>, <code class="lang-kotlin">b</code></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-473336897%2FProperties%2F-1192805387" anchor-label="r" id="-473336897%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="r.html"><span><span>r</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-473336897%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="r.html">r</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Red component of the color as a value between <code class="lang-kotlin">0.0</code> and <code class="lang-kotlin">1.0</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1431719495%2FFunctions%2F-1192805387" anchor-label="clip" id="-1431719495%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clip.html"><span><span>clip</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1431719495%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clip.html"><span class="token function">clip</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Copy of the color with all of its fields clamped to <code class="lang-kotlin">[0, 1]</code></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1583947130%2FFunctions%2F-1192805387" anchor-label="div" id="-1583947130%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-algebraic-color/div.html"><span><span>div</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1583947130%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="../-algebraic-color/div.html"><span class="token function">div</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1022686265%2FFunctions%2F-1192805387" anchor-label="get" id="1022686265%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1022686265%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Retrieves the color's RGBA component value based on the specified index: <a href="get.html">index</a> should be 0 for red, 1 for green, 2 for blue, 3 for alpha. Other index values throw an <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-index-out-of-bounds-exception/index.html">IndexOutOfBoundsException</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="112489402%2FFunctions%2F-1192805387" anchor-label="getContrastRatio" id="112489402%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-contrast-ratio.html"><span>get</span><wbr><span>Contrast</span><wbr><span><span>Ratio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="112489402%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-contrast-ratio.html"><span class="token function">getContrastRatio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">ColorRGBa</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">calculate the contrast value between this color and the given color contrast value is accordingo to <a>// see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1988365646%2FFunctions%2F-1192805387" anchor-label="hashCode" id="1988365646%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hash-code.html"><span>hash</span><wbr><span><span>Code</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1988365646%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="hash-code.html"><span class="token function">hashCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1389835579%2FFunctions%2F-1192805387" anchor-label="minus" id="-1389835579%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="minus.html"><span><span>minus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1389835579%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="minus.html"><span class="token function">minus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">right<span class="token operator">: </span><a href="index.html">ColorRGBa</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1880761022%2FFunctions%2F-1192805387" anchor-label="mix" id="1880761022%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="mix.html"><span><span>mix</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1880761022%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">ColorRGBa</a><span class="token punctuation">, </span></span><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="873234316%2FFunctions%2F-1192805387" anchor-label="opacify" id="873234316%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="opacify.html"><span><span>opacify</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="873234316%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="opacify.html"><span class="token function">opacify</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Creates a copy of color with adjusted opacity</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1202635533%2FFunctions%2F-1192805387" anchor-label="plus" id="-1202635533%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="plus.html"><span><span>plus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1202635533%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="plus.html"><span class="token function">plus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">right<span class="token operator">: </span><a href="index.html">ColorRGBa</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1261651104%2FFunctions%2F-1192805387" anchor-label="shade" id="-1261651104%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shade.html"><span><span>shade</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1261651104%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="shade.html"><span class="token function">shade</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Creates a copy of color with adjusted color</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1910449735%2FFunctions%2F-1192805387" anchor-label="times" id="-1910449735%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="times.html"><span><span>times</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1910449735%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="times.html"><span class="token function">times</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1078501262%2FFunctions%2F-1192805387" anchor-label="toHSLa" id="1078501262%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-h-s-la.html"><span>to</span><wbr><span><span>HSLa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1078501262%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-h-s-la.html"><span class="token function">toHSLa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-h-s-la/index.html">ColorHSLa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2104706840%2FFunctions%2F-1192805387" anchor-label="toHSVa" id="2104706840%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-h-s-va.html"><span>to</span><wbr><span><span>HSVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2104706840%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-h-s-va.html"><span class="token function">toHSVa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-h-s-va/index.html">ColorHSVa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-988722710%2FFunctions%2F-1192805387" anchor-label="toLABa" id="-988722710%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-l-a-ba.html"><span>to</span><wbr><span><span>LABa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-988722710%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-l-a-ba.html"><span class="token function">toLABa</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="../-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-l-a-ba/index.html">ColorLABa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2012105713%2FFunctions%2F-1192805387" anchor-label="toLCHABa" id="-2012105713%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-l-c-h-a-ba.html"><span>to</span><wbr><span><span>LCHABa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2012105713%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-l-c-h-a-ba.html"><span class="token function">toLCHABa</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="../-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-l-c-h-a-ba/index.html">ColorLCHABa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-622406001%2FFunctions%2F-1192805387" anchor-label="toLCHUVa" id="-622406001%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-l-c-h-u-va.html"><span>to</span><wbr><span><span>LCHUVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-622406001%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-l-c-h-u-va.html"><span class="token function">toLCHUVa</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="../-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-l-c-h-u-va/index.html">ColorLCHUVa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1798200439%2FFunctions%2F-1192805387" anchor-label="toLinear" id="-1798200439%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-linear.html"><span>to</span><wbr><span><span>Linear</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1798200439%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-linear.html"><span class="token function">toLinear</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2146084011%2FFunctions%2F-1192805387" anchor-label="toLinearity" id="-2146084011%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-linearity.html"><span>to</span><wbr><span><span>Linearity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2146084011%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-linearity.html"><span class="token function">toLinearity</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">linearity<span class="token operator">: </span><a href="../-linearity/index.html">Linearity</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Converts this color to the specified linearity.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="400977002%2FFunctions%2F-1192805387" anchor-label="toLUVa" id="400977002%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-l-u-va.html"><span>to</span><wbr><span><span>LUVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="400977002%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-l-u-va.html"><span class="token function">toLUVa</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="../-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-l-u-va/index.html">ColorLUVa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1450216602%2FFunctions%2F-1192805387" anchor-label="toRGBa" id="1450216602%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-r-g-ba.html"><span>to</span><wbr><span><span>RGBa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1450216602%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-r-g-ba.html"><span class="token function">toRGBa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Convert into <a href="index.html">ColorRGBa</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1107294924%2FFunctions%2F-1192805387" anchor-label="toSRGB" id="-1107294924%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-s-r-g-b.html"><span>to</span><wbr><span><span>SRGB</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1107294924%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-s-r-g-b.html"><span class="token function">toSRGB</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Convert to SRGB</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2083735643%2FFunctions%2F-1192805387" anchor-label="toVector4" id="2083735643%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-vector4.html"><span>to</span><wbr><span><span>Vector4</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2083735643%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-vector4.html"><span class="token function">toVector4</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector4/index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-716773474%2FFunctions%2F-1192805387" anchor-label="toXSLa" id="-716773474%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-x-s-la.html"><span>to</span><wbr><span><span>XSLa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-716773474%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-x-s-la.html"><span class="token function">toXSLa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-x-s-la/index.html">ColorXSLa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="309432104%2FFunctions%2F-1192805387" anchor-label="toXSVa" id="309432104%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-x-s-va.html"><span>to</span><wbr><span><span>XSVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="309432104%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-x-s-va.html"><span class="token function">toXSVa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-x-s-va/index.html">ColorXSVa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1667498394%2FFunctions%2F-1192805387" anchor-label="toXYZa" id="-1667498394%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-x-y-za.html"><span>to</span><wbr><span><span>XYZa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1667498394%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-x-y-za.html"><span class="token function">toXYZa</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-x-y-za/index.html">ColorXYZa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

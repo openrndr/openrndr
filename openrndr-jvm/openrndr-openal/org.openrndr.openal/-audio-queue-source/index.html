@@ -1,0 +1,407 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>AudioQueueSource</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../../images/logo-icon.svg">
+<link href="../../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-jvm:openrndr-openal/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-jvm:openrndr-openal/main" data-filter=":openrndr-jvm:openrndr-openal/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-openal::org.openrndr.openal/AudioQueueSource///PointingToDeclaration//-777020740">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-openal</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.openal</a><span class="delimiter">/</span><span class="current">AudioQueueSource</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Audio</span><wbr><span>Queue</span><wbr><span><span>Source</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">AudioQueueSource</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="../-audio-context/index.html">AudioContext</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bufferCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">3</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>queueSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">3</span><span class="token punctuation">, </span></span><span class="parameter ">pullFunction<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../-audio-data/index.html">AudioData</a><span class="token operator">?</span><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="../-audio-source/index.html">AudioSource</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-openal/src/main/kotlin/AudioQueueSource.kt#L12">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="2007008336%2FConstructors%2F-777020740" anchor-label="AudioQueueSource" id="2007008336%2FConstructors%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-audio-queue-source.html"><span>Audio</span><wbr><span>Queue</span><wbr><span><span>Source</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2007008336%2FConstructors%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="../-audio-context/index.html">AudioContext</a><span class="token punctuation">, </span></span><span class="parameter ">source<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bufferCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">3</span><span class="token punctuation">, </span></span><span class="parameter ">queueSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">3</span><span class="token punctuation">, </span></span><span class="parameter ">pullFunction<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../-audio-data/index.html">AudioData</a><span class="token operator">?</span><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1115637733%2FProperties%2F-777020740" anchor-label="bufferOffset" id="-1115637733%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="buffer-offset.html"><span>buffer</span><wbr><span><span>Offset</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1115637733%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="buffer-offset.html">bufferOffset</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="281586326%2FProperties%2F-777020740" anchor-label="context" id="281586326%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/context.html"><span><span>context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="281586326%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-audio-source/context.html">context</a><span class="token operator">: </span><a href="../-audio-context/index.html">AudioContext</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-272320314%2FProperties%2F-777020740" anchor-label="direction" id="-272320314%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/direction.html"><span><span>direction</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-272320314%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-audio-source/direction.html">direction</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector3/index.html">Vector3</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1038889866%2FProperties%2F-777020740" anchor-label="gain" id="-1038889866%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/gain.html"><span><span>gain</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1038889866%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-audio-source/gain.html">gain</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1398657587%2FProperties%2F-777020740" anchor-label="outputQueueFull" id="-1398657587%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="output-queue-full.html"><span>output</span><wbr><span>Queue</span><wbr><span><span>Full</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1398657587%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="output-queue-full.html">outputQueueFull</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1381492236%2FProperties%2F-777020740" anchor-label="position" id="1381492236%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/position.html"><span><span>position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1381492236%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-audio-source/position.html">position</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector3/index.html">Vector3</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1451704582%2FProperties%2F-777020740" anchor-label="queueSize" id="-1451704582%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="queue-size.html"><span>queue</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1451704582%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="queue-size.html">queueSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1336727183%2FProperties%2F-777020740" anchor-label="sampleOffset" id="-1336727183%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sample-offset.html"><span>sample</span><wbr><span><span>Offset</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1336727183%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="sample-offset.html">sampleOffset</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-640674600%2FProperties%2F-777020740" anchor-label="velocity" id="-640674600%2FProperties%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/velocity.html"><span><span>velocity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-640674600%2FProperties%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-audio-source/velocity.html">velocity</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector3/index.html">Vector3</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1259733101%2FFunctions%2F-777020740" anchor-label="close" id="1259733101%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-audio-source/close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1259733101%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="../-audio-source/close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-379930131%2FFunctions%2F-777020740" anchor-label="dispose" id="-379930131%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dispose.html"><span><span>dispose</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-379930131%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="dispose.html"><span class="token function">dispose</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2049413224%2FFunctions%2F-777020740" anchor-label="flush" id="2049413224%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="flush.html"><span><span>flush</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2049413224%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="flush.html"><span class="token function">flush</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1259636298%2FFunctions%2F-777020740" anchor-label="pause" id="-1259636298%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="pause.html"><span><span>pause</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1259636298%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="pause.html"><span class="token function">pause</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1558954502%2FFunctions%2F-777020740" anchor-label="play" id="-1558954502%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="play.html"><span><span>play</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1558954502%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="play.html"><span class="token function">play</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1578932560%2FFunctions%2F-777020740" anchor-label="queue" id="-1578932560%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="queue.html"><span><span>queue</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1578932560%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="queue.html"><span class="token function">queue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="../-audio-data/index.html">AudioData</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1307876639%2FFunctions%2F-777020740" anchor-label="resume" id="-1307876639%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="resume.html"><span><span>resume</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1307876639%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="resume.html"><span class="token function">resume</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1219025684%2FFunctions%2F-777020740" anchor-label="stop" id="-1219025684%2FFunctions%2F-777020740" data-filterable-set=":openrndr-jvm:openrndr-openal/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-openal/main" data-filterable-set=":openrndr-jvm:openrndr-openal/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stop.html"><span><span>stop</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1219025684%2FFunctions%2F-777020740"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-openal/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="stop.html"><span class="token function">stop</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

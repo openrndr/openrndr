@@ -1,0 +1,831 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ShapeContour</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-shape/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-shape/commonMain" data-filter=":openrndr-shape/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-shape::org.openrndr.shape/ShapeContour///PointingToDeclaration//-268142797">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-shape</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.shape</a><span class="delimiter">/</span><span class="current">ShapeContour</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Shape</span><wbr><span><span>Contour</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">ShapeContour</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>segments<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-segment2-d/index.html">Segment2D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>closed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>polarity<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-y-polarity/index.html">YPolarity</a><span class="token operator"> = </span>YPolarity.CW_NEGATIVE_Y</span></span><span class="token punctuation">)</span> : <a href="../-shape-provider/index.html">ShapeProvider</a>, <a href="../-shape-contour-provider/index.html">ShapeContourProvider</a>, <a href="../-path/index.html">Path</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token operator">&gt; </span>, <a href="../../../openrndr-math/org.openrndr.math/-geometric-primitive2-d/index.html">GeometricPrimitive2D</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-shape/src/commonMain/kotlin/org/openrndr/shape/ShapeContour.kt#L22">source</a>)</span></span></div><p class="paragraph">Represents a geometric contour within a 2D shape. A ShapeContour consists of a collection of segments, which define its path. The shape can be open or closed, and additional properties provide detailed information about its geometry.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="981274268%2FConstructors%2F-268142797" anchor-label="ShapeContour" id="981274268%2FConstructors%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-shape-contour.html"><span>Shape</span><wbr><span><span>Contour</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="981274268%2FConstructors%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">segments<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-segment2-d/index.html">Segment2D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">closed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">polarity<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-y-polarity/index.html">YPolarity</a><span class="token operator"> = </span>YPolarity.CW_NEGATIVE_Y</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-471491780%2FClasslikes%2F-268142797" anchor-label="Companion" id="-471491780%2FClasslikes%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-471491780%2FClasslikes%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1380284272%2FProperties%2F-268142797" anchor-label="bounds" id="1380284272%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bounds.html"><span><span>bounds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1380284272%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="bounds.html">bounds</a><span class="token operator">: </span><a href="../-rectangle/index.html">Rectangle</a></div><div class="brief "><p class="paragraph">Calculates the bounding box of the contour as <a href="../-rectangle/index.html">Rectangle</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-187080573%2FProperties%2F-268142797" anchor-label="clockwise" id="-187080573%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clockwise.html"><span><span>clockwise</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-187080573%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="clockwise.html">clockwise</a><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Returns the <a href="index.html">ShapeContour</a>, but with a clockwise winding.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1056127129%2FProperties%2F-268142797" anchor-label="closed" id="1056127129%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="closed.html"><span><span>closed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1056127129%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="closed.html">closed</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1730173349%2FProperties%2F-268142797" anchor-label="contour" id="-1730173349%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contour.html"><span><span>contour</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1730173349%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="contour.html">contour</a><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">the provided contour</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="921204783%2FProperties%2F-268142797" anchor-label="counterClockwise" id="921204783%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="counter-clockwise.html"><span>counter</span><wbr><span><span>Clockwise</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="921204783%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="counter-clockwise.html">counterClockwise</a><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Returns the <a href="index.html">ShapeContour</a>, but with a counterclockwise winding.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2041561416%2FProperties%2F-268142797" anchor-label="empty" id="2041561416%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="empty.html"><span><span>empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2041561416%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="empty.html">empty</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if <a href="index.html">ShapeContour</a> doesn't contain any <a href="../-segment2-d/index.html">Segment2D</a>s.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-947716030%2FProperties%2F-268142797" anchor-label="exploded" id="-947716030%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="exploded.html"><span><span>exploded</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-947716030%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="exploded.html">exploded</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">ShapeContour</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Converts to a <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a> of single <a href="../-segment2-d/index.html">Segment2D</a>s.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1489327779%2FProperties%2F-268142797" anchor-label="infinity" id="-1489327779%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="infinity.html"><span><span>infinity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1489327779%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="infinity.html">infinity</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-428696481%2FProperties%2F-268142797" anchor-label="length" id="-428696481%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="length.html"><span><span>length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-428696481%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="length.html">length</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Calculates approximate Euclidean length of the contour.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1539695749%2FProperties%2F-268142797" anchor-label="open" id="-1539695749%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="open.html"><span><span>open</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1539695749%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="open.html">open</a><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Opens the path of the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1113590827%2FProperties%2F-268142797" anchor-label="polarity" id="-1113590827%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="polarity.html"><span><span>polarity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1113590827%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="polarity.html">polarity</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-y-polarity/index.html">YPolarity</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="550365955%2FProperties%2F-268142797" anchor-label="reversed" id="550365955%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reversed.html"><span><span>reversed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="550365955%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="reversed.html">reversed</a><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Reverses the direction of <a href="../-segment2-d/index.html">Segment2D</a>s and their order.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="348087013%2FProperties%2F-268142797" anchor-label="segments" id="348087013%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="segments.html"><span><span>segments</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="348087013%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="segments.html">segments</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-segment2-d/index.html">Segment2D</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1911325324%2FProperties%2F-268142797" anchor-label="shape" id="-1911325324%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shape.html"><span><span>shape</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1911325324%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="shape.html">shape</a><span class="token operator">: </span><a href="../-shape/index.html">Shape</a></div><div class="brief "><p class="paragraph">Returns <a href="../-shape/index.html">Shape</a> representation.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-541231525%2FProperties%2F-268142797" anchor-label="winding" id="-541231525%2FProperties%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="winding.html"><span><span>winding</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-541231525%2FProperties%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="winding.html">winding</a><span class="token operator">: </span><a href="../-winding/index.html">Winding</a></div><div class="brief "><p class="paragraph">Determines the winding order of the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="2058690351%2FFunctions%2F-268142797" anchor-label="adaptivePositions" id="2058690351%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/adaptive-positions.html"><span>adaptive</span><wbr><span><span>Positions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2058690351%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/adaptive-positions.html"><span class="token function">adaptivePositions</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Recursively subdivides linear <a href="../-segment2-d/index.html">Segment2D</a>s to approximate Bézier curves.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1819701302%2FFunctions%2F-268142797" anchor-label="adaptivePositionsAndCorners" id="-1819701302%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="adaptive-positions-and-corners.html"><span>adaptive</span><wbr><span>Positions</span><wbr><span>And</span><wbr><span><span>Corners</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1819701302%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="adaptive-positions-and-corners.html"><span class="token function">adaptivePositionsAndCorners</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">0.5</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token operator">&gt;</span><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Recursively subdivides linear <a href="../-segment2-d/index.html">Segment2D</a>s to approximate Bézier curves.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="275104973%2FFunctions%2F-268142797" anchor-label="adaptivePositionsWithT" id="275104973%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/adaptive-positions-with-t.html"><span>adaptive</span><wbr><span>Positions</span><wbr><span>With</span><wbr><span><span>T</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="275104973%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/adaptive-positions-with-t.html"><span class="token function">adaptivePositionsWithT</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1446147%2FFunctions%2F-268142797" anchor-label="close" id="-1446147%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1446147%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Closes the path of the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1729128964%2FFunctions%2F-268142797" anchor-label="contains" id="1729128964%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../contains.html"><span><span>contains</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1729128964%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">point<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if given <a href="../contains.html">point</a> lies inside the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1171956678%2FFunctions%2F-268142797" anchor-label="curvature" id="-1171956678%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/curvature.html"><span><span>curvature</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1171956678%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/curvature.html"><span class="token function">curvature</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ut<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="436925343%2FFunctions%2F-268142797" anchor-label="difference" id="436925343%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../difference.html"><span><span>difference</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="436925343%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../difference.html"><span class="token function">difference</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="../-shape/index.html">Shape</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-shape/index.html">Shape</a></div><div class="brief "><p class="paragraph">Applies a boolean difference operation between the <a href="index.html">ShapeContour</a> and another <a href="../-shape/index.html">Shape</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-889088038%2FFunctions%2F-268142797" anchor-label="direction" id="-889088038%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/direction.html"><span><span>direction</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-889088038%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/direction.html"><span class="token function">direction</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ut<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2129925397%2FFunctions%2F-268142797" anchor-label="equidistantPositions" id="-2129925397%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/equidistant-positions.html"><span>equidistant</span><wbr><span><span>Positions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2129925397%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/equidistant-positions.html"><span class="token function">equidistantPositions</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pointCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns specified amount of points of equal distance from each other.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="270327687%2FFunctions%2F-268142797" anchor-label="equidistantPositionsWithT" id="270327687%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/equidistant-positions-with-t.html"><span>equidistant</span><wbr><span>Positions</span><wbr><span>With</span><wbr><span><span>T</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="270327687%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/equidistant-positions-with-t.html"><span class="token function">equidistantPositionsWithT</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pointCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-879527765%2FFunctions%2F-268142797" anchor-label="intersection" id="-879527765%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../intersection.html"><span><span>intersection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-879527765%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../intersection.html"><span class="token function">intersection</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="../-shape/index.html">Shape</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-shape/index.html">Shape</a></div><div class="brief "><p class="paragraph">Applies a boolean intersection operation between the <a href="index.html">ShapeContour</a> and a <a href="../-shape/index.html">Shape</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="197809538%2FFunctions%2F-268142797" anchor-label="intersections" id="197809538%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../intersections.html"><span><span>intersections</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="197809538%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../intersections.html"><span class="token function">intersections</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="../-segment2-d/index.html">Segment2D</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-contour-intersection/index.html">ContourIntersection</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Calculates a <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a> of all intersections between the <a href="index.html">ShapeContour</a> and a <a href="../-segment2-d/index.html">Segment2D</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../intersections.html"><span class="token function">intersections</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="../-shape/index.html">Shape</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-contour-intersection/index.html">ContourIntersection</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Calculates a <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a> of all intersections between the <a href="index.html">ShapeContour</a> and a <a href="../-shape/index.html">Shape</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../intersections.html"><span class="token function">intersections</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">ShapeContour</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-contour-intersection/index.html">ContourIntersection</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Calculates a <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a> of all intersections between the <a href="index.html">ShapeContour</a> and another <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1311983634%2FFunctions%2F-268142797" anchor-label="nearest" id="1311983634%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="nearest.html"><span><span>nearest</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1311983634%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="nearest.html"><span class="token function">nearest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">point<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-contour-point/index.html">ContourPoint</a></div><div class="brief "><p class="paragraph">Projects a point on the <a href="index.html">ShapeContour</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1098345606%2FFunctions%2F-268142797" anchor-label="normal" id="1098345606%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="normal.html"><span><span>normal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1098345606%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="normal.html"><span class="token function">normal</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ut<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div><div class="brief "><p class="paragraph">Calculates the normal for the given <a href="normal.html">ut</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-746812248%2FFunctions%2F-268142797" anchor-label="on" id="-746812248%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on.html"><span><span>on</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-746812248%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="on.html"><span class="token function">on</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">point<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token punctuation">, </span></span><span class="parameter ">error<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">5.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Checks if given point lies on the path of the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="618167713%2FFunctions%2F-268142797" anchor-label="plus" id="618167713%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="plus.html"><span><span>plus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="618167713%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="plus.html"><span class="token function">plus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">ShapeContour</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-789542999%2FFunctions%2F-268142797" anchor-label="pointAtLength" id="-789542999%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/point-at-length.html"><span>point</span><wbr><span>At</span><wbr><span><span>Length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-789542999%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/point-at-length.html"><span class="token function">pointAtLength</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">length<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div><div class="brief "><p class="paragraph">Calculates the point at a given distance along this <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1221597520%2FFunctions%2F-268142797" anchor-label="pose" id="-1221597520%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="pose.html"><span><span>pose</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1221597520%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="pose.html"><span class="token function">pose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-matrix44/index.html">Matrix44</a></div><div class="brief "><p class="paragraph">Calculates the pose <a href="../../../openrndr-math/org.openrndr.math/-matrix44/index.html">Matrix44</a> (i.e. translation and rotation) that describes an orthonormal basis formed by normal and tangent of the contour at <a href="https://pomax.github.io/bezierinfo/#explanation">t</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="239519132%2FFunctions%2F-268142797" anchor-label="position" id="239519132%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/position.html"><span><span>position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="239519132%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/position.html"><span class="token function">position</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ut<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div><div class="brief "><p class="paragraph">Returns a point on the path of the <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1001780749%2FFunctions%2F-268142797" anchor-label="removeLoops" id="1001780749%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../remove-loops.html"><span>remove</span><wbr><span><span>Loops</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1001780749%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../remove-loops.html"><span class="token function">removeLoops</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">attempts<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="970940530%2FFunctions%2F-268142797" anchor-label="resetCache" id="970940530%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-cache.html"><span>reset</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="970940530%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-cache.html"><span class="token function">resetCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1453458500%2FFunctions%2F-268142797" anchor-label="sampleEquidistant" id="-1453458500%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sample-equidistant.html"><span>sample</span><wbr><span><span>Equidistant</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1453458500%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="sample-equidistant.html"><span class="token function">sampleEquidistant</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pointCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Samples the <a href="index.html">ShapeContour</a> into equidistant linear <a href="../-segment2-d/index.html">Segment2D</a>s.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-340621042%2FFunctions%2F-268142797" anchor-label="sampleLinear" id="-340621042%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sample-linear.html"><span>sample</span><wbr><span><span>Linear</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-340621042%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="sample-linear.html"><span class="token function">sampleLinear</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">distanceTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">0.5</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Adaptively samples the contour into a new <a href="index.html">ShapeContour</a> of <a href="../-segment-type/-l-i-n-e-a-r/index.html">linear</a> <a href="../-segment2-d/index.html">Segment2D</a>s while still approximating the original contour.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1831531918%2FFunctions%2F-268142797" anchor-label="segment" id="1831531918%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/segment.html"><span><span>segment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1831531918%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/segment.html"><span class="token function">segment</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ut<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns segment number and segment offset in a <a href="index.html">ShapeContour</a> for the given <a href="../-path/segment.html">ut</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="657633602%2FFunctions%2F-268142797" anchor-label="split" id="657633602%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../split.html"><span><span>split</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="657633602%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../split.html"><span class="token function">split</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cutters<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">ShapeContour</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">ShapeContour</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Splits a <a href="index.html">ShapeContour</a> with a <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a> of <a href="index.html">ShapeContour</a>s.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../split.html"><span class="token function">split</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cutter<span class="token operator">: </span><a href="index.html">ShapeContour</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="index.html">ShapeContour</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Splits a <a href="index.html">ShapeContour</a> with another <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1633960812%2FFunctions%2F-268142797" anchor-label="sub" id="-1633960812%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sub.html"><span><span>sub</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1633960812%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="sub.html"><span class="token function">sub</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t0<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">t1<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Samples a new <a href="index.html">ShapeContour</a> from the current <a href="index.html">ShapeContour</a> starting at <a href="sub.html">t0</a> and ending at <a href="sub.html">t1</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1617585902%2FFunctions%2F-268142797" anchor-label="tForLength" id="1617585902%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-path/t-for-length.html"><span>t</span><wbr><span>For</span><wbr><span><span>Length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1617585902%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-path/t-for-length.html"><span class="token function">tForLength</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">length<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Estimates the <a href="https://pomax.github.io/bezierinfo/#explanation">t</a> value for a given length.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2002459918%2FFunctions%2F-268142797" anchor-label="transform" id="-2002459918%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="transform.html"><span><span>transform</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2002459918%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="transform.html"><span class="token function">transform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">transform<span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-matrix44/index.html">Matrix44</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ShapeContour</a></div><div class="brief "><p class="paragraph">Applies linear transformation to <a href="index.html">ShapeContour</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-55980881%2FFunctions%2F-268142797" anchor-label="union" id="-55980881%2FFunctions%2F-268142797" data-filterable-set=":openrndr-shape/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-shape/commonMain" data-filterable-set=":openrndr-shape/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../union.html"><span><span>union</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-55980881%2FFunctions%2F-268142797"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-shape/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">ShapeContour</a><span class="token punctuation">.</span><a href="../union.html"><span class="token function">union</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="../-shape/index.html">Shape</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-shape/index.html">Shape</a></div><div class="brief "><p class="paragraph">Applies a boolean org.openrndr.shape.union operation between the <a href="index.html">ShapeContour</a> and a <a href="../-shape/index.html">Shape</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

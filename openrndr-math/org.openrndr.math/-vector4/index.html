@@ -1,0 +1,741 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Vector4</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-math/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-math/commonMain" data-filter=":openrndr-math/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-math::org.openrndr.math/Vector4///PointingToDeclaration//758896474">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-math</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.math</a><span class="delimiter">/</span><span class="current">Vector4</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Vector4</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-record/index.html"><span class="token annotation builtin">JvmRecord</span></a></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">Vector4</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>z<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>w<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span> : <a href="../-linear-type/index.html">LinearType</a><span class="token operator">&lt;</span><a href="index.html">Vector4</a><span class="token operator">&gt; </span>, <a href="../-euclidean-vector/index.html">EuclideanVector</a><span class="token operator">&lt;</span><a href="index.html">Vector4</a><span class="token operator">&gt; </span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-math/src/commonMain/kotlin/org/openrndr/math/Vector4.kt#L12">source</a>)</span></span></div><p class="paragraph">Double-precision 4D vector.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="903760605%2FConstructors%2F758896474" anchor-label="Vector4" id="903760605%2FConstructors%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-vector4.html"><span><span>Vector4</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="903760605%2FConstructors%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">z<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">w<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-667139847%2FClasslikes%2F758896474" anchor-label="Companion" id="-667139847%2FClasslikes%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-667139847%2FClasslikes%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1966875647%2FProperties%2F758896474" anchor-label="div" id="-1966875647%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="div.html"><span><span>div</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1966875647%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="div.html">div</a><span class="token operator">: </span><a href="../-vector3/index.html">Vector3</a></div><div class="brief "><p class="paragraph">Calculates <a href="../-vector3/index.html">Vector3</a> by dividing <a href="../../../openrndr-math/org.openrndr.math/-vector4/--root--.html">x</a>, <a href="../../../openrndr-math/org.openrndr.math/-vector4/--root--.html">y</a>, <a href="../../../openrndr-math/org.openrndr.math/-vector4/--root--.html">z</a> by <a href="../../../openrndr-math/org.openrndr.math/-vector4/--root--.html">w</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1842145342%2FProperties%2F758896474" anchor-label="length" id="-1842145342%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="length.html"><span><span>length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1842145342%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="length.html">length</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The Euclidean length of the vector.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1186003137%2FProperties%2F758896474" anchor-label="normalized" id="1186003137%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-euclidean-vector/normalized.html"><span><span>normalized</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1186003137%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">val </span><a href="../-euclidean-vector/normalized.html">normalized</a><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">normalized vector</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1537298139%2FProperties%2F758896474" anchor-label="squaredLength" id="-1537298139%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="squared-length.html"><span>squared</span><wbr><span><span>Length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1537298139%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="squared-length.html">squaredLength</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The squared Euclidean length of the vector.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-791226341%2FProperties%2F758896474" anchor-label="w" id="-791226341%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="w.html"><span><span>w</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-791226341%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="w.html">w</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-760206534%2FProperties%2F758896474" anchor-label="x" id="-760206534%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="x.html"><span><span>x</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-760206534%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="x.html">x</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-339192441%2FProperties%2F758896474" anchor-label="xy" id="-339192441%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="xy.html"><span><span>xy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-339192441%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="xy.html">xy</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-141637639%2FProperties%2F758896474" anchor-label="xyz" id="-141637639%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="xyz.html"><span><span>xyz</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-141637639%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="xyz.html">xyz</a><span class="token operator">: </span><a href="../-vector3/index.html">Vector3</a></div><div class="brief "><p class="paragraph">Downcasts to <a href="../-vector3/index.html">Vector3</a> by discarding <a href="../../../openrndr-math/org.openrndr.math/-vector4/--root--.html">w</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-308172634%2FProperties%2F758896474" anchor-label="xz" id="-308172634%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="xz.html"><span><span>xz</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-308172634%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="xz.html">xz</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-729186727%2FProperties%2F758896474" anchor-label="y" id="-729186727%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="y.html"><span><span>y</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-729186727%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="y.html">y</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="591401769%2FProperties%2F758896474" anchor-label="yx" id="591401769%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="yx.html"><span><span>yx</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="591401769%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="yx.html">yx</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="653441383%2FProperties%2F758896474" anchor-label="yz" id="653441383%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="yz.html"><span><span>yz</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="653441383%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="yz.html">yz</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-698166920%2FProperties%2F758896474" anchor-label="z" id="-698166920%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="z.html"><span><span>z</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-698166920%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="z.html">z</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="134398208%2FProperties%2F758896474" anchor-label="zero" id="134398208%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="zero.html"><span><span>zero</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="134398208%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="zero.html">zero</a><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">returns the zero vector</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1553015786%2FProperties%2F758896474" anchor-label="zx" id="1553015786%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="zx.html"><span><span>zx</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1553015786%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="zx.html">zx</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1584035593%2FProperties%2F758896474" anchor-label="zy" id="1584035593%2FProperties%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="zy.html"><span><span>zy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1584035593%2FProperties%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="zy.html">zy</a><span class="token operator">: </span><a href="../-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="283592501%2FFunctions%2F758896474" anchor-label="areaBetween" id="283592501%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-euclidean-vector/area-between.html"><span>area</span><wbr><span><span>Between</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="283592501%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-euclidean-vector/area-between.html"><span class="token function">areaBetween</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">returns the area of the parallelogram formed by extruding this over <a href="../-euclidean-vector/area-between.html">other</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1112612236%2FFunctions%2F758896474" anchor-label="atan2" id="1112612236%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-euclidean-vector/atan2.html"><span><span>atan2</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1112612236%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-euclidean-vector/atan2.html"><span class="token function">atan2</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">atan2 style angle between this and <a href="../-euclidean-vector/atan2.html">other</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1448248462%2FFunctions%2F758896474" anchor-label="clamp" id="-1448248462%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../clamp.html"><span><span>clamp</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1448248462%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Vector4</a><span class="token punctuation">.</span><a href="../clamp.html"><span class="token function">clamp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">min<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">max<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Returns <a href="index.html">Vector4</a> whose value is limited between <a href="../clamp.html">min</a> and <a href="../clamp.html">max</a> per vector component.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="390495023%2FFunctions%2F758896474" anchor-label="distanceTo" id="390495023%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="distance-to.html"><span>distance</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="390495023%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="distance-to.html"><span class="token function">distanceTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Calculates the Euclidean distance to <a href="distance-to.html">other</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2136506897%2FFunctions%2F758896474" anchor-label="div" id="-2136506897%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="div.html"><span><span>div</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2136506897%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="div.html"><span class="token function">div</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Divides the current object by the given scale factor.</p></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="div.html"><span class="token function">div</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1327050014%2FFunctions%2F758896474" anchor-label="dot" id="1327050014%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dot.html"><span><span>dot</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1327050014%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">infix override </span><span class="token keyword">fun </span><a href="dot.html"><span class="token function">dot</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">right<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Calculates a dot product between this <a href="index.html">Vector4</a> and <a href="dot.html">right</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-41574534%2FFunctions%2F758896474" anchor-label="get" id="-41574534%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-41574534%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">i<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Retrieves the value corresponding to the provided index.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="544449488%2FFunctions%2F758896474" anchor-label="map" id="544449488%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="map.html"><span><span>map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="544449488%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="map.html"><span class="token function">map</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">function<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Applies a given function to each component of the vector and returns a new vector with the transformed components.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1367669027%2FFunctions%2F758896474" anchor-label="map" id="1367669027%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../map.html"><span><span>map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1367669027%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Vector4</a><span class="token punctuation">.</span><a href="../map.html"><span class="token function">map</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">beforeLeft<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">beforeRight<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">afterLeft<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">afterRight<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">clamp<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2050687281%2FFunctions%2F758896474" anchor-label="minus" id="-2050687281%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="minus.html"><span><span>minus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2050687281%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="minus.html"><span class="token function">minus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">d<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><br><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="minus.html"><span class="token function">minus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">right<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Subtracts the specified value from the current value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="203093718%2FFunctions%2F758896474" anchor-label="mix" id="203093718%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="mix.html"><span><span>mix</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="203093718%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">o<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">mix<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Performs a linear interpolation between this <a href="index.html">Vector4</a> and another <a href="index.html">Vector4</a> <code class="lang-kotlin">o</code> by a given mixing factor <code class="lang-kotlin">mix</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1739472989%2FFunctions%2F758896474" anchor-label="mod" id="-1739472989%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../mod.html"><span><span>mod</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1739472989%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Vector4</a><span class="token punctuation">.</span><a href="../mod.html"><span class="token function">mod</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">b<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-285453725%2FFunctions%2F758896474" anchor-label="plus" id="-285453725%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="plus.html"><span><span>plus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-285453725%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="plus.html"><span class="token function">plus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">d<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><br><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="plus.html"><span class="token function">plus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">right<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Adds the given value <code class="lang-kotlin">right</code> to this value and returns the result.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-672573711%2FFunctions%2F758896474" anchor-label="projectedOn" id="-672573711%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-euclidean-vector/projected-on.html"><span>projected</span><wbr><span><span>On</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-672573711%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="../-euclidean-vector/projected-on.html"><span class="token function">projectedOn</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">on<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">project this vector on <a href="../-euclidean-vector/projected-on.html">on</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-953756278%2FFunctions%2F758896474" anchor-label="reflectedOver" id="-953756278%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-euclidean-vector/reflected-over.html"><span>reflected</span><wbr><span><span>Over</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-953756278%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">infix </span><span class="token keyword">fun </span><a href="../-euclidean-vector/reflected-over.html"><span class="token function">reflectedOver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">surfaceNormal<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">reflect this vector over <a href="../-euclidean-vector/reflected-over.html">surfaceNormal</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-510187135%2FFunctions%2F758896474" anchor-label="saturate" id="-510187135%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../saturate.html"><span><span>saturate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-510187135%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Vector4</a><span class="token punctuation">.</span><a href="../saturate.html"><span class="token function">saturate</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1831769379%2FFunctions%2F758896474" anchor-label="smoothstep" id="1831769379%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../smoothstep.html"><span><span>smoothstep</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1831769379%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Vector4</a><span class="token punctuation">.</span><a href="../smoothstep.html"><span class="token function">smoothstep</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">edge0<span class="token operator">: </span><a href="index.html">Vector4</a><span class="token punctuation">, </span></span><span class="parameter ">edge1<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1907105620%2FFunctions%2F758896474" anchor-label="squaredDistanceTo" id="-1907105620%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="squared-distance-to.html"><span>squared</span><wbr><span>Distance</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1907105620%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="squared-distance-to.html"><span class="token function">squaredDistanceTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Calculates the squared Euclidean distance to <a href="squared-distance-to.html">other</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="729752079%2FFunctions%2F758896474" anchor-label="times" id="729752079%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="times.html"><span><span>times</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="729752079%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="times.html"><span class="token function">times</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div><div class="brief "><p class="paragraph">Multiplies the current instance by the specified scalar value.</p></div><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="times.html"><span class="token function">times</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="index.html">Vector4</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1936390587%2FFunctions%2F758896474" anchor-label="toDoubleArray" id="-1936390587%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-double-array.html"><span>to</span><wbr><span>Double</span><wbr><span><span>Array</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1936390587%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-double-array.html"><span class="token function">toDoubleArray</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double-array/index.html">DoubleArray</a></div><div class="brief "><p class="paragraph">Casts to <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double-array/index.html">DoubleArray</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="634487102%2FFunctions%2F758896474" anchor-label="toInt" id="634487102%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-int.html"><span>to</span><wbr><span><span>Int</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="634487102%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="to-int.html"><span class="token function">toInt</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-int-vector4/index.html">IntVector4</a></div><div class="brief "><p class="paragraph">Casts to <a href="../-int-vector4/index.html">IntVector4</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1376982279%2FFunctions%2F758896474" anchor-label="unaryMinus" id="1376982279%2FFunctions%2F758896474" data-filterable-set=":openrndr-math/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-math/commonMain" data-filterable-set=":openrndr-math/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="unary-minus.html"><span>unary</span><wbr><span><span>Minus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1376982279%2FFunctions%2F758896474"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-math/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="unary-minus.html"><span class="token function">unaryMinus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Window</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../../images/logo-icon.svg">
+<link href="../../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-application/commonJvmMain">commonJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-application/commonJvmMain" data-filter=":openrndr-application/commonJvmMain">
+                                <span class="checkbox--icon"></span>
+                                commonJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-application::org.openrndr/WindowProgram.Window///PointingToDeclaration//-188255702">
+  <div class="breadcrumbs"><a href="../../../index.html">openrndr-application</a><span class="delimiter">/</span><a href="../../index.html">org.openrndr</a><span class="delimiter">/</span><a href="../index.html">WindowProgram</a><span class="delimiter">/</span><span class="current">Window</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Window</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">inner </span><span class="token keyword">class </span><a href="index.html">Window</a> : <a href="../../-window/index.html">Window</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-application/src/commonJvmMain/kotlin/org/openrndr/WindowProgram.kt#L176">source</a>)</span></span></div><p class="paragraph">Simplified window interface</p></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1146306791%2FConstructors%2F-188255702" anchor-label="Window" id="-1146306791%2FConstructors%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-window.html"><span><span>Window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1146306791%2FConstructors%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1646287555%2FProperties%2F-188255702" anchor-label="closed" id="-1646287555%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="closed.html"><span><span>closed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1646287555%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="closed.html">closed</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window restored (from minimization) event</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="698358008%2FProperties%2F-188255702" anchor-label="contentScale" id="698358008%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="content-scale.html"><span>content</span><wbr><span><span>Scale</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="698358008%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="content-scale.html">contentScale</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1410208742%2FProperties%2F-188255702" anchor-label="drop" id="-1410208742%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="drop.html"><span><span>drop</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1410208742%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="drop.html">drop</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Drop event, triggered when a file is dropped on the window</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-431581126%2FProperties%2F-188255702" anchor-label="focused" id="-431581126%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="focused.html"><span><span>focused</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-431581126%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="focused.html">focused</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window focused event, triggered when the window receives focus</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1173556396%2FProperties%2F-188255702" anchor-label="hitTest" id="1173556396%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hit-test.html"><span>hit</span><wbr><span><span>Test</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1173556396%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="hit-test.html">hitTest</a><span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for Vector2<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../-hit/index.html">Hit</a><span class="token operator">?</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-950075381%2FProperties%2F-188255702" anchor-label="minimized" id="-950075381%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="minimized.html"><span><span>minimized</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-950075381%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="minimized.html">minimized</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window minimized event</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1119308418%2FProperties%2F-188255702" anchor-label="moved" id="-1119308418%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="moved.html"><span><span>moved</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1119308418%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="moved.html">moved</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window moved event</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1608390414%2FProperties%2F-188255702" anchor-label="multisample" id="1608390414%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="multisample.html"><span><span>multisample</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1608390414%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="multisample.html">multisample</a><span class="token operator">: </span><a href="../../-window-multisample/index.html">WindowMultisample</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-895844064%2FProperties%2F-188255702" anchor-label="position" id="-895844064%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="position.html"><span><span>position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-895844064%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="position.html">position</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for Vector2</div><div class="brief "><p class="paragraph">Window position</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1613664492%2FProperties%2F-188255702" anchor-label="presentationMode" id="1613664492%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="presentation-mode.html"><span>presentation</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1613664492%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="presentation-mode.html">presentationMode</a><span class="token operator">: </span><a href="../../-presentation-mode/index.html">PresentationMode</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1749929606%2FProperties%2F-188255702" anchor-label="resizable" id="1749929606%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="resizable.html"><span><span>resizable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1749929606%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="resizable.html">resizable</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-722157741%2FProperties%2F-188255702" anchor-label="restored" id="-722157741%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="restored.html"><span><span>restored</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-722157741%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="restored.html">restored</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window restored (from minimization) event</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="40645448%2FProperties%2F-188255702" anchor-label="size" id="40645448%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="40645448%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="size.html">size</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for Vector2</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1934000722%2FProperties%2F-188255702" anchor-label="sized" id="-1934000722%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sized.html"><span><span>sized</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1934000722%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="sized.html">sized</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window sized event</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2073085305%2FProperties%2F-188255702" anchor-label="title" id="2073085305%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="title.html"><span><span>title</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2073085305%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="title.html">title</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1261482541%2FProperties%2F-188255702" anchor-label="unfocused" id="-1261482541%2FProperties%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="unfocused.html"><span><span>unfocused</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1261482541%2FProperties%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="unfocused.html">unfocused</a><span class="token operator">: </span>ERROR CLASS: Unresolved name: Event</div><div class="brief "><p class="paragraph">Window focused event, triggered when the window loses focus</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-919904807%2FFunctions%2F-188255702" anchor-label="close" id="-919904807%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-919904807%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1888839785%2FFunctions%2F-188255702" anchor-label="fullscreen" id="1888839785%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="fullscreen.html"><span><span>fullscreen</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1888839785%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="fullscreen.html"><span class="token function">fullscreen</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="../../-fullscreen/index.html">Fullscreen</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Toggles the window fullscreen mode based on the specified parameter.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1952168739%2FFunctions%2F-188255702" anchor-label="maximize" id="-1952168739%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="maximize.html"><span><span>maximize</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1952168739%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="maximize.html"><span class="token function">maximize</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Maximizes the window to occupy the full available screen space.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-66162357%2FFunctions%2F-188255702" anchor-label="minimize" id="-66162357%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="minimize.html"><span><span>minimize</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-66162357%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="minimize.html"><span class="token function">minimize</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Minimizes the window.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1044965186%2FFunctions%2F-188255702" anchor-label="requestDraw" id="-1044965186%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-draw.html"><span>request</span><wbr><span><span>Draw</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1044965186%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="request-draw.html"><span class="token function">requestDraw</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Requests a redraw of the window's contents.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-957301568%2FFunctions%2F-188255702" anchor-label="requestFocus" id="-957301568%2FFunctions%2F-188255702" data-filterable-set=":openrndr-application/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-focus.html"><span>request</span><wbr><span><span>Focus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-957301568%2FFunctions%2F-188255702"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-application/commonJvmMain" data-filterable-set=":openrndr-application/commonJvmMain" data-active="" data-toggle=":openrndr-application/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="request-focus.html"><span class="token function">requestFocus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Requests focus for the window, making it the active window.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1027 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>DriverGL3</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../../images/logo-icon.svg">
+<link href="../../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filter=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+                                <span class="checkbox--icon"></span>
+                                commonJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-gl3::org.openrndr.internal.gl3/DriverGL3///PointingToDeclaration//639362700">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-gl3</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.internal.gl3</a><span class="delimiter">/</span><span class="current">DriverGL3</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Driver</span><wbr><span><span>GL3</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">DriverGL3</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>version<span class="token operator">: </span><a href="../-driver-version-g-l/index.html">DriverVersionGL</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="/<ERROR CLASS> ERROR CLASS: Symbol not found for Driver///PointingToDeclaration/">&lt;ERROR CLASS&gt; ERROR CLASS: Symbol not found for Driver</span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-gl3/src/commonJvmMain/kotlin/org/openrndr/internal/gl3/DriverGL3.kt#L88">source</a>)</span></span></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-698118740%2FConstructors%2F639362700" anchor-label="DriverGL3" id="-698118740%2FConstructors%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-driver-g-l3.html"><span>Driver</span><wbr><span><span>GL3</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-698118740%2FConstructors%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">version<span class="token operator">: </span><a href="../-driver-version-g-l/index.html">DriverVersionGL</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-1171978223%2FClasslikes%2F639362700" anchor-label="Capabilities" id="-1171978223%2FClasslikes%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-capabilities/index.html"><span><span>Capabilities</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1171978223%2FClasslikes%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-capabilities/index.html">Capabilities</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>programUniform<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>textureStorage<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>textureMultisampleStorage<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>compute<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-368537713%2FClasslikes%2F639362700" anchor-label="Companion" id="-368537713%2FClasslikes%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-368537713%2FClasslikes%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1813633870%2FClasslikes%2F639362700" anchor-label="Quirks" id="-1813633870%2FClasslikes%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-quirks/index.html"><span><span>Quirks</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1813633870%2FClasslikes%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-quirks/index.html">Quirks</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1962326872%2FClasslikes%2F639362700" anchor-label="ShaderVertexDescription" id="-1962326872%2FClasslikes%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-shader-vertex-description/index.html"><span>Shader</span><wbr><span>Vertex</span><wbr><span><span>Description</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1962326872%2FClasslikes%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-shader-vertex-description/index.html">ShaderVertexDescription</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>context<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>shader<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int-array/index.html">IntArray</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>instanceAttributeBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int-array/index.html">IntArray</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-2137122491%2FProperties%2F639362700" anchor-label="activeRenderTarget" id="-2137122491%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="active-render-target.html"><span>active</span><wbr><span>Render</span><wbr><span><span>Target</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2137122491%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="active-render-target.html">activeRenderTarget</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for RenderTarget</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1067490724%2FProperties%2F639362700" anchor-label="capabilities" id="-1067490724%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="capabilities.html"><span><span>capabilities</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1067490724%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="capabilities.html">capabilities</a><span class="token operator">: </span><a href="-capabilities/index.html">DriverGL3.Capabilities</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="699879038%2FProperties%2F639362700" anchor-label="contextID" id="699879038%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="context-i-d.html"><span>context</span><wbr><span><span>ID</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="699879038%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="context-i-d.html">contextID</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1142849269%2FProperties%2F639362700" anchor-label="fontImageMapManager" id="-1142849269%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="font-image-map-manager.html"><span>font</span><wbr><span>Image</span><wbr><span>Map</span><wbr><span><span>Manager</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1142849269%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="font-image-map-manager.html">fontImageMapManager</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for FontMapManager</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2006054161%2FProperties%2F639362700" anchor-label="fontVectorMapManager" id="-2006054161%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="font-vector-map-manager.html"><span>font</span><wbr><span>Vector</span><wbr><span>Map</span><wbr><span><span>Manager</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2006054161%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="font-vector-map-manager.html">fontVectorMapManager</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for FontMapManager</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="831356095%2FProperties%2F639362700" anchor-label="properties" id="831356095%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="properties.html"><span><span>properties</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="831356095%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="properties.html">properties</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for DriverProperties</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-383993283%2FProperties%2F639362700" anchor-label="quirks" id="-383993283%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="quirks.html"><span><span>quirks</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-383993283%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="quirks.html">quirks</a><span class="token operator">: </span><a href="-quirks/index.html">DriverGL3.Quirks</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="412779693%2FProperties%2F639362700" anchor-label="shaderGenerators" id="412779693%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shader-generators.html"><span>shader</span><wbr><span><span>Generators</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="412779693%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="shader-generators.html">shaderGenerators</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for ShaderGenerators</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-55828395%2FProperties%2F639362700" anchor-label="shaderLanguage" id="-55828395%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shader-language.html"><span>shader</span><wbr><span><span>Language</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-55828395%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="shader-language.html">shaderLanguage</a><span class="token operator">: </span>ERROR CLASS: Symbol not found for ShaderLanguage</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1366780720%2FProperties%2F639362700" anchor-label="version" id="1366780720%2FProperties%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="version.html"><span><span>version</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1366780720%2FProperties%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="version.html">version</a><span class="token operator">: </span><a href="../-driver-version-g-l/index.html">DriverVersionGL</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1034583213%2FFunctions%2F639362700" anchor-label="applyBlendMode" id="-1034583213%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="apply-blend-mode.html"><span>apply</span><wbr><span>Blend</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1034583213%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="apply-blend-mode.html"><span class="token function">applyBlendMode</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">drawStyle<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawStyle</span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-727409396%2FFunctions%2F639362700" anchor-label="applyTextureBindings" id="-727409396%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="apply-texture-bindings.html"><span>apply</span><wbr><span>Texture</span><wbr><span><span>Bindings</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-727409396%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="apply-texture-bindings.html"><span class="token function">applyTextureBindings</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bindings<span class="token operator">: </span>ERROR CLASS: Symbol not found for TextureBindings</span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1631098502%2FFunctions%2F639362700" anchor-label="clear" id="-1631098502%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear.html"><span><span>clear</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1631098502%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="clear.html"><span class="token function">clear</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorRGBa</span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1778822842%2FFunctions%2F639362700" anchor-label="clearImpl" id="1778822842%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear-impl.html"><span>clear</span><wbr><span><span>Impl</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1778822842%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-impl.html"><span class="token function">clearImpl</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorRGBa</span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1007533414%2FFunctions%2F639362700" anchor-label="createArrayCubemap" id="-1007533414%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-array-cubemap.html"><span>create</span><wbr><span>Array</span><wbr><span><span>Cubemap</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1007533414%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-array-cubemap.html"><span class="token function">createArrayCubemap</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ArrayCubemap</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1718662079%2FFunctions%2F639362700" anchor-label="createArrayTexture" id="1718662079%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-array-texture.html"><span>create</span><wbr><span>Array</span><wbr><span><span>Texture</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1718662079%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-array-texture.html"><span class="token function">createArrayTexture</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ArrayTexture</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="930131752%2FFunctions%2F639362700" anchor-label="createAtomicCounterBuffer" id="930131752%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-atomic-counter-buffer.html"><span>create</span><wbr><span>Atomic</span><wbr><span>Counter</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="930131752%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-atomic-counter-buffer.html"><span class="token function">createAtomicCounterBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">counterCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for AtomicCounterBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1392223265%2FFunctions%2F639362700" anchor-label="createBufferTexture" id="1392223265%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-buffer-texture.html"><span>create</span><wbr><span>Buffer</span><wbr><span><span>Texture</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1392223265%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-buffer-texture.html"><span class="token function">createBufferTexture</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">elementCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for BufferTexture</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="398759428%2FFunctions%2F639362700" anchor-label="createColorBuffer" id="398759428%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-color-buffer.html"><span>create</span><wbr><span>Color</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="398759428%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-color-buffer.html"><span class="token function">createColorBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span>ERROR CLASS: Symbol not found for BufferMultisample<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1667747208%2FFunctions%2F639362700" anchor-label="createComputeShader" id="-1667747208%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-compute-shader.html"><span>create</span><wbr><span>Compute</span><wbr><span><span>Shader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1667747208%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-compute-shader.html"><span class="token function">createComputeShader</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">code<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ComputeShader</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1424804741%2FFunctions%2F639362700" anchor-label="createComputeStyleManager" id="1424804741%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-compute-style-manager.html"><span>create</span><wbr><span>Compute</span><wbr><span>Style</span><wbr><span><span>Manager</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1424804741%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-compute-style-manager.html"><span class="token function">createComputeStyleManager</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ComputeStyleManager</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1649106762%2FFunctions%2F639362700" anchor-label="createCubemap" id="-1649106762%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-cubemap.html"><span>create</span><wbr><span><span>Cubemap</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1649106762%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-cubemap.html"><span class="token function">createCubemap</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for Cubemap</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1677033966%2FFunctions%2F639362700" anchor-label="createDepthBuffer" id="-1677033966%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-depth-buffer.html"><span>create</span><wbr><span>Depth</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1677033966%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-depth-buffer.html"><span class="token function">createDepthBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for DepthFormat<span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span>ERROR CLASS: Symbol not found for BufferMultisample<span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for DepthBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="991388686%2FFunctions%2F639362700" anchor-label="createDrawThread" id="991388686%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-draw-thread.html"><span>create</span><wbr><span>Draw</span><wbr><span><span>Thread</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="991388686%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-draw-thread.html"><span class="token function">createDrawThread</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawThread</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1212894279%2FFunctions%2F639362700" anchor-label="createDynamicIndexBuffer" id="-1212894279%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-dynamic-index-buffer.html"><span>create</span><wbr><span>Dynamic</span><wbr><span>Index</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1212894279%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-dynamic-index-buffer.html"><span class="token function">createDynamicIndexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">elementCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for IndexType<span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for IndexBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2052363352%2FFunctions%2F639362700" anchor-label="createDynamicVertexBuffer" id="2052363352%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-dynamic-vertex-buffer.html"><span>create</span><wbr><span>Dynamic</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2052363352%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-dynamic-vertex-buffer.html"><span class="token function">createDynamicVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for VertexFormat<span class="token punctuation">, </span></span><span class="parameter ">vertexCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for VertexBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1325794570%2FFunctions%2F639362700" anchor-label="createRenderTarget" id="-1325794570%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-render-target.html"><span>create</span><wbr><span>Render</span><wbr><span><span>Target</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1325794570%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-render-target.html"><span class="token function">createRenderTarget</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span>ERROR CLASS: Symbol not found for BufferMultisample<span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for RenderTarget</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-488439553%2FFunctions%2F639362700" anchor-label="createResourceThread" id="-488439553%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-resource-thread.html"><span>create</span><wbr><span>Resource</span><wbr><span><span>Thread</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-488439553%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-resource-thread.html"><span class="token function">createResourceThread</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">f<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ResourceThread</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1282188212%2FFunctions%2F639362700" anchor-label="createShader" id="-1282188212%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-shader.html"><span>create</span><wbr><span><span>Shader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1282188212%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-shader.html"><span class="token function">createShader</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">vsCode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">tcsCode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">tesCode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">gsCode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">fsCode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-172614904%2FFunctions%2F639362700" anchor-label="createShaderStorageBuffer" id="-172614904%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-shader-storage-buffer.html"><span>create</span><wbr><span>Shader</span><wbr><span>Storage</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-172614904%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-shader-storage-buffer.html"><span class="token function">createShaderStorageBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ShaderStorageFormat<span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ShaderStorageBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="253367632%2FFunctions%2F639362700" anchor-label="createShadeStyleManager" id="253367632%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-shade-style-manager.html"><span>create</span><wbr><span>Shade</span><wbr><span>Style</span><wbr><span><span>Manager</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="253367632%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-shade-style-manager.html"><span class="token function">createShadeStyleManager</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">vsGenerator<span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for ShadeStructure<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">tcsGenerator<span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for ShadeStructure<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">tesGenerator<span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for ShadeStructure<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">gsGenerator<span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for ShadeStructure<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">fsGenerator<span class="token operator">: </span><span class="token punctuation">(</span>ERROR CLASS: Symbol not found for ShadeStructure<span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for ShadeStyleManager</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-879157741%2FFunctions%2F639362700" anchor-label="createStaticVertexBuffer" id="-879157741%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-static-vertex-buffer.html"><span>create</span><wbr><span>Static</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-879157741%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-static-vertex-buffer.html"><span class="token function">createStaticVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for VertexFormat<span class="token punctuation">, </span></span><span class="parameter ">buffer<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/Buffer.html">Buffer</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for VertexBuffer</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1380602608%2FFunctions%2F639362700" anchor-label="createVolumeTexture" id="1380602608%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-volume-texture.html"><span>create</span><wbr><span>Volume</span><wbr><span><span>Texture</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1380602608%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-volume-texture.html"><span class="token function">createVolumeTexture</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">depth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorFormat<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ColorType<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span>ERROR CLASS: Symbol not found for Session?<span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span>ERROR CLASS: Symbol not found for VolumeTexture</div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1173155260%2FFunctions%2F639362700" anchor-label="destroyContext" id="1173155260%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy-context.html"><span>destroy</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1173155260%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="destroy-context.html"><span class="token function">destroyContext</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="209630061%2FFunctions%2F639362700" anchor-label="destroyVAOsForShader" id="209630061%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy-v-a-os-for-shader.html"><span>destroy</span><wbr><span>VAOs</span><wbr><span>For</span><wbr><span><span>Shader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="209630061%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="destroy-v-a-os-for-shader.html"><span class="token function">destroyVAOsForShader</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span><a href="../-shader-g-l3/index.html">ShaderGL3</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-764145365%2FFunctions%2F639362700" anchor-label="destroyVAOsForVertexBuffer" id="-764145365%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy-v-a-os-for-vertex-buffer.html"><span>destroy</span><wbr><span>VAOs</span><wbr><span>For</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-764145365%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="destroy-v-a-os-for-vertex-buffer.html"><span class="token function">destroyVAOsForVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">vertexBuffer<span class="token operator">: </span><a href="../-vertex-buffer-g-l3/index.html">VertexBufferGL3</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-19202448%2FFunctions%2F639362700" anchor-label="drawIndexedInstances" id="-19202448%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw-indexed-instances.html"><span>draw</span><wbr><span>Indexed</span><wbr><span><span>Instances</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-19202448%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="draw-indexed-instances.html"><span class="token function">drawIndexedInstances</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader<span class="token punctuation">, </span></span><span class="parameter ">indexBuffer<span class="token operator">: </span>ERROR CLASS: Symbol not found for IndexBuffer<span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">instanceAttributes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">drawPrimitive<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawPrimitive<span class="token punctuation">, </span></span><span class="parameter ">indexOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">indexCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">instanceOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">instanceCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">verticesPerPatch<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-416390011%2FFunctions%2F639362700" anchor-label="drawIndexedVertexBuffer" id="-416390011%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw-indexed-vertex-buffer.html"><span>draw</span><wbr><span>Indexed</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-416390011%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="draw-indexed-vertex-buffer.html"><span class="token function">drawIndexedVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader<span class="token punctuation">, </span></span><span class="parameter ">indexBuffer<span class="token operator">: </span>ERROR CLASS: Symbol not found for IndexBuffer<span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">drawPrimitive<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawPrimitive<span class="token punctuation">, </span></span><span class="parameter ">indexOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">indexCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">verticesPerPatch<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1984241726%2FFunctions%2F639362700" anchor-label="drawInstances" id="1984241726%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw-instances.html"><span>draw</span><wbr><span><span>Instances</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1984241726%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="draw-instances.html"><span class="token function">drawInstances</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader<span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">instanceAttributes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">drawPrimitive<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawPrimitive<span class="token punctuation">, </span></span><span class="parameter ">vertexOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">vertexCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">instanceOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">instanceCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">verticesPerPatch<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1180847603%2FFunctions%2F639362700" anchor-label="drawMultiVertexBuffer" id="-1180847603%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw-multi-vertex-buffer.html"><span>draw</span><wbr><span>Multi</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1180847603%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="draw-multi-vertex-buffer.html"><span class="token function">drawMultiVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader<span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">drawPrimitive<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawPrimitive<span class="token punctuation">, </span></span><span class="parameter ">counts<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int-array/index.html">IntArray</a><span class="token punctuation">, </span></span><span class="parameter ">offsets<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int-array/index.html">IntArray</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2141623181%2FFunctions%2F639362700" anchor-label="drawVertexBuffer" id="2141623181%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw-vertex-buffer.html"><span>draw</span><wbr><span>Vertex</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2141623181%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="draw-vertex-buffer.html"><span class="token function">drawVertexBuffer</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span>ERROR CLASS: Symbol not found for Shader<span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span>ERROR CLASS: Symbol not found for VertexBuffer<span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">drawPrimitive<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawPrimitive<span class="token punctuation">, </span></span><span class="parameter ">vertexOffset<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">vertexCount<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">verticesPerPatch<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2064486027%2FFunctions%2F639362700" anchor-label="executeOnMainThread" id="-2064486027%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="execute-on-main-thread.html"><span>execute</span><wbr><span>On</span><wbr><span>Main</span><wbr><span><span>Thread</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2064486027%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="execute-on-main-thread.html"><span class="token function">executeOnMainThread</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">f<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="141310943%2FFunctions%2F639362700" anchor-label="finish" id="141310943%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="finish.html"><span><span>finish</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="141310943%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="finish.html"><span class="token function">finish</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-868325790%2FFunctions%2F639362700" anchor-label="internalShaderResource" id="-868325790%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="internal-shader-resource.html"><span>internal</span><wbr><span>Shader</span><wbr><span><span>Resource</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-868325790%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="internal-shader-resource.html"><span class="token function">internalShaderResource</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">resourceId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1589292517%2FFunctions%2F639362700" anchor-label="processMainThreadExecutables" id="-1589292517%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="process-main-thread-executables.html"><span>process</span><wbr><span>Main</span><wbr><span>Thread</span><wbr><span><span>Executables</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1589292517%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="process-main-thread-executables.html"><span class="token function">processMainThreadExecutables</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1512247004%2FFunctions%2F639362700" anchor-label="setState" id="1512247004%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-state.html"><span>set</span><wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1512247004%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-state.html"><span class="token function">setState</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">drawStyle<span class="token operator">: </span>ERROR CLASS: Symbol not found for DrawStyle</span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2018340498%2FFunctions%2F639362700" anchor-label="shaderConfiguration" id="-2018340498%2FFunctions%2F639362700" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shader-configuration.html"><span>shader</span><wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2018340498%2FFunctions%2F639362700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3/commonJvmMain" data-active="" data-toggle=":openrndr-jvm:openrndr-gl3/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3/commonJvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="shader-configuration.html"><span class="token function">shaderConfiguration</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span>ERROR CLASS: Symbol not found for ShaderType</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

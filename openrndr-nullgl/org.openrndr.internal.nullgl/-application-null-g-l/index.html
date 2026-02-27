@@ -1,0 +1,557 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ApplicationNullGL</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-nullgl/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-nullgl/main" data-filter=":openrndr-nullgl/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-nullgl::org.openrndr.internal.nullgl/ApplicationNullGL///PointingToDeclaration//-2138051405">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-nullgl</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.internal.nullgl</a><span class="delimiter">/</span><span class="current">ApplicationNullGL</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Application</span><wbr><span>Null</span><wbr><span><span>GL</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">ApplicationNullGL</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>program<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-program/index.html">Program</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>configuration<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-configuration/index.html">Configuration</a></span></span><span class="token punctuation">)</span> : <a href="../../../openrndr-application/org.openrndr/-application/index.html">Application</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-nullgl/src/main/kotlin/ApplicationNullGL.kt#L14">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-756064393%2FConstructors%2F-2138051405" anchor-label="ApplicationNullGL" id="-756064393%2FConstructors%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-application-null-g-l.html"><span>Application</span><wbr><span>Null</span><wbr><span><span>GL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-756064393%2FConstructors%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">program<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-program/index.html">Program</a><span class="token punctuation">, </span></span><span class="parameter ">configuration<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-configuration/index.html">Configuration</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1990096958%2FProperties%2F-2138051405" anchor-label="clipboardContents" id="-1990096958%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clipboard-contents.html"><span>clipboard</span><wbr><span><span>Contents</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1990096958%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="clipboard-contents.html">clipboardContents</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1928756516%2FProperties%2F-2138051405" anchor-label="configuration" id="-1928756516%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="configuration.html"><span><span>configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1928756516%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="configuration.html">configuration</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-configuration/index.html">Configuration</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1760333805%2FProperties%2F-2138051405" anchor-label="cursorHideMode" id="1760333805%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-hide-mode.html"><span>cursor</span><wbr><span>Hide</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1760333805%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-hide-mode.html">cursorHideMode</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-mouse-cursor-hide-mode/index.html">MouseCursorHideMode</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-225992375%2FProperties%2F-2138051405" anchor-label="cursorPosition" id="-225992375%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-position.html"><span>cursor</span><wbr><span><span>Position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-225992375%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-position.html">cursorPosition</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1301314856%2FProperties%2F-2138051405" anchor-label="cursorType" id="-1301314856%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-type.html"><span>cursor</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1301314856%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-type.html">cursorType</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-cursor-type/index.html">CursorType</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1654986154%2FProperties%2F-2138051405" anchor-label="cursorVisible" id="-1654986154%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-visible.html"><span>cursor</span><wbr><span><span>Visible</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1654986154%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-visible.html">cursorVisible</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1531607285%2FProperties%2F-2138051405" anchor-label="presentationMode" id="-1531607285%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="presentation-mode.html"><span>presentation</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1531607285%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="presentation-mode.html">presentationMode</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-presentation-mode/index.html">PresentationMode</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1816889138%2FProperties%2F-2138051405" anchor-label="program" id="-1816889138%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="program.html"><span><span>program</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1816889138%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="program.html">program</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-program/index.html">Program</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1386294579%2FProperties%2F-2138051405" anchor-label="seconds" id="1386294579%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="seconds.html"><span><span>seconds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1386294579%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="seconds.html">seconds</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1246660170%2FProperties%2F-2138051405" anchor-label="startMS" id="1246660170%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start-m-s.html"><span>start</span><wbr><span><span>MS</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1246660170%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="start-m-s.html">startMS</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2114425785%2FProperties%2F-2138051405" anchor-label="windowContentScale" id="-2114425785%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-content-scale.html"><span>window</span><wbr><span>Content</span><wbr><span><span>Scale</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2114425785%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-content-scale.html">windowContentScale</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1822841859%2FProperties%2F-2138051405" anchor-label="windowHitTest" id="-1822841859%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-hit-test.html"><span>window</span><wbr><span>Hit</span><wbr><span><span>Test</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1822841859%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-hit-test.html">windowHitTest</a><span class="token operator">: </span><span class="token punctuation">(</span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../../openrndr-application/org.openrndr/-hit/index.html">Hit</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-560554529%2FProperties%2F-2138051405" anchor-label="windowMultisample" id="-560554529%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-multisample.html"><span>window</span><wbr><span><span>Multisample</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-560554529%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-multisample.html">windowMultisample</a><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-window-multisample/index.html">WindowMultisample</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="705090543%2FProperties%2F-2138051405" anchor-label="windowPosition" id="705090543%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-position.html"><span>window</span><wbr><span><span>Position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="705090543%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-position.html">windowPosition</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-160705129%2FProperties%2F-2138051405" anchor-label="windowResizable" id="-160705129%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-resizable.html"><span>window</span><wbr><span><span>Resizable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-160705129%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-resizable.html">windowResizable</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-170375785%2FProperties%2F-2138051405" anchor-label="windowSize" id="-170375785%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-size.html"><span>window</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-170375785%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-size.html">windowSize</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-173605622%2FProperties%2F-2138051405" anchor-label="windowTitle" id="-173605622%2FProperties%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-title.html"><span>window</span><wbr><span><span>Title</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-173605622%2FProperties%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-title.html">windowTitle</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-797577057%2FFunctions%2F-2138051405" anchor-label="createChildWindow" id="-797577057%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-child-window.html"><span>create</span><wbr><span>Child</span><wbr><span><span>Window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-797577057%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="create-child-window.html"><span class="token function">createChildWindow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">configuration<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-window-configuration/index.html">WindowConfiguration</a><span class="token punctuation">, </span></span><span class="parameter ">program<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-program/index.html">Program</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-application-window/index.html">ApplicationWindow</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1018244758%2FFunctions%2F-2138051405" anchor-label="exit" id="-1018244758%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="exit.html"><span><span>exit</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1018244758%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="exit.html"><span class="token function">exit</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1113200988%2FFunctions%2F-2138051405" anchor-label="loop" id="-1113200988%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="loop.html"><span><span>loop</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1113200988%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="loop.html"><span class="token function">loop</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1751681855%2FFunctions%2F-2138051405" anchor-label="requestDraw" id="1751681855%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-draw.html"><span>request</span><wbr><span><span>Draw</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1751681855%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="request-draw.html"><span class="token function">requestDraw</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-160589217%2FFunctions%2F-2138051405" anchor-label="requestFocus" id="-160589217%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-focus.html"><span>request</span><wbr><span><span>Focus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-160589217%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="request-focus.html"><span class="token function">requestFocus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1993713611%2FFunctions%2F-2138051405" anchor-label="setup" id="-1993713611%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="setup.html"><span><span>setup</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1993713611%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="setup.html"><span class="token function">setup</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1128371562%2FFunctions%2F-2138051405" anchor-label="windowClose" id="1128371562%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-close.html"><span>window</span><wbr><span><span>Close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1128371562%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="window-close.html"><span class="token function">windowClose</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="503549050%2FFunctions%2F-2138051405" anchor-label="windowFullscreen" id="503549050%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-fullscreen.html"><span>window</span><wbr><span><span>Fullscreen</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="503549050%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="window-fullscreen.html"><span class="token function">windowFullscreen</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr/-fullscreen/index.html">Fullscreen</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-351234132%2FFunctions%2F-2138051405" anchor-label="windowMaximize" id="-351234132%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-maximize.html"><span>window</span><wbr><span><span>Maximize</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-351234132%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="window-maximize.html"><span class="token function">windowMaximize</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1534772250%2FFunctions%2F-2138051405" anchor-label="windowMinimize" id="1534772250%2FFunctions%2F-2138051405" data-filterable-set=":openrndr-nullgl/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-nullgl/main" data-filterable-set=":openrndr-nullgl/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-minimize.html"><span>window</span><wbr><span><span>Minimize</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1534772250%2FFunctions%2F-2138051405"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-nullgl/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="window-minimize.html"><span class="token function">windowMinimize</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

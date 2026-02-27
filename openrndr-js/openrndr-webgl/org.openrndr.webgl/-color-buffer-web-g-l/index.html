@@ -1,0 +1,670 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ColorBufferWebGL</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../../images/logo-icon.svg">
+<link href="../../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-js:openrndr-webgl/webMain">web</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-js:openrndr-webgl/webMain" data-filter=":openrndr-js:openrndr-webgl/webMain">
+                                <span class="checkbox--icon"></span>
+                                web
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-webgl::org.openrndr.webgl/ColorBufferWebGL///PointingToDeclaration//1611314393">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-webgl</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.webgl</a><span class="delimiter">/</span><span class="current">ColorBufferWebGL</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Color</span><wbr><span>Buffer</span><wbr><span>Web</span><wbr><span><span>GL</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">ColorBufferWebGL</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>context<span class="token operator">: </span><span data-unresolved-link="web.gl/WebGL2RenderingContext///PointingToDeclaration/">WebGL2RenderingContext</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>target<span class="token operator">: </span><span data-unresolved-link="web.gl/GLenum///PointingToDeclaration/">GLenum</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>texture<span class="token operator">: </span><span data-unresolved-link="web.gl/WebGLTexture///PointingToDeclaration/">WebGLTexture</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>format<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-format/index.html">ColorFormat</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>type<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-type/index.html">ColorType</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>multisample<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-buffer-multisample/index.html">BufferMultisample</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>session<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-session/index.html">Session</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span> : <a href="../../../../openrndr-draw/org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-webgl/src/webMain/kotlin/ColorBufferWebGL.kt#L22">source</a>)</span></span></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1898423536%2FConstructors%2F1611314393" anchor-label="ColorBufferWebGL" id="-1898423536%2FConstructors%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-buffer-web-g-l.html"><span>Color</span><wbr><span>Buffer</span><wbr><span>Web</span><wbr><span><span>GL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1898423536%2FConstructors%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><span data-unresolved-link="web.gl/WebGL2RenderingContext///PointingToDeclaration/">WebGL2RenderingContext</span><span class="token punctuation">, </span></span><span class="parameter ">target<span class="token operator">: </span><span data-unresolved-link="web.gl/GLenum///PointingToDeclaration/">GLenum</span><span class="token punctuation">, </span></span><span class="parameter ">texture<span class="token operator">: </span><span data-unresolved-link="web.gl/WebGLTexture///PointingToDeclaration/">WebGLTexture</span><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-format/index.html">ColorFormat</a><span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-type/index.html">ColorType</a><span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-buffer-multisample/index.html">BufferMultisample</a><span class="token punctuation">, </span></span><span class="parameter ">session<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-session/index.html">Session</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="1009362231%2FClasslikes%2F1611314393" anchor-label="Companion" id="1009362231%2FClasslikes%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1009362231%2FClasslikes%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1948933864%2FProperties%2F1611314393" anchor-label="anisotropy" id="1948933864%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="anisotropy.html"><span><span>anisotropy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1948933864%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="anisotropy.html">anisotropy</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-625287999%2FProperties%2F1611314393" anchor-label="bounds" id="-625287999%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-625287999%2FProperties%2F1611314393"><span><span>bounds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-625287999%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html#-625287999%2FProperties%2F1611314393">bounds</a><span class="token operator">: </span><a href="../../../../openrndr-shape/org.openrndr.shape/-rectangle/index.html">Rectangle</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1023158137%2FProperties%2F1611314393" anchor-label="contentScale" id="1023158137%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="content-scale.html"><span>content</span><wbr><span><span>Scale</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1023158137%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="content-scale.html">contentScale</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1333820959%2FProperties%2F1611314393" anchor-label="context" id="-1333820959%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="context.html"><span><span>context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1333820959%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="context.html">context</a><span class="token operator">: </span><span data-unresolved-link="web.gl/WebGL2RenderingContext///PointingToDeclaration/">WebGL2RenderingContext</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-818423850%2FProperties%2F1611314393" anchor-label="effectiveHeight" id="-818423850%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-818423850%2FProperties%2F1611314393"><span>effective</span><wbr><span><span>Height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-818423850%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html#-818423850%2FProperties%2F1611314393">effectiveHeight</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-125339305%2FProperties%2F1611314393" anchor-label="effectiveWidth" id="-125339305%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-125339305%2FProperties%2F1611314393"><span>effective</span><wbr><span><span>Width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-125339305%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html#-125339305%2FProperties%2F1611314393">effectiveWidth</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1173294073%2FProperties%2F1611314393" anchor-label="flipV" id="-1173294073%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="flip-v.html"><span>flip</span><wbr><span><span>V</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1173294073%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="flip-v.html">flipV</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="18854995%2FProperties%2F1611314393" anchor-label="format" id="18854995%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="format.html"><span><span>format</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="18854995%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="format.html">format</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-format/index.html">ColorFormat</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1665871581%2FProperties%2F1611314393" anchor-label="height" id="-1665871581%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="height.html"><span><span>height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1665871581%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="height.html">height</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="187657691%2FProperties%2F1611314393" anchor-label="levels" id="187657691%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="levels.html"><span><span>levels</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="187657691%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="levels.html">levels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1064678509%2FProperties%2F1611314393" anchor-label="multisample" id="1064678509%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="multisample.html"><span><span>multisample</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1064678509%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="multisample.html">multisample</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-buffer-multisample/index.html">BufferMultisample</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-254953766%2FProperties%2F1611314393" anchor-label="session" id="-254953766%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="session.html"><span><span>session</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-254953766%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="session.html">session</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-session/index.html">Session</a><span class="token operator">?</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1556569081%2FProperties%2F1611314393" anchor-label="target" id="1556569081%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="target.html"><span><span>target</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1556569081%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="target.html">target</a><span class="token operator">: </span><span data-unresolved-link="web.gl/GLenum///PointingToDeclaration/">GLenum</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1966550027%2FProperties%2F1611314393" anchor-label="texture" id="-1966550027%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="texture.html"><span><span>texture</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1966550027%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="texture.html">texture</a><span class="token operator">: </span><span data-unresolved-link="web.gl/WebGLTexture///PointingToDeclaration/">WebGLTexture</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-300874320%2FProperties%2F1611314393" anchor-label="type" id="-300874320%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="type.html"><span><span>type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-300874320%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="type.html">type</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-type/index.html">ColorType</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1676696982%2FProperties%2F1611314393" anchor-label="width" id="-1676696982%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="width.html"><span><span>width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1676696982%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="width.html">width</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="889595525%2FProperties%2F1611314393" anchor-label="wrapU" id="889595525%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="wrap-u.html"><span>wrap</span><wbr><span><span>U</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="889595525%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="wrap-u.html">wrapU</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-wrap-mode/index.html">WrapMode</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="920615332%2FProperties%2F1611314393" anchor-label="wrapV" id="920615332%2FProperties%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="wrap-v.html"><span>wrap</span><wbr><span><span>V</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="920615332%2FProperties%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="wrap-v.html">wrapV</a><span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-wrap-mode/index.html">WrapMode</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="233150315%2FFunctions%2F1611314393" anchor-label="bind" id="233150315%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bind.html"><span><span>bind</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="233150315%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="bind.html"><span class="token function">bind</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unit<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="190669412%2FFunctions%2F1611314393" anchor-label="bound" id="190669412%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bound.html"><span><span>bound</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="190669412%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="bound.html"><span class="token function">bound</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">f<span class="token operator">: </span><a href="index.html">ColorBufferWebGL</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="614477432%2FFunctions%2F1611314393" anchor-label="close" id="614477432%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="614477432%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="61214515%2FFunctions%2F1611314393" anchor-label="copyTo" id="61214515%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="copy-to.html"><span>copy</span><wbr><span><span>To</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="61214515%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="copy-to.html"><span class="token function">copyTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-array-texture/index.html">ArrayTexture</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fromLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">toLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="copy-to.html"><span class="token function">copyTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">fromLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">toLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">filter<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-magnifying-filter/index.html">MagnifyingFilter</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="copy-to.html"><span class="token function">copyTo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">fromLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">toLevel<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">sourceRectangle<span class="token operator">: </span><a href="../../../../openrndr-shape/org.openrndr.shape/-int-rectangle/index.html">IntRectangle</a><span class="token punctuation">, </span></span><span class="parameter ">targetRectangle<span class="token operator">: </span><a href="../../../../openrndr-shape/org.openrndr.shape/-int-rectangle/index.html">IntRectangle</a><span class="token punctuation">, </span></span><span class="parameter ">filter<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-magnifying-filter/index.html">MagnifyingFilter</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1426476554%2FFunctions%2F1611314393" anchor-label="destroy" id="-1426476554%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy.html"><span><span>destroy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1426476554%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="destroy.html"><span class="token function">destroy</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1368822450%2FFunctions%2F1611314393" anchor-label="fill" id="1368822450%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="fill.html"><span><span>fill</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1368822450%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="fill.html"><span class="token function">fill</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="../../../../openrndr-color/org.openrndr.color/-color-r-g-ba/index.html">ColorRGBa</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="906710514%2FFunctions%2F1611314393" anchor-label="filter" id="906710514%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="filter.html"><span><span>filter</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="906710514%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="filter.html"><span class="token function">filter</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">filterMin<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-minifying-filter/index.html">MinifyingFilter</a><span class="token punctuation">, </span></span><span class="parameter ">filterMag<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-magnifying-filter/index.html">MagnifyingFilter</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1968450886%2FFunctions%2F1611314393" anchor-label="generateMipmaps" id="-1968450886%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="generate-mipmaps.html"><span>generate</span><wbr><span><span>Mipmaps</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1968450886%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="generate-mipmaps.html"><span class="token function">generateMipmaps</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="520998181%2FFunctions%2F1611314393" anchor-label="read" id="520998181%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="read.html"><span><span>read</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="520998181%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="read.html"><span class="token function">read</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><span data-unresolved-link="js.buffer/ArrayBufferView///PointingToDeclaration/">ArrayBufferView</span><span class="token operator">&lt;</span><span data-unresolved-link="js.buffer/ArrayBufferLike///PointingToDeclaration/">ArrayBufferLike</span><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1917526078%2FFunctions%2F1611314393" anchor-label="toString" id="1917526078%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-string.html"><span>to</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1917526078%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="520514156%2FFunctions%2F1611314393" anchor-label="write" id="520514156%2FFunctions%2F1611314393" data-filterable-set=":openrndr-js:openrndr-webgl/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="write.html"><span><span>write</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="520514156%2FFunctions%2F1611314393"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-js:openrndr-webgl/webMain" data-filterable-set=":openrndr-js:openrndr-webgl/webMain" data-active="" data-toggle=":openrndr-js:openrndr-webgl/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-js:openrndr-webgl/webMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">source<span class="token operator">: </span><span data-unresolved-link="web.gl/TexImageSource///PointingToDeclaration/">TexImageSource</span><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">source<span class="token operator">: </span><span data-unresolved-link="js.buffer/ArrayBufferView///PointingToDeclaration/">ArrayBufferView</span><span class="token operator">&lt;</span><span data-unresolved-link="js.buffer/ArrayBufferLike///PointingToDeclaration/">ArrayBufferLike</span><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">sourceFormat<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-format/index.html">ColorFormat</a><span class="token punctuation">, </span></span><span class="parameter ">sourceType<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-type/index.html">ColorType</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sourceBuffer<span class="token operator">: </span><a href="../../../../openrndr-utils/org.openrndr.utils.buffer/-m-p-p-buffer/index.html">MPPBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">sourceFormat<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-format/index.html">ColorFormat</a><span class="token punctuation">, </span></span><span class="parameter ">sourceType<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-type/index.html">ColorType</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

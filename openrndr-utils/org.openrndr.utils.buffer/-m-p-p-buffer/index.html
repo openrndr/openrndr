@@ -1,0 +1,431 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>MPPBuffer</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-utils/commonJvmMain">commonJvm</button>
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-utils/commonMain">common</button>
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-utils/webMain">web</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-utils/commonJvmMain" data-filter=":openrndr-utils/commonJvmMain">
+                                <span class="checkbox--icon"></span>
+                                commonJvm
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-utils/commonMain" data-filter=":openrndr-utils/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-utils/webMain" data-filter=":openrndr-utils/webMain">
+                                <span class="checkbox--icon"></span>
+                                web
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-utils::org.openrndr.utils.buffer/MPPBuffer///PointingToDeclaration//1820671885">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-utils</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.utils.buffer</a><span class="delimiter">/</span><span class="current">MPPBuffer</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>MPPBuffer</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="index.html">MPPBuffer</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-utils/src/commonJvmMain/kotlin/buffer/MPPBuffer.kt#L6">source</a>)</span></span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">class </span><a href="index.html">MPPBuffer</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-utils/src/commonMain/kotlin/buffer/MPPBuffer.kt#L3">source</a>)</span></span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="index.html">MPPBuffer</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-utils/src/webMain/kotlin/buffer/MPPBuffer.web.kt#L8">source</a>)</span></span></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1634203062%2FConstructors%2F-122537834" anchor-label="MPPBuffer" id="-1634203062%2FConstructors%2F-122537834" data-filterable-set=":openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-m-p-p-buffer.html"><span><span>MPPBuffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1634203062%2FConstructors%2F-122537834"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byteBuffer<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/ByteBuffer.html">ByteBuffer</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dataView<span class="token operator">: </span><span data-unresolved-link="js.buffer/DataView///PointingToDeclaration/">DataView</span><span class="token operator">&lt;</span><span data-unresolved-link="js.buffer/ArrayBuffer///PointingToDeclaration/">ArrayBuffer</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="206875720%2FClasslikes%2F1820671885" anchor-label="Companion" id="206875720%2FClasslikes%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="206875720%2FClasslikes%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-923383311%2FProperties%2F1820671885" anchor-label="byte" id="-923383311%2FProperties%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="byte.html"><span><span>byte</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-923383311%2FProperties%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="byte.html">byte</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="byte.html">byte</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="byte.html">byte</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="259292817%2FProperties%2F1651315881" anchor-label="byteBuffer" id="259292817%2FProperties%2F1651315881" data-filterable-set=":openrndr-utils/commonJvmMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="byte-buffer.html"><span>byte</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="259292817%2FProperties%2F1651315881"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="byte-buffer.html">byteBuffer</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/ByteBuffer.html">ByteBuffer</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2078612118%2FProperties%2F892149241" anchor-label="dataView" id="-2078612118%2FProperties%2F892149241" data-filterable-set=":openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="data-view.html"><span>data</span><wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2078612118%2FProperties%2F892149241"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-active="" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="data-view.html">dataView</a><span class="token operator">: </span><span data-unresolved-link="js.buffer/DataView///PointingToDeclaration/">DataView</span><span class="token operator">&lt;</span><span data-unresolved-link="js.buffer/ArrayBuffer///PointingToDeclaration/">ArrayBuffer</span><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-557444024%2FProperties%2F1820671885" anchor-label="double" id="-557444024%2FProperties%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="double.html"><span><span>double</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-557444024%2FProperties%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="double.html">double</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="double.html">double</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="double.html">double</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="89266725%2FProperties%2F1820671885" anchor-label="float" id="89266725%2FProperties%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="float.html"><span><span>float</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="89266725%2FProperties%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="float.html">float</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="float.html">float</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="float.html">float</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1981710578%2FProperties%2F1820671885" anchor-label="int" id="1981710578%2FProperties%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="int.html"><span><span>int</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1981710578%2FProperties%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="int.html">int</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="int.html">int</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">val </span><a href="int.html">int</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="723600511%2FFunctions%2F1820671885" anchor-label="capacity" id="723600511%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="capacity.html"><span><span>capacity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="723600511%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="capacity.html"><span class="token function">capacity</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="capacity.html"><span class="token function">capacity</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="capacity.html"><span class="token function">capacity</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-695947866%2FFunctions%2F1820671885" anchor-label="get" id="-695947866%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-695947866%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></div><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">target<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1165655525%2FFunctions%2F1820671885" anchor-label="put" id="-1165655525%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put.html"><span><span>put</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1165655525%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put.html"><span class="token function">put</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byte<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="put.html"><span class="token function">put</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byte<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put.html"><span class="token function">put</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">byte<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte/index.html">Byte</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="293932963%2FFunctions%2F1820671885" anchor-label="putDouble" id="293932963%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put-double.html"><span>put</span><wbr><span><span>Double</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="293932963%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-double.html"><span class="token function">putDouble</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">double<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="put-double.html"><span class="token function">putDouble</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">double<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-double.html"><span class="token function">putDouble</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">double<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1511413661%2FFunctions%2F1820671885" anchor-label="putFloat" id="1511413661%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put-float.html"><span>put</span><wbr><span><span>Float</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1511413661%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-float.html"><span class="token function">putFloat</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">float<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="put-float.html"><span class="token function">putFloat</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">float<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-float.html"><span class="token function">putFloat</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">float<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1809624823%2FFunctions%2F1820671885" anchor-label="putInt" id="1809624823%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put-int.html"><span>put</span><wbr><span><span>Int</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1809624823%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-int.html"><span class="token function">putInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">int<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="put-int.html"><span class="token function">putInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">int<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="put-int.html"><span class="token function">putInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">int<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1996598731%2FFunctions%2F1820671885" anchor-label="remaining" id="1996598731%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="remaining.html"><span><span>remaining</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1996598731%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="remaining.html"><span class="token function">remaining</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="remaining.html"><span class="token function">remaining</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="remaining.html"><span class="token function">remaining</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1440882334%2FFunctions%2F1820671885" anchor-label="rewind" id="1440882334%2FFunctions%2F1820671885" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain" data-filterable-set=":openrndr-utils/commonMain,:openrndr-utils/commonJvmMain,:openrndr-utils/webMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="rewind.html"><span><span>rewind</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1440882334%2FFunctions%2F1820671885"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonJvmMain" data-filterable-set=":openrndr-utils/commonJvmMain" data-active="" data-toggle=":openrndr-utils/commonJvmMain">commonJvm</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/commonMain" data-filterable-set=":openrndr-utils/commonMain" data-toggle=":openrndr-utils/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":openrndr-utils/webMain" data-filterable-set=":openrndr-utils/webMain" data-toggle=":openrndr-utils/webMain">web</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/commonJvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="rewind.html"><span class="token function">rewind</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-utils/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">fun </span><a href="rewind.html"><span class="token function">rewind</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":openrndr-utils/webMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="rewind.html"><span class="token function">rewind</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

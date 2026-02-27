@@ -1,0 +1,601 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>org.openrndr.color</title>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../images/logo-icon.svg">
+<link href="../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-color/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-color/commonMain" data-filter=":openrndr-color/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="package" id="content" pageids="openrndr-color::org.openrndr.color////PointingToDeclaration//-1192805387">
+  <div class="breadcrumbs"><a href="../index.html">openrndr-color</a><span class="delimiter">/</span><span class="current">org.openrndr.color</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button><button class="section-tab" data-togglable="PROPERTY,EXTENSION_PROPERTY">Properties</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="408510260%2FClasslikes%2F-1192805387" anchor-label="AlgebraicColor" id="408510260%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-algebraic-color/index.html"><span>Algebraic</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="408510260%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-algebraic-color/index.html">T</a><span class="token operator"> : </span><a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-algebraic-color/index.html">T</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span> : <a href="../../openrndr-math/org.openrndr.math/-linear-type/index.html">LinearType</a><span class="token operator">&lt;</span><a href="-algebraic-color/index.html">T</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Allows performing select algebraic operations on colors of this kind.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-789054816%2FClasslikes%2F-1192805387" anchor-label="ChromaColor" id="-789054816%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-chroma-color/index.html"><span>Chroma</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-789054816%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-chroma-color/index.html">ChromaColor</a><span class="token operator">&lt;</span><a href="-chroma-color/index.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Represents a color that contains chroma information, provides utility methods for manipulating chroma values, and can produce a new instance of the implementing type with adjusted chroma values.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="721194794%2FClasslikes%2F-1192805387" anchor-label="ColorHSLa" id="721194794%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-h-s-la/index.html"><span>Color</span><wbr><span><span>HSLa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="721194794%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-record/index.html"><span class="token annotation builtin">JvmRecord</span></a></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token operator">&gt; </span>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSL color space</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1747400372%2FClasslikes%2F-1192805387" anchor-label="ColorHSVa" id="1747400372%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-h-s-va/index.html"><span>Color</span><wbr><span><span>HSVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1747400372%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-record/index.html"><span class="token annotation builtin">JvmRecord</span></a></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>v<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token operator">&gt; </span>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">HSV color space</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1537280778%2FClasslikes%2F-1192805387" anchor-label="ColorLABa" id="-1537280778%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-a-ba/index.html"><span>Color</span><wbr><span><span>LABa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1537280778%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-record/index.html"><span class="token annotation builtin">JvmRecord</span></a></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-a-ba/index.html">ColorLABa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>a<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>b<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-a-ba/index.html">ColorLABa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-l-a-ba/index.html">ColorLABa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-a-ba/index.html">ColorLABa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-a-ba/index.html">ColorLABa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/CIELAB_color_space">CIELAB color space</a>, more commonly known as Lab.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="856223387%2FClasslikes%2F-1192805387" anchor-label="ColorLCHABa" id="856223387%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-c-h-a-ba/index.html"><span>Color</span><wbr><span><span>LCHABa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="856223387%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>c<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span>, <a href="-chroma-color/index.html">ChromaColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/CIELAB_color_space#Cylindrical_model">CIELChAB color space</a> is the cylindrical representation of the CIELAB color space.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2108870939%2FClasslikes%2F-1192805387" anchor-label="ColorLCHUVa" id="2108870939%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-c-h-u-va/index.html"><span>Color</span><wbr><span><span>LCHUVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2108870939%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>c<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span>, <a href="-chroma-color/index.html">ChromaColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/CIELUV#Cylindrical_representation_(CIELCh)">CIELChUV color space</a> is the cylindrical representation of the CIELUV color space.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1037281419%2FClasslikes%2F-1192805387" anchor-label="ColorLSHABa" id="1037281419%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-s-h-a-ba/index.html"><span>Color</span><wbr><span><span>LSHABa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1037281419%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-a-ba/index.html">ColorLSHABa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Based on <a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a>, but instead tries to use a normalized chroma.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2005038325%2FClasslikes%2F-1192805387" anchor-label="ColorLSHUVa" id="-2005038325%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-s-h-u-va/index.html"><span>Color</span><wbr><span><span>LSHUVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2005038325%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator"> = </span>ColorXYZa.NEUTRAL</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-s-h-u-va/index.html">ColorLSHUVa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Based on <a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a>, but instead tries to use a normalized chroma.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-284633226%2FClasslikes%2F-1192805387" anchor-label="ColorLUVa" id="-284633226%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-l-u-va/index.html"><span>Color</span><wbr><span><span>LUVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-284633226%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-l-u-va/index.html">ColorLUVa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>u<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>v<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-color-x-y-za/index.html">ColorXYZa</a></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-l-u-va/index.html">ColorLUVa</a><span class="token operator">&gt; </span>, <a href="-reference-white-point/index.html">ReferenceWhitePoint</a>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-l-u-va/index.html">ColorLUVa</a><span class="token operator">&gt; </span>, <a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-color-l-u-va/index.html">ColorLUVa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-l-u-va/index.html">ColorLUVa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/CIELUV">CIELUV color space</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="600283535%2FClasslikes%2F-1192805387" anchor-label="ColorModel" id="600283535%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-model/index.html"><span>Color</span><wbr><span><span>Model</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="600283535%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-model/index.html">T</a><span class="token operator"> : </span><a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-model/index.html">T</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span> : <a href="-opacifiable-color/index.html">OpacifiableColor</a><span class="token operator">&lt;</span><a href="-color-model/index.html">T</a><span class="token operator">&gt; </span>, <a href="-convertible-to-color-r-g-ba/index.html">ConvertibleToColorRGBa</a>, <a href="../../openrndr-math/org.openrndr.math/-castable-to-vector4/index.html">CastableToVector4</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1092910134%2FClasslikes%2F-1192805387" anchor-label="ColorRGBa" id="1092910134%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-r-g-ba/index.html"><span>Color</span><wbr><span><span>RGBa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1092910134%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>r<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>g<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>b<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>linearity<span class="token operator">: </span><a href="-linearity/index.html">Linearity</a><span class="token operator"> = </span>Linearity.LINEAR</span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token operator">&gt; </span>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Represents a color in the RGBA color space. Each component, including red, green, blue, and alpha (opacity), is represented as a <code class="lang-kotlin">Double</code> in the range <code class="lang-kotlin">[0.0, 1.0]</code>. The color can be defined in either linear or sRGB space, determined by the <code class="lang-kotlin">linearity</code> property.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1074079942%2FClasslikes%2F-1192805387" anchor-label="ColorXSLa" id="-1074079942%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-x-s-la/index.html"><span>Color</span><wbr><span><span>XSLa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1074079942%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token operator">&gt; </span>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Practically identical to <a href="-color-h-s-la/index.html">ColorHSLa</a>, but for mapping colors to classical painter's scheme of complementary colors.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-47874364%2FClasslikes%2F-1192805387" anchor-label="ColorXSVa" id="-47874364%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-x-s-va/index.html"><span>Color</span><wbr><span><span>XSVa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-47874364%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>v<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token operator">&gt; </span>, <a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token operator">&gt; </span>, <a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token operator">&gt; </span>, <a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Practically identical to <a href="-color-h-s-va/index.html">ColorHSVa</a>, but for mapping colors to classical painter's scheme of complementary colors.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2024804862%2FClasslikes%2F-1192805387" anchor-label="ColorXYZa" id="-2024804862%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-x-y-za/index.html"><span>Color</span><wbr><span><span>XYZa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2024804862%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>z<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator">&gt; </span>, <a href="-algebraic-color/index.html">AlgebraicColor</a><span class="token operator">&lt;</span><a href="-color-x-y-za/index.html">ColorXYZa</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="https://en.wikipedia.org/wiki/CIE_1931_color_space#Definition_of_the_CIE_XYZ_color_space">CIE XYZ color space</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-893338013%2FClasslikes%2F-1192805387" anchor-label="ColorYxya" id="-893338013%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-yxya/index.html"><span>Color</span><wbr><span><span>Yxya</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-893338013%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-record/index.html"><span class="token annotation builtin">JvmRecord</span></a></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-color-yxya/index.html">ColorYxya</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>yy<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span> : <a href="-color-model/index.html">ColorModel</a><span class="token operator">&lt;</span><a href="-color-yxya/index.html">ColorYxya</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The Yxy color space, also known as the <a href="https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_xy_chromaticity_diagram_and_the_CIE_xyY_color_space">xyY color space</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1919302402%2FClasslikes%2F-1192805387" anchor-label="ConvertibleToColorRGBa" id="-1919302402%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-convertible-to-color-r-g-ba/index.html"><span>Convertible</span><wbr><span>To</span><wbr><span>Color</span><wbr><span><span>RGBa</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1919302402%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-convertible-to-color-r-g-ba/index.html">ConvertibleToColorRGBa</a></div><div class="brief "><p class="paragraph">Represents an interface for objects that can be converted into an instance of <a href="-color-r-g-ba/index.html">ColorRGBa</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-447510162%2FClasslikes%2F-1192805387" anchor-label="HueShiftableColor" id="-447510162%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-hue-shiftable-color/index.html"><span>Hue</span><wbr><span>Shiftable</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-447510162%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-hue-shiftable-color/index.html">HueShiftableColor</a><span class="token operator">&lt;</span><a href="-hue-shiftable-color/index.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Represents a color interface capable of hue manipulation.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="737795140%2FClasslikes%2F-1192805387" anchor-label="Linearity" id="737795140%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-linearity/index.html"><span><span>Linearity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="737795140%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">enum </span><a href="-linearity/index.html">Linearity</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-linearity/index.html">Linearity</a><span class="token operator">&gt; </span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="819398315%2FClasslikes%2F-1192805387" anchor-label="LuminosityColor" id="819398315%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-luminosity-color/index.html"><span>Luminosity</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="819398315%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-luminosity-color/index.html">LuminosityColor</a><span class="token operator">&lt;</span><a href="-luminosity-color/index.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">An interface representing a color with adjustable luminosity. It provides methods to modify or manipulate the luminosity of a color and access its current luminosity value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1629712555%2FClasslikes%2F-1192805387" anchor-label="OpacifiableColor" id="-1629712555%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-opacifiable-color/index.html"><span>Opacifiable</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1629712555%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-opacifiable-color/index.html">OpacifiableColor</a><span class="token operator">&lt;</span><a href="-opacifiable-color/index.html">T</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2029797435%2FClasslikes%2F-1192805387" anchor-label="ReferenceWhitePoint" id="2029797435%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-reference-white-point/index.html"><span>Reference</span><wbr><span>White</span><wbr><span><span>Point</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2029797435%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-reference-white-point/index.html">ReferenceWhitePoint</a></div><div class="brief "><p class="paragraph">Represents a reference white point used in color calculations. A reference white point is a standard defining the white color under specific lighting conditions, serving as a baseline for measurements and color conversions in a color space.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1350045250%2FClasslikes%2F-1192805387" anchor-label="SaturatableColor" id="1350045250%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-saturatable-color/index.html"><span>Saturatable</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1350045250%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-saturatable-color/index.html">SaturatableColor</a><span class="token operator">&lt;</span><a href="-saturatable-color/index.html">T</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1054606660%2FClasslikes%2F-1192805387" anchor-label="ShadableColor" id="-1054606660%2FClasslikes%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-shadable-color/index.html"><span>Shadable</span><wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1054606660%2FClasslikes%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-shadable-color/index.html">ShadableColor</a><span class="token operator">&lt;</span><a href="-shadable-color/index.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Represents a color that can have its shade manipulated.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1288284401%2FProperties%2F-1192805387" anchor-label="hues" id="-1288284401%2FProperties%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hues.html"><span><span>hues</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1288284401%2FProperties%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="hues.html">hues</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../openrndr-color/org.openrndr.color/-hue/index.html">Hue</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="702552047%2FFunctions%2F-1192805387" anchor-label="findHue" id="702552047%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="find-hue.html"><span>find</span><wbr><span><span>Hue</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="702552047%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="find-hue.html"><span class="token function">findHue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../openrndr-color/org.openrndr.color/-hue/index.html">Hue</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-349445756%2FFunctions%2F-1192805387" anchor-label="hsl" id="-349445756%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hsl.html"><span><span>hsl</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-349445756%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="hsl.html"><span class="token function">hsl</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">l<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">a<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-h-s-la/index.html">ColorHSLa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1343668850%2FFunctions%2F-1192805387" anchor-label="hsv" id="-1343668850%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hsv.html"><span><span>hsv</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1343668850%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="hsv.html"><span class="token function">hsv</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">h<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">s<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">v<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">a<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-h-s-va/index.html">ColorHSVa</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="39209132%2FFunctions%2F-1192805387" anchor-label="mix" id="39209132%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="mix.html"><span><span>mix</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="39209132%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-h-s-la/index.html">ColorHSLa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-h-s-la/index.html">ColorHSLa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the HSL color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-h-s-va/index.html">ColorHSVa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-h-s-va/index.html">ColorHSVa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the HSVa color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-l-c-h-a-ba/index.html">ColorLCHABa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the LChAB color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-l-c-h-u-va/index.html">ColorLCHUVa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the LChUV color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the generic RGB color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-x-s-la/index.html">ColorXSLa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-x-s-la/index.html">ColorXSLa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the XSL color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">left<span class="token operator">: </span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token punctuation">, </span></span><span class="parameter ">right<span class="token operator">: </span><a href="-color-x-s-va/index.html">ColorXSVa</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-x-s-va/index.html">ColorXSVa</a></div><div class="brief "><p class="paragraph">Weighted mix between two colors in the XSV color space.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="mix.html"><span class="token function">mix</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">a<span class="token operator">: </span><a href="-color-yxya/index.html">ColorYxya</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="-color-yxya/index.html">ColorYxya</a><span class="token punctuation">, </span></span><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-yxya/index.html">ColorYxya</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1559937703%2FFunctions%2F-1192805387" anchor-label="rgb" id="1559937703%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="rgb.html"><span><span>rgb</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1559937703%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">hex<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Shorthand for calling <a href="-color-r-g-ba/-companion/from-hex.html">ColorRGBa.fromHex</a>. Creates a <a href="-color-r-g-ba/index.html">ColorRGBa</a> with <a href="-linearity/-s-r-g-b/index.html">Linearity.SRGB</a> from a hex string.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">gray<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">a<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Shorthand for calling <a href="-color-r-g-ba/index.html">ColorRGBa</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">g<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">a<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Shorthand for calling <a href="-color-r-g-ba/index.html">ColorRGBa</a>. Specify only one value to obtain a shade of gray.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">red<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">green<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">blue<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">alpha<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">255</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Converts RGB integer color values into a ColorRGBa object with sRGB linearity.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1340448773%2FFunctions%2F-1192805387" anchor-label="times" id="1340448773%2FFunctions%2F-1192805387" data-filterable-set=":openrndr-color/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-color/commonMain" data-filterable-set=":openrndr-color/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="times.html"><span><span>times</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1340448773%2FFunctions%2F-1192805387"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-color/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="../../openrndr-math/org.openrndr.math/-matrix55/index.html">Matrix55</a><span class="token punctuation">.</span><a href="times.html"><span class="token function">times</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-color-r-g-ba/index.html">ColorRGBa</a></div><div class="brief "><p class="paragraph">Multiplies a 5x5 matrix with a ColorRGBa instance.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>VideoWriter</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../../images/logo-icon.svg">
+<link href="../../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":openrndr-jvm:openrndr-ffmpeg/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-jvm:openrndr-ffmpeg/main" data-filter=":openrndr-jvm:openrndr-ffmpeg/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-ffmpeg::org.openrndr.ffmpeg/VideoWriter///PointingToDeclaration//-1876067060">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-ffmpeg</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.ffmpeg</a><span class="delimiter">/</span><span class="current">VideoWriter</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Video</span><wbr><span><span>Writer</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">VideoWriter</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>useVariableFrameRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-ffmpeg/src/main/kotlin/org/openrndr/ffmpeg/VideoWriter.kt#L106">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="1875015375%2FConstructors%2F-1876067060" anchor-label="VideoWriter" id="1875015375%2FConstructors%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-video-writer.html"><span>Video</span><wbr><span><span>Writer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1875015375%2FConstructors%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">useVariableFrameRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1721587349%2FProperties%2F-1876067060" anchor-label="frameRate" id="-1721587349%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="frame-rate.html"><span>frame</span><wbr><span><span>Rate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1721587349%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="frame-rate.html">frameRate</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-number/index.html">Number</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1996413275%2FProperties%2F-1876067060" anchor-label="height" id="1996413275%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="height.html"><span><span>height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1996413275%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="height.html">height</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-215863113%2FProperties%2F-1876067060" anchor-label="inputFormat" id="-215863113%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="input-format.html"><span>input</span><wbr><span><span>Format</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-215863113%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="input-format.html">inputFormat</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1833428503%2FProperties%2F-1876067060" anchor-label="started" id="1833428503%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="started.html"><span><span>started</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1833428503%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="started.html">started</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Returns true if the video process was started</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-577630952%2FProperties%2F-1876067060" anchor-label="useVariableFrameRate" id="-577630952%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="use-variable-frame-rate.html"><span>use</span><wbr><span>Variable</span><wbr><span>Frame</span><wbr><span><span>Rate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-577630952%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="use-variable-frame-rate.html">useVariableFrameRate</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1489482546%2FProperties%2F-1876067060" anchor-label="width" id="1489482546%2FProperties%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="width.html"><span><span>width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1489482546%2FProperties%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="width.html">width</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-940598300%2FFunctions%2F-1876067060" anchor-label="advisedSize" id="-940598300%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="advised-size.html"><span>advised</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-940598300%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="advised-size.html"><span class="token function">advisedSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="650884%2FFunctions%2F-1876067060" anchor-label="findFfmpeg" id="650884%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="find-ffmpeg.html"><span>find</span><wbr><span><span>Ffmpeg</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="650884%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="find-ffmpeg.html"><span class="token function">findFfmpeg</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html">File</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1155012622%2FFunctions%2F-1876067060" anchor-label="frame" id="1155012622%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="frame.html"><span><span>frame</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1155012622%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="frame.html"><span class="token function">frame</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">frame<span class="token operator">: </span><a href="../../../../openrndr-draw/org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Feed a frame to the video encoder</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1901439005%2FFunctions%2F-1876067060" anchor-label="output" id="-1901439005%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="output.html"><span><span>output</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1901439005%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="output.html"><span class="token function">output</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">filename<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set the output file, should be set before calling start()</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1259262619%2FFunctions%2F-1876067060" anchor-label="profile" id="1259262619%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="profile.html"><span><span>profile</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1259262619%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="profile.html"><span class="token function">profile</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">profile<span class="token operator">: </span><a href="../-video-writer-profile/index.html">VideoWriterProfile</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-206543202%2FFunctions%2F-1876067060" anchor-label="size" id="-206543202%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-206543202%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="size.html"><span class="token function">size</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-308378602%2FFunctions%2F-1876067060" anchor-label="start" id="-308378602%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start.html"><span><span>start</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-308378602%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">VideoWriter</a></div><div class="brief "><p class="paragraph">Start writing to the video file</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="315634720%2FFunctions%2F-1876067060" anchor-label="stop" id="315634720%2FFunctions%2F-1876067060" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-jvm:openrndr-ffmpeg/main" data-filterable-set=":openrndr-jvm:openrndr-ffmpeg/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stop.html"><span><span>stop</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="315634720%2FFunctions%2F-1876067060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-ffmpeg/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="stop.html"><span class="token function">stop</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stop writing to the video file. This closes the video, after calling stop() it is no longer possible to provide new frames.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

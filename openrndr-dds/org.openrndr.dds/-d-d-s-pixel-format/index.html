@@ -1,0 +1,388 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>DDSPixelFormat</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-dds/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-dds/commonMain" data-filter=":openrndr-dds/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-dds::org.openrndr.dds/DDSPixelFormat///PointingToDeclaration//1963397253">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-dds</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.dds</a><span class="delimiter">/</span><span class="current">DDSPixelFormat</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>DDSPixel</span><wbr><span><span>Format</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">DDSPixelFormat</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">header<span class="token operator">: </span><a href="../../../openrndr-utils/org.openrndr.utils.buffer/-m-p-p-buffer/index.html">MPPBuffer</a></span></span><span class="token punctuation">)</span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-dds/src/commonMain/kotlin/DDSReader.kt#L22">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1681079492%2FConstructors%2F1963397253" anchor-label="DDSPixelFormat" id="-1681079492%2FConstructors%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-d-d-s-pixel-format.html"><span>DDSPixel</span><wbr><span><span>Format</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1681079492%2FConstructors%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">header<span class="token operator">: </span><a href="../../../openrndr-utils/org.openrndr.utils.buffer/-m-p-p-buffer/index.html">MPPBuffer</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="2028173785%2FProperties%2F1963397253" anchor-label="dwABitMask" id="2028173785%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-a-bit-mask.html"><span>dw</span><wbr><span>ABit</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2028173785%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-a-bit-mask.html">dwABitMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-155503142%2FProperties%2F1963397253" anchor-label="dwBBitMask" id="-155503142%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-b-bit-mask.html"><span>dw</span><wbr><span>BBit</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-155503142%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-b-bit-mask.html">dwBBitMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1557697154%2FProperties%2F1963397253" anchor-label="dwFlags" id="1557697154%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-flags.html"><span>dw</span><wbr><span><span>Flags</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1557697154%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-flags.html">dwFlags</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="417421451%2FProperties%2F1963397253" anchor-label="dwFourCC" id="417421451%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-four-c-c.html"><span>dw</span><wbr><span>Four</span><wbr><span><span>CC</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="417421451%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-four-c-c.html">dwFourCC</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1811014111%2FProperties%2F1963397253" anchor-label="dwGBitMask" id="1811014111%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-g-bit-mask.html"><span>dw</span><wbr><span>GBit</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1811014111%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-g-bit-mask.html">dwGBitMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-734595606%2FProperties%2F1963397253" anchor-label="dwRBitMask" id="-734595606%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-r-bit-mask.html"><span>dw</span><wbr><span>RBit</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-734595606%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-r-bit-mask.html">dwRBitMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1594219238%2FProperties%2F1963397253" anchor-label="dwRGBBitCount" id="-1594219238%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-r-g-b-bit-count.html"><span>dw</span><wbr><span>RGBBit</span><wbr><span><span>Count</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1594219238%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-r-g-b-bit-count.html">dwRGBBitCount</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1332490736%2FProperties%2F1963397253" anchor-label="dwSize" id="1332490736%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dw-size.html"><span>dw</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1332490736%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="dw-size.html">dwSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="947513484%2FProperties%2F1963397253" anchor-label="hasFlagAlpha" id="947513484%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-alpha.html"><span>has</span><wbr><span>Flag</span><wbr><span><span>Alpha</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="947513484%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-alpha.html">hasFlagAlpha</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1462777631%2FProperties%2F1963397253" anchor-label="hasFlagAlphaPixels" id="1462777631%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-alpha-pixels.html"><span>has</span><wbr><span>Flag</span><wbr><span>Alpha</span><wbr><span><span>Pixels</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1462777631%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-alpha-pixels.html">hasFlagAlphaPixels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-987074646%2FProperties%2F1963397253" anchor-label="hasFlagFourCC" id="-987074646%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-four-c-c.html"><span>has</span><wbr><span>Flag</span><wbr><span>Four</span><wbr><span><span>CC</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-987074646%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-four-c-c.html">hasFlagFourCC</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2035988402%2FProperties%2F1963397253" anchor-label="hasFlagLuminance" id="2035988402%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-luminance.html"><span>has</span><wbr><span>Flag</span><wbr><span><span>Luminance</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2035988402%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-luminance.html">hasFlagLuminance</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="264635197%2FProperties%2F1963397253" anchor-label="hasFlagRgb" id="264635197%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-rgb.html"><span>has</span><wbr><span>Flag</span><wbr><span><span>Rgb</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="264635197%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-rgb.html">hasFlagRgb</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-320430128%2FProperties%2F1963397253" anchor-label="hasFlagYuv" id="-320430128%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-flag-yuv.html"><span>has</span><wbr><span>Flag</span><wbr><span><span>Yuv</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-320430128%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="has-flag-yuv.html">hasFlagYuv</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1103791239%2FProperties%2F1963397253" anchor-label="isCompressed" id="-1103791239%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-compressed.html"><span>is</span><wbr><span><span>Compressed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1103791239%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="is-compressed.html">isCompressed</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2085621117%2FProperties%2F1963397253" anchor-label="sFourCC" id="2085621117%2FProperties%2F1963397253" data-filterable-set=":openrndr-dds/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-dds/commonMain" data-filterable-set=":openrndr-dds/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="s-four-c-c.html"><span>s</span><wbr><span>Four</span><wbr><span><span>CC</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2085621117%2FProperties%2F1963397253"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-dds/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="s-four-c-c.html">sFourCC</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

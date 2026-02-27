@@ -1,0 +1,561 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Box2</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.0-dev.48+5053cf5
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-kartifex/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-kartifex/commonMain" data-filter=":openrndr-kartifex/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-kartifex::org.openrndr.kartifex/Box2///PointingToDeclaration//-842815238">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-kartifex</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.kartifex</a><span class="delimiter">/</span><span class="current">Box2</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Box2</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Box2</a> : <a href="../-box/index.html">Box</a><span class="token operator">&lt;</span><a href="../-vec2/index.html">Vec2</a><span class="token punctuation">, </span><a href="index.html">Box2</a><span class="token operator">&gt; </span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-kartifex/src/commonMain/kotlin/Box2.kt#L14">source</a>)</span></span></div><p class="paragraph">Represents a two-dimensional rectangular box defined by two points: a lower-left point and an upper-right point. This class extends the generic <code class="lang-kotlin">Box</code> class specialized for two-dimensional vectors (<code class="lang-kotlin">Vec2</code>).</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1356292070%2FConstructors%2F-842815238" anchor-label="Box2" id="-1356292070%2FConstructors%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-box2.html"><span><span>Box2</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1356292070%2FConstructors%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">a<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-1675817771%2FClasslikes%2F-842815238" anchor-label="Companion" id="-1675817771%2FClasslikes%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1675817771%2FClasslikes%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1403505387%2FProperties%2F-842815238" anchor-label="isEmpty" id="1403505387%2FProperties%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-empty.html"><span>is</span><wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1403505387%2FProperties%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="is-empty.html">isEmpty</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1899574016%2FProperties%2F-842815238" anchor-label="lx" id="-1899574016%2FProperties%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lx.html"><span><span>lx</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1899574016%2FProperties%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="lx.html">lx</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The x-coordinate of the lower-left corner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1868554209%2FProperties%2F-842815238" anchor-label="ly" id="-1868554209%2FProperties%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="ly.html"><span><span>ly</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1868554209%2FProperties%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="ly.html">ly</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The y-coordinate of the lower-left corner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1834982455%2FProperties%2F-842815238" anchor-label="ux" id="-1834982455%2FProperties%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="ux.html"><span><span>ux</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1834982455%2FProperties%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="ux.html">ux</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The x-coordinate of the upper-right corner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1803962648%2FProperties%2F-842815238" anchor-label="uy" id="-1803962648%2FProperties%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="uy.html"><span><span>uy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1803962648%2FProperties%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="uy.html">uy</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">The y-coordinate of the upper-right corner.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1516943405%2FFunctions%2F-842815238" anchor-label="contains" id="-1516943405%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/contains.html"><span><span>contains</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1516943405%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">operator </span><span class="token keyword">fun </span><a href="../-box/contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="368120509%2FFunctions%2F-842815238" anchor-label="distance" id="368120509%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/distance.html"><span><span>distance</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="368120509%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/distance.html"><span class="token function">distance</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">point<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2089922698%2FFunctions%2F-842815238" anchor-label="distanceSquared" id="-2089922698%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/distance-squared.html"><span>distance</span><wbr><span><span>Squared</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2089922698%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/distance-squared.html"><span class="token function">distanceSquared</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">point<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2032219521%2FFunctions%2F-842815238" anchor-label="equals" id="-2032219521%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/equals.html"><span><span>equals</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2032219521%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="../-box/equals.html"><span class="token function">equals</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="81684616%2FFunctions%2F-842815238" anchor-label="expand" id="81684616%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/expand.html"><span><span>expand</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="81684616%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/expand.html"><span class="token function">expand</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/expand.html"><span class="token function">expand</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="91407239%2FFunctions%2F-842815238" anchor-label="hashCode" id="91407239%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/hash-code.html"><span>hash</span><wbr><span><span>Code</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="91407239%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="../-box/hash-code.html"><span class="token function">hashCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1502461509%2FFunctions%2F-842815238" anchor-label="height" id="1502461509%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="height.html"><span><span>height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1502461509%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="height.html"><span class="token function">height</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1171844696%2FFunctions%2F-842815238" anchor-label="intersection" id="1171844696%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/intersection.html"><span><span>intersection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1171844696%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/intersection.html"><span class="token function">intersection</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">b<span class="token operator">: </span><a href="index.html">Box2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="508546459%2FFunctions%2F-842815238" anchor-label="intersects" id="508546459%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="intersects.html"><span><span>intersects</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="508546459%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="intersects.html"><span class="token function">intersects</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">b<span class="token operator">: </span><a href="index.html">Box2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1734408232%2FFunctions%2F-842815238" anchor-label="lerp" id="1734408232%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/lerp.html"><span><span>lerp</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1734408232%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/lerp.html"><span class="token function">lerp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/lerp.html"><span class="token function">lerp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1516786733%2FFunctions%2F-842815238" anchor-label="lower" id="1516786733%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lower.html"><span><span>lower</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1516786733%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="lower.html"><span class="token function">lower</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="590168596%2FFunctions%2F-842815238" anchor-label="nth" id="590168596%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/nth.html"><span><span>nth</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="590168596%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/nth.html"><span class="token function">nth</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">idx<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-interval/index.html">Interval</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1838784052%2FFunctions%2F-842815238" anchor-label="outline" id="-1838784052%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="outline.html"><span><span>outline</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1838784052%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="outline.html"><span class="token function">outline</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-ring2/index.html">Ring2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-141506261%2FFunctions%2F-842815238" anchor-label="scale" id="-141506261%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/scale.html"><span><span>scale</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-141506261%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/scale.html"><span class="token function">scale</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="scale.html"><span class="token function">scale</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">k<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="scale.html"><span class="token function">scale</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="619522273%2FFunctions%2F-842815238" anchor-label="size" id="619522273%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="619522273%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/size.html"><span class="token function">size</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-86758826%2FFunctions%2F-842815238" anchor-label="toString" id="-86758826%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/to-string.html"><span>to</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-86758826%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="../-box/to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="180697463%2FFunctions%2F-842815238" anchor-label="translate" id="180697463%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/translate.html"><span><span>translate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="180697463%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/translate.html"><span class="token function">translate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="translate.html"><span class="token function">translate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">x<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">y<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="334764565%2FFunctions%2F-842815238" anchor-label="union" id="334764565%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-box/union.html"><span><span>union</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="334764565%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/union.html"><span class="token function">union</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">b<span class="token operator">: </span><a href="index.html">Box2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-box/union.html"><span class="token function">union</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">v<span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-200077908%2FFunctions%2F-842815238" anchor-label="upper" id="-200077908%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="upper.html"><span><span>upper</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-200077908%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="upper.html"><span class="token function">upper</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2009358349%2FFunctions%2F-842815238" anchor-label="vertices" id="-2009358349%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="vertices.html"><span><span>vertices</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2009358349%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="vertices.html"><span class="token function">vertices</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../-vec2/index.html">Vec2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-743208696%2FFunctions%2F-842815238" anchor-label="width" id="-743208696%2FFunctions%2F-842815238" data-filterable-set=":openrndr-kartifex/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-kartifex/commonMain" data-filterable-set=":openrndr-kartifex/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="width.html"><span><span>width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-743208696%2FFunctions%2F-842815238"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="width.html"><span class="token function">width</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
