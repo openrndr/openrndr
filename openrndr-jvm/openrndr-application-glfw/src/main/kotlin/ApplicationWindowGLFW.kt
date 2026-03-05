@@ -13,6 +13,7 @@ import org.openrndr.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
 import org.openrndr.math.Vector2
+import org.openrndr.shape.Rectangle
 import java.io.File
 import java.nio.Buffer
 import java.util.*
@@ -34,6 +35,16 @@ class ApplicationWindowGLFW(
 
     override var unfocusBehaviour: UnfocusBehaviour
         get() = TODO("Not yet implemented")
+        set(value) {}
+
+    override var textInputCursor: Double
+        get() = 0.0
+        set(value) {
+
+        }
+
+    override var textInputArea: Rectangle?
+        get() = null
         set(value) {}
 
     internal fun updateSize() {

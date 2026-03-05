@@ -190,6 +190,10 @@ interface Program : InputEvents, ExtensionHost, Clock {
     val clipboard: ProgramImplementation.ApplicationClipboard
 
     fun updateFrameSecondsFromClock()
+
+    companion object {
+        var active: Program? = null
+    }
 }
 
 enum class Hit {

@@ -974,6 +974,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
+            Program.active = program
             glfwMakeContextCurrent(window)
 
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
@@ -1002,6 +1003,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             for (window in windows) {
+                Program.active = window.program
                 window.update()
             }
 

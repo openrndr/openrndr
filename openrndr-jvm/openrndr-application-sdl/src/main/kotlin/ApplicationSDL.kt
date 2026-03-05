@@ -235,6 +235,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             unfocusBehaviour = configuration.unfocusBehaviour
         )
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
+        Program.active = program
         program.driver = Driver.instance
 
         Animatable.clock(object : Clock {

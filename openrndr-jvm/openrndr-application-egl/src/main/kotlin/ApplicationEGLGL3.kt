@@ -162,6 +162,8 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
 
             setupPreload(program, configuration)
 
+            Program.active = program
+
             program.drawer = Drawer(driver)
             runBlocking {
                 program.setup()

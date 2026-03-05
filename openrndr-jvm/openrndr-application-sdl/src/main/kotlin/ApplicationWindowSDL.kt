@@ -3,6 +3,7 @@ package org.openrndr.application.sdl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLKeyboard.SDL_HasKeyboard
+import org.lwjgl.sdl.SDLKeyboard.SDL_SetTextInputArea
 import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
 import org.lwjgl.sdl.SDLMouse.SDL_CreateSystemCursor
 import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
@@ -85,6 +86,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
 import org.lwjgl.sdl.SDL_Point
+import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
 import org.openrndr.CursorType
@@ -105,6 +107,7 @@ import org.openrndr.internal.gl3.ProgramRenderTargetGL3
 import org.openrndr.internal.gl3.glVersion
 import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
+import org.openrndr.shape.Rectangle
 import kotlin.use
 
 
@@ -137,6 +140,31 @@ class ApplicationWindowSDL(
         program.drawer = drawer
         (program as? WindowProgram)?.applicationWindow = this
     }
+
+    override var textInputCursor: Double = 0.0
+
+    override var textInputArea: Rectangle? = null
+        get() = field
+        set(value) {
+            if (field != value) {
+                field = value
+                if (value != null) {
+                    val rect = SDL_Rect.calloc(1)
+                    rect.x(value.x.toInt())
+                    rect.y(value.y.toInt())
+                    rect.w(value.width.toInt())
+                    rect.h(value.height.toInt())
+                    rect.flip()
+                    SDL_SetTextInputArea(
+                        window,
+                        rect,
+                        textInputCursor.toInt()
+                    )
+                    rect.free()
+                }
+
+            }
+        }
 
     override var windowHitTest: ((Vector2) -> Hit)? = null
         set(value) {
@@ -347,9 +375,11 @@ class ApplicationWindowSDL(
     }
 
     fun update() {
+
         if (destroyed)
             return
 
+        Program.active = program
         SDL_GL_MakeCurrent(window, glContext)
         defaultRenderTarget.bind()
 
