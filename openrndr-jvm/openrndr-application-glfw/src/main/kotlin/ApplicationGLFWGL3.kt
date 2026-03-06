@@ -681,6 +681,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     fun preloop() {
+        Program.active = program
         when (Driver.glType) {
             DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
