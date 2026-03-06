@@ -125,14 +125,18 @@ class FontImageMapDrawer {
                 var lastChar: Char? = null
                 text.forEach {
                     val lc = lastChar
+
+                    var char = it
+                    val glyphMetrics = fontMap.glyphMetrics[it] ?: run { char = '�'; fontMap.glyphMetrics['�'] }  ?: run { char = '_'; fontMap.glyphMetrics.getValue('_') }
+
                     if (drawStyle.kerning == KernMode.METRIC) {
-                        cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                        cursorX += if (lc != null) fontMap.kerning(lc, char) else 0.0
                     }
-                    val glyphMetrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
+
                     val (dx, _) = insertCharacterQuad(
                         fontMap,
                         bw,
-                        it,
+                        char,
                         position.x + cursorX,
                         position.y + cursorY,
                         instance,
@@ -142,7 +146,7 @@ class FontImageMapDrawer {
 
                     )
                     cursorX += glyphMetrics.advanceWidth + dx
-                    lastChar = it
+                    lastChar = char
                 }
                 instance++
             }
@@ -263,12 +267,15 @@ class FontImageMapDrawer {
         glyphOutput: GlyphOutput?
     ): Pair<Double, GlyphRectangle?> {
 
-        val rectangle = fontMap.map[character] ?: fontMap.map[' ']
+        var character = character
+        val rectangle = fontMap.map[character]
+            ?: run {  character = '�'; fontMap.map['�'] }
+            ?: run { character = '_'; fontMap.map[' '] }
         val targetContentScale = RenderTarget.active.contentScale
         val fmcs = fontMap.contentScale.toFloat()
 
         val metrics =
-            fontMap.glyphMetrics[character] ?: fontMap.glyphMetrics[' '] ?: error("glyph or space substitute not found")
+            fontMap.glyphMetrics[character] ?: error("glyph or space substitute not found for characters '$character'")
         val xshift = (metrics.xBitmapShift / fmcs).toFloat()
         val yshift = (metrics.yBitmapShift / fmcs).toFloat()
 
