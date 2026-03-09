@@ -95,6 +95,8 @@ import org.openrndr.Hit
 import org.openrndr.MouseCursorHideMode
 import org.openrndr.PresentationMode
 import org.openrndr.Program
+import org.openrndr.ProgramEvent
+import org.openrndr.ProgramEventType
 import org.openrndr.UnfocusBehaviour
 import org.openrndr.WindowConfiguration
 import org.openrndr.WindowMultisample
@@ -315,6 +317,7 @@ class ApplicationWindowSDL(
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     override fun destroy() {
+        logger.debug { "Destroying window $window" }
         if (windowHitTest != null) {
             SDL_SetWindowHitTest(window, null, 0L)
         }
@@ -324,6 +327,7 @@ class ApplicationWindowSDL(
         for (extension in program.extensions) {
             extension.shutdown(program)
         }
+        program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
         Driver.instance.destroyContext(window)
 
         application.windowsById.remove(SDL_GetWindowID(window))

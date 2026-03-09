@@ -257,7 +257,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     private fun handleSDLEvent(event: SDL_Event) {
         when (event.type()) {
             SDL_EVENT_QUIT -> {
-                logger.info { "received quit event" }
+                logger.debug { "Received quit event" }
                 exitRequested = true
             }
 
@@ -713,6 +713,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.update()
             }
         }
+        window.destroy()
+        for (window in windows) {
+            window.destroy()
+        }
+
     }
 
 
