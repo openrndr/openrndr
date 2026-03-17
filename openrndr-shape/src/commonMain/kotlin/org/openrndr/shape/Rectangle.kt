@@ -206,7 +206,13 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
             fromAnchor(Vector2(0.5, 0.5), center, width, height)
 
 
-        /** Creates a new [Rectangle] by specifying the [anchorUV], [anchor] positions with dimensions [width] and [height]. */
+        /**
+         * Creates a new [Rectangle] by specifying the rectangle's normalized [anchorUV] position,
+         * the target [anchor] position, its [width] and [height].
+         *
+         * Set the [anchorUV] to `Vector2(0.0, 0.0)` to place the top-left corner of the rectangle
+         * or `Vector2(1.0, 0.5)` to place the center of its right edge, for instance.
+         * */
         fun fromAnchor(anchorUV: Vector2, anchor: Vector2, width: Double, height: Double = width) =
             Rectangle(anchor.x - width * anchorUV.x, anchor.y - height * anchorUV.y, width, height)
 

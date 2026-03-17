@@ -464,7 +464,7 @@ class ImageDriverStbImage : ImageDriver {
                     val order = when (format) {
                         ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
                         ColorFormat.RGB -> listOf("B", "G", "R").map { channelNames.indexOf(it) }
-                        ColorFormat.RGBa -> listOf("B", "G", "R", "A").map { channelNames.indexOf(it) }
+                        ColorFormat.RGBa -> listOf("A", "B", "G", "R").map { channelNames.indexOf(it) }
                         else -> error("unsupported channel layout")
                     }
                     require(order.none { it == -1 }) { "some channels are not found" }
