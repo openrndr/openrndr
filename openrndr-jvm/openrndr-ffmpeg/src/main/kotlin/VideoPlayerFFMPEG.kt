@@ -1,6 +1,8 @@
 package org.openrndr.ffmpeg
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.internal.synchronized
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -30,6 +32,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -538,6 +541,7 @@ class VideoPlayerFFMPEG private constructor(
     /**
      * Start playing the stream
      */
+    @OptIn(InternalCoroutinesApi::class)
     @Suppress("unused")
     fun play() {
         timeOffset = clock()
@@ -728,6 +732,7 @@ class VideoPlayerFFMPEG private constructor(
         }
     }
 
+    @OptIn(InternalCoroutinesApi::class)
     @Suppress("unused")
     fun restart() {
         require(!disposed)
@@ -771,6 +776,8 @@ class VideoPlayerFFMPEG private constructor(
     }
 
     var first = true
+    private var waitTimeInMs = 1
+    @OptIn(InternalCoroutinesApi::class)
     private fun update(blockUntilFinished: Boolean) {
         waitForFrame@ do {
             if (state == State.STOPPED || state == State.PAUSED) {
@@ -778,15 +785,21 @@ class VideoPlayerFFMPEG private constructor(
             }
 
             if (state == State.PLAYING) {
-                synchronized(displayQueue) {
+                //synchronized(displayQueue) {
                     if (!configuration.synchronizeToClock) {
-                        val frame = displayQueue.peek()
+                        val frame = synchronized(displayQueue) {
+                            val f = displayQueue.peek()
+                            if (f != null) {
+                                displayQueue.pop()
+                            }
+                            f
+                        }
                         if (frame != null) {
-                            displayQueue.pop()
                             if (!frame.buffer.isNull) {
                                 colorBuffer?.write(
                                     frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
                                 )
+                                waitTimeInMs = 1
                                 colorBuffer?.let { lc ->
                                     position = frame.timeStamp
                                     newFrame.trigger(FrameEvent(lc, frame.timeStamp))
@@ -797,12 +810,20 @@ class VideoPlayerFFMPEG private constructor(
                                 }
                             }
                             frame.unref()
-                            break
+                            break@waitForFrame
                         } else if (blockUntilFinished) {
-                            logger.debug { "Waiting for frame." }
-                            Thread.sleep(10)
+                            if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
+                                ended.trigger(VideoEvent())
+                                state = State.STOPPED
+                                break@waitForFrame
+                            } else {
+                                logger.debug { "${waitTimeInMs}ms for frame. vqs: ${decoder?.videoQueueSize()}, dqs: ${displayQueue.size()}" }
+                                Thread.sleep(waitTimeInMs.toLong())
+                                waitTimeInMs = min(16, waitTimeInMs * 2)
+                            }
                         }
                     } else {
+                        synchronized(displayQueue) {
                         var frame: VideoFrame?
 
                         if (audioOut != null && info != null) {
@@ -898,7 +919,8 @@ class VideoPlayerFFMPEG private constructor(
                         }
                         break@waitForFrame
                     }
-                }
+                    }
+                //}
             }
         } while (blockUntilFinished)
     }
