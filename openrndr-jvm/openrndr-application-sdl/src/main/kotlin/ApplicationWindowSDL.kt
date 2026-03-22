@@ -376,6 +376,8 @@ class ApplicationWindowSDL(
         program.mouse.dragged.deliver()
         program.mouse.entered.deliver()
         program.mouse.exited.deliver()
+        program.pointers.deliver()
+        program.gestures.deliver()
     }
 
     fun update() {

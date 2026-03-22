@@ -515,6 +515,33 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 )
             }
 
+            SDL_EVENT_PINCH_BEGIN -> {
+                val pinchEvent = event.pinch()
+                val windowId = pinchEvent.windowID()
+                val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
+                ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_BEGIN) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.program.gestures.pinchStarted.trigger(PinchEvent(1.0))
+            }
+            SDL_EVENT_PINCH_UPDATE -> {
+                val pinchEvent = event.pinch()
+                val windowId = pinchEvent.windowID()
+                val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
+                ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_END) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.program.gestures.pinchUpdated.trigger(PinchEvent(pinchEvent.scale().toDouble()))
+            }
+
+
+            SDL_EVENT_PINCH_END -> {
+                val pinchEvent = event.pinch()
+                val windowId = pinchEvent.windowID()
+                val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
+                ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_END) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.program.gestures.pinchEnded.trigger(PinchEvent(1.0))
+            }
+
             SDL_EVENT_FINGER_DOWN -> {
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)

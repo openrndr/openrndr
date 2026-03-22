@@ -26,18 +26,19 @@ interface PointerEvents {
      */
     fun deliver() {
         pointerDown.deliver()
-        pointerUp.deliver()
         moved.deliver()
+        pointerUp.deliver()
         cancelled.deliver()
     }
 }
 
 class Pointers : PointerEvents {
-    override val pointerDown: Event<PointerEvent> = Event("pointer-down")
-    override val pointerUp: Event<PointerEvent> = Event("pointer-up")
-    override val moved: Event<PointerEvent> = Event("pointer-moved")
-    override val cancelled: Event<PointerEvent> = Event("pointer-cancelled")
+    override val pointerDown: Event<PointerEvent> = Event("pointer-down", postpone = true)
+    override val pointerUp: Event<PointerEvent> = Event("pointer-up", postpone = true)
+    override val moved: Event<PointerEvent> = Event("pointer-moved", postpone = true)
+    override val cancelled: Event<PointerEvent> = Event("pointer-cancelled", postpone = true)
 }
+
 @JvmRecord
 data class PointerEvent(val pointerID: Long, val position: Vector2, val displacement: Vector2, val pressure: Double)
 

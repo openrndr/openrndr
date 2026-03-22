@@ -79,6 +79,7 @@ interface InputEvents {
     val mouse: MouseEvents
     val keyboard: KeyEvents
     val pointers: PointerEvents
+    val gestures: GestureEvents
 }
 
 /**
@@ -567,6 +568,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override val keyboard by lazy { Keyboard() }
     override val mouse by lazy { ApplicationMouse(application = { application }) }
     override val pointers by lazy { Pointers() }
+    override val gestures by lazy { Gestures() }
 
     override suspend fun setup() {}
 
