@@ -1081,12 +1081,12 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.keyboard.keyUp.deliver()
         program.keyboard.keyRepeat.deliver()
         program.keyboard.character.deliver()
+        program.mouse.entered.deliver()
         program.mouse.moved.deliver()
         program.mouse.scrolled.deliver()
         program.mouse.buttonDown.deliver()
-        program.mouse.buttonUp.deliver()
         program.mouse.dragged.deliver()
-        program.mouse.entered.deliver()
+        program.mouse.buttonUp.deliver()
         program.mouse.exited.deliver()
     }
 
