@@ -11,8 +11,26 @@ import kotlin.jvm.JvmRecord
  * @property scale The scale factor associated with the pinch gesture. A value greater than 1.0
  * indicates a zoom-in gesture, while a value less than 1.0 indicates a zoom-out gesture.
  */
-@JvmRecord
-data class PinchEvent(val scale:Double)
+
+data class PinchEvent(val scale:Double) {
+
+    /**
+     * specifies if the propagation of this event is cancelled
+     * @see cancelPropagation
+     */
+    var propagationCancelled: Boolean = false
+
+    /**
+     * cancel propagation of this [PinchEvent] message
+     *
+     * Note that cancellation is only a hint. Event listeners should check if [MouseEvent.propagationCancelled] is set to see
+     * if another listener already consumed the event.
+     * @see propagationCancelled
+     */
+    fun cancelPropagation() {
+        propagationCancelled = true
+    }
+}
 
 
 /**

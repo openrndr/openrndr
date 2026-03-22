@@ -39,8 +39,26 @@ class Pointers : PointerEvents {
     override val cancelled: Event<PointerEvent> = Event("pointer-cancelled", postpone = true)
 }
 
-@JvmRecord
-data class PointerEvent(val pointerID: Long, val position: Vector2, val displacement: Vector2, val pressure: Double)
+
+data class PointerEvent(val pointerID: Long, val position: Vector2, val displacement: Vector2, val pressure: Double) {
+
+    /**
+    * specifies if the propagation of this event is cancelled
+    * @see cancelPropagation
+    */
+    var propagationCancelled: Boolean = false
+
+    /**
+     * cancel propagation of this [PointerEvent] message
+     *
+     * Note that cancellation is only a hint. Event listeners should check if [MouseEvent.propagationCancelled] is set to see
+     * if another listener already consumed the event.
+     * @see propagationCancelled
+     */
+    fun cancelPropagation() {
+        propagationCancelled = true
+    }
+}
 
 @JvmRecord
 data class Pointer(val pointerID: Long, val position: Vector2, val pressure: Double)
