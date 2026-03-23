@@ -232,7 +232,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             hideMouseCursor = configuration.hideCursor,
             display = configuration.display,
             relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE,
-            unfocusBehaviour = configuration.unfocusBehaviour
+            unfocusBehaviour = configuration.unfocusBehaviour,
+            vsync = configuration.vsync
         )
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
         Program.active = program
@@ -259,7 +260,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         when (event.type()) {
             SDL_EVENT_WINDOW_FOCUS_GAINED -> {
                 val windowId = event.window().windowID()
-                println("window focus gained: $windowId")
                 focusedWindowId = windowId
             }
             SDL_EVENT_QUIT -> {

@@ -82,6 +82,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_Y_NUMBER
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowHitTest
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
+import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSurfaceVSync
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
@@ -523,6 +524,9 @@ fun createApplicationWindowSDL(
     require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
 
+    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
+        logger.warn { "Failed to set vsync for window $window" }
+    }
 
     if (configuration.fullscreen == Fullscreen.DISABLED) {
         stackPush().use {
