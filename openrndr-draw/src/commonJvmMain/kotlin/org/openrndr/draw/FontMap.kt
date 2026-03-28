@@ -9,9 +9,6 @@ import org.openrndr.draw.font.loadFace
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URI
-import java.net.URLEncoder
-
-
 
 private val logger = KotlinLogging.logger {}
 
@@ -58,8 +55,7 @@ fun loadFontImageMap(
 
 private fun isValidUrl(url: String): Boolean {
     return try {
-        val encodedUrl = URLEncoder.encode(url, "UTF-8")
-        URI(encodedUrl).toURL()
+        URI(url).toURL()
         true
     } catch (_: MalformedURLException) {
         false
