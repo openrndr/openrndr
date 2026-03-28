@@ -37,10 +37,12 @@ fun loadFontImageMap(
 ): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
 
-    val scale = scaleCache.getOrPut(fileOrUrl to fontScaler) { loadFace(fileOrUrl).use { fontScaler(it) } } * size
+    fun getFontScale() = scaleCache.getOrPut(fileOrUrl to fontScaler) {
+        loadFace(fileOrUrl).use { fontScaler(it) }
+    } * size
 
     return if (isValidUrl(fileOrUrl)) {
-        FontImageMap.fromUrl(fileOrUrl, scale, activeSet, contentScale)
+        FontImageMap.fromUrl(fileOrUrl, getFontScale(), activeSet, contentScale)
     } else {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -49,7 +51,7 @@ fun loadFontImageMap(
         require(file.extension.lowercase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, scale, activeSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, getFontScale(), activeSet, contentScale)
     }
 }
 
