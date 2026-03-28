@@ -57,7 +57,7 @@ fun loadFontImageMap(
 
 private fun isValidUrl(url: String): Boolean {
     return try {
-        URI(url).toURL()
+        URI(url.replace(" ", "%20")).toURL()
         true
     } catch (_: MalformedURLException) {
         false
