@@ -8,7 +8,7 @@ import org.openrndr.draw.font.fontHeightScaler
 import org.openrndr.draw.font.loadFace
 import java.io.File
 import java.net.MalformedURLException
-import java.net.URI
+import java.net.URL
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,11 +57,10 @@ fun loadFontImageMap(
 
 private fun isValidUrl(url: String): Boolean {
     return try {
-        URI(url.replace(" ", "%20")).toURL()
+        // Deprecated, but URI(url).toURL() fails when the file name contains spaces.
+        URL(url)
         true
     } catch (_: MalformedURLException) {
-        false
-    } catch(_: IllegalArgumentException) {
         false
     }
 }
