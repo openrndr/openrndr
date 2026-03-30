@@ -189,6 +189,10 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
             applicationWindow.maximize()
         }
 
+        override fun restore() {
+            applicationWindow.restore()
+        }
+
         override fun fullscreen(mode: Fullscreen) {
             applicationWindow.fullscreen(mode)
         }
