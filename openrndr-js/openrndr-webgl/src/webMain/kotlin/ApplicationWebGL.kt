@@ -308,6 +308,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
     }
 
+    override fun windowRestore() {
+
+    }
+
     override fun windowFullscreen(mode: Fullscreen) {
 
     }

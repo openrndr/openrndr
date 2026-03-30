@@ -237,6 +237,11 @@ interface Window {
      */
     fun maximize()
 
+    /**
+     * Restores the window to its original width, height and position.
+     */
+    fun restore()
+
     fun close()
 
     /**
@@ -490,6 +495,10 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
         override fun maximize() {
             application.windowMaximize()
+        }
+
+        override fun restore() {
+            application.windowRestore()
         }
 
         override fun fullscreen(mode: Fullscreen) {

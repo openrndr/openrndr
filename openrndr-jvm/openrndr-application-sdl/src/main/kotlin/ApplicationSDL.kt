@@ -124,6 +124,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         window.minimize()
     }
 
+    override fun windowRestore() {
+        window.restore()
+    }
+
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
 
     fun windowById(id: Int): ApplicationWindowSDL? {
