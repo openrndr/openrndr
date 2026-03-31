@@ -8,7 +8,7 @@ import org.openrndr.draw.font.fontHeightScaler
 import org.openrndr.draw.font.loadFace
 import java.io.File
 import java.net.MalformedURLException
-import java.net.URI
+import java.net.URL
 
 private val logger = KotlinLogging.logger {}
 
@@ -37,10 +37,12 @@ fun loadFontImageMap(
 ): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
 
-    val scale = scaleCache.getOrPut(fileOrUrl to fontScaler) { loadFace(fileOrUrl).use { fontScaler(it) } } * size
+    fun getFontScale() = scaleCache.getOrPut(fileOrUrl to fontScaler) {
+        loadFace(fileOrUrl).use { fontScaler(it) }
+    } * size
 
     return if (isValidUrl(fileOrUrl)) {
-        FontImageMap.fromUrl(fileOrUrl, scale, activeSet, contentScale)
+        FontImageMap.fromUrl(fileOrUrl, getFontScale(), activeSet, contentScale)
     } else {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -49,17 +51,16 @@ fun loadFontImageMap(
         require(file.extension.lowercase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, scale, activeSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, getFontScale(), activeSet, contentScale)
     }
 }
 
 private fun isValidUrl(url: String): Boolean {
     return try {
-        URI(url).toURL()
+        // Deprecated, but URI(url).toURL() fails when the file name contains spaces.
+        URL(url)
         true
     } catch (_: MalformedURLException) {
-        false
-    } catch(_: IllegalArgumentException) {
         false
     }
 }
