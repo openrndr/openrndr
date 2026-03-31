@@ -77,7 +77,9 @@ internal class VideoDecoder(
 
     fun dispose() {
         logger.debug { "disposing video decoder" }
-        while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+        synchronized(videoQueue) {
+            while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+        }
         av_frame_free(scaledVideoFrame)
         imagePointer.forEach {
             av_free(it)
@@ -90,13 +92,15 @@ internal class VideoDecoder(
     fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 2
     fun needMoreFrames() = (videoQueue.size() < minVideoFrames)
 
-    fun peekNextFrame() = videoQueue.peek()
-    fun nextFrame() = videoQueue.popOrNull()
+    fun peekNextFrame() = synchronized(videoQueue) { videoQueue.peek() }
+    fun nextFrame() = synchronized(videoQueue) { videoQueue.popOrNull() }
 
     fun flushQueue() {
-        while (!videoQueue.isEmpty()) {
-            val a = videoQueue.popOrNull()
-            a?.unref()
+        synchronized(videoQueue) {
+            while (!videoQueue.isEmpty()) {
+                val a = videoQueue.popOrNull()
+                a?.unref()
+            }
         }
     }
 
@@ -158,7 +162,9 @@ internal class VideoDecoder(
 
                     val buffer = av_buffer_alloc(scaledFrameSize.toLong())
                     Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
-                    videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], ptss, scaledFrameSize))
+                    synchronized(videoQueue) {
+                        videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], ptss, scaledFrameSize))
+                    }
                     av_frame_free(transferredFrame)
                     statistics.videoQueueSize = videoQueue.size()
                     statistics.videoFramesDecoded += 1

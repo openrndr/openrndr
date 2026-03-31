@@ -2,7 +2,7 @@ package org.openrndr.ffmpeg
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.internal.synchronized
+
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -657,8 +657,15 @@ class VideoPlayerFFMPEG private constructor(
                             continue
                         }
 
-                        if (seekRequested) {
+                        if (seekPositions.isNotEmpty()) {
+                            val seekPosition = synchronized(seekPositions) {
+                                val seekPosition = seekPositions.last()
+                                seekPositions.clear()
+                                seekPosition
+                            }
+
                             logger.debug { "performing seek to $seekPosition" }
+                            seekInProgress = true
                             decoder.seek(seekPosition)
                             synchronized(displayQueue) {
                                 logger.debug { "flushing display queue" }
@@ -667,7 +674,6 @@ class VideoPlayerFFMPEG private constructor(
                                 }
                             }
                             audioOut?.flush()
-                            seekRequested = false
                         }
 
                         if (displayQueue.size() < displayQueue.maxSize - 1) {
@@ -747,9 +753,9 @@ class VideoPlayerFFMPEG private constructor(
         audioOut?.flush()
     }
 
-    private var seekRequested = false
+    private var seekInProgress = false
     private var seekCompleted = false
-    private var seekPosition = -1.0
+    private val seekPositions = mutableListOf<Double>()
 
     var position: Double = 0.0
         private set
@@ -758,25 +764,27 @@ class VideoPlayerFFMPEG private constructor(
      * Seek in the video
      * @param positionInSeconds the desired seeking time in seconds
      */
+    @OptIn(InternalCoroutinesApi::class)
     @Suppress("unused")
     fun seek(positionInSeconds: Double) {
         decoder!!.seekCompleted = {
+            seekInProgress = false
             seekCompleted = true
         }
         require(!disposed)
-        if (!seekRequested) {
-            logger.info { "video player seek requested to ${positionInSeconds}" }
-            seekRequested = true
-            endOfFileReached = false
-            seekPosition = positionInSeconds
-            state = State.PLAYING
-        } else {
-            logger.warn { "waiting for seek to complete" }
+        logger.debug { "Video player seek requested to ${positionInSeconds}" }
+        synchronized(seekPositions) {
+            seekPositions.add(positionInSeconds)
         }
+        endOfFileReached = false
+
+        state = State.PLAYING
+
     }
 
     var first = true
     private var waitTimeInMs = 1
+
     @OptIn(InternalCoroutinesApi::class)
     private fun update(blockUntilFinished: Boolean) {
         waitForFrame@ do {
@@ -786,44 +794,44 @@ class VideoPlayerFFMPEG private constructor(
 
             if (state == State.PLAYING) {
                 //synchronized(displayQueue) {
-                    if (!configuration.synchronizeToClock) {
-                        val frame = synchronized(displayQueue) {
-                            val f = displayQueue.peek()
-                            if (f != null) {
-                                displayQueue.pop()
-                            }
-                            f
+                if (!configuration.synchronizeToClock) {
+                    val frame = synchronized(displayQueue) {
+                        val f = displayQueue.peek()
+                        if (f != null) {
+                            displayQueue.pop()
                         }
-                        if (frame != null) {
-                            if (!frame.buffer.isNull) {
-                                colorBuffer?.write(
-                                    frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
-                                )
-                                waitTimeInMs = 1
-                                colorBuffer?.let { lc ->
-                                    position = frame.timeStamp
-                                    newFrame.trigger(FrameEvent(lc, frame.timeStamp))
-                                }
-                            } else {
-                                logger.error {
-                                    "encountered frame with null buffer"
-                                }
+                        f
+                    }
+                    if (frame != null) {
+                        if (!frame.buffer.isNull) {
+                            colorBuffer?.write(
+                                frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
+                            )
+                            waitTimeInMs = 1
+                            colorBuffer?.let { lc ->
+                                position = frame.timeStamp
+                                newFrame.trigger(FrameEvent(lc, frame.timeStamp))
                             }
-                            frame.unref()
+                        } else {
+                            logger.error {
+                                "encountered frame with null buffer"
+                            }
+                        }
+                        frame.unref()
+                        break@waitForFrame
+                    } else if (blockUntilFinished) {
+                        if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
+                            ended.trigger(VideoEvent())
+                            state = State.STOPPED
                             break@waitForFrame
-                        } else if (blockUntilFinished) {
-                            if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
-                                ended.trigger(VideoEvent())
-                                state = State.STOPPED
-                                break@waitForFrame
-                            } else {
-                                logger.debug { "${waitTimeInMs}ms for frame. vqs: ${decoder?.videoQueueSize()}, dqs: ${displayQueue.size()}" }
-                                Thread.sleep(waitTimeInMs.toLong())
-                                waitTimeInMs = min(16, waitTimeInMs * 2)
-                            }
+                        } else {
+                            logger.debug { "${waitTimeInMs}ms for frame. vqs: ${decoder?.videoQueueSize()}, dqs: ${displayQueue.size()}" }
+                            Thread.sleep(waitTimeInMs.toLong())
+                            waitTimeInMs = min(16, waitTimeInMs * 2)
                         }
-                    } else {
-                        synchronized(displayQueue) {
+                    }
+                } else {
+                    synchronized(displayQueue) {
                         var frame: VideoFrame?
 
                         if (audioOut != null && info != null) {
@@ -858,7 +866,7 @@ class VideoPlayerFFMPEG private constructor(
                             }
 
                             if (seekCompleted) {
-                                logger.info { "seek completed. ${frame!!.timeStamp}" }
+                                logger.debug { "Seek completed. ${frame!!.timeStamp}" }
                                 timeOffset = clock() - frame.timeStamp
                                 if (audioOut != null) {
                                     val mult = if (audioDevice?.pan == 0.0) 2 else 1
@@ -867,6 +875,7 @@ class VideoPlayerFFMPEG private constructor(
                                 }
                                 logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
                                 seekCompleted = false
+                                seekInProgress = false
                             }
 
                             if (resetVideoTime) {
@@ -919,7 +928,7 @@ class VideoPlayerFFMPEG private constructor(
                         }
                         break@waitForFrame
                     }
-                    }
+                }
                 //}
             }
         } while (blockUntilFinished)

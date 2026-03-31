@@ -16,6 +16,7 @@ import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -195,7 +196,7 @@ internal class Decoder(
     var seekTimedOut = false
 
     fun seek(positionInSeconds: Double) {
-        logger.debug { "requesting decoder to seek to ${positionInSeconds}"}
+        logger.debug { "requesting decoder to seek to ${positionInSeconds}" }
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
 
@@ -214,7 +215,7 @@ internal class Decoder(
     fun dispose() {
         logger.debug { "disposing decoder" }
         //disposed = true
-        if (videoCodecContext!= null) {
+        if (videoCodecContext != null) {
             avcodec_free_context(videoCodecContext)
         }
         if (audioCodecContext != null) {
@@ -223,27 +224,45 @@ internal class Decoder(
         videoDecoder?.dispose()
         audioDecoder?.dispose()
         packetReader?.dispose()
-        if (hwDeviceContext!= null) {
+        if (hwDeviceContext != null) {
             av_buffer_unref(hwDeviceContext)
             av_buffer_unref(hwDeviceContext)
         }
     }
 
+    private var underOverflowWait = 1L
     private fun needMoreFrames(): Boolean {
+        if (displayQueueFull()) {
+            return false
+        }
+
         if (atEndOfFile) {
             return false
         }
 
-        if ((videoDecoder?.queueCount()?:1000) < 2 && audioDecoder?.isQueueAlmostFull() == true) {
-            logger.warn {
-                "video queue underflow, audio queue overflow"
+        if ((videoDecoder?.queueCount() ?: 1000) < 2 && audioDecoder?.isQueueAlmostFull() == true) {
+            if (underOverflowWait < 64) {
+                logger.debug {
+                    "video queue underflow, audio queue overflow"
+                }
             }
-        }
-
-        if ((audioDecoder?.queueCount()?:1000) < 2 && videoDecoder?.isQueueAlmostFull() == true) {
-            logger.warn {
-                "audio queue underflow, video queue overflow"
+            Thread.sleep(underOverflowWait)
+            underOverflowWait = min(64, underOverflowWait * 2)
+            return false
+        } else if ((audioDecoder?.queueCount() ?: 1000) < 2 && videoDecoder?.isQueueAlmostFull() == true) {
+            if (underOverflowWait < 64) {
+                logger.debug {
+                    "audio queue underflow, video queue overflow"
+                }
             }
+            Thread.sleep(underOverflowWait)
+            underOverflowWait = min(64, underOverflowWait * 2)
+            return false
+        } else {
+            if (underOverflowWait > 1) {
+                logger.debug { "Resetting wait $underOverflowWait -> 1" }
+            }
+            underOverflowWait = 1
         }
 
         if (videoDecoder?.isQueueAlmostFull() == true) {
@@ -316,7 +335,7 @@ internal class Decoder(
 
             if (packetResult == AVERROR_EOF) {
                 if (!atEndOfFile) {
-                    logger.debug { "decoder reached end of file"}
+                    logger.debug { "decoder reached end of file" }
                     reachedEndOfFile()
                     atEndOfFile = true
                 } else {
@@ -352,6 +371,7 @@ internal class Decoder(
                         require(videoDecoder?.isQueueAlmostFull() != true)
                         videoDecoder?.decodeVideoPacket(videoStream!!, packet, seekPosition)
                     }
+
                     audioStreamIndex -> {
                         require(audioDecoder?.isQueueAlmostFull() != true)
                         audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)

@@ -32,5 +32,5 @@ internal class Queue<T>(val maxSize: Int) {
 
     fun isEmpty() = head == tail
 
-    fun popOrNull(): T? = if (isEmpty()) null else pop()
+    fun popOrNull(): T? =  synchronized (this) {  if (isEmpty()) null else pop() }
 }
