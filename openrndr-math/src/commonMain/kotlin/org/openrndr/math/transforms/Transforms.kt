@@ -103,8 +103,8 @@ fun frustum(left: Double, right: Double, bottom: Double, top: Double, zNear: Dou
     val tb = 1.0 / (top - bottom)
 
     return Matrix44(
-            (zNear * 2) * rl, 0.0, 0.0, (right + left) * rl,
-            0.0, (zNear * 2) * tb, 0.0, (top + bottom) * tb,
+            (zNear * 2) * rl, 0.0,  (right + left) * rl, 0.0,
+            0.0, (zNear * 2) * tb,  (top + bottom) * tb, 0.0,
             0.0, 0.0, (zFar + zNear) / (zNear - zFar), (2 * zFar * zNear) / (zNear - zFar),
             0.0, 0.0, -1.0, 0.0)
 }

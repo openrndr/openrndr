@@ -5,10 +5,20 @@ import org.openrndr.math.test.it
 import kotlin.math.atan2
 import kotlin.math.tan
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TestTransforms {
 
     private val maxError = 0.0000001
+
+
+    @Test
+    fun compareProjections() {
+        val p1 = perspective(45.0, 1.0, 0.1, 1.0)
+        val p2 = perspective(45.0, 1.0, 0.1, 1.0, 0.0, 0.0)
+        p1.closeTo(p2, 1E-9)
+    }
 
     @Test
     fun shouldDoProjectionTransforms() {
