@@ -273,6 +273,11 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
         override val minimized = Event<WindowEvent>("window-minimized", postpone = true)
 
         /**
+         * Window maximized event
+         */
+        override val maximized = Event<WindowEvent>("window-maximized", postpone = true)
+
+        /**
          * Window restored (from minimization) event
          */
         override val restored = Event<WindowEvent>("window-restored", postpone = true)

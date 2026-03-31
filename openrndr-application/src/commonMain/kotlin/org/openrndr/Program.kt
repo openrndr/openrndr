@@ -23,6 +23,7 @@ enum class WindowEventType {
     FOCUSED,
     UNFOCUSED,
     MINIMIZED,
+    MAXIMIZED,
     RESTORED,
     CLOSED
 }
@@ -305,6 +306,11 @@ interface Window {
     val minimized: Event<WindowEvent>
 
     /**
+     * Window maximized event
+     */
+    val maximized: Event<WindowEvent>
+
+    /**
      * Window restored (from minimization) event
      */
     val restored: Event<WindowEvent>
@@ -558,6 +564,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         override val sized = Event<WindowEvent>("window-sized", postpone = true)
 
         override val minimized = Event<WindowEvent>("window-minimized", postpone = true)
+
+        override val maximized = Event<WindowEvent>("window-maximized", postpone = true)
 
         override val restored = Event<WindowEvent>("window-restored", postpone = true)
 

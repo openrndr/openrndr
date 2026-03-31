@@ -372,6 +372,8 @@ class ApplicationWindowSDL(
         program.window.unfocused.deliver()
         program.window.focused.deliver()
         program.window.minimized.deliver()
+        program.window.maximized.deliver()
+        program.window.moved.deliver()
         program.window.restored.deliver()
         program.keyboard.keyDown.deliver()
         program.keyboard.keyUp.deliver()
