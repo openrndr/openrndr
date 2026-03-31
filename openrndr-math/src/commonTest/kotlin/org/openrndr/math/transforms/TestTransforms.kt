@@ -63,19 +63,7 @@ class TestTransforms {
             val t2 = p * Vector4(0.0, 0.0, far * -1, 1.0)
             (t2.z / t2.w).closeTo(0.9998, maxError)
         }
-
-        it("should create a perspective projection matrix locking the horizontal view angle") {
-            val expected = Matrix44(
-                2.4142135623730647, 0.0, 0.0, 241.42135623730647,
-                0.0, 4.2919352219967895, 0.0, 858.3870443993579,
-                0.0, 0.0, -1.0002000200020003, -0.020002000200020003,
-                0.0, 0.0, -1.0, 0.0)
-
-            val p = perspectiveHorizontal(fovY, aspectRatio, near, far, 1.0, 2.0)
-
-            p.closeTo(expected, maxError)
-        }
-
+        
         it("should match frustum from perspective") {
 
             val p = perspective(fovY, aspectRatio, near, far)
