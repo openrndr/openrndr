@@ -551,7 +551,6 @@ class VideoPlayerFFMPEG private constructor(
 
             logger.debug { "start play" }
             file.dumpFormat()
-            av_format_inject_global_side_data(file.context)
 
             val (decoder, info) =
                 Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
@@ -578,7 +577,6 @@ class VideoPlayerFFMPEG private constructor(
                 else
                     null
 
-            av_format_inject_global_side_data(file.context)
 
             if (useAudio) {
                 audioThread = thread(isDaemon = true) {
