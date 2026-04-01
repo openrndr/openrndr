@@ -58,6 +58,7 @@ actual abstract class Application {
     actual abstract fun windowClose()
     actual abstract fun windowMinimize()
     actual abstract fun windowMaximize()
+    actual abstract fun windowRestore()
     actual abstract fun windowFullscreen(mode: Fullscreen)
 
     actual abstract val seconds: Double

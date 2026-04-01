@@ -73,6 +73,7 @@ expect abstract class Application {
     abstract fun windowClose()
     abstract fun windowMinimize()
     abstract fun windowMaximize()
+    abstract fun windowRestore()
     abstract fun windowFullscreen(mode: Fullscreen)
 
     abstract var cursorPosition: Vector2

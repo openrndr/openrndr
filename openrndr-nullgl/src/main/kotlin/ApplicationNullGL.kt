@@ -79,6 +79,10 @@ class ApplicationNullGL(override var program: Program, override var configuratio
         TODO("Not yet implemented")
     }
 
+    override fun windowRestore() {
+        TODO("Not yet implemented")
+    }
+
     override fun windowMinimize() {
         TODO("Not yet implemented")
     }
