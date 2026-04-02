@@ -147,7 +147,6 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -155,6 +154,7 @@ flat out int v_instance;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
+    ${vertexMainConstants()}
 
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
@@ -228,7 +228,6 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -237,6 +236,7 @@ flat out int v_layer;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
+    ${vertexMainConstants()}
 
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
@@ -303,7 +303,6 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -311,6 +310,7 @@ out vec3 v_boundsSize;
 flat out float va_pointSize;
 void main() {
     v_instance = gl_InstanceID;
+    ${vertexMainConstants()}
 
     ${shadeStructure.varyingBridge ?: ""}
 
@@ -394,13 +394,13 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
+    ${vertexMainConstants()}
 
     ${shadeStructure.varyingBridge ?: ""}
 
@@ -472,12 +472,13 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
-${vertexMainConstants("int(a_position.z)")}
+
 ${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
 flat out int v_element;
 
 void main() {
+    ${vertexMainConstants("int(a_position.z)")}
 
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
     v_element = int(a_position.z);
@@ -560,7 +561,6 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -569,6 +569,8 @@ ${rotate2}
 
 void main() {
     v_instance =  gl_InstanceID;
+    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -655,7 +657,6 @@ ${shadeStructure.attributes}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 out vec2 v_ftcoord;
@@ -666,6 +667,7 @@ flat out int v_instance;
 
 void main() {
     v_instance = 0;
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     v_objectPosition = vec3(a_position, 0.0);
     v_ftcoord = a_texCoord0;
@@ -726,13 +728,13 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
-${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 
 void main() {
     v_instance = gl_InstanceID;
+    ${vertexMainConstants()}
 
     ${shadeStructure.varyingBridge ?: ""}
     $preVertexTransform
@@ -789,7 +791,6 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |${shadeStructure.varyingOut ?: ""}
         |$transformVaryingOut
-        |${vertexMainConstants(element = "int(a_element)")}
         |${shadeStructure.vertexPreamble ?: ""}
         |flat out int v_instance;
         |
@@ -801,6 +802,7 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |
         |void main() {
         |   v_instance = gl_InstanceID;
+        |   ${vertexMainConstants(element = "int(a_element)")}
         |   ${shadeStructure.varyingBridge ?: ""}
         |   $preVertexTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
