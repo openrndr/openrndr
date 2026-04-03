@@ -8,7 +8,7 @@ import org.openrndr.draw.font.fontHeightScaler
 import org.openrndr.draw.font.loadFace
 import java.io.File
 import java.net.MalformedURLException
-import java.net.URL
+import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
@@ -37,12 +37,19 @@ fun loadFontImageMap(
 ): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
 
-    fun getFontScale() = scaleCache.getOrPut(fileOrUrl to fontScaler) {
+    /**
+     * Note: `URLEncoder.encode()` is designed for `application/x-www-form-urlencoded` content (like form data),
+     * which encodes spaces as `+` and encodes special characters like `:` and `/` that are valid in URLs.
+     * Run `TestLoadFontGL3` to test this function.
+     */
+    val encodedFileOrUrl = fileOrUrl.replace(" ", "%20")
+
+    fun getFontScale(fileOrUrl: String) = scaleCache.getOrPut(fileOrUrl to fontScaler) {
         loadFace(fileOrUrl).use { fontScaler(it) }
     } * size
 
-    return if (isValidUrl(fileOrUrl)) {
-        FontImageMap.fromUrl(fileOrUrl, getFontScale(), activeSet, contentScale)
+    return if (isValidUrl(encodedFileOrUrl)) {
+        FontImageMap.fromUrl(encodedFileOrUrl, getFontScale(encodedFileOrUrl), activeSet, contentScale)
     } else {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -51,20 +58,20 @@ fun loadFontImageMap(
         require(file.extension.lowercase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, getFontScale(), activeSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, getFontScale(fileOrUrl), activeSet, contentScale)
     }
 }
 
 private fun isValidUrl(url: String): Boolean {
     return try {
-        // Deprecated, but URI(url).toURL() fails when the file name contains spaces.
-        URL(url)
+        URI(url).toURL()
         true
     } catch (_: MalformedURLException) {
         false
+    } catch (_: IllegalArgumentException) {
+        false
     }
 }
-
 
 actual val defaultFontMap by lazy {
     val defaultFontPath = File("data/fonts/default.otf")
