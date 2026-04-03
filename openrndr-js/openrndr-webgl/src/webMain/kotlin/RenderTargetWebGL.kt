@@ -26,6 +26,7 @@ class ProgramRenderTargetWebGL(context: GL, override val program: Program) : Pro
     override val hasDepthBuffer = true
     override val hasStencilBuffer = true
 
+    override val blendModes: MutableList<BlendMode> = mutableListOf(BlendMode.OVER)
 }
 
 open class RenderTargetWebGL(
