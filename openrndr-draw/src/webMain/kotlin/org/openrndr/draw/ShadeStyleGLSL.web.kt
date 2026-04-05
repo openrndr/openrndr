@@ -45,7 +45,7 @@ actual class ShadeStyleGLSL {
             element: String
         ) = """
         |#define c_instance $instance
-        |int c_element = $element;""".trimMargin()
+        |#define c_element $element;""".trimMargin()
 
         /**
          * This granule is used in the preamble of a fragment shader. It sets up the declarations of
