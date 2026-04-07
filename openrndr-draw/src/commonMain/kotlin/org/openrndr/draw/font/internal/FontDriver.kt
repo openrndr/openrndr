@@ -7,7 +7,7 @@ import org.openrndr.draw.font.Face
  */
 interface FontDriver {
 
-    fun loadFace(fileOrUrl: String): Face
+    fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Face
 
     companion object {
         var driver: FontDriver? = null
