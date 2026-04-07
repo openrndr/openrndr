@@ -43,6 +43,8 @@ lwjgl-jemalloc = { group = "org.lwjgl", name = "lwjgl-jemalloc", version.ref = "
 lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
 lwjgl-opengles = { group = "org.lwjgl", name = "lwjgl-opengles", version.ref = "lwjgl" }
 lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl" }
+lwjgl-freetype = { group = "org.lwjgl", name = "lwjgl-freetype", version.ref = "lwjgl" }
+lwjgl-harfbuzz = { group = "org.lwjgl", name = "lwjgl-harfbuzz", version.ref = "lwjgl" }
 lwjgl-tinyexr = { group = "org.lwjgl", name = "lwjgl-tinyexr", version.ref = "lwjgl" }
 
 lwjgl-nfd = { group = "org.lwjgl", name = "lwjgl-nfd", version.ref = "lwjgl" }
