@@ -131,6 +131,8 @@ dependencies {
     implementation(libs.kotlin.coroutines)
     implementation(libs.lwjgl.stb)
     api(project(":openrndr-math"))
+
+    demoImplementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
 }
 
 /*
