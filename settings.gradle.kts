@@ -41,6 +41,7 @@ include(
         "openrndr-jvm:openrndr-fontdriver-stb",
         "openrndr-jvm:openrndr-imagedriver-stb",
 
+        "openrndr-jvm:openrndr-fontdriver-freetype",
 
         "openrndr-js:openrndr-webgl",
         "openrndr-js:openrndr-webgl-js-demo",

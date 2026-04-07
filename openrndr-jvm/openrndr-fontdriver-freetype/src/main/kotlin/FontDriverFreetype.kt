@@ -1,0 +1,26 @@
+import org.lwjgl.PointerBuffer
+import org.lwjgl.util.freetype.FT_Face
+import org.lwjgl.util.freetype.FreeType.FT_Init_FreeType
+import org.lwjgl.util.freetype.FreeType.FT_New_Face
+import org.lwjgl.util.freetype.FreeType.FT_Set_Char_Size
+import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.internal.FontDriver
+
+class FontDriverFreetype(val library: Long) : FontDriver {
+
+    override fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): FaceFreetype {
+        val face = PointerBuffer.allocateDirect(1)
+        FT_New_Face(library, fileOrUrl, 0L, face)
+        val ftFace = FT_Face.create(face.get(0))
+        FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
+        return FaceFreetype(ftFace, sizeInPoints, contentScale)
+    }
+}
+
+fun FontDriverFreetype(): FontDriverFreetype {
+
+    val library = PointerBuffer.allocateDirect(1)
+    val result = FT_Init_FreeType(library)
+    require(result == 0)
+    return FontDriverFreetype(library.get(0))
+}

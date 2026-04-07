@@ -16,25 +16,25 @@ interface Glyph {
      * @param scale the scale at which to generate the shape
      * @since 0.4.3
      */
-    fun shape(scale: Double): Shape
+    fun shape(): Shape
 
-    fun advanceWidth(scale: Double): Double
+    fun advanceWidth(): Double
 
-    fun leftSideBearing(scale: Double): Double
+    fun leftSideBearing(): Double
 
-    fun topSideBearing(scale: Double): Double
+    fun topSideBearing(): Double
 
     /**
      * Compute the glyph bounds in up=+y space
      */
-    fun bounds(scale: Double): Rectangle
+    fun bounds(): Rectangle
 
     /**
      * Compute the bitmap bounds of the glyph
      * @param scale the size for which the bounds should be found
      * @since 0.4.3
      */
-    fun bitmapBounds(scale: Double, subpixel:Boolean = true): IntRectangle
+    fun bitmapBounds(subpixel:Boolean = true): IntRectangle
 
     /**
      * Rasterize the glyph at the given size
@@ -43,7 +43,7 @@ interface Glyph {
      * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
-    fun rasterize(scale: Double,
+    fun rasterize(
                   bitmap: MPPBuffer,
                   stride: Int,
                   subpixel: Boolean)
@@ -54,6 +54,10 @@ interface Glyph {
  * A face (font) representation
  */
 interface Face: AutoCloseable {
+
+    val sizeInPoints: Double
+    val contentScale: Double
+
 
     /**
      * Retrieves a sequence of all code points supported by the font face.
@@ -70,15 +74,16 @@ interface Face: AutoCloseable {
 
     fun unitsPerEm() : Int
 
-    fun ascent(scale: Double): Double = ascentMetrics() * scale
 
-    fun descent(scale: Double): Double = descentMetrics() * scale
+    val height: Double
 
-    fun lineGap(scale: Double): Double = lineGapMetrics() * scale
+    val ascent: Double
 
-    fun lineSpace(scale: Double): Double = ascent(scale) - descent(scale) + lineGap(scale)
+    val descent: Double
 
-    fun kernAdvance(scale: Double, left: Char, right: Char): Double
+    val lineGap: Double
+
+    fun kernAdvance(left: Char, right: Char): Double
 
     /**
      * Return the glyph for a given character
@@ -87,7 +92,8 @@ interface Face: AutoCloseable {
 
     fun glyphForCodePoint(codePoint: Int): Glyph
 
-    fun bounds(scale: Double): Rectangle
+    val bounds: Rectangle
+
 }
 
 /**
@@ -95,8 +101,8 @@ interface Face: AutoCloseable {
  * @param fileOrUrl a file or url to load the face from
  * @since 0.4.3
  */
-fun loadFace(fileOrUrl: String): Face {
-    return FontDriver.instance.loadFace(fileOrUrl)
+fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Face {
+    return FontDriver.instance.loadFace(fileOrUrl, sizeInPoints, contentScale)
 }
 
 /**

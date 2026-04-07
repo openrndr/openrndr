@@ -11,10 +11,15 @@ abstract class FontMapManager {
      * character set, and optional content scaling factor.
      *
      * @param url The URL of the font file to be used for rendering.
-     * @param size The font size to be used in rendering the characters in the font image map.
+     * @param sizeInPoints The font size to be used in rendering the characters in the font image map.
      * @param characterSet The set of characters to include in the generated font image map.
      * @param contentScale The scaling factor for rendering the font. Defaults to `1.0`.
      * @return A `FontImageMap` containing the pre-rendered characters, their metrics, and texture data.
      */
-    abstract fun fontMapFromUrl(url:String, size:Double, characterSet: Set<Char>, contentScale:Double=1.0): FontImageMap
+    abstract fun fontMapFromUrl(
+        url: String,
+        sizeInPoints: Double,
+        characterSet: Set<Char>,
+        contentScale: Double = 1.0
+    ): FontImageMap
 }

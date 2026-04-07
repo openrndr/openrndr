@@ -12,7 +12,6 @@ import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
-private val scaleCache = mutableMapOf<Pair<String, (Face) -> Double>, Double>()
 
 /**
  * Loads a font image map from a given file or URL. This function creates a `FontImageMap`
@@ -30,10 +29,9 @@ private val scaleCache = mutableMapOf<Pair<String, (Face) -> Double>, Double>()
  */
 fun loadFontImageMap(
     fileOrUrl: String,
-    size: Double,
+    sizeInPoints: Double,
     characterSet: Set<Char> = defaultFontmapCharacterSet,
     contentScale: Double = 1.0,
-    fontScaler: (Face) -> Double = ::fontHeightScaler
 ): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
 
@@ -44,12 +42,9 @@ fun loadFontImageMap(
      */
     val encodedFileOrUrl = fileOrUrl.replace(" ", "%20")
 
-    fun getFontScale(fileOrUrl: String) = scaleCache.getOrPut(fileOrUrl to fontScaler) {
-        loadFace(fileOrUrl).use { fontScaler(it) }
-    } * size
 
     return if (isValidUrl(encodedFileOrUrl)) {
-        FontImageMap.fromUrl(encodedFileOrUrl, getFontScale(encodedFileOrUrl), activeSet, contentScale)
+        FontImageMap.fromUrl(encodedFileOrUrl, sizeInPoints, activeSet, contentScale)
     } else {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -58,7 +53,7 @@ fun loadFontImageMap(
         require(file.extension.lowercase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, getFontScale(fileOrUrl), activeSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, sizeInPoints, activeSet, contentScale)
     }
 }
 
