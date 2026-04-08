@@ -122,10 +122,11 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     override fun bitmapBounds(subpixel: Boolean): IntRectangle {
         FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
-        val x = ((metrics.horiBearingX() / 64.0) * face.contentScale).toInt()
-        val y = ((-metrics.horiBearingY() / 64.0) * face.contentScale).toInt()
-        val width = ((metrics.width() / 64.0) * face.contentScale).toInt()
-        val height = ((metrics.height() / 64.0) * face.contentScale).toInt()
+        val contentScale = face.contentScale
+        val x = ((metrics.horiBearingX() / 64.0) * contentScale).toInt()
+        val y = ((-metrics.horiBearingY() / 64.0) * contentScale).toInt()
+        val width = ((metrics.width() / 64.0) * contentScale).toInt()
+        val height = ((metrics.height() / 64.0) * contentScale).toInt()
         return IntRectangle(x, y, width, height)
     }
 
@@ -134,10 +135,11 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         stride: Int,
         subpixel: Boolean
     ) {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
-        val slot = face.ftFace.glyph() ?: error("no glyph slot")
 
         face.rasterizing {
+            FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+            val slot = face.ftFace.glyph() ?: error("no glyph slot")
+
             FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL)
             val ftBitmap = slot.bitmap()
             val width = ftBitmap.width()
