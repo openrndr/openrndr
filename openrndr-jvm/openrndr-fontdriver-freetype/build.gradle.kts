@@ -56,7 +56,7 @@ dependencies {
     implementation(project(":openrndr-application"))
 //    implementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
 //    implementation(project(":openrndr-jvm:openrndr-imagedriver-stb"))
-    implementation(project(":openrndr-jvm:openrndr-gl3"))
+    demoImplementation(project(":openrndr-jvm:openrndr-gl3"))
 
     implementation(libs.lwjgl.freetype)
     implementation(libs.lwjgl.harfbuzz)
@@ -68,6 +68,9 @@ dependencies {
     demoImplementation(libs.slf4j.simple)
     demoImplementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
     demoImplementation(project(":openrndr-jvm:openrndr-fontdriver-freetype"))
+    demoImplementation(project(":openrndr-application"))
+    demoRuntimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
+
 }
 
 sourceSets {
