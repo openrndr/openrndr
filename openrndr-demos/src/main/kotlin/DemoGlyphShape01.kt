@@ -9,7 +9,7 @@ fun main() {
             height = 720
         }
         program {
-            val face = loadFace("https://github.com/IBM/plex/raw/master/packages/plex-mono/fonts/complete/otf/IBMPlexMono-Bold.otf")
+            val face = loadFace("https://github.com/IBM/plex/raw/master/packages/plex-mono/fonts/complete/otf/IBMPlexMono-Bold.otf", 32.0, 1.0)
             extend {
                 drawer.clear(ColorRGBa.PINK)
                 val size = 0.2
@@ -17,9 +17,9 @@ fun main() {
 
                 for (c in "OPENRNDR") {
                     val glyph = face.glyphForCharacter(c)
-                    val shape = glyph.shape(size)
+                    val shape = glyph.shape()
                     drawer.shape(shape)
-                    drawer.translate(glyph.advanceWidth(size), 0.0)
+                    drawer.translate(glyph.advanceWidth(), 0.0)
                 }
             }
         }
