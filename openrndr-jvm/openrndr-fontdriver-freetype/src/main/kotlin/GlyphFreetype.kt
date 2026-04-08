@@ -44,7 +44,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
 
         funcs.move_to { to, _ ->
             if (currentSegments.isNotEmpty()) {
-                contours.add(ShapeContour(currentSegments.toList(), false))
+                contours.add(ShapeContour(currentSegments.toList(), true))
                 currentSegments.clear()
             }
             val toVec = FT_Vector.create(to)
