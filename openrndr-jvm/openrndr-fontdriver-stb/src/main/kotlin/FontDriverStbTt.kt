@@ -16,6 +16,20 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPo
                 override val contentScale: Double) : Face {
 
 
+    override val isVariable: Boolean
+        get() = false
+
+
+    override val axes: List<String>
+        get() = emptyList()
+
+
+    override fun setAxisValue(axis: String, value: Double) = Unit
+
+    override fun getAxisValue(axis: String): Double = 0.0
+
+    override fun axisRange(axis: String): ClosedFloatingPointRange<Double> = 0.0 .. 0.0
+
     val scale: Double by lazy {
         STBTruetype.stbtt_ScaleForMappingEmToPixels(fontInfo, sizeInPoints.toFloat()).toDouble()
     }
@@ -262,6 +276,8 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             glyphIndex
         )
     }
+
+
 }
 
 

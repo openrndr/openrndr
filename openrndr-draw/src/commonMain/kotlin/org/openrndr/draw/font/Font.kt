@@ -94,6 +94,63 @@ interface Face: AutoCloseable {
 
     val bounds: Rectangle
 
+    /**
+     * Indicates whether the font face is a variable font.
+     *
+     * A variable font allows for interpolation between multiple font styles or weights,
+     * providing extended flexibility in typography. When set to `true`, the font face
+     * is capable of such dynamic variations. Otherwise, it represents a static font.
+     */
+    val isVariable: Boolean
+
+    /**
+     * A list of strings representing the names of variable font axes supported by this font face.
+     *
+     * Variable font axes describe adjustable properties of a variable font, such as weight, width,
+     * or slant, which can be dynamically modified to produce a range of styles or characteristics.
+     * Each axis is identified by a unique name.
+     *
+     * This property is only populated for variable fonts. For static fonts, this list will be empty.
+     */
+    val axes: List<String>
+
+    /**
+     * Retrieves the value associated with a specific variable font axis.
+     *
+     * Variable font axes represent adjustable properties of a variable font, such as weight, width, or slant.
+     * This method fetches the current value for the specified axis name. The axis name must match one of
+     * the entries in the `axes` property of the `Face` interface.
+     *
+     * @param axis the name of the variable font axis for which the value is to be retrieved.
+     * @return the current value of the specified axis as a Double.
+     *         Returns 0.0 if the axis is not supported or if the face is not a variable font.
+     */
+    fun getAxisValue(axis: String): Double
+
+    /**
+     * Sets the value for a specified variable font axis.
+     *
+     * Variable font axes represent adjustable properties of a variable font, such as weight, width, or slant.
+     * This method allows modifying the value of a specific axis, and the axis name must correspond
+     * to one of the entries in the `axes` property of the `Face` class.
+     *
+     * @param axis the name of the variable font axis to modify.
+     * @param value the new value to set for the specified axis.
+     */
+    fun setAxisValue(axis: String, value: Double)
+
+    /**
+     * Retrieves the valid range of values for a specified variable font axis.
+     *
+     * Variable font axes define adjustable properties of fonts, such as weight, width, or slant.
+     * This method returns the minimum and maximum allowable values for the given axis.
+     *
+     * @param axis the name of the variable font axis for which the range is to be retrieved.
+     * @return a closed floating-point range representing the minimum and maximum allowable values for the specified axis.
+     *         Returns an empty range (e.g., 0.0..0.0) if the axis is not supported or if the font is not a variable font.
+     */
+    fun axisRange(axis: String): ClosedFloatingPointRange<Double>
+
 }
 
 /**
