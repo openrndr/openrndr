@@ -83,6 +83,12 @@ class FaceFreetype(val ftLibrary: Long, val ftFace: FT_Face, override val sizeIn
 
     override fun glyphForCodePoint(codePoint: Int): Glyph {
         return glyphForCharacter(Char(codePoint))
+
+    }
+
+    override fun glyphForIndex(glyphIndex: Int, character: Char): Glyph {
+        FT_Load_Glyph(ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        return GlyphFreetype(this, character, glyphIndex)
     }
 
     /**
