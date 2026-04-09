@@ -9,7 +9,12 @@ import org.lwjgl.util.freetype.FreeType.FT_Load_Glyph
 import org.lwjgl.util.freetype.FreeType.FT_Get_First_Char
 import org.lwjgl.util.freetype.FreeType.FT_Get_Next_Char
 import org.lwjgl.system.MemoryStack
+import org.lwjgl.util.freetype.FreeType.FT_FACE_FLAG_MULTIPLE_MASTERS
 import org.lwjgl.util.freetype.FreeType.FT_Set_Char_Size
+import org.lwjgl.util.freetype.FreeType.FT_Get_MM_Var
+import org.lwjgl.util.freetype.FT_MM_Var
+import org.lwjgl.util.freetype.FreeType.FT_Get_Var_Design_Coordinates
+import org.lwjgl.util.freetype.FreeType.FT_Set_Var_Design_Coordinates
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.Glyph
 import org.openrndr.shape.Rectangle
@@ -90,7 +95,8 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
      * It will be executed while specific FreeType character size settings are applied.
      */
     fun rasterizing(rasterize: () -> Unit) {
-        FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), (72 * contentScale).toInt(),
+        FT_Set_Char_Size(
+            ftFace, 0, (sizeInPoints * 64).toLong(), (72 * contentScale).toInt(),
             (72 * contentScale).toInt()
         )
         try {
@@ -114,5 +120,157 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
 
     override fun close() {
         FT_Done_Face(ftFace)
+    }
+
+    override val isVariable: Boolean
+        get() {
+            return (ftFace.face_flags() and FT_FACE_FLAG_MULTIPLE_MASTERS.toLong()) != 0L
+        }
+
+    override val axes: List<String>
+        get() {
+            if (!isVariable) {
+                return emptyList()
+            }
+
+            MemoryStack.stackPush().use { stack ->
+                val mmVarPtr = stack.mallocPointer(1)
+                val result = FT_Get_MM_Var(ftFace, mmVarPtr)
+
+                if (result != 0) {
+                    return emptyList()
+                }
+
+                val mmVar = FT_MM_Var.create(mmVarPtr.get(0))
+                val axisNames = mutableListOf<String>()
+
+                for (i in 0 until mmVar.num_axis()) {
+                    val axis = mmVar.axis().get(i)
+                    axisNames.add(axis.nameString())
+                }
+
+                // FT_Done_MM_Var(MemoryUtil.memAddress(ftFace), mmVar)
+
+                return axisNames
+            }
+        }
+
+    override fun axisRange(axis: String): ClosedFloatingPointRange<Double> {
+        if (!isVariable) {
+            return 0.0..0.0
+        }
+
+        MemoryStack.stackPush().use { stack ->
+            val mmVarPtr = stack.mallocPointer(1)
+            val result = FT_Get_MM_Var(ftFace, mmVarPtr)
+
+            if (result != 0) {
+                return 0.0..0.0
+            }
+
+            val mmVar = FT_MM_Var.create(mmVarPtr.get(0))
+
+            for (i in 0 until mmVar.num_axis()) {
+                val mmAxis = mmVar.axis().get(i)
+                if (mmAxis.nameString() == axis) {
+                    val min = mmAxis.minimum().toDouble() / 65536.0
+                    val max = mmAxis.maximum().toDouble() / 65536.0
+                    return min..max
+                }
+            }
+
+            return 0.0..0.0
+        }
+    }
+
+
+    override fun setAxisValue(axis: String, value: Double) {
+        if (!isVariable) {
+            return
+        }
+
+        MemoryStack.stackPush().use { stack ->
+            val mmVarPtr = stack.mallocPointer(1)
+            val result = FT_Get_MM_Var(ftFace, mmVarPtr)
+
+            if (result != 0) {
+                return
+            }
+
+            val mmVar = FT_MM_Var.create(mmVarPtr.get(0))
+            val numAxes = mmVar.num_axis()
+
+            // Find the axis index
+            var axisIndex = -1
+            for (i in 0 until numAxes) {
+                val mmAxis = mmVar.axis().get(i)
+                if (mmAxis.nameString() == axis) {
+                    axisIndex = i
+                    break
+                }
+            }
+
+            if (axisIndex == -1) {
+                return
+            }
+
+            // Get current design coordinates
+            val coords = stack.mallocCLong(numAxes)
+            val coordResult = FT_Get_Var_Design_Coordinates(ftFace, coords)
+
+            if (coordResult != 0) {
+                return
+            }
+
+            // Update the specific axis value (convert Double to FT_Fixed)
+            coords.put(axisIndex, (value * 65536.0).toLong())
+
+            coords.rewind()
+            // Set the new design coordinates
+            FT_Set_Var_Design_Coordinates(ftFace, coords)
+        }
+    }
+
+    override fun getAxisValue(axis: String): Double {
+        if (!isVariable) {
+            return 0.0
+        }
+
+        MemoryStack.stackPush().use { stack ->
+            val mmVarPtr = stack.mallocPointer(1)
+            val result = FT_Get_MM_Var(ftFace, mmVarPtr)
+
+            if (result != 0) {
+                return 0.0
+            }
+
+            val mmVar = FT_MM_Var.create(mmVarPtr.get(0))
+            val numAxes = mmVar.num_axis()
+
+            // Find the axis index
+            var axisIndex = -1
+            for (i in 0 until numAxes) {
+                val mmAxis = mmVar.axis().get(i)
+                if (mmAxis.nameString() == axis) {
+                    axisIndex = i
+                    break
+                }
+            }
+
+            if (axisIndex == -1) {
+                return 0.0
+            }
+
+            // Get current design coordinates
+            val coords = stack.mallocCLong(numAxes)
+            val coordResult = FT_Get_Var_Design_Coordinates(ftFace, coords)
+
+            if (coordResult != 0) {
+                return 0.0
+            }
+
+            // Convert FT_Fixed to Double
+            return coords[axisIndex].toDouble() / 65536.0
+        }
     }
 }
