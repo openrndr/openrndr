@@ -42,6 +42,7 @@ include(
         "openrndr-jvm:openrndr-imagedriver-stb",
 
         "openrndr-jvm:openrndr-fontdriver-freetype",
+        "openrndr-jvm:openrndr-textshapingdriver-harfbuzz",
 
         "openrndr-js:openrndr-webgl",
         "openrndr-js:openrndr-webgl-js-demo",

@@ -96,6 +96,10 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPo
         return GlyphStbTt(this, character, glyphIndex)
     }
 
+    override fun glyphForIndex(glyphIndex: Int, character: Char): Glyph {
+        return GlyphStbTt(this, Char(-1), glyphIndex)
+    }
+
     override val height: Double
         get() = 0.0
 

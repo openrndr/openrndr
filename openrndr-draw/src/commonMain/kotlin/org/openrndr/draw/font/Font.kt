@@ -92,6 +92,8 @@ interface Face: AutoCloseable {
 
     fun glyphForCodePoint(codePoint: Int): Glyph
 
+    fun glyphForIndex(glyphIndex: Int, character: Char = Char(0)): Glyph
+
     val bounds: Rectangle
 
     /**
