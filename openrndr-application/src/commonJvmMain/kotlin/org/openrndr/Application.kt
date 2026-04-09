@@ -66,6 +66,7 @@ abstract class ApplicationWindow(val program: Program) : AutoCloseable {
     }
     abstract fun minimize()
     abstract fun maximize()
+    abstract fun restore()
     abstract fun fullscreen(mode: Fullscreen)
 
 }
@@ -124,6 +125,7 @@ actual abstract class Application {
     actual abstract fun windowClose()
     actual abstract fun windowMinimize()
     actual abstract fun windowMaximize()
+    actual abstract fun windowRestore()
     actual abstract fun windowFullscreen(mode: Fullscreen)
 
     actual abstract var cursorPosition: Vector2

@@ -79,6 +79,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN
 import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER
 import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_X_NUMBER
 import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_Y_NUMBER
+import org.lwjgl.sdl.SDLVideo.SDL_RestoreWindow
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowHitTest
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
@@ -208,6 +209,12 @@ class ApplicationWindowSDL(
 
     override fun maximize() {
         if (!SDL_MaximizeWindow(window)) {
+            logger.error { "failed to maximize window" }
+        }
+    }
+
+    override fun restore() {
+        if (!SDL_RestoreWindow(window)) {
             logger.error { "failed to maximize window" }
         }
     }
@@ -365,6 +372,8 @@ class ApplicationWindowSDL(
         program.window.unfocused.deliver()
         program.window.focused.deliver()
         program.window.minimized.deliver()
+        program.window.maximized.deliver()
+        program.window.moved.deliver()
         program.window.restored.deliver()
         program.keyboard.keyDown.deliver()
         program.keyboard.keyUp.deliver()

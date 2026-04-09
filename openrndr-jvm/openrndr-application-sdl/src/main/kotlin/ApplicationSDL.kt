@@ -19,6 +19,7 @@ import org.lwjgl.sdl.SDLMouse.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
@@ -34,6 +35,7 @@ import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import org.openrndr.shape.Rectangle
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.reflect.KMutableProperty0
 
@@ -98,6 +100,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     private val vaos = IntArray(1)
 
+    private var windowRestorePosition = Vector2.ZERO
+    private var windowRestoreWidth = configuration.width.toDouble()
+    private var windowRestoreHeight = configuration.height.toDouble()
+
+    private var windowMinimized = false
+
     override fun requestFocus() {
         TODO("Not yet implemented")
     }
@@ -122,6 +130,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     override fun windowMinimize() {
         window.minimize()
+    }
+
+    override fun windowRestore() {
+        window.restore()
     }
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
@@ -249,6 +261,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_MakeCurrent(window.window, window.glContext)
         windowsById[SDL_GetWindowID(window.window)] = window
         setupPreload(program, configuration)
+        windowRestorePosition = windowPosition
     }
 
     private inline fun Vector2.toDisplayUnits(scale: Double): Vector2 {
@@ -267,16 +280,117 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 exitRequested = true
             }
 
+
+            SDL_EVENT_WINDOW_MAXIMIZED -> {
+                // Handled by SDL_EVENT_WINDOW_RESIZED
+            }
+
+            SDL_EVENT_WINDOW_MINIMIZED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_MINIMIZED) for unknown window id (=${windowId}): " }; return };
+
+                windowMinimized = true
+
+                eventWindow.program.window.minimized.trigger(
+                    WindowEvent(
+                        WindowEventType.MINIMIZED,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        true
+                    )
+                )
+            }
+
+            SDL_EVENT_WINDOW_RESTORED -> {
+                if (windowMinimized) {
+                    val windowId = event.window().windowID()
+                    val eventWindow = windowById(windowId)
+                        ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESTORED) for unknown window id (=${windowId}): " }; return };
+
+                    eventWindow.program.window.restored.trigger(
+                        WindowEvent(
+                            WindowEventType.RESTORED,
+                            windowRestorePosition,
+                            Vector2(windowRestoreWidth, windowRestoreHeight),
+                            true
+                        )
+                    )
+
+                    windowMinimized = false
+                }
+            }
+
             SDL_EVENT_WINDOW_RESIZED -> {
                 val windowId = event.window().windowID()
                 val eventWindow = windowById(windowId)
                     ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
+
+                val windowEvent = event.window()
+                val windowWidth = windowEvent.data1().toDouble()
+                val windowHeight = windowEvent.data2().toDouble()
+                val windowPosition = window.windowPosition
+
+                val usableDisplayArea = getDisplayUsableBounds(eventWindow.window)
+                val windowRect = Rectangle(windowPosition, windowWidth, windowHeight)
+
+                // windowPosition seems to account for the title bar y offset
+                val clientArea = Rectangle(
+                    0.0, 0.0, windowRect.width, windowRect.height + windowRect.y
+                )
+
+                val restoreRect = Rectangle(
+                    windowRestorePosition,
+                    windowRestoreWidth,
+                    windowRestoreHeight
+                )
+
+                when {
+                    clientArea == usableDisplayArea -> {
+                        eventWindow.program.window.maximized.trigger(
+                            WindowEvent(
+                                WindowEventType.MAXIMIZED,
+                                windowPosition,
+                                clientArea.dimensions,
+                                true
+                            )
+                        )
+                    }
+
+                    windowRect == restoreRect -> {
+                        eventWindow.program.window.restored.trigger(
+                            WindowEvent(
+                                WindowEventType.RESTORED,
+                                windowPosition,
+                                windowRect.dimensions,
+                                true
+                            )
+                        )
+                    }
+
+                    else -> {
+                        windowRestorePosition = windowPosition
+                        windowRestoreWidth = windowWidth
+                        windowRestoreHeight = windowHeight
+
+                        eventWindow.program.window.sized.trigger(
+                            WindowEvent(
+                                WindowEventType.RESTORED,
+                                windowPosition,
+                                windowRect.dimensions,
+                                true
+                            )
+                        )
+                    }
+
+                }
             }
+
 
             SDL_EVENT_WINDOW_EXPOSED -> {
                 val windowId = event.window().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_EXPOSED) for unknown window id (=${windowId}): " }; return };
                 eventWindow.update()
             }
 
@@ -304,6 +418,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val windowEvent = event.window()
                 val x = windowEvent.data1().toDouble()
                 val y = windowEvent.data2().toDouble()
+
+                windowRestorePosition = Vector2(x, y)
+
                 eventWindow.program.window.moved.trigger(
                     WindowEvent(
                         WindowEventType.MOVED,
@@ -706,6 +823,27 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             return Vector2(mouseX[0].toDouble(), mouseY[0].toDouble())
         }
     }
+
+    /**
+     * Query SDL for the current display size excluding
+     * taskbars, menu bars, or docks (for macOS)
+     */
+    private fun getDisplayUsableBounds(window: Long): Rectangle {
+        val displayId = SDL_GetDisplayForWindow(window)
+        val scale = SDL_GetWindowDisplayScale(window)
+
+        stackPush().use { stack ->
+            val rect = SDL_Rect.malloc(stack)
+            SDL_GetDisplayUsableBounds(displayId, rect)
+            return Rectangle(
+                rect.x().toDouble() / scale,
+                rect.y().toDouble() / scale,
+                rect.w().toDouble() / scale,
+                rect.h().toDouble() / scale
+            )
+        }
+    }
+
 
     override fun loop() {
         defaultRenderTarget.bind()

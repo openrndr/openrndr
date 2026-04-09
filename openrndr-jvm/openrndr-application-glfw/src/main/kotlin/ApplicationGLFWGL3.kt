@@ -197,6 +197,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         glfwMaximizeWindow(window)
     }
 
+    override fun windowRestore() {
+        glfwRestoreWindow(window)
+    }
+
     override fun windowMinimize() {
         glfwIconifyWindow(window)
     }

@@ -189,6 +189,10 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
             applicationWindow.maximize()
         }
 
+        override fun restore() {
+            applicationWindow.restore()
+        }
+
         override fun fullscreen(mode: Fullscreen) {
             applicationWindow.fullscreen(mode)
         }
@@ -267,6 +271,11 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
          * Window minimized event
          */
         override val minimized = Event<WindowEvent>("window-minimized", postpone = true)
+
+        /**
+         * Window maximized event
+         */
+        override val maximized = Event<WindowEvent>("window-maximized", postpone = true)
 
         /**
          * Window restored (from minimization) event
