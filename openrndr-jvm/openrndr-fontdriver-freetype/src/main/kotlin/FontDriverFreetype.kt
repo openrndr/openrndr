@@ -24,12 +24,13 @@ fun bytesFromFileOrUrl(fileOrUrl: String): ByteArray {
 class FontDriverFreetype(val library: Long) : FontDriver {
 
     override fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): FaceFreetype {
-        val face = PointerBuffer.allocateDirect(1)
 
+        val face = MemoryUtil.memAllocPointer(1)
         val fontBytes = bytesFromFileOrUrl(fileOrUrl)
         val buffer = MemoryUtil.memCalloc(fontBytes.size)
         buffer.put(fontBytes)
         buffer.flip()
+
 
         require(FT_New_Memory_Face(library, buffer, 0L, face) == 0) { "Failed to load font face from $fileOrUrl" }
 
