@@ -13,13 +13,14 @@ import org.lwjgl.util.freetype.FreeType.FT_FACE_FLAG_MULTIPLE_MASTERS
 import org.lwjgl.util.freetype.FreeType.FT_Set_Char_Size
 import org.lwjgl.util.freetype.FreeType.FT_Get_MM_Var
 import org.lwjgl.util.freetype.FT_MM_Var
+import org.lwjgl.util.freetype.FreeType.FT_Done_MM_Var
 import org.lwjgl.util.freetype.FreeType.FT_Get_Var_Design_Coordinates
 import org.lwjgl.util.freetype.FreeType.FT_Set_Var_Design_Coordinates
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.Glyph
 import org.openrndr.shape.Rectangle
 
-class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, override val contentScale: Double) : Face {
+class FaceFreetype(val ftLibrary: Long, val ftFace: FT_Face, override val sizeInPoints: Double, override val contentScale: Double) : Face {
     override fun allCodePoints(): Sequence<Int> = sequence {
         MemoryStack.stackPush().use { stack ->
             val glyphIndexPtr = stack.mallocInt(1)
@@ -149,7 +150,7 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
                     axisNames.add(axis.nameString())
                 }
 
-                // FT_Done_MM_Var(MemoryUtil.memAddress(ftFace), mmVar)
+                FT_Done_MM_Var(ftLibrary, mmVar)
 
                 return axisNames
             }
@@ -179,6 +180,7 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
                 }
             }
 
+            FT_Done_MM_Var(ftLibrary, mmVar)
             return 0.0..0.0
         }
     }
@@ -228,6 +230,7 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
             coords.rewind()
             // Set the new design coordinates
             FT_Set_Var_Design_Coordinates(ftFace, coords)
+            FT_Done_MM_Var(ftLibrary, mmVar)
         }
     }
 
@@ -269,6 +272,7 @@ class FaceFreetype(val ftFace: FT_Face, override val sizeInPoints: Double, overr
                 return 0.0
             }
 
+            FT_Done_MM_Var(ftLibrary, mmVar)
             // Convert FT_Fixed to Double
             return coords[axisIndex].toDouble() / 65536.0
         }

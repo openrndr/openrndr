@@ -35,7 +35,7 @@ class FontDriverFreetype(val library: Long) : FontDriver {
 
         val ftFace = FT_Face.create(face.get(0))
         FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
-        return FaceFreetype(ftFace, sizeInPoints, contentScale)
+        return FaceFreetype(library, ftFace, sizeInPoints, contentScale)
     }
 }
 
