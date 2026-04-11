@@ -36,7 +36,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         val outline = outlineGlyph.outline()
 
         val contours = mutableListOf<ShapeContour>()
-        val currentSegments = mutableListOf<Segment2D>()
+        var currentSegments = mutableListOf<Segment2D>()
         var currentPoint = Vector2.ZERO
         var firstPoint = Vector2.ZERO
 
@@ -45,7 +45,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         funcs.move_to { to, _ ->
             if (currentSegments.isNotEmpty()) {
                 contours.add(ShapeContour(currentSegments.toList(), true))
-                currentSegments.clear()
+                currentSegments = mutableListOf()
             }
             val toVec = FT_Vector.create(to)
             currentPoint = Vector2(toVec.x() / 64.0, -toVec.y() / 64.0)
