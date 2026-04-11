@@ -47,6 +47,41 @@ fun split(a: Region2, b: Region2): SplitResult {
     return SplitResult(split(a, deduped, union), split(b, deduped, union), union.roots())
 }
 
+fun selfSplit(region: Region2) : SplitResult {
+    val queue = SweepQueue<Curve2>()
+    addToQueue(region, queue)
+    val union = VertexUnion()
+    val intersections = mutableMapOf<Curve2, DoubleAccumulator>()
+    val curves = mutableListOf<Curve2>()
+
+    while (true) {
+        val c0 = queue.take() ?: break
+        curves.add(c0)
+        intersections[c0] = DoubleAccumulator()
+
+        for (c1 in queue.active()) {
+            val ts = c0.intersections(c1)
+            for (i in ts.indices) {
+                val t0 = ts[i].x
+                val t1 = ts[i].y
+                intersections[c0]?.add(t0)
+                if (!intersections.containsKey(c1)) {
+                    intersections[c1] = DoubleAccumulator()
+                }
+                intersections[c1]?.add(t1)
+                val p0 = c0.position(t0)
+                val p1 = c1.position(t1)
+                union.join(p0, p1)
+            }
+        }
+    }
+
+    val deduped = intersections.mapValues { (c, acc) -> dedupe(c, acc, union) }
+
+    val s = split(region, deduped, union)
+    return SplitResult(s, s, union.roots())
+}
+
 private fun split(
     region: Region2,
     splits: Map<Curve2, DoubleAccumulator>,

@@ -28,13 +28,12 @@ private enum class Type {
 }
 
 private fun operation(
-    ra: Region2,
-    rb: Region2,
+    split: SplitResult,
     operation: Operation,
     aPredicate: (Type) -> Boolean,
     bPredicate: (Type) -> Boolean
 ): Region2 {
-    val split: SplitResult = split(ra, rb)
+//    val split: SplitResult = split(ra, rb)
     val a: Region2 = split.a
     val b: Region2 = split.b
 
@@ -59,7 +58,7 @@ VERTICES.forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + v));
     val consumed = mutableSetOf<Arc>()
 
     // First we're going to extract complete cycles, and then try to iteratively repair the graph
-    for (i in 0 until MAX_REPAIR_ATTEMPTS) {
+    repairGraph@for (i in 0 until MAX_REPAIR_ATTEMPTS) {
         // Construct a graph where the edges are the set of all arcs connecting the vertices
         val graph = DirectedGraph<Vec2, Set<Arc>>()
         arcs.forEach { arc: Arc ->
@@ -148,7 +147,7 @@ private fun classify(
     // we want some point near the middle of the arc which is unlikely to coincide with a vertex, because those
     // sometimes sit ambiguously on the edge of the other region
     val result: Ring2.Result = region.test(arc.position(1.0 / E))
-    return if (!result.inside) {
+    val finalResult =  if (!result.inside) {
         Type.OUTSIDE
     } else if (result.curve == null) {
         Type.INSIDE
@@ -156,6 +155,7 @@ private fun classify(
         if (isTop(arc.first()) == isTop(result.curve))
             Type.SAME_EDGE else Type.DIFF_EDGE
     }
+    return finalResult
 }
 
 /**
@@ -329,15 +329,24 @@ private fun ring(arcs: List<Arc>): Ring2 {
 ///
 fun union(a: Region2, b: Region2): Region2 {
     return operation(
-        a, b,
+        split(a, b),
         Operation.UNION,
         { t -> t == Type.OUTSIDE || t == Type.SAME_EDGE },
         { t: Type -> t == Type.OUTSIDE })
 }
 
+fun selfUnion(a: Region2): Region2 {
+    return operation(
+        selfSplit(a),
+        Operation.UNION,
+        { t: Type -> t == Type.OUTSIDE || t == Type.SAME_EDGE },
+        { t: Type -> t == Type.OUTSIDE }
+    )
+}
+
 fun intersection(a: Region2, b: Region2): Region2 {
     return operation(
-        a, b,
+        split(a, b),
         Operation.INTERSECTION,
         { t: Type -> t == Type.INSIDE || t == Type.SAME_EDGE },
         { t: Type -> t == Type.INSIDE })
@@ -345,7 +354,7 @@ fun intersection(a: Region2, b: Region2): Region2 {
 
 fun difference(a: Region2, b: Region2): Region2 {
     return operation(
-        a, b,
+        split(a, b),
         Operation.DIFFERENCE,
         { t: Type -> t == Type.OUTSIDE || t == Type.DIFF_EDGE },
         { t: Type -> t == Type.INSIDE })

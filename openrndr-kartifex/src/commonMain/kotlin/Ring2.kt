@@ -64,7 +64,21 @@ class Ring2 {
 
     fun region(): Region2 = Region2(listOf(this))
 
+    /**
+     * Determines whether a given point lies inside, outside, or on the edge
+     * of the region defined by this `Ring2` instance.
+     *
+     * The function performs multiple checks such as bounding box inclusion
+     * and ray intersection with the contours of the region to classify
+     * the position of the input point.
+     *
+     * @param p the point represented as a `Vec2` object to be tested against the region
+     * @return a `Result` object indicating whether the point is inside (`Result.INSIDE`),
+     *         outside (`Result.OUTSIDE`), or on the edge of the region (`Result(curve)` where `curve`
+     *         refers to the intersected curve)
+     */
     fun test(p: Vec2): Result {
+        // Perform a quick bounding box check
         if (!bounds.expand(Intersections.SPATIAL_EPSILON).contains(p)) {
             return Result.OUTSIDE
         }
@@ -73,32 +87,25 @@ class Ring2 {
 
         // since our curves have been split at inflection points, there can only
         // be a single ray/curve intersection unless the curve is collinear
-        for (c in curves) {
-            val b: Box2 = c.bounds()
-            val flat = b.height() == 0.0
-
-            //System.out.println(p + " " + b + " " + c);
+        for (curve in curves) {
+            val bounds = curve.bounds()
+            val flat = bounds.height() == 0.0
 
             // it's to our right
-            if (p.x < b.lx) {
+            if (p.x < bounds.lx) {
                 // check if we intersect within [bottom, top)
-                if (p.y >= b.ly && p.y < b.uy) {
+                if (p.y >= bounds.ly && p.y < bounds.uy) {
                     //System.out.println("right, incrementing");
                     count++
                 }
 
                 // we're inside the bounding box
-            } else if (b.expand(Vec2(Intersections.SPATIAL_EPSILON, 0.0))
-                    .contains(p)
-            ) {
+            } else if (bounds.expand(Vec2(Intersections.SPATIAL_EPSILON, 0.0)).contains(p)) {
                 val i: Vec2? =
-                    Intersections.lineCurve(ray, c)
+                    Intersections.lineCurve(ray, curve)
                         .map { v: Vec2 ->
                             v.map { n: Double ->
-                                Intersections.round(
-                                    n,
-                                    Intersections.PARAMETRIC_EPSILON
-                                )
+                                Intersections.round(n, Intersections.PARAMETRIC_EPSILON)
                             }
                         }
                         .filter { v -> Intersections.PARAMETRIC_BOUNDS.contains(v) }
@@ -107,8 +114,8 @@ class Ring2 {
                 if (i != null) {
                     //System.out.println(i);
                     if (i.x == 0.0) {
-                        return Result(c)
-                    } else if (!flat && p.y < b.uy) {
+                        return Result(curve)
+                    } else if (!flat && p.y < bounds.uy) {
                         //System.out.println("intersected, incrementing");
                         count++
                     }

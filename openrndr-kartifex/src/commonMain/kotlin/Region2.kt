@@ -2,6 +2,7 @@ package org.openrndr.kartifex
 
 import org.openrndr.kartifex.utils.regions.difference
 import org.openrndr.kartifex.utils.regions.intersection
+import org.openrndr.kartifex.utils.regions.selfUnion
 import org.openrndr.kartifex.utils.regions.union
 
 /**
@@ -19,6 +20,14 @@ class Region2(val rings: Array<Ring2>) {
         rings.toList().toTypedArray()
     )
 
+    /**
+     * Tests whether the given point lies inside, outside, or on the boundaries of the rings
+     * that make up the region.
+     *
+     * @param p The `Vec2` point to test against the region.
+     * @return A `Ring2.Result` object indicating whether the point is inside, outside, or on the boundary
+     *         of the region, along with additional information about the corresponding ring and curve.
+     */
     fun test(p: Vec2): Ring2.Result {
         for (r in rings) {
             val result: Ring2.Result = r.test(p)
@@ -51,6 +60,10 @@ class Region2(val rings: Array<Ring2>) {
 
     fun union(region: Region2): Region2 {
         return union(this, region)
+    }
+
+    fun selfUnion(): Region2 {
+        return selfUnion(this)
     }
 
     fun difference(region: Region2): Region2 {
