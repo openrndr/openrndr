@@ -12,6 +12,33 @@ interface Curve2 {
      */
     fun position(t: Double): Vec2
 
+    
+    fun cubic(): Bezier2.CubicBezier2 {
+        return when (this) {
+            is Bezier2.CubicBezier2 -> this
+            is Bezier2.QuadraticBezier2 -> {
+                val p0 = p0
+                val p1 = p0 + (p1 - p0) * (2.0 / 3.0)
+                val p2 = p2 + (this.p1 - p2) * (2.0 / 3.0)
+                val p3 = p2
+                Bezier2.CubicBezier2(p0, p1, p2, p3)
+            }
+
+            is Line2 -> {
+                val a = Vec2(ax, ay)
+                val b = Vec2(bx, by)
+                
+                val p0 = a
+                val p3 = b
+                val p1 = p0 + (p3 - p0) * (1.0 / 3.0)
+                val p2 = p0 + (p3 - p0) * (2.0 / 3.0)
+
+                Bezier2.CubicBezier2(p0, p1, p2, p3)
+            }
+
+            else -> throw IllegalArgumentException("Cannot convert ${this::class} to cubic bezier")
+        }
+    }
     /**
      * Given a ring of curves, the sum of area() will be the area enclosed by that ring. For clockwise rings, the sum will
      * be negative, for counter-clockwise rings it will be positive.

@@ -4,10 +4,10 @@ import kotlin.jvm.JvmRecord
 
 @JvmRecord
 data class Line2(
-    private val ax: Double,
-    private val ay: Double,
-    private val bx: Double,
-    private val by: Double
+    val ax: Double,
+    val ay: Double,
+    val bx: Double,
+    val by: Double
 ) : Curve2 {
     override fun transform(m: Matrix3) = line(start().transform(m), end().transform(m))
 
