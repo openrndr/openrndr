@@ -10,6 +10,18 @@ import kotlin.math.sin
 @JvmRecord
 data class Vec2(val x: Double, val y: Double) : Vec<Vec2> {
 
+    operator fun plus(v: Vec2): Vec2 {
+        return add(v)
+    }
+
+    operator fun minus(v: Vec2): Vec2 {
+        return sub(v)
+    }
+
+    operator fun times(scalar: Double): Vec2 {
+        return Vec2(x * scalar, y * scalar)
+    }
+
 
     override fun map(f: DoubleUnaryOperator): Vec2 {
         return Vec2(f(x), f(y))
