@@ -894,6 +894,7 @@ class ColorBufferGL3(
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
         checkDestroyed()
         require(multisample == Disabled)
+        Driver.instance.finish()
         toImageData().use { data ->
             ImageDriver.instance.saveImage(data, file.absolutePath, imageFileFormat)
         }
@@ -902,6 +903,7 @@ class ColorBufferGL3(
     override fun saveToFile(file: File, async: Boolean, configuration: ImageSaveConfiguration) {
         checkDestroyed()
         require(multisample == Disabled)
+        Driver.instance.finish()
         toImageData().use { data ->
             ImageDriver.instance.saveImage(data, file.absolutePath, configuration)
         }
