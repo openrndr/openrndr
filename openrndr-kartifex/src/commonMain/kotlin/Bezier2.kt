@@ -118,9 +118,15 @@ object Bezier2 {
         }
 
         override fun signedArea(): Double {
-            return (p2.x * (p0.y - 2 * p1.y)
-                    + 2 * p1.x * (p2.y - p0.y)
-                    + p0.x * (2 * p1.y + p2.y)) / 6
+            val q0 = this.p0
+            val q1 = this.p0 + (this.p1 - this.p0) * (2.0 / 3.0)
+            val q2 = this.p2 + (this.p1 - this.p2) * (2.0 / 3.0)
+            val q3 = this.p2
+
+            return ((q3.x * (-q0.y - 3 * q1.y - 6 * q2.y)
+                    - 3 * q2.x * (q0.y + q1.y - 2 * q3.y)) + 3 * q1.x * (-2 * q0.y + q2.y + q3.y)
+                    + q0.x * (6 * q1.y + 3 * q2.y + q3.y)) / 20
+
         }
 
         override fun position(t: Double): Vec2 {
