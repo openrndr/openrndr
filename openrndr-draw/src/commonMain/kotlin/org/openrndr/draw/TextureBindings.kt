@@ -8,6 +8,7 @@ value class TextureBindings(val binding: MutableMap<Int, Texture> = mutableMapOf
         if (texture == null) {
             binding.remove(unit)
         } else {
-        binding[unit] = texture}
+            binding[unit] = texture
+        }
     }
 }
