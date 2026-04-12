@@ -117,7 +117,7 @@ class ColorBufferGL3(
     }
 
 
-    private var destroyed = false
+    internal var destroyed = false
     override var flipV: Boolean = false
 
     internal fun glFormat(): Int {

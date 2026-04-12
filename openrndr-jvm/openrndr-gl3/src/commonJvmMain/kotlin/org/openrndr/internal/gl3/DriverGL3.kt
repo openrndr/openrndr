@@ -259,13 +259,15 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     fun applyTextureBindings(bindings: TextureBindings) {
+        debugGLErrors { "Pre-existing error" }
         val cachedTextureBindings = cacheState.cachedTextureBindings
         bindings.binding.forEach { i, texture ->
             glActiveTexture(GL_TEXTURE0 + i)
-
+            debugGLErrors {"Failed to set active texture unit $i"}
             when (texture) {
                 is ColorBufferGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
+                        require(!texture.destroyed)
                         glBindTexture(texture.target, texture.texture)
                         debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
