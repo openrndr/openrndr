@@ -156,10 +156,17 @@ class ColorBufferGL3(
 
             glActiveTexture(GL_TEXTURE0)
 
-            when (multisample) {
-                Disabled -> glBindTexture(GL_TEXTURE_2D, texture)
-                is SampleCount -> glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture)
+            val target = when (multisample) {
+                Disabled -> GL_TEXTURE_2D
+                is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
+
+
+            val current = when (multisample) {
+                Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
+                is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
+            }
+            glBindTexture(target, texture)
 
             checkGLErrors()
 
@@ -238,10 +245,6 @@ class ColorBufferGL3(
                 }
             }
 
-            val target = when (multisample) {
-                Disabled -> GL_TEXTURE_2D
-                is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
-            }
 
             if (multisample == Disabled) {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
@@ -263,7 +266,9 @@ class ColorBufferGL3(
                 levels,
                 multisample,
                 session
-            )
+            ).apply {
+                glBindTexture(target, current)
+            }
         }
     }
 
