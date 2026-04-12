@@ -18,6 +18,7 @@ val CubemapSide.glTextureTarget
     }
 
 class CubemapGL3(
+    val resourceId: Long,
     val texture: Int,
     override val width: Int,
     override val type: ColorType,
@@ -101,7 +102,7 @@ class CubemapGL3(
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0)
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels - 1)
 
-            return CubemapGL3(texture, width, type, format, levels, session)
+            return CubemapGL3(DriverGL3.generateResourceId(), texture, width, type, format, levels, session)
         }
     }
 

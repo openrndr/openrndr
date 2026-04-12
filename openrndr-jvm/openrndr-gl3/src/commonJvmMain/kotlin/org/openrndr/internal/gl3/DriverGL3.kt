@@ -16,6 +16,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
@@ -85,10 +86,12 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     }
 }
 
+private class CacheState(val cachedTextureBindings: LongArray = LongArray(32) { -1 })
 abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
-
-    private val cachedTextureBindings = IntArray(32) { 0 }
+    private val cacheStates = mutableMapOf<Long, CacheState>()
+    private val cacheState: CacheState
+        get() = synchronized(cacheStates) { cacheStates.getOrPut(contextID) { CacheState() } }
 
     fun applyBlendMode(drawStyle: DrawStyle) {
         if (true) {
@@ -256,56 +259,57 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     fun applyTextureBindings(bindings: TextureBindings) {
+        val cachedTextureBindings = cacheState.cachedTextureBindings
         bindings.binding.forEach { i, texture ->
             glActiveTexture(GL_TEXTURE0 + i)
 
             when (texture) {
                 is ColorBufferGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is DepthBufferGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is BufferTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_BUFFER, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is ArrayTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is ArrayCubemapGL4 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is VolumeTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_3D, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
                 is CubemapGL3 -> {
-                    if (cachedTextureBindings[i] != texture.texture) {
+                    if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_CUBE_MAP, texture.texture)
-                        cachedTextureBindings[i] = texture.texture
+                        cachedTextureBindings[i] = texture.resourceId
                     }
                 }
 
@@ -459,6 +463,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     companion object {
+        private val resourceId: AtomicLong = AtomicLong(0L)
+        fun generateResourceId(): Long {
+            return resourceId.getAndIncrement()
+        }
+
         fun candidateVersions(type: DriverTypeGL = DriverGL3Configuration.driverType): List<DriverVersionGL> {
             @Suppress("SpellCheckingInspection") val property = System.getProperty("org.openrndr.gl3.version", "all")
             return DriverVersionGL.entries.find { it.type == DriverTypeGL.GL && "${it.majorVersion}.${it.minorVersion}" == property }

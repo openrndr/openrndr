@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 private val logger = KotlinLogging.logger {  }
 
 class DepthBufferGL3(
+    val resourceId: Long,
     val texture: Int,
     val buffer: Int,
     val target: Int,
@@ -76,7 +77,7 @@ class DepthBufferGL3(
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
+                            DepthBufferGL3(DriverGL3.generateResourceId(), glTexture, -1, target, width, height, format, multisample, session)
                         }
 
                         is BufferMultisample.SampleCount -> {
@@ -96,7 +97,7 @@ class DepthBufferGL3(
                                 null
                             }
                             glBindRenderbuffer(GL_RENDERBUFFER, 0)
-                            DepthBufferGL3(-1, buffer, target, width, height, format, multisample, session)
+                            DepthBufferGL3(DriverGL3.generateResourceId(), -1, buffer, target, width, height, format, multisample, session)
                         }
                     }
                 }
@@ -132,7 +133,7 @@ class DepthBufferGL3(
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
+                            DepthBufferGL3(DriverGL3.generateResourceId(), glTexture, -1, target, width, height, format, multisample, session)
                         }
 
                         is BufferMultisample.SampleCount -> {
@@ -150,7 +151,7 @@ class DepthBufferGL3(
                                 """.trimMargin() }
                                 null
                             }
-                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
+                            DepthBufferGL3(DriverGL3.generateResourceId(), glTexture, -1, target, width, height, format, multisample, session)
                         }
                     }
                 }

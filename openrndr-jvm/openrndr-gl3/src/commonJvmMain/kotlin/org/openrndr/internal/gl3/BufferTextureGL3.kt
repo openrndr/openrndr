@@ -40,7 +40,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
     }
 }
 
-class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType, override val session: Session?) : BufferTexture() {
+class BufferTextureGL3(val resourceId: Long, val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType, override val session: Session?) : BufferTexture() {
     companion object {
         fun create(elementCount: Int, format: ColorFormat, type: ColorType, session: Session?): BufferTextureGL3 {
             val sizeInBytes = format.componentCount * type.componentSize * elementCount
@@ -54,7 +54,7 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
 
             glBindBuffer(GL_TEXTURE_BUFFER, 0)
 
-            return BufferTextureGL3(texture, buffer, elementCount, format, type, session)
+            return BufferTextureGL3(DriverGL3.generateResourceId(), texture, buffer, elementCount, format, type, session)
         }
     }
 

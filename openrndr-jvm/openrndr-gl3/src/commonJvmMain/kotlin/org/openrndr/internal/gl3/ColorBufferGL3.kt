@@ -99,6 +99,7 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ColorBufferGL3(
+    val resourceId: Long,
     val target: Int,
     val texture: Int,
     override val width: Int,
@@ -251,6 +252,7 @@ class ColorBufferGL3(
             }
 
             return ColorBufferGL3(
+                DriverGL3.generateResourceId(),
                 target,
                 texture,
                 width,

@@ -3,14 +3,17 @@ package org.openrndr.internal.gl3
 import org.openrndr.draw.*
 import java.nio.ByteBuffer
 
-class ArrayCubemapGL4(val target: Int,
-                      val texture: Int,
-                      override val width: Int,
-                      override val layers: Int,
-                      override val format: ColorFormat,
-                      override val type: ColorType,
-                      levels: Int,
-                      override val session: Session?) : ArrayCubemap {
+class ArrayCubemapGL4(
+    val resourceId: Long,
+    val target: Int,
+    val texture: Int,
+    override val width: Int,
+    override val layers: Int,
+    override val format: ColorFormat,
+    override val type: ColorType,
+    levels: Int,
+    override val session: Session?
+) : ArrayCubemap {
 
 
     override var levels: Int = levels
@@ -24,7 +27,14 @@ class ArrayCubemapGL4(val target: Int,
         }
 
     companion object {
-        fun create(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayCubemapGL4 {
+        fun create(
+            width: Int,
+            layers: Int,
+            format: ColorFormat,
+            type: ColorType,
+            levels: Int,
+            session: Session?
+        ): ArrayCubemapGL4 {
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers / 6) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of ${maximumLayers / 6}")
@@ -36,7 +46,14 @@ class ArrayCubemapGL4(val target: Int,
                 null
             }
 
-            glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, levels, internalFormat(format, type).first, width, width, layers * 6)
+            glTexStorage3D(
+                GL_TEXTURE_CUBE_MAP_ARRAY,
+                levels,
+                internalFormat(format, type).first,
+                width,
+                width,
+                layers * 6
+            )
             checkGLErrors()
             if (levels > 1) {
                 glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAX_LEVEL, levels - 1)
@@ -46,7 +63,17 @@ class ArrayCubemapGL4(val target: Int,
             glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-            return ArrayCubemapGL4(GL_TEXTURE_CUBE_MAP_ARRAY, texture, width, layers, format, type, levels, session)
+            return ArrayCubemapGL4(
+                DriverGL3.generateResourceId(),
+                GL_TEXTURE_CUBE_MAP_ARRAY,
+                texture,
+                width,
+                layers,
+                format,
+                type,
+                levels,
+                session
+            )
         }
     }
 
@@ -60,14 +87,44 @@ class ArrayCubemapGL4(val target: Int,
         checkGLErrors()
     }
 
-    override fun write(side: CubemapSide, layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+    override fun write(
+        side: CubemapSide,
+        layer: Int,
+        buffer: ByteBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        level: Int
+    ) {
         bound {
             val div = 1 shl level
             if (sourceType.compressed) {
-                glCompressedTexSubImage3D(target, level, 0, 0, layer * 6 + side.ordinal, width / div, width / div, 1, compressedType(sourceFormat, sourceType), buffer)
+                glCompressedTexSubImage3D(
+                    target,
+                    level,
+                    0,
+                    0,
+                    layer * 6 + side.ordinal,
+                    width / div,
+                    width / div,
+                    1,
+                    compressedType(sourceFormat, sourceType),
+                    buffer
+                )
                 debugGLErrors()
             } else {
-                glTexSubImage3D(target, level, 0, 0, layer * 6 + side.ordinal, width / div, width / div, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                glTexSubImage3D(
+                    target,
+                    level,
+                    0,
+                    0,
+                    layer * 6 + side.ordinal,
+                    width / div,
+                    width / div,
+                    1,
+                    sourceFormat.glFormat(),
+                    sourceType.glType(),
+                    buffer
+                )
                 debugGLErrors()
             }
             debugGLErrors()
@@ -87,7 +144,16 @@ class ArrayCubemapGL4(val target: Int,
             readTarget.bind()
             glReadBuffer(GL_COLOR_ATTACHMENT0)
             target.bound {
-                glCopyTexSubImage2D(side.glTextureTarget, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage2D(
+                    side.glTextureTarget,
+                    toLevel,
+                    0,
+                    0,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.width / toDiv
+                )
                 debugGLErrors()
             }
             readTarget.unbind()
@@ -110,7 +176,17 @@ class ArrayCubemapGL4(val target: Int,
             readTarget.bind()
             glReadBuffer(GL_COLOR_ATTACHMENT0)
             target.bound {
-                glCopyTexSubImage3D(target.target, toLevel, 0, 0, targetLayer, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage3D(
+                    target.target,
+                    toLevel,
+                    0,
+                    0,
+                    targetLayer,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.width / toDiv
+                )
                 debugGLErrors()
             }
             readTarget.unbind()

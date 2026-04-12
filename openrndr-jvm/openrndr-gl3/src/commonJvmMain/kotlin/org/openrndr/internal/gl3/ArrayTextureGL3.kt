@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 import kotlin.math.pow
 
 class ArrayTextureGL3(
+    val resourceId : Long,
     val target: Int,
     val texture: Int,
     override val width: Int,
@@ -59,7 +60,7 @@ class ArrayTextureGL3(
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, levels, session)
+            return ArrayTextureGL3(DriverGL3.generateResourceId(), GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, levels, session)
         }
     }
 
