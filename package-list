@@ -1,0 +1,95 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:////PointingToDeclaration/openrndr-webgl/[root]/index.html
+$dokka.location:/WebGLRenderingFixedCompressedTexImage///PointingToDeclaration/openrndr-webgl/[root]/-web-g-l-rendering-fixed-compressed-tex-image/index.html
+$dokka.location:/WebGLRenderingFixedCompressedTexImage/compressedTexImage2D/#web.gl.GLenum#kotlin.Int#web.gl.GLenum#kotlin.Int#kotlin.Int#kotlin.Int#js.buffer.ArrayBufferView[js.buffer.ArrayBuffer]?/PointingToDeclaration/openrndr-webgl/[root]/-web-g-l-rendering-fixed-compressed-tex-image/compressed-tex-image2-d.html
+$dokka.location:org.openrndr.animatable/DefaultClock/isBrowser/#/PointingToDeclaration/openrndr-animatable/org.openrndr.animatable/-default-clock/[wasm-js]is-browser.html
+$dokka.location:org.openrndr.events/Event/name/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/[web]name.html
+$dokka.location:org.openrndr.events/Event/postpone/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/[web]postpone.html
+$dokka.location:org.openrndr.extensions/ScreenshotEvent///PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshot-event/index.html
+$dokka.location:org.openrndr.extensions/ScreenshotEvent/ScreenshotEvent/#kotlin.String/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshot-event/-screenshot-event.html
+$dokka.location:org.openrndr.extensions/ScreenshotEvent/basename/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshot-event/basename.html
+$dokka.location:org.openrndr.extensions/Screenshots///PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/index.html
+$dokka.location:org.openrndr.extensions/Screenshots/Screenshots/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/-screenshots.html
+$dokka.location:org.openrndr.extensions/Screenshots/afterDraw/#org.openrndr.draw.Drawer#org.openrndr.Program/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/after-draw.html
+$dokka.location:org.openrndr.extensions/Screenshots/afterScreenshot/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/after-screenshot.html
+$dokka.location:org.openrndr.extensions/Screenshots/async/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/async.html
+$dokka.location:org.openrndr.extensions/Screenshots/beforeDraw/#org.openrndr.draw.Drawer#org.openrndr.Program/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/before-draw.html
+$dokka.location:org.openrndr.extensions/Screenshots/beforeScreenshot/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/before-screenshot.html
+$dokka.location:org.openrndr.extensions/Screenshots/captureEveryFrame/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/capture-every-frame.html
+$dokka.location:org.openrndr.extensions/Screenshots/contentScale/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/content-scale.html
+$dokka.location:org.openrndr.extensions/Screenshots/delayFrames/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/delay-frames.html
+$dokka.location:org.openrndr.extensions/Screenshots/enabled/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/enabled.html
+$dokka.location:org.openrndr.extensions/Screenshots/folder/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/folder.html
+$dokka.location:org.openrndr.extensions/Screenshots/key/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/key.html
+$dokka.location:org.openrndr.extensions/Screenshots/listenToKeyDownEvent/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/listen-to-key-down-event.html
+$dokka.location:org.openrndr.extensions/Screenshots/listenToProduceAssetsEvent/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/listen-to-produce-assets-event.html
+$dokka.location:org.openrndr.extensions/Screenshots/multisample/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/multisample.html
+$dokka.location:org.openrndr.extensions/Screenshots/name/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/name.html
+$dokka.location:org.openrndr.extensions/Screenshots/quitAfterScreenshot/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/quit-after-screenshot.html
+$dokka.location:org.openrndr.extensions/Screenshots/screenshotTriggersRequestAssetsEvent/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/screenshot-triggers-request-assets-event.html
+$dokka.location:org.openrndr.extensions/Screenshots/setup/#org.openrndr.Program/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/setup.html
+$dokka.location:org.openrndr.extensions/Screenshots/trigger/#/PointingToDeclaration/openrndr-extensions/org.openrndr.extensions/[jvm]-screenshots/trigger.html
+module:openrndr-animatable
+org.openrndr.animatable
+org.openrndr.animatable.easing
+module:openrndr-application
+org.openrndr
+org.openrndr.draw
+org.openrndr.exceptions
+module:openrndr-binpack
+org.openrndr.binpack
+module:openrndr-color
+org.openrndr.color
+module:openrndr-dds
+org.openrndr.dds
+module:openrndr-draw
+org.openrndr.draw
+org.openrndr.draw.font
+org.openrndr.draw.font.internal
+org.openrndr.internal
+module:openrndr-event
+org.openrndr.events
+module:openrndr-extensions
+org.openrndr.extensions
+module:openrndr-filter
+org.openrndr.filter
+org.openrndr.filter.color
+module:openrndr-gl-common
+org.openrndr.internal.glcommon
+module:openrndr-webgl
+org.openrndr.webgl
+module:openrndr-dialogs
+org.openrndr.dialogs
+module:openrndr-ffmpeg
+org.openrndr.ffmpeg
+module:openrndr-gl3
+org.openrndr.internal.gl3
+org.openrndr.internal.gl3.angle
+org.openrndr.internal.gl3.extensions
+module:openrndr-openal
+org.openrndr.openal
+module:openrndr-kartifex
+org.openrndr.kartifex
+org.openrndr.kartifex.utils
+org.openrndr.kartifex.utils.graphs
+org.openrndr.kartifex.utils.regions
+org.openrndr.utils
+utils
+module:openrndr-ktessellation
+org.openrndr.ktessellation
+module:openrndr-math
+org.openrndr.math
+org.openrndr.math.transforms
+module:openrndr-nullgl
+org.openrndr.internal.nullgl
+module:openrndr-platform
+org.openrndr.platform
+module:openrndr-shape
+org.openrndr.shape
+module:openrndr-utils
+org.openrndr.collections
+org.openrndr.utils
+org.openrndr.utils.buffer
+org.openrndr.utils.tuples
+org.openrndr.utils.url
