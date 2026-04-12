@@ -197,8 +197,6 @@ class Session(val parent: Session?) : AutoCloseable {
 
         renderTargets as MutableSet<RenderTarget>
         renderTargets.map { it }.forEach {
-            it.detachColorAttachments()
-            it.detachDepthBuffer()
             it.destroy()
         }
         renderTargets.clear()
