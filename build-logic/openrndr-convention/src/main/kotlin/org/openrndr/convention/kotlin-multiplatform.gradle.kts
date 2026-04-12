@@ -81,6 +81,7 @@ kotlin {
             allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.debug=true"
             useJUnitPlatform()
             testLogging.exceptionFormat = TestExceptionFormat.FULL
+            testLogging.showStandardStreams = true
         }
     }
     sourceSets {
@@ -131,3 +132,4 @@ configurations.matching {
         attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(currentArchitectureName))
     }
 }
+
