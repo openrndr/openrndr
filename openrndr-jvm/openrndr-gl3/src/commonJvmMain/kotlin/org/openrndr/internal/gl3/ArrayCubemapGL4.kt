@@ -35,13 +35,11 @@ class ArrayCubemapGL4(
             levels: Int,
             session: Session?
         ): ArrayCubemapGL4 {
-            glActiveTexture(GL_TEXTURE0)
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers / 6) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of ${maximumLayers / 6}")
             }
             val texture = glGenTextures()
-            val current = glGetInteger(GL_TEXTURE_BINDING_CUBE_MAP_ARRAY)
             glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, texture)
             checkGLErrors {
                 println("problem in glBindTexture")
@@ -65,8 +63,6 @@ class ArrayCubemapGL4(
             glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-
-            glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, current)
             return ArrayCubemapGL4(
                 DriverGL3.generateResourceId(),
                 GL_TEXTURE_CUBE_MAP_ARRAY,

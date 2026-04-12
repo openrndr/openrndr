@@ -56,7 +56,6 @@ class CubemapGL3(
             val texture = glGenTextures()
 
             glActiveTexture(GL_TEXTURE0)
-            val current = glGetInteger(GL_TEXTURE_BINDING_CUBE_MAP)
             glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
 
             if (Driver.glType == DriverTypeGL.GL) {
@@ -103,7 +102,6 @@ class CubemapGL3(
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0)
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels - 1)
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, current)
             return CubemapGL3(DriverGL3.generateResourceId(), texture, width, type, format, levels, session)
         }
     }
