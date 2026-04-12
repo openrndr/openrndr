@@ -96,6 +96,11 @@ class BufferTextureGL3(val resourceId: Long, val texture: Int, val buffer: Int, 
         source.limit(oldLimit)
     }
 
+    override fun bind(unit: Int) {
+        glActiveTexture(GL_TEXTURE0 + unit)
+        glBindTexture(GL_TEXTURE_BUFFER, texture)
+    }
+
     internal var destroyed = false
     override fun destroy() {
         if (!destroyed) {

@@ -18,6 +18,7 @@ expect interface VolumeTexture: Texture, AutoCloseable {
     fun copyTo(target: ColorBuffer, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
 
     fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
+    fun bind(textureUnit: Int = 0)
     /**
      * Generates mipmaps for the 3D texture. Mipmaps are a series of precomputed smaller textures
      * derived from the base level texture, used for efficient rendering at varying distances or levels

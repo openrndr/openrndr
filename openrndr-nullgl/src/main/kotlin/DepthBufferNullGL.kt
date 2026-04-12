@@ -19,6 +19,10 @@ class DepthBufferNullGL(override val width: Int, override val height: Int, overr
 
     }
 
+    override fun bind(textureUnit: Int) {
+
+    }
+
     override fun close() {
         destroy()
     }

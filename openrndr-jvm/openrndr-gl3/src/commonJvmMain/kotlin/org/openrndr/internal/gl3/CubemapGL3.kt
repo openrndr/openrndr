@@ -316,6 +316,14 @@ class CubemapGL3(
         write(side, source.byteBuffer, sourceFormat, sourceType, level)
     }
 
+    override fun bind(textureUnit: Int) {
+        if (!destroyed) {
+            glActiveTexture(GL_TEXTURE0 + textureUnit)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
+        } else {
+            throw IllegalStateException("attempting to bind destroyed cubemap")
+        }
+    }
 
     override fun destroy() {
         if (!destroyed) {

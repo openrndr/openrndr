@@ -929,7 +929,7 @@ class ColorBufferGL3(
 
     override fun destroy() {
         if (!destroyed) {
-            checkGLErrors { "pre-existing errors before destroying colorbuffer" }
+            debugGLErrors { "pre-existing errors before destroying colorbuffer" }
             session?.untrack(this)
             glDeleteTextures(texture)
             destroyed = true

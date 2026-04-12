@@ -7,4 +7,10 @@ actual abstract class BufferTexture: Texture, AutoCloseable {
     actual abstract val type: ColorType
     actual abstract val elementCount: Int
     actual abstract fun destroy()
+
+    /**
+     * bind the BufferTexture to a texture unit
+     */
+    actual abstract fun bind(unit: Int)
+
 }

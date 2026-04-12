@@ -37,18 +37,21 @@ interface StyleManagerDispatchUniform {
 
             is DepthBuffer -> {
                 textureBindings[textureIndex] = value
+                value.bind(textureIndex)
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
 
             is BufferTexture -> {
                 textureBindings[textureIndex] = value
+                value.bind(textureIndex)
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
 
             is Cubemap -> {
                 textureBindings[textureIndex] = value
+                value.bind(textureIndex)
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
@@ -67,6 +70,7 @@ interface StyleManagerDispatchUniform {
 
             is VolumeTexture -> {
                 textureBindings[textureIndex] = value
+                value.bind(textureIndex)
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }

@@ -51,6 +51,7 @@ expect interface Cubemap: Texture, AutoCloseable {
     fun copyTo(target: ColorBuffer, fromSide: CubemapSide, fromLevel: Int = 0, toLevel: Int = 0)
 
     fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
+    fun bind(textureUnit: Int = 0)
     fun generateMipmaps()
     fun destroy()
 

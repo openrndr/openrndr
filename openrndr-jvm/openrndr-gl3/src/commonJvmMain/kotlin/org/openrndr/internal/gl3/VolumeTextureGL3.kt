@@ -37,14 +37,8 @@ class VolumeTextureGL3(
     }
 
     private fun bound(f: () -> Unit) {
-        glActiveTexture(GL_TEXTURE0)
-        val current = glGetInteger(GL_TEXTURE_BINDING_3D)
-        glBindTexture(GL_TEXTURE_3D, texture)
-        try {
-            f()
-        } finally {
-            glBindTexture(GL_TEXTURE_3D, current)
-        }
+        bind()
+        f()
     }
 
     override fun write(
@@ -249,10 +243,14 @@ class VolumeTextureGL3(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
-        bound {
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, min.toGLFilter())
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
-        }
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, min.toGLFilter())
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
+    }
+
+    override fun bind(textureUnit: Int) {
+        require(!destroyed)
+        glActiveTexture(GL_TEXTURE0 + textureUnit)
+        glBindTexture(GL_TEXTURE_3D, texture)
     }
 
     override fun generateMipmaps() {
