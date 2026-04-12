@@ -21,6 +21,8 @@ class ArrayTextureGL3(
 
     companion object {
         fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTextureGL3 {
+            glActiveTexture(GL_TEXTURE0)
+            val current = glGetInteger(GL_TEXTURE_BINDING_2D_ARRAY)
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of $maximumLayers")
@@ -60,6 +62,7 @@ class ArrayTextureGL3(
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
+            glBindTexture(GL_TEXTURE_2D_ARRAY, current)
             return ArrayTextureGL3(DriverGL3.generateResourceId(), GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, levels, session)
         }
     }
