@@ -647,6 +647,8 @@ open class RenderTargetGL3(
             "existing errors before destroying render target"
         }
 
+        detachColorAttachments()
+        detachDepthBuffer()
 
         for (colorAttachment in colorAttachments) {
             if (colorAttachment.ownedByRenderTarget) {
@@ -660,10 +662,6 @@ open class RenderTargetGL3(
         if (ownDepthBuffer) {
             depthBuffer?.destroy()
         }
-
-        detachColorAttachments()
-        detachDepthBuffer()
-
 
         session?.untrack(this)
         destroyed = true

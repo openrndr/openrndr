@@ -46,10 +46,8 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_STENCIL_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SetAttribute
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SwapWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowFlags
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowID
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_DRAGGABLE
@@ -88,7 +86,6 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSurfaceVSync
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MINIMIZED
 import org.lwjgl.sdl.SDL_Point
 import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
@@ -405,11 +402,9 @@ class ApplicationWindowSDL(
         program.dispatcher.execute()
 
         val ct = System.currentTimeMillis()
-        val draw =  windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
+        val draw = windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
 
-        val surfaceArea = program.width * program.height
-        val minimized = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
-        if (draw && surfaceArea > 0 && !minimized) {
+        if (draw) {
             program.drawImpl()
             SDL_GL_SwapWindow(window)
             lastUpdate = ct

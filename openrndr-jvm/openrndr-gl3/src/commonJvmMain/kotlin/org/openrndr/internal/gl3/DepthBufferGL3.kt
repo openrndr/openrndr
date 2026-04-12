@@ -222,15 +222,12 @@ class DepthBufferGL3(
 
     override fun destroy() {
         if (!destroyed) {
-            debugGLErrors { "pre-existing error" }
             destroyed = true
             if (texture != -1) {
                 glDeleteTextures(texture)
-                debugGLErrors { null }
             }
             if (buffer != -1) {
                 glDeleteRenderbuffers(buffer)
-                debugGLErrors { null }
             }
         }
     }
