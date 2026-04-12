@@ -14,9 +14,4 @@ expect abstract class BufferTexture: Texture, AutoCloseable {
 
     abstract fun destroy()
 
-    /**
-     * bind the BufferTexture to a texture unit
-     */
-    abstract fun bind(unit: Int)
-
 }

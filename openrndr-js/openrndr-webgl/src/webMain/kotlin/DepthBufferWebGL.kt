@@ -52,10 +52,6 @@ class DepthBufferWebGL(
         context.deleteRenderbuffer(buffer)
     }
 
-    override fun bind(textureUnit: Int) {
-        TODO("Not yet implemented")
-    }
-
     override fun close() {
         destroy()
     }

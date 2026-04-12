@@ -232,11 +232,6 @@ class DepthBufferGL3(
         }
     }
 
-    override fun bind(textureUnit: Int) {
-        require(!destroyed)
-        glActiveTexture(GL_TEXTURE0 + textureUnit)
-        glBindTexture(target, texture)
-    }
 
     override fun close() {
         destroy()

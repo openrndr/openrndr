@@ -16,7 +16,6 @@ actual interface VolumeTexture: Texture, AutoCloseable {
     )
 
     actual fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
-    actual fun bind(textureUnit: Int)
     actual fun generateMipmaps()
     actual fun destroy()
 }

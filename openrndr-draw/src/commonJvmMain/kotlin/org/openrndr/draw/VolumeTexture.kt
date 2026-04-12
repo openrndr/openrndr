@@ -32,7 +32,6 @@ actual interface VolumeTexture: Texture, AutoCloseable {
     actual fun copyTo(target: ColorBuffer, layer: Int, fromLevel: Int, toLevel: Int)
 
     actual fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
-    actual fun bind(textureUnit: Int)
     actual fun generateMipmaps()
     actual fun destroy()
 
