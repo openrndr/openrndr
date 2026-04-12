@@ -78,6 +78,9 @@ kotlin {
         }
     }
 }
+tasks.withType<Test>().configureEach {
+    outputs.cacheIf { false }
+}
 
 //tasks {
 //    @Suppress("UNUSED_VARIABLE")
