@@ -69,20 +69,23 @@ class CubemapWebGL(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
-        bind(0)
-        context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, min.toGLFilter())
-        context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, mag.toGLFilter())
+        bound {
+            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, min.toGLFilter())
+            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, mag.toGLFilter())
+        }
     }
 
-    override fun bind(textureUnit: Int) {
-        context.activeTexture(glTextureEnum(textureUnit))
-        context.bindTexture(target, texture)
+
+    fun bound(f: () -> Unit) {
+        context.activeTexture(GL.TEXTURE0)
+        context.bindTexture(GL.TEXTURE_CUBE_MAP, texture)
+        f()
     }
 
     override fun generateMipmaps() {
-        bind(0)
-        context.generateMipmap(target)
-
+        bound {
+            context.generateMipmap(target)
+        }
     }
 
     override fun destroy() {
@@ -102,8 +105,17 @@ class CubemapWebGL(
         level: Int
     ) {
         require(!destroyed)
-        bind(0)
-        context.texSubImage2D(side.glTextureTarget, level, x, y, sourceFormat.glFormat(), sourceType.glType(), source)
+        bound {
+            context.texSubImage2D(
+                side.glTextureTarget,
+                level,
+                x,
+                y,
+                sourceFormat.glFormat(),
+                sourceType.glType(),
+                source
+            )
+        }
     }
 
     override fun write(

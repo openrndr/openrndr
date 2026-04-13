@@ -259,14 +259,17 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     fun applyTextureBindings(bindings: TextureBindings) {
+        debugGLErrors { "Pre-existing error" }
         val cachedTextureBindings = cacheState.cachedTextureBindings
         bindings.binding.forEach { i, texture ->
             glActiveTexture(GL_TEXTURE0 + i)
-
+            debugGLErrors {"Failed to set active texture unit $i"}
             when (texture) {
                 is ColorBufferGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
+                        require(!texture.destroyed)
                         glBindTexture(texture.target, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -274,6 +277,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is DepthBufferGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -281,6 +285,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is BufferTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_BUFFER, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -288,6 +293,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is ArrayTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -295,6 +301,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is ArrayCubemapGL4 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -302,6 +309,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is VolumeTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_3D, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -309,6 +317,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is CubemapGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_CUBE_MAP, texture.texture)
+                        debugGLErrors {"Failed to bind $texture to unit $i"}
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -818,11 +827,14 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         vertexCount: Int,
         verticesPerPatch: Int
     ) {
-        applyTextureBindings(shader.textureBindings)
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
 
+        applyTextureBindings(shader.textureBindings)
+        debugGLErrors {
+            "an error occurred while applying texture bindings to the shader: $it"
+        }
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)

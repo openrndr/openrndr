@@ -56,6 +56,7 @@ class CubemapGL3(
             val texture = glGenTextures()
 
             glActiveTexture(GL_TEXTURE0)
+            val current = glGetInteger(GL_TEXTURE_BINDING_CUBE_MAP)
             glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
 
             if (Driver.glType == DriverTypeGL.GL) {
@@ -102,6 +103,7 @@ class CubemapGL3(
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0)
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels - 1)
 
+            glBindTexture(GL_TEXTURE_CUBE_MAP, current)
             return CubemapGL3(DriverGL3.generateResourceId(), texture, width, type, format, levels, session)
         }
     }
@@ -314,14 +316,6 @@ class CubemapGL3(
         write(side, source.byteBuffer, sourceFormat, sourceType, level)
     }
 
-    override fun bind(textureUnit: Int) {
-        if (!destroyed) {
-            glActiveTexture(GL_TEXTURE0 + textureUnit)
-            glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
-        } else {
-            throw IllegalStateException("attempting to bind destroyed cubemap")
-        }
-    }
 
     override fun destroy() {
         if (!destroyed) {

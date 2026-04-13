@@ -37,8 +37,14 @@ class VolumeTextureGL3(
     }
 
     private fun bound(f: () -> Unit) {
-        bind()
-        f()
+        glActiveTexture(GL_TEXTURE0)
+        val current = glGetInteger(GL_TEXTURE_BINDING_3D)
+        glBindTexture(GL_TEXTURE_3D, texture)
+        try {
+            f()
+        } finally {
+            glBindTexture(GL_TEXTURE_3D, current)
+        }
     }
 
     override fun write(
@@ -187,6 +193,8 @@ class VolumeTextureGL3(
                 source
             )
         } else {
+            glActiveTexture(GL_TEXTURE0)
+            val current = glGetInteger(GL_TEXTURE_BINDING_3D)
             glBindTexture(GL_TEXTURE_3D, texture)
             glTexSubImage3D(
                 GL_TEXTURE_3D,
@@ -201,6 +209,7 @@ class VolumeTextureGL3(
                 sourceType.glType(),
                 source
             )
+            glBindTexture(GL_TEXTURE_3D, current)
         }
         //GL45C.glGetTextureImage(texture, level, sourceFormat.glFormat(), sourceType.glType(), source)
         checkGLErrors()
@@ -240,14 +249,10 @@ class VolumeTextureGL3(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, min.toGLFilter())
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
-    }
-
-    override fun bind(textureUnit: Int) {
-        require(!destroyed)
-        glActiveTexture(GL_TEXTURE0 + textureUnit)
-        glBindTexture(GL_TEXTURE_3D, texture)
+        bound {
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, min.toGLFilter())
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
+        }
     }
 
     override fun generateMipmaps() {
@@ -317,6 +322,7 @@ class VolumeTextureGL3(
 
             val texture = glGenTextures()
             glActiveTexture(GL_TEXTURE0)
+            val current = glGetInteger(GL_TEXTURE_BINDING_3D)
             glBindTexture(GL_TEXTURE_3D, texture)
 
             val storageMode = when {
@@ -357,6 +363,7 @@ class VolumeTextureGL3(
             }
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, levels - 1)
+            glBindTexture(GL_TEXTURE_3D, current)
             return VolumeTextureGL3(
                 DriverGL3.generateResourceId(),
                 texture,

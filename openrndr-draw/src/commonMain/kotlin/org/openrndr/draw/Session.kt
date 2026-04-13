@@ -1,6 +1,9 @@
 package org.openrndr.draw
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.internal.Driver
+
+private val logger = KotlinLogging.logger {  }
 
 private val sessionStack = mutableMapOf<Long, ArrayDeque<Session>>()
 
@@ -186,6 +189,7 @@ class Session(val parent: Session?) : AutoCloseable {
      * Ends the session, destroys any GPU resources in use by the session
      */
     fun end() {
+        logger.debug { "Ending session $this" }
         require(Driver.instance.contextID == context)
 
         parent?.children?.remove(this)

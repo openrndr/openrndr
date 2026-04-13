@@ -39,9 +39,6 @@ class BufferTextureWebGL: BufferTexture() {
         TODO("Not yet implemented")
     }
 
-    override fun bind(unit: Int) {
-        TODO("Not yet implemented")
-    }
 
     override fun close() {
         destroy()

@@ -32,11 +32,18 @@ class DepthBufferGL3(
             checkGLErrors {
                 "pre-existing error"
             }
+            glActiveTexture(GL_TEXTURE0)
             val glTexture = glGenTextures()
             val target = when (multisample) {
                 BufferMultisample.Disabled -> GL_TEXTURE_2D
                 is BufferMultisample.SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
+            val binding = when(multisample) {
+                BufferMultisample.Disabled -> GL_TEXTURE_BINDING_2D
+                is BufferMultisample.SampleCount -> GL_TEXTURE_BINDING_2D_MULTISAMPLE
+            }
+            val current = glGetInteger(binding)
+
             glBindTexture(target, glTexture)
             checkGLErrors()
             val nullBuffer: ByteBuffer? = null
@@ -155,6 +162,8 @@ class DepthBufferGL3(
                         }
                     }
                 }
+            }.apply {
+                glBindTexture(target, current)
             }
         }
     }
@@ -223,11 +232,6 @@ class DepthBufferGL3(
         }
     }
 
-    override fun bind(textureUnit: Int) {
-        require(!destroyed)
-        glActiveTexture(GL_TEXTURE0 + textureUnit)
-        glBindTexture(target, texture)
-    }
 
     override fun close() {
         destroy()

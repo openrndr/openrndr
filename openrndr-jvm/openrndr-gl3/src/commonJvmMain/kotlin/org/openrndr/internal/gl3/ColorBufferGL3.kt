@@ -117,7 +117,7 @@ class ColorBufferGL3(
     }
 
 
-    private var destroyed = false
+    internal var destroyed = false
     override var flipV: Boolean = false
 
     internal fun glFormat(): Int {
@@ -156,17 +156,24 @@ class ColorBufferGL3(
 
             glActiveTexture(GL_TEXTURE0)
 
-            when (multisample) {
-                Disabled -> glBindTexture(GL_TEXTURE_2D, texture)
-                is SampleCount -> glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture)
+            val target = when (multisample) {
+                Disabled -> GL_TEXTURE_2D
+                is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
+
+
+            val current = when (multisample) {
+                Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
+                is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
+            }
+            glBindTexture(target, texture)
 
             checkGLErrors()
 
             val nullBB: ByteBuffer? = null
 
             if (levels > 1) {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1)
+                glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, levels - 1)
             }
 
             when (storageMode) {
@@ -176,7 +183,7 @@ class ColorBufferGL3(
                         when (multisample) {
                             Disabled -> if (!type.compressed) {
                                 glTexImage2D(
-                                    GL_TEXTURE_2D,
+                                    target,
                                     level,
                                     internalFormat,
                                     pixelDimensions.x,
@@ -188,7 +195,7 @@ class ColorBufferGL3(
                                 )
                             } else {
                                 glTexImage2D(
-                                    GL_TEXTURE_2D,
+                                    target,
                                     level,
                                     internalFormat,
                                     pixelDimensions.x,
@@ -201,7 +208,7 @@ class ColorBufferGL3(
                             }
 
                             is SampleCount -> glTexImage2DMultisample(
-                                GL_TEXTURE_2D_MULTISAMPLE,
+                                target,
                                 multisample.sampleCount,
                                 internalFormat,
                                 pixelDimensions.x,
@@ -216,10 +223,10 @@ class ColorBufferGL3(
                     val pixelDimensions = dimensionsInPixels(width, height, contentScale, 0)
                     when (multisample) {
                         Disabled ->
-                            glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, pixelDimensions.x, pixelDimensions.y)
+                            glTexStorage2D(target, levels, internalFormat, pixelDimensions.x, pixelDimensions.y)
 
                         is SampleCount -> glTexStorage2DMultisample(
-                            GL_TEXTURE_2D_MULTISAMPLE,
+                            target,
                             multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
                             internalFormat,
                             pixelDimensions.x,
@@ -238,19 +245,17 @@ class ColorBufferGL3(
                 }
             }
 
-            val target = when (multisample) {
-                Disabled -> GL_TEXTURE_2D
-                is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
-            }
 
             if (multisample == Disabled) {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+                glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
                 checkGLErrors()
             }
 
+            glBindTexture(target, current)
+            checkGLErrors { "failed to bind texture to current" }
             return ColorBufferGL3(
                 DriverGL3.generateResourceId(),
                 target,
@@ -923,7 +928,7 @@ class ColorBufferGL3(
 
     override fun destroy() {
         if (!destroyed) {
-            debugGLErrors { "pre-existing errors before destroying colorbuffer" }
+            checkGLErrors { "pre-existing errors before destroying colorbuffer" }
             session?.untrack(this)
             glDeleteTextures(texture)
             destroyed = true

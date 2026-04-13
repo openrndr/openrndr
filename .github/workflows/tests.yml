@@ -29,4 +29,3 @@ jobs:
         uses: coactions/setup-xvfb@v1
         with:
           run: ./gradlew check
-

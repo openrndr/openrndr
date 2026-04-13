@@ -214,7 +214,7 @@ void main() {
 
                 is DepthBuffer -> {
                     shader.uniform(uniform, textureIndex)
-                    value.bind(textureIndex)
+                    shader.textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
@@ -230,20 +230,19 @@ void main() {
 
                 is Cubemap -> {
                     shader.uniform(uniform, textureIndex)
-                    value.bind(textureIndex)
+                    shader.textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
                 is ArrayCubemap -> {
                     shader.uniform(uniform, textureIndex)
                     textureBindings[textureIndex] = value
-//                    value.bind(textureIndex)
                     textureIndex++
                 }
 
                 is BufferTexture -> {
                     shader.uniform(uniform, textureIndex)
-                    value.bind(textureIndex)
+                    textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
