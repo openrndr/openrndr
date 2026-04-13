@@ -165,7 +165,6 @@ class ApplicationWindowSDL(
                     )
                     rect.free()
                 }
-
             }
         }
 
@@ -348,8 +347,6 @@ class ApplicationWindowSDL(
             SDL_GetWindowSizeInPixels(window, fbw, fbh)
             glViewport(0, 0, fbw[0], fbh[0])
 
-
-            //SDL_GetWindowSize(window, fbw, fbh)
             program.width = (fbw[0] / program.window.contentScale).toInt()
             program.height = (fbh[0] / program.window.contentScale).toInt()
         }

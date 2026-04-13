@@ -710,8 +710,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override fun loop() {
         defaultRenderTarget.bind()
 
-
         window.setupSizes()
+        program.drawer.reset()
+        program.drawer.ortho()
+
         runBlocking {
             program.setup()
         }
@@ -782,10 +784,19 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     ): ApplicationWindow {
         require(Thread.currentThread() === thread) { "createChildWindow should be called from thread '${thread.name}'" }
 
+        // this prevents the created window from occasionally not appearing on macOS
+        if (windows.isNotEmpty()) {
+            SDL_SyncWindow(windows.last().window)
+        }
+
         val oldContext = SDL_GL_GetCurrentContext()
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
         val childWindow = createApplicationWindowSDL(this, configuration, program, window.program.drawer)
         childWindow.defaultRenderTarget.bind()
+
+        childWindow.setupSizes()
+        program.drawer.reset()
+        program.drawer.ortho()
 
         runBlocking {
             program.setup()
@@ -802,7 +813,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             require(oldWindow != null) { "could not find old context $oldContext" }
             SDL_GL_MakeCurrent(oldWindow.window, oldContext)
         }
-
         return childWindow
     }
 }
