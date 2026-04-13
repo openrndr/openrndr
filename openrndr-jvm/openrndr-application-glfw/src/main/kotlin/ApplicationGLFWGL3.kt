@@ -20,6 +20,7 @@ import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
+import org.openrndr.draw.tearDownFontImageMaps
 import org.openrndr.internal.Driver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.ResourceThread
@@ -694,6 +695,12 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             if (Driver.glType == DriverTypeGL.GL) {
                 GLUtil.setupDebugMessageCallback()
                 glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+                try {
+                    checkGLErrors { "GL_DEBUG_OUTPUT_SYNCHRONOUS" }
+                } catch (e: Exception) {
+                    logger.error { "GL_DEBUG_OUTPUT_SYNCHRONOUS failed" }
+                }
+
             }
             if (Driver.glType == DriverTypeGL.GLES) {
                 GLESUtil.setupDebugMessageCallback()
@@ -1022,6 +1029,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
      * logged and re-thrown after cleanup.
      */
     fun postLoop(exception: Throwable? = null) {
+        logger.debug { "Entering post-loop" }
         // a child window's context may be current at this point
         glfwMakeContextCurrent(window)
 
@@ -1048,6 +1056,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         if (exception == null) {
             Session.root.end()
         }
+        tearDownFontImageMaps()
         Driver.instance.destroyContext(Driver.instance.contextID)
 
         glfwFreeCallbacks(window)

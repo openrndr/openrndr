@@ -89,6 +89,15 @@ data class FontImageMapDescriptor(val fontUrl: String, val size: Double, val alp
 private val fontImageMaps: MutableMap<FontImageMapDescriptor, FontImageMap> = mutableMapOf()
 
 /**
+ * Clears all cached font image maps. This only exists as a temporary measure
+ * to ensure that font resources are properly released when they are no longer needed.
+ * `fontImageMaps` should not be a global variable in the future.
+ */
+fun tearDownFontImageMaps() {
+    fontImageMaps.clear()
+}
+
+/**
  * A data class representing a pair of characters.
  *
  * This class is implemented as a record in the JVM to optimize memory usage
