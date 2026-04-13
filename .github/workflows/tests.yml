@@ -29,11 +29,3 @@ jobs:
         uses: coactions/setup-xvfb@v1
         with:
           run: ./gradlew check
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-report
-          path: |
-            openrndr/openrndr-jvm/openrndr-gl3/build/reports/tests/jvmTest/index.html
-            openrndr-jvm/openrndr-gl3/build/reports/tests/jvmTest/index.html
