@@ -302,6 +302,15 @@ fun union(from: ShapeContour, add: ShapeContour): Shape {
     }
 }
 
+fun selfUnion(from: Shape): Shape {
+    return if (from.topology == ShapeTopology.CLOSED) {
+        val result = from.region2.selfUnion()
+        result.toShape()
+    } else {
+        from
+    }
+}
+
 /**
  * Applies a boolean org.openrndr.shape.union operation between a [Shape] and a [ShapeContour].
  */
