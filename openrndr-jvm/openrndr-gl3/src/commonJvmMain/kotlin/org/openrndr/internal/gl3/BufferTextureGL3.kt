@@ -58,7 +58,7 @@ class BufferTextureGL3(val resourceId: Long, val texture: Int, val buffer: Int, 
 
             glBindBuffer(GL_TEXTURE_BUFFER, 0)
 
-            glBindTexture(GL_TEXTURE_2D, current)
+            glBindTexture(GL_TEXTURE_BUFFER, current)
             return BufferTextureGL3(DriverGL3.generateResourceId(), texture, buffer, elementCount, format, type, session)
         }
     }
