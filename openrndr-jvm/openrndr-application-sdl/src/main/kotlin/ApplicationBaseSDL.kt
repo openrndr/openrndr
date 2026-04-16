@@ -9,8 +9,10 @@ import org.lwjgl.sdl.SDLInit.SDL_INIT_VIDEO
 import org.lwjgl.sdl.SDLInit.SDL_Init
 import org.lwjgl.sdl.SDLInit.SDL_Quit
 import org.lwjgl.sdl.SDLStdinc.SDL_free
+import org.lwjgl.sdl.SDLVideo.SDL_GetCurrentDisplayMode
 import org.lwjgl.sdl.SDLVideo.SDL_GetDesktopDisplayMode
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayBounds
+import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayContentScale
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayName
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplays
 import org.lwjgl.sdl.SDL_Rect
@@ -29,6 +31,8 @@ import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.GlesBackend
 import org.openrndr.internal.gl3.ImageDriverStbImage
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 
 private val logger = KotlinLogging.logger { }
 
@@ -61,20 +65,36 @@ class ApplicationBaseSDL : ApplicationBase() {
 
         if (displays != null) {
             for (i in 0 until displays.capacity()) {
-                val mode = SDL_GetDesktopDisplayMode(displays[i])!!
+                val mode = SDL_GetCurrentDisplayMode(displays[i])!!
+
+                val pixelDensity = SDL_GetDisplayContentScale(displays[i]).toDouble()
                 val rect = SDL_Rect.create()
                 SDL_GetDisplayBounds(displays[i], rect)
                 val name = SDL_GetDisplayName(displays[i])
 
-                val dp = DisplaySDL(
+                val dp = if (Platform.type == PlatformType.MAC) DisplaySDL(
                     displays[i].toLong(),
                     name,
                     rect.x(),
                     rect.y(),
                     mode.w(),
                     mode.h(),
-                    mode.pixel_density().toDouble()
-                )
+                    (mode.w() * pixelDensity).toInt(),
+                    (mode.h() * pixelDensity).toInt(),
+                    pixelDensity
+                ) else {
+                    DisplaySDL(
+                        displays[i].toLong(),
+                        name,
+                        rect.x(),
+                        rect.y(),
+                        (mode.w() / pixelDensity).toInt(),
+                        (mode.h() / pixelDensity).toInt(),
+                        mode.w(),
+                        mode.h(),
+                        pixelDensity
+                    )
+                }
 
                 realDisplays.add(dp)
             }

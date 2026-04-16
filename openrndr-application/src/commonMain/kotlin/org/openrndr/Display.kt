@@ -19,6 +19,9 @@ abstract class Display {
     abstract val width: Int?
     abstract val height: Int?
 
+    abstract val widthInPixels: Int
+    abstract val heightInPixels: Int
+
     /**
      *  The ratio between the current DPI and the platform's default DPI.
      *  More specifically, this is the horizontal scale factor,

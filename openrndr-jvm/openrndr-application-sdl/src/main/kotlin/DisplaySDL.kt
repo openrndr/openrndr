@@ -9,6 +9,8 @@ class DisplaySDL internal constructor(
     override val y: Int,
     override val width: Int?,
     override val height: Int?,
+    override val widthInPixels: Int,
+    override val heightInPixels: Int,
     override val contentScale: Double
 ) : Display() {
     override fun toString(): String {

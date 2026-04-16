@@ -49,7 +49,9 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
 
                     DisplayGLFW(
                         monitor, glfwGetMonitorName(monitor), x[0], y[0],
-                        videoMode?.width(), videoMode?.height(), contentScale[0].toDouble()
+                        videoMode?.width(), videoMode?.height(),
+                        videoMode?.width() ?: 0, videoMode?.height() ?: 0,
+                        contentScale[0].toDouble()
                     )
                 }
             }
