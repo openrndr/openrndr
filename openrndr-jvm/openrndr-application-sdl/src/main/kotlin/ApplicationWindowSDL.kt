@@ -526,9 +526,6 @@ fun createApplicationWindowSDL(
     require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
 
-    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
-        logger.warn { "Failed to set vsync for window $window" }
-    }
 
     if (configuration.fullscreen == Fullscreen.DISABLED) {
         stackPush().use {
@@ -562,6 +559,12 @@ fun createApplicationWindowSDL(
     require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
 
     SDL_ShowWindow(window)
+    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
+        if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) 1 else 0)) {
+            logger.warn { "Failed to set vsync for window $window" }
+        }
+    }
+
     if (configuration.hideMouseCursor) {
         if (!SDL_HideCursor()) {
             logger.warn { "Failed to hide mouse cursor." }
