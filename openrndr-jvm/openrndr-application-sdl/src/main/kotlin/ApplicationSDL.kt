@@ -218,6 +218,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override suspend fun setup() {
         createPrimaryWindow()
 
+        val preload = Application.getPreload()
+
+        preload?.onConfiguration(configuration)
+
         val wc = WindowConfiguration(
             width = configuration.width,
             height = configuration.height,
@@ -248,7 +252,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         window = createApplicationWindowSDL(this, wc, program, null)
         SDL_GL_MakeCurrent(window.window, window.glContext)
         windowsById[SDL_GetWindowID(window.window)] = window
-        setupPreload(program, configuration)
+        preload?.onProgramSetup(program)
     }
 
     private inline fun Vector2.toDisplayUnits(scale: Double): Vector2 {

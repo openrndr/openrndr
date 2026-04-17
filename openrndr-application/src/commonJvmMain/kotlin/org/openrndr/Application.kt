@@ -80,16 +80,20 @@ abstract class ApplicationWindow(val program: Program) : AutoCloseable {
  */
 actual abstract class Application {
     companion object {
-        fun setupPreload(program: Program, configuration: Configuration) {
-            val preload = try {
+
+        fun getPreload(): ApplicationPreload? {
+            return try {
                 @Suppress("UNCHECKED_CAST") val c =
                     Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
-                logger.info { "preload class found '$preloadClassName'" }
                 c.constructors.first().newInstance() as ApplicationPreload
             } catch (e: ClassNotFoundException) {
-                logger.info { "no preload class found '$preloadClassName'" }
+                logger.debug { "no preload class found '$preloadClassName'" }
                 null
             }
+        }
+
+        fun setupPreload(program: Program, configuration: Configuration) {
+            val preload = getPreload()
             if (preload != null) {
                 preload.onConfiguration(configuration)
                 preload.onProgramSetup(program)
