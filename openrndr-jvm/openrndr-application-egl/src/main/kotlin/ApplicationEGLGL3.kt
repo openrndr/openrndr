@@ -81,6 +81,10 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
 
     }
 
+    override fun windowRestore() {
+
+    }
+
     override fun windowMinimize() {
 
     }

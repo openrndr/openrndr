@@ -23,6 +23,7 @@ enum class WindowEventType {
     FOCUSED,
     UNFOCUSED,
     MINIMIZED,
+    MAXIMIZED,
     RESTORED,
     CLOSED
 }
@@ -237,6 +238,11 @@ interface Window {
      */
     fun maximize()
 
+    /**
+     * Restores the window to its original width, height and position.
+     */
+    fun restore()
+
     fun close()
 
     /**
@@ -298,6 +304,11 @@ interface Window {
      * Window minimized event
      */
     val minimized: Event<WindowEvent>
+
+    /**
+     * Window maximized event
+     */
+    val maximized: Event<WindowEvent>
 
     /**
      * Window restored (from minimization) event
@@ -492,6 +503,10 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
             application.windowMaximize()
         }
 
+        override fun restore() {
+            application.windowRestore()
+        }
+
         override fun fullscreen(mode: Fullscreen) {
             application.windowFullscreen(mode)
         }
@@ -549,6 +564,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         override val sized = Event<WindowEvent>("window-sized", postpone = true)
 
         override val minimized = Event<WindowEvent>("window-minimized", postpone = true)
+
+        override val maximized = Event<WindowEvent>("window-maximized", postpone = true)
 
         override val restored = Event<WindowEvent>("window-restored", postpone = true)
 

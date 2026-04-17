@@ -558,6 +558,10 @@ class ApplicationWindowGLFW(
         glfwMaximizeWindow(window)
     }
 
+    override fun restore() {
+        glfwRestoreWindow(window)
+    }
+
     override fun minimize() {
         glfwIconifyWindow(window)
     }
