@@ -86,6 +86,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSurfaceVSync
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
+import org.lwjgl.sdl.SDLVideo.SDL_SyncWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MINIMIZED
 import org.lwjgl.sdl.SDL_Point
@@ -579,6 +580,7 @@ fun createApplicationWindowSDL(
     }
 
     val drawer = drawer ?: Drawer(Driver.instance)
+    SDL_SyncWindow(window)
     return ApplicationWindowSDL(
         application,
         window,
