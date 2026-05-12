@@ -50,16 +50,6 @@ class ColorBufferWebGL(
             levels: Int,
             session: Session?
         ): ColorBufferWebGL {
-            if (type == ColorType.FLOAT16) {
-                require((Driver.instance as DriverWebGL).capabilities.halfFloatTextures) {
-                    """no support for half float textures."""
-                }
-            }
-            if (type == ColorType.FLOAT32) {
-                require((Driver.instance as DriverWebGL).capabilities.floatTextures) {
-                    """no support for float textures"""
-                }
-            }
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(GL.TEXTURE0)
             when (multisample) {
@@ -110,7 +100,7 @@ class ColorBufferWebGL(
 
             val caps = (Driver.instance as DriverWebGL).capabilities
             if (type == ColorType.UINT8 ||
-                (type == ColorType.FLOAT16 && caps.halfFloatTexturesLinear) ||
+                type == ColorType.FLOAT16 ||
                 (type == ColorType.FLOAT32 && caps.floatTexturesLinear)
             ) {
                 context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
