@@ -228,7 +228,7 @@ internal fun ColorType.glType(): GLenum {
         ColorType.SINT16_INT -> GL.SHORT
         ColorType.UINT32_INT -> GL.UNSIGNED_INT
         ColorType.SINT32_INT -> GL.INT
-        ColorType.FLOAT16 -> HALF_FLOAT_OES
+        ColorType.FLOAT16 -> GL.HALF_FLOAT
         ColorType.FLOAT32 -> GL.FLOAT
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
         ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,

@@ -1,7 +1,6 @@
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.core.JsPrimitives.toJsInt
 import js.core.JsUInt
 import js.core.plus
 import org.openrndr.color.ColorRGBa
@@ -9,7 +8,9 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
-import web.gl.GLenum
+import web.gl.EXT_color_buffer_float
+import web.gl.EXT_color_buffer_half_float
+import web.gl.OES_texture_float_linear
 import web.gl.WebGLVertexArrayObject
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsNumber
@@ -54,72 +55,25 @@ class DriverWebGL(val context: GL) : Driver {
     @OptIn(ExperimentalWasmJsInterop::class)
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
-        val instancedArrays by lazy {
-            context.getExtension("ANGLE_instanced_arrays") as? ANGLEinstancedArrays
-        }
-        val standardDerivatives by lazy {
-            context.getExtension("OES_standard_derivatives") as? OESStandardDerivatives
-        }
-
-        val halfFloatTextures by lazy {
-            context.getExtension("OES_texture_half_float") as? OESTextureHalfFloat
-        }
-
-        val floatTextures by lazy {
-            context.getExtension("OES_texture_float") as? OESTextureFloat
-        }
-
-        val colorBufferHalfFloat by lazy {
-            context.getExtension("EXT_color_buffer_half_float") as? EXTColorBufferHalfFloat
-        }
-
         val colorBufferFloat by lazy {
-            context.getExtension("EXT_color_buffer_float") as? EXTColorBufferFloat
-        }
-
-        val halfFloatTexturesLinear by lazy {
-            context.getExtension("OES_texture_half_float_linear") as? OESTextureHalfFloatLinear
+            context.getExtension("EXT_color_buffer_float") as? EXT_color_buffer_float
         }
 
         val floatTexturesLinear by lazy {
-            context.getExtension("OES_texture_float_linear") as? OESTextureFloatLinear
-        }
-
-        val drawBuffers by lazy {
-            context.getExtension("WEBGL_draw_buffers") as? WEBGLDrawBuffers
-        }
-
-        val depthTexture by lazy {
-            context.getExtension("WEBGL_depth_texture") as? WEBGLDepthTexture
+            context.getExtension("OES_texture_float_linear") as? OES_texture_float_linear
         }
     }
 
     data class Capabilities(
-        val instancedArrays: Boolean,
-        val standardDerivatives: Boolean,
-        val halfFloatTextures: Boolean,
-        val floatTextures: Boolean,
-        val colorBufferHalfFloat: Boolean,
         val colorBufferFloat: Boolean,
-        val halfFloatTexturesLinear: Boolean,
         val floatTexturesLinear: Boolean,
-        val drawBuffers: Boolean,
-        val depthTexture: Boolean
     )
 
     val extensions = Extensions()
 
     val capabilities = Capabilities(
-        instancedArrays = extensions.instancedArrays != null,
-        standardDerivatives = extensions.standardDerivatives != null,
-        halfFloatTextures = true,  //extensions.halfFloatTextures != null,
-        floatTextures = true, //extensions.floatTextures != null,
-        colorBufferHalfFloat = extensions.colorBufferHalfFloat != null,
         colorBufferFloat = extensions.colorBufferFloat != null,
-        halfFloatTexturesLinear = extensions.halfFloatTexturesLinear != null,
         floatTexturesLinear = extensions.floatTexturesLinear != null,
-        drawBuffers = extensions.drawBuffers != null,
-        depthTexture = extensions.depthTexture != null,
     )
 
     override val contextID: Long
