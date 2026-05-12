@@ -128,7 +128,7 @@ expect abstract class ColorBuffer : Texture, AutoCloseable {
     /**
      * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
      *
-     * @param sourceBuffer a [org.openrndr.buffer.MPPBuffer] holding raw image data
+     * @param sourceBuffer a [MPPBuffer] holding raw image data
      * @param sourceFormat the [ColorFormat] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.format]
      * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
      * @param level the mipmap-level of [ColorBuffer] to write to

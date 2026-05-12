@@ -10,8 +10,8 @@ repositories {
 
 dokka {
     pluginsConfiguration.html {
-        customStyleSheets.from("dokka/styles/extra.css")
-        customAssets.from("dokka/images/logo-icon.svg")
+        customStyleSheets.from(rootProject.file("dokka/styles/extra.css"))
+        customAssets.from(rootProject.file("dokka/images/logo-icon.svg"))
     }
     dokkaSourceSets.configureEach {
         skipDeprecated.set(true)
@@ -25,13 +25,13 @@ dokka {
         // Specifies the location of the project source code on the Web.
         // If provided, Dokka generates "source" links for each declaration.
         sourceLink {
-            // Unix based directory relative path to the root of the project (where you execute gradle respectively).
+            // Unix-based directory relative path to the root of the project (where you execute gradle respectively).
             localDirectory = sourcesDirectory
 
             // URL showing where the source code can be accessed through the web browser
             remoteUrl("https://github.com/openrndr/openrndr/blob/master/${moduleName.get()}/src/$name/kotlin")
 
-            // Suffix which is used to append the line number to the URL. Use #L for GitHub
+            // Suffix used to append the line number to the URL. Use #L for GitHub
             remoteLineSuffix.set("#L")
         }
     }

@@ -10,17 +10,6 @@ import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.TexImageSource
 
 actual abstract class ColorBuffer : Texture, AutoCloseable {
-
-    /**
-     * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
-     *
-     * The [sourceBuffer] should be allocated using [ByteBuffer.allocateDirect] and have an amount of remaining bytes
-     * that matches with the dimensions, [sourceFormat] and [sourceType].
-     * @param sourceBuffer a [ByteBuffer] holding raw image data
-     * @param sourceFormat the [ColorFormat] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.format]
-     * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
-     * @param level the mipmap-level of [ColorBuffer] to write to
-     */
     actual abstract val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
