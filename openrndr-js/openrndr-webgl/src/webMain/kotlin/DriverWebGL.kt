@@ -8,6 +8,9 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
+import web.gl.EXT_color_buffer_float
+import web.gl.EXT_color_buffer_half_float
+import web.gl.OES_texture_float_linear
 import web.gl.WebGLVertexArrayObject
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsNumber
@@ -53,15 +56,15 @@ class DriverWebGL(val context: GL) : Driver {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
         val colorBufferHalfFloat by lazy {
-            context.getExtension("EXT_color_buffer_half_float") as? EXTColorBufferHalfFloat
+            context.getExtension("EXT_color_buffer_half_float") as? EXT_color_buffer_half_float
         }
 
         val colorBufferFloat by lazy {
-            context.getExtension("EXT_color_buffer_float") as? EXTColorBufferFloat
+            context.getExtension("EXT_color_buffer_float") as? EXT_color_buffer_float
         }
 
         val floatTexturesLinear by lazy {
-            context.getExtension("OES_texture_float_linear") as? OESTextureFloatLinear
+            context.getExtension("OES_texture_float_linear") as? OES_texture_float_linear
         }
     }
 
