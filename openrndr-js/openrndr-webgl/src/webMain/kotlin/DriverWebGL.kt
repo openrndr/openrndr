@@ -55,10 +55,6 @@ class DriverWebGL(val context: GL) : Driver {
     @OptIn(ExperimentalWasmJsInterop::class)
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
-        val colorBufferHalfFloat by lazy {
-            context.getExtension("EXT_color_buffer_half_float") as? EXT_color_buffer_half_float
-        }
-
         val colorBufferFloat by lazy {
             context.getExtension("EXT_color_buffer_float") as? EXT_color_buffer_float
         }
@@ -69,7 +65,6 @@ class DriverWebGL(val context: GL) : Driver {
     }
 
     data class Capabilities(
-        val colorBufferHalfFloat: Boolean,
         val colorBufferFloat: Boolean,
         val floatTexturesLinear: Boolean,
     )
@@ -77,7 +72,6 @@ class DriverWebGL(val context: GL) : Driver {
     val extensions = Extensions()
 
     val capabilities = Capabilities(
-        colorBufferHalfFloat = extensions.colorBufferHalfFloat != null,
         colorBufferFloat = extensions.colorBufferFloat != null,
         floatTexturesLinear = extensions.floatTexturesLinear != null,
     )
