@@ -1,10 +1,9 @@
 package org.openrndr.webgl
 
-import js.buffer.ArrayBuffer
-import js.typedarrays.Float32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.*
+import web.gl.Float32List
 import web.gl.GLenum
 import web.gl.WebGL2RenderingContext as GL
 
@@ -26,32 +25,32 @@ internal fun MagnifyingFilter.toGLFilter(): GLenum {
     }
 }
 
-internal expect fun float32Array(vararg floats: Float): Float32Array<ArrayBuffer>
+internal expect fun float32Array(vararg floats: Float): Float32List
 
-internal fun Matrix44.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun Matrix44.toFloat32Array(): Float32List = float32Array(
     c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(), c0r3.toFloat(),
     c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(), c1r3.toFloat(),
     c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat(), c2r3.toFloat(),
     c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat())
 
-internal fun Matrix33.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun Matrix33.toFloat32Array(): Float32List = float32Array(
     c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(),
     c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(),
     c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
 
-internal fun ColorRGBa.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun ColorRGBa.toFloat32Array(): Float32List = float32Array(
     r.toFloat(), g.toFloat(), b.toFloat(), alpha.toFloat()
 )
 
-internal fun Vector4.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun Vector4.toFloat32Array(): Float32List = float32Array(
     x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()
 )
 
-internal fun Vector3.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun Vector3.toFloat32Array(): Float32List = float32Array(
     x.toFloat(), y.toFloat(), z.toFloat()
 )
 
-internal fun Vector2.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
+internal fun Vector2.toFloat32Array(): Float32List = float32Array(
     x.toFloat(), y.toFloat()
 )
 

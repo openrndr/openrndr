@@ -387,8 +387,8 @@ class ColorBufferWebGL(
                 height,
                 sourceType.glType(),
                 source,
-                null,
-                null
+                0.0,
+                0.toJsUInt()
             )
         }
     }
@@ -457,7 +457,7 @@ class ColorBufferWebGL(
                 lcolor.b.toFloat(),
                 lcolor.alpha.toFloat()
             )
-        context.clearBufferfv(GL.COLOR, 0, floatColorData, null)
+        context.clearBufferfv(GL.COLOR, 0, floatColorData, 0.0)
         writeTarget.unbind()
 
         writeTarget.detachColorAttachments()

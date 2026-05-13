@@ -154,8 +154,8 @@ class CubemapWebGL(
                 height,
                 sourceType.glType(),
                 source,
-                null,
-                null
+                0.0,
+                0.toJsUInt()
             )
 
         }

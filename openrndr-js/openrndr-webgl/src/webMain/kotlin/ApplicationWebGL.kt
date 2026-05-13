@@ -1,7 +1,7 @@
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.core.JsPrimitives.toKotlinDouble
+import js.numbers.JsNumbers.toKotlinDouble
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
@@ -25,7 +25,6 @@ import web.mouse.SECONDARY
 import web.mouse.WheelEvent
 import web.performance.performance
 import web.resize.ResizeObserver
-import web.window.window
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
 import kotlin.js.JsName

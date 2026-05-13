@@ -2,13 +2,13 @@ package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBuffer
-import js.core.JsInt
-import js.core.JsPrimitives.toJsFloat
-import js.core.JsPrimitives.toKotlinInt
-import js.typedarrays.Float32Array
+import js.numbers.JsInt
+import js.numbers.JsNumbers.toJsFloat
+import js.numbers.JsNumbers.toKotlinInt
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.*
+import web.gl.Float32List
 import web.gl.GLenum
 import web.gl.WebGLProgram
 import web.gl.WebGLUniformLocation
@@ -124,7 +124,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: Matrix33) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniformMatrix3fv(index, false, value.toFloat32Array(), null, null)
+            context.uniformMatrix3fv(index, false, value.toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -133,7 +133,7 @@ class ShaderWebGL(
         context.checkErrors("older error persists")
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniformMatrix4fv(index, false, value.toFloat32Array(), null, null)
+            context.uniformMatrix4fv(index, false, value.toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -141,7 +141,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: ColorRGBa) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform4fv(index, value.toFloat32Array(), null, null)
+            context.uniform4fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -149,7 +149,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: Vector4) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform4fv(index, value.toFloat32Array(), null, null)
+            context.uniform4fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -157,7 +157,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: Vector3) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform3fv(index, value.toFloat32Array(), null, null)
+            context.uniform3fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -165,7 +165,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: Vector2) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform2fv(index, value.toFloat32Array(), null, null)
+            context.uniform2fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
         }
     }
 
@@ -266,7 +266,7 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: Array<Matrix33>) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 3 * 3))
+        val floatValues = Float32List(ArrayBuffer(value.size * 3 * 3))
         var offset = 0
         for (j in value.indices) {
             val mf = value[j].toFloat32Array()
@@ -277,13 +277,13 @@ class ShaderWebGL(
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniformMatrix3fv(index, false, floatValues, null, null)
+            context.uniformMatrix3fv(index, false, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: Array<Matrix44>) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 4 * 4))
+        val floatValues = Float32List(ArrayBuffer(value.size * 4 * 4))
         var offset = 0
         for (j in value.indices) {
             val mf = value[j].toFloat32Array()
@@ -294,7 +294,7 @@ class ShaderWebGL(
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniformMatrix4fv(index, false, floatValues, null, null)
+            context.uniformMatrix4fv(index, false, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
 
@@ -329,7 +329,7 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: Array<Vector3>) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 3))
+        val floatValues = Float32List(ArrayBuffer(value.size * 3))
         for (i in value.indices) {
             floatValues[i * 3] = value[i].x.toFloat().toJsFloat()
             floatValues[i * 3 + 1] = value[i].y.toFloat().toJsFloat()
@@ -337,13 +337,13 @@ class ShaderWebGL(
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform3fv(index, floatValues, null, null)
+            context.uniform3fv(index, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: Array<Vector2>) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 2))
+        val floatValues = Float32List(ArrayBuffer(value.size * 2))
         for (i in value.indices) {
             floatValues[i * 3] = value[i].x.toFloat().toJsFloat()
             floatValues[i * 3 + 1] = value[i].y.toFloat().toJsFloat()
@@ -351,7 +351,7 @@ class ShaderWebGL(
 
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform3fv(index, floatValues, null, null)
+            context.uniform3fv(index, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
@@ -373,27 +373,27 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: Array<Double>) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 4))
+        val floatValues = Float32List(ArrayBuffer(value.size * 4))
         for (i in value.indices) {
             floatValues[i] = value[i].toFloat().toJsFloat()
 
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform1fv(index, floatValues, null, null)
+            context.uniform1fv(index, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: FloatArray) {
-        val floatValues = Float32Array(ArrayBuffer(value.size * 4))
+        val floatValues = Float32List(ArrayBuffer(value.size * 4))
         for (i in value.indices) {
             floatValues[i] = value[i].toJsFloat()
 
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform1fv(index, floatValues, null, null)
+            context.uniform1fv(index, floatValues, 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
