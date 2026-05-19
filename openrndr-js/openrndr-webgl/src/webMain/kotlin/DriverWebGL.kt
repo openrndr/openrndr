@@ -15,6 +15,7 @@ import web.gl.WebGLVertexArrayObject
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsNumber
 import kotlin.js.unsafeCast
+import kotlin.time.measureTime
 import web.gl.WebGL2RenderingContext as GL
 
 @OptIn(ExperimentalWasmJsInterop::class)
@@ -51,29 +52,15 @@ class DriverWebGL(val context: GL) : Driver {
         }
     }
 
-
-    @OptIn(ExperimentalWasmJsInterop::class)
-    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    inner class Extensions {
-        val colorBufferFloat by lazy {
-            context.getExtension("EXT_color_buffer_float") as? EXT_color_buffer_float
-        }
-
-        val floatTexturesLinear by lazy {
-            context.getExtension("OES_texture_float_linear") as? OES_texture_float_linear
-        }
-    }
-
     data class Capabilities(
         val colorBufferFloat: Boolean,
         val floatTexturesLinear: Boolean,
     )
 
-    val extensions = Extensions()
-
+    @OptIn(ExperimentalWasmJsInterop::class)
     val capabilities = Capabilities(
-        colorBufferFloat = extensions.colorBufferFloat != null,
-        floatTexturesLinear = extensions.floatTexturesLinear != null,
+        colorBufferFloat = context.getExtension("EXT_color_buffer_float") != null,
+        floatTexturesLinear = context.getExtension("OES_texture_float_linear") != null,
     )
 
     override val contextID: Long
