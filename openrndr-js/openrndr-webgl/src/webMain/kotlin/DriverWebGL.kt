@@ -8,14 +8,10 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
-import web.gl.EXT_color_buffer_float
-import web.gl.EXT_color_buffer_half_float
-import web.gl.OES_texture_float_linear
 import web.gl.WebGLVertexArrayObject
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsNumber
 import kotlin.js.unsafeCast
-import kotlin.time.measureTime
 import web.gl.WebGL2RenderingContext as GL
 
 @OptIn(ExperimentalWasmJsInterop::class)
