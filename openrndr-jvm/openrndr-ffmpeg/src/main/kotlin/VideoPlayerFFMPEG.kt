@@ -739,16 +739,8 @@ class VideoPlayerFFMPEG private constructor(
     @OptIn(InternalCoroutinesApi::class)
     @Suppress("unused")
     fun restart() {
-        require(!disposed)
-        endOfFileReached = false
-        logger.debug { "video player restart requested" }
-        synchronized(displayQueue) {
-            while (!displayQueue.isEmpty()) {
-                displayQueue.pop().unref()
-            }
-        }
-        decoder?.restart()
-        audioOut?.flush()
+        seek(0.0)
+        resetVideoTime = true
     }
 
     private var seekInProgress = false
@@ -819,8 +811,8 @@ class VideoPlayerFFMPEG private constructor(
                         break@waitForFrame
                     } else if (blockUntilFinished) {
                         if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
-                            ended.trigger(VideoEvent())
                             state = State.STOPPED
+                            ended.trigger(VideoEvent())
                             break@waitForFrame
                         } else {
                             logger.debug { "${waitTimeInMs}ms for frame. vqs: ${decoder?.videoQueueSize()}, dqs: ${displayQueue.size()}" }
@@ -920,8 +912,8 @@ class VideoPlayerFFMPEG private constructor(
                         if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
                             if (state == State.PLAYING) {
                                 logger.debug { "stopping playback" }
-                                ended.trigger(VideoEvent())
                                 state = State.STOPPED
+                                ended.trigger(VideoEvent())
                             }
                         }
                         break@waitForFrame

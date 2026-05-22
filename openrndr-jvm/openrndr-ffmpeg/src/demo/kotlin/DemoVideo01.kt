@@ -21,11 +21,7 @@ fun main() {
             video.play()
 
             video.ended.listen {
-                launch {
-                    delay(100)
-                    video.seek(0.0)
-                    video.play()
-                }
+                video.restart()
             }
 
             mouse.buttonDown.listen {
