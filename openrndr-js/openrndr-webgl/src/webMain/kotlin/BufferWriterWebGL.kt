@@ -1,7 +1,7 @@
 package org.openrndr.webgl
 
 import js.buffer.ArrayBuffer
-import js.core.JsPrimitives.toJsFloat
+import js.numbers.JsNumbers.toJsFloat
 import js.typedarrays.Float32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.BufferWriter

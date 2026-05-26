@@ -1,15 +1,13 @@
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.core.JsPrimitives.toJsInt
-import js.core.JsUInt
-import js.core.plus
+import js.numbers.JsUInt
+import js.numbers.plus
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
-import web.gl.GLenum
 import web.gl.WebGLVertexArrayObject
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsNumber
