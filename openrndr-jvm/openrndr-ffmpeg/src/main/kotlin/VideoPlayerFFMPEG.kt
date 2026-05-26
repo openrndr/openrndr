@@ -2,7 +2,6 @@ package org.openrndr.ffmpeg
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.InternalCoroutinesApi
-
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -24,10 +23,10 @@ import org.openrndr.draw.ColorType
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.colorBuffer
 import org.openrndr.events.Event
+import org.openrndr.openal.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
-import org.openrndr.openal.*
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -79,7 +78,8 @@ internal class AVFile(
     formatName: String? = null,
     frameRate: Double? = null,
     imageWidth: Int? = null,
-    imageHeight: Int? = null
+    imageHeight: Int? = null,
+    windowId: String? = null
 ) {
 
     val context: AVFormatContext = avformat_alloc_context()
@@ -106,6 +106,10 @@ internal class AVFile(
 
         if (imageWidth != null && imageHeight != null) {
             av_dict_set(options, "video_size", "${imageWidth}x$imageHeight", 0)
+        }
+
+        if (windowId != null) {
+            av_dict_set(options, "window_id", windowId, 0)
         }
 
         if (filename.startsWith("rtsp://")) {
@@ -467,11 +471,12 @@ class VideoPlayerFFMPEG private constructor(
          *   Mac:     something like "1:0"
          *   Linux:   run `echo $DISPLAY` to find out
          * @param mode which streams should be opened and played
-         *   Reserved for future use, in case we want grabbing audio
+         *   Reserved for future use, in case we want to grab audio
          * @param frameRate optional frame rate (in Hz)
          * @param imageWidth optional image width
          * @param imageHeight optional image height
          * @param configuration optional video player configuration
+         * @param windowId optional window id. Allows capturing a specific program window instead of the whole screen.
          * @return a ready-to-play video player on success
          */
         @Suppress("unused")
@@ -482,6 +487,7 @@ class VideoPlayerFFMPEG private constructor(
             frameRate: Double? = null,
             imageWidth: Int? = null,
             imageHeight: Int? = null,
+            windowId: String? = null,
             configuration: VideoPlayerConfiguration = screenRecordingConfiguration
         )
                 : VideoPlayerFFMPEG {
@@ -491,7 +497,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.GENERIC -> ("x11grab" to screenName)
                 else -> error("unsupported platform ${Platform.type}")
             }
-            val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
+            val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight, windowId)
             return VideoPlayerFFMPEG(audioDevice, file, mode, configuration)
         }
 
@@ -739,16 +745,8 @@ class VideoPlayerFFMPEG private constructor(
     @OptIn(InternalCoroutinesApi::class)
     @Suppress("unused")
     fun restart() {
-        require(!disposed)
-        endOfFileReached = false
-        logger.debug { "video player restart requested" }
-        synchronized(displayQueue) {
-            while (!displayQueue.isEmpty()) {
-                displayQueue.pop().unref()
-            }
-        }
-        decoder?.restart()
-        audioOut?.flush()
+        seek(0.0)
+        resetVideoTime = true
     }
 
     private var seekInProgress = false
@@ -819,8 +817,8 @@ class VideoPlayerFFMPEG private constructor(
                         break@waitForFrame
                     } else if (blockUntilFinished) {
                         if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
-                            ended.trigger(VideoEvent())
                             state = State.STOPPED
+                            ended.trigger(VideoEvent())
                             break@waitForFrame
                         } else {
                             logger.debug { "${waitTimeInMs}ms for frame. vqs: ${decoder?.videoQueueSize()}, dqs: ${displayQueue.size()}" }
@@ -920,8 +918,8 @@ class VideoPlayerFFMPEG private constructor(
                         if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
                             if (state == State.PLAYING) {
                                 logger.debug { "stopping playback" }
-                                ended.trigger(VideoEvent())
                                 state = State.STOPPED
+                                ended.trigger(VideoEvent())
                             }
                         }
                         break@waitForFrame
