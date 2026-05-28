@@ -79,20 +79,12 @@ open class RenderTargetWebGL(
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
         bindTarget()
         val caps = (Driver.instance as DriverWebGL).capabilities
-        if (colorBuffer.type == ColorType.FLOAT16) {
-            require(caps.colorBufferHalfFloat) {
-                """This WebGL client does not support FLOAT16 color buffer attachments"""
-            }
-            require(colorBuffer.format in setOf(ColorFormat.R, ColorFormat.RG, ColorFormat.RGBa)) {
-                "WebGL only supports R, RG or RGBa format FLOAT16 color buffer attachments"
-            }
-        }
-        if (colorBuffer.type == ColorType.FLOAT32) {
+        if (colorBuffer.type == ColorType.FLOAT32 || colorBuffer.type == ColorType.FLOAT16) {
             require(caps.colorBufferFloat) {
-                """This WebGL client does not support FLOAT32 color buffer attachments"""
+                """This WebGL client does not support ${colorBuffer.type} color buffer attachments"""
             }
             require(colorBuffer.format in setOf(ColorFormat.R, ColorFormat.RG, ColorFormat.RGBa)) {
-                "WebGL only supports R, RG or RGBa format FLOAT32 color buffer attachments"
+                "WebGL only supports R, RG or RGBa format color buffer attachments"
             }
         }
         colorBuffer as ColorBufferWebGL
