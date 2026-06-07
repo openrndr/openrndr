@@ -197,7 +197,8 @@ class DriverWebGL(val context: GL) : Driver {
     }
 
     override fun clear(color: ColorRGBa) {
-        context.clearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+        val lcolor = color.toLinear()
+        context.clearColor(lcolor.r.toFloat(), lcolor.g.toFloat(), lcolor.b.toFloat(), lcolor.alpha.toFloat())
         context.clearDepth(1.0f)
         context.disable(GL.SCISSOR_TEST)
         context.depthMask(true)
