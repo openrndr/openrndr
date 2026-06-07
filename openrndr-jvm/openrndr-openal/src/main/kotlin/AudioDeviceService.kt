@@ -9,7 +9,7 @@ data class AudioDeviceDescription(val name: String, val pan: Double = 0.0)
 class AudioDeviceService(val deviceAliases: Map<String, AudioDeviceDescription>): AutoCloseable {
     private val audioDevices: MutableMap<String, AudioDevice?> = mutableMapOf()
 
-    var deviceNames = ALUtil.getStringList(MemoryUtil.NULL, ALC_ALL_DEVICES_SPECIFIER)!!
+    var deviceNames = ALUtil.getStringList(MemoryUtil.NULL, ALC_ALL_DEVICES_SPECIFIER) ?: emptyList()
 
     fun audioDevice(alias: String): AudioDevice? {
 

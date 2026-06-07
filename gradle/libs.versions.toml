@@ -1,9 +1,9 @@
 [versions]
 androidGradlePlugin = "8.13.0"
-
-kotlinApi = "2.3"
-kotlinLanguage = "2.3"
-kotlin = "2.3.21"
+jspecify = "1.0.0"
+kotlinApi = "2.4"
+kotlinLanguage = "2.4"
+kotlin = "2.4.0"
 kotlin-wrap = "2026.5.4"
 jvmTarget = "17"
 kotlinxCoroutines = "1.11.0"
@@ -22,6 +22,8 @@ nmcp = "1.2.0"
 
 [libraries]
 android-library-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "androidGradlePlugin" }
+
+jspecify =  { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }

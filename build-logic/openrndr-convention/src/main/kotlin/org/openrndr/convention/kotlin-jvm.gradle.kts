@@ -33,6 +33,8 @@ dependencies {
     implementation(libs.findLibrary("kotlin-logging").get())
     testImplementation(libs.findLibrary("kotlin.test").get())
     testRuntimeOnly(libs.findLibrary("slf4j-simple").get())
+
+    implementation(libs.findLibrary("jspecify").get())
 }
 
 tasks {
