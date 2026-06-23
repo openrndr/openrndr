@@ -590,9 +590,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
             window.updateSize()
             window.setupRenderTarget()
-            if (DriverGL3Configuration.useBackBufferExtension) {
-                program.extend(BackBuffer())
-            }
 
             runBlocking {
                 program.setup()
@@ -723,9 +720,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         defaultRenderTarget.bind()
 
         setupSizes()
-        if (DriverGL3Configuration.useBackBufferExtension) {
-            program.extend(BackBuffer())
-        }
 
         setupPreload(program, configuration)
         program.drawer.ortho()
@@ -733,7 +727,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     private var drawRequested = true
 
-    override fun loop() {
+    override suspend fun loop() {
         logger.debug { "starting loop" }
         preloop()
 
@@ -1115,7 +1109,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.dispatcher.execute()
         try {
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
-            program.drawImpl()
+            runBlocking {
+                program.drawImpl()
+            }
         } catch (e: Throwable) {
             logger.error { "Caught exception inside the program loop. (${e.message})" }
             return e

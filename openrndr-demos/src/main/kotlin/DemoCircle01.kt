@@ -1,3 +1,5 @@
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.yield
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.isolatedWithTarget
@@ -6,6 +8,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.buildTransform
 import org.openrndr.shape.Circle
+import kotlin.time.Duration.Companion.milliseconds
 
 fun main() = application {
     configure {

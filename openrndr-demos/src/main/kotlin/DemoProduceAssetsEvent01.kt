@@ -23,7 +23,7 @@ import java.util.*
  */
 class UUIDNamer : Extension {
     override var enabled = true
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
         val oldMetadataFunction = program.assetMetadata
 
         program.assetMetadata = {
@@ -46,7 +46,7 @@ class UUIDNamer : Extension {
  */
 class ParameterSaver : Extension {
     override var enabled: Boolean = true
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
         program.produceAssets.listen {
             val valueText = it.assetMetadata.assetProperties.map { "${it.key}:${it.value}" }.joinToString("\n")
             val output = "${it.assetMetadata.assetBaseName}.txt"

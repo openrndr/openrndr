@@ -172,7 +172,7 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
         }
     }
 
-    override fun loop() {
+    override suspend fun loop() {
         val defaultRenderTarget = renderTarget(configuration.width, configuration.height) {
             colorBuffer()
             depthBuffer()

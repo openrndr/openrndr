@@ -107,8 +107,8 @@ actual abstract class Application {
     internal actual fun run() {
         runBlocking {
             this@Application.setup()
+            this@Application.loop()
         }
-        this.loop()
     }
 
     actual abstract fun requestDraw()
@@ -117,7 +117,7 @@ actual abstract class Application {
     actual abstract fun exit()
     actual abstract suspend fun setup()
 
-    actual abstract fun loop()
+    actual abstract suspend fun loop()
     actual abstract var clipboardContents: String?
     actual abstract var windowTitle: String
     actual abstract var windowPosition: Vector2

@@ -33,7 +33,7 @@ class SingleScreenshot : Screenshots() {
      */
     var outputFile = "screenshot.png"
 
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
         super.setup(program)
         createScreenshot = Named(outputFile)
     }
@@ -134,7 +134,7 @@ open class Screenshots : Extension {
 
     private var assetMetaData: AssetMetadata? = null
 
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
         programRef = program
 
         if (multisample == null) {
@@ -176,7 +176,7 @@ open class Screenshots : Extension {
     }
 
     private var filename: String? = null
-    override fun beforeDraw(drawer: Drawer, program: Program) {
+    override suspend fun beforeDraw(drawer: Drawer, program: Program) {
         if (createScreenshot != None && delayFrames-- <= 0) {
 
             val width = RenderTarget.active.width
@@ -212,7 +212,7 @@ open class Screenshots : Extension {
         }
     }
 
-    override fun afterDraw(drawer: Drawer, program: Program) {
+    override suspend fun afterDraw(drawer: Drawer, program: Program) {
         filename?.let { fn ->
             filename = null
             val targetFile = File(fn)

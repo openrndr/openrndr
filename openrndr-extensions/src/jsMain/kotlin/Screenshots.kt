@@ -44,7 +44,7 @@ open class Screenshots : Extension {
     var listenToKeyDownEvent = true
 
 
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
         programRef = program
 
         if (listenToKeyDownEvent) {

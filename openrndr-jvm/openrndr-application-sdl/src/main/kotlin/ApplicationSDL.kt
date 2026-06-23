@@ -283,7 +283,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val windowId = event.window().windowID()
                 val eventWindow = windowById(windowId)
                     ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
-                eventWindow.update()
+                runBlocking {
+                    eventWindow.update()
+                }
             }
 
             SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED -> {
@@ -741,16 +743,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         }
     }
 
-    override fun loop() {
+    override suspend fun loop() {
         defaultRenderTarget.bind()
 
         window.setupSizes()
         program.drawer.reset()
         program.drawer.ortho()
 
-        runBlocking {
-            program.setup()
-        }
+        program.setup()
 
         if (System.getProperty("org.openrndr.application.eventwatch") != "false") {
             // https://wiki.libsdl.org/SDL3/AppFreezeDuringDrag

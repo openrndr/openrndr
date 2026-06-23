@@ -92,12 +92,6 @@ object DriverGL3Configuration {
         Platform.property("org.openrndr.gl3.delete_angle_on_exit") != "false"
     }
 
-    val useBackBufferExtension by lazy {
-        when (driverType) {
-            DriverTypeGL.GL -> false
-            DriverTypeGL.GLES -> false
-        }
-    }
 
     fun candidateVersions() : List<DriverVersionGL> {
         return DriverVersionGL.entries.filter { it.type == driverType }.reversed()

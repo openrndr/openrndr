@@ -2,6 +2,8 @@ package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.numbers.JsNumbers.toKotlinDouble
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
@@ -341,7 +343,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
         return set
     }
 
-    override fun loop() {
+    val scope = MainScope()
+    override suspend fun loop() {
         //("start loop")
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
             drawRequested = false
@@ -359,7 +362,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
         }
 
         requestAnimationFrame {
-            loop()
+            scope.launch {
+                loop()
+            }
         }
     }
 

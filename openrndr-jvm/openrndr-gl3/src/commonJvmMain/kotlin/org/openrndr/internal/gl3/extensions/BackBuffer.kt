@@ -24,7 +24,7 @@ x_fill.rgb = del;""".trimIndent()
             depthBuffer()
         }
     }
-    override fun beforeDraw(drawer: Drawer, program: Program) {
+    override suspend fun beforeDraw(drawer: Drawer, program: Program) {
         rt.resize(RenderTarget.active)
         rt.renderTarget.bind()
         val bc = program.backgroundColor
@@ -33,7 +33,7 @@ x_fill.rgb = del;""".trimIndent()
         super.beforeDraw(drawer, program)
     }
 
-    override fun afterDraw(drawer: Drawer, program: Program) {
+    override suspend fun afterDraw(drawer: Drawer, program: Program) {
         rt.renderTarget.unbind()
         drawer.isolated {
             drawer.defaults()

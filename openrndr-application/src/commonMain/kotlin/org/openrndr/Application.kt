@@ -58,7 +58,7 @@ expect abstract class Application {
     abstract fun exit()
     abstract suspend fun setup()
 
-    abstract fun loop()
+    abstract suspend fun loop()
     abstract var clipboardContents: String?
     abstract var windowTitle: String
 

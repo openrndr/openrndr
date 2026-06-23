@@ -42,7 +42,7 @@ actual abstract class Application {
     actual abstract fun exit()
     actual abstract suspend fun setup()
 
-    actual abstract fun loop()
+    actual abstract suspend fun loop()
     actual abstract var clipboardContents: String?
     actual abstract var windowTitle: String
 

@@ -56,7 +56,7 @@ interface ExtensionHost : InputEvents {
      * @param extension The extension instance to be added to the host.
      * @return The same extension instance that was added.
      */
-    fun <T : Extension> extend(extension: T): T
+    suspend fun <T : Extension> extend(extension: T): T
 
 
     /**
@@ -67,7 +67,7 @@ interface ExtensionHost : InputEvents {
      * @param configure A lambda function defining the configuration to be applied to the extension.
      * @return The configured extension instance.
      */
-    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T
+    suspend fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T
 
     /**
      * Adds an extension to the program that executes a user-defined block of code at a specified extension stage.
@@ -76,7 +76,7 @@ interface ExtensionHost : InputEvents {
      * @param stage The stage in the program's lifecycle where the extension will be executed.
      * @param userDraw The block of code to be executed as part of the extension.
      */
-    fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: Program.() -> Unit)
+    suspend fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: suspend Program.() -> Unit)
 
     val program: Program
 }
@@ -100,7 +100,7 @@ interface Extension {
      * @param program the program instance associated with this setup process, used to configure
      * or initialize the extension.
      */
-    fun setup(program: Program) {}
+    suspend fun setup(program: Program) {}
 
     /**
      * Invoked before the drawing phase of the program's lifecycle, allowing the extension to
@@ -109,7 +109,7 @@ interface Extension {
      * @param drawer the drawer instance used to render graphical elements.
      * @param program the program instance associated with the current drawing cycle.
      */
-    fun beforeDraw(drawer: Drawer, program: Program) {}
+    suspend fun beforeDraw(drawer: Drawer, program: Program) {}
 
     /**
      * Invoked after the drawing phase of the program's lifecycle, allowing the extension to execute
@@ -118,7 +118,7 @@ interface Extension {
      * @param drawer the drawer instance used to perform rendering operations during the drawing cycle.
      * @param program the program instance associated with the current drawing lifecycle.
      */
-    fun afterDraw(drawer: Drawer, program: Program) {}
+    suspend fun afterDraw(drawer: Drawer, program: Program) {}
 
 
     /**

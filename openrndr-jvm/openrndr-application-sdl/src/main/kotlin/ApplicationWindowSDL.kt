@@ -382,7 +382,7 @@ class ApplicationWindowSDL(
         program.gestures.deliver()
     }
 
-    fun update() {
+    suspend fun update() {
 
         if (destroyed)
             return
@@ -408,6 +408,7 @@ class ApplicationWindowSDL(
         val surfaceArea = program.width * program.height
         val minimized = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
         if (draw && surfaceArea > 0 && !minimized) {
+
             program.drawImpl()
             SDL_GL_SwapWindow(window)
             lastUpdate = ct

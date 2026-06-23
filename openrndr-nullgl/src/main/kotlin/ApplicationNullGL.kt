@@ -43,7 +43,7 @@ class ApplicationNullGL(override var program: Program, override var configuratio
         setupPreload(program, configuration)
     }
 
-    override fun loop() {
+    override suspend fun loop() {
         logger.debug { "entering loop" }
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)

@@ -115,7 +115,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
      * install an [Extension]
      * @param extension the [Extension] to install
      */
-    override fun <T : Extension> extend(extension: T): T {
+    override suspend fun <T : Extension> extend(extension: T): T {
         extensions.add(extension)
         extension.setup(this)
         return extension
@@ -127,7 +127,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
      * @param configure a configuration function to called with [extension] as its receiver
      * @return the installed [Extension]
      */
-    override fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
+    override suspend fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
         extensions.add(extension)
         extension.configure()
         extension.setup(this)
@@ -137,13 +137,13 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     /**
      * install an extension function for the given [ExtensionStage]
      */
-    override fun extend(stage: ExtensionStage, userDraw: Program.() -> Unit) {
+    override suspend fun extend(stage: ExtensionStage, userDraw: suspend Program.() -> Unit) {
         if (isNested) error("Cannot nest extend blocks within extend blocks")
         val functionExtension = when (stage) {
             ExtensionStage.SETUP ->
                 object : Extension {
                     override var enabled: Boolean = true
-                    override fun setup(program: Program) {
+                    override suspend fun setup(program: Program) {
                         program.isNested = true
                         program.userDraw()
                     }
@@ -152,7 +152,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
             ExtensionStage.BEFORE_DRAW ->
                 object : Extension {
                     override var enabled: Boolean = true
-                    override fun beforeDraw(drawer: Drawer, program: Program) {
+                    override suspend fun beforeDraw(drawer: Drawer, program: Program) {
                         program.isNested = true
                         program.userDraw()
                     }
@@ -161,7 +161,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
             ExtensionStage.AFTER_DRAW ->
                 object : Extension {
                     override var enabled: Boolean = true
-                    override fun afterDraw(drawer: Drawer, program: Program) {
+                    override suspend fun afterDraw(drawer: Drawer, program: Program) {
                         program.isNested = true
                         program.userDraw()
                     }
@@ -314,7 +314,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     /**
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
-    override fun drawImpl() {
+    override suspend fun drawImpl() {
         if (frameCount == 0) {
             firstFrameTime = application.seconds
         }

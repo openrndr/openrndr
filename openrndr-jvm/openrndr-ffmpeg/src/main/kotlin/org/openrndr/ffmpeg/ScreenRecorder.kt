@@ -87,7 +87,7 @@ class ScreenRecorder : Extension {
 
     private var storedClock: (() -> Double)? = null
 
-    override fun setup(program: Program) {
+    override suspend fun setup(program: Program) {
 
         if (timeOffset == null) {
             timeOffset = program.clock()
@@ -142,7 +142,7 @@ class ScreenRecorder : Extension {
         videoWriter.frameRate = frameRate
     }
 
-    override fun beforeDraw(drawer: Drawer, program: Program) {
+    override suspend fun beforeDraw(drawer: Drawer, program: Program) {
         if (frameClock) {
             storedClock = program.clock
             program.clock = {
@@ -158,7 +158,7 @@ class ScreenRecorder : Extension {
         }
     }
 
-    override fun afterDraw(drawer: Drawer, program: Program) {
+    override suspend fun afterDraw(drawer: Drawer, program: Program) {
         if (frameIndex >= frameSkip) {
             frame.unbind()
             if (framesWritten < maximumFrames && framesWritten / frameRate.toDouble() < maximumDuration) {

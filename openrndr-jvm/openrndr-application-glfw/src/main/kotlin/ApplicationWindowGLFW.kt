@@ -73,7 +73,7 @@ class ApplicationWindowGLFW(
         }
     }
 
-    fun update() {
+    suspend fun update() {
         deliverEvents()
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested || program.dispatcher.shouldExecute) {
             //glfwMakeContextCurrent(window)
