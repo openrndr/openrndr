@@ -7,7 +7,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 
-val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 var applicationBaseFunc: (() -> ApplicationBase)? = null
 
 fun launch(block: suspend () -> Unit) {

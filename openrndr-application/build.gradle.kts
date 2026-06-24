@@ -18,6 +18,11 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+
+                implementation(libs.kotlin.logging)
+                implementation(libs.kotlin.atomicfu)
+                implementation(libs.kotlin.coroutines)
+
                 api(project(":openrndr-math"))
                 api(project(":openrndr-draw"))
                 api(project(":openrndr-animatable"))
@@ -28,9 +33,7 @@ kotlin {
         val commonJvmMain by getting
 
         val jvmMain by getting {
-            dependencies {
-                implementation(libs.kotlin.coroutines)
-            }
+
         }
         if (platformConfiguration.android) {
             val androidMain by getting {

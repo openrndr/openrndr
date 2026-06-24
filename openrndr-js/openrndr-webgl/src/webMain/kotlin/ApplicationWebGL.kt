@@ -345,6 +345,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
         //("start loop")
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
             drawRequested = false
+            program.dispatcher.execute()
 
             val dims = windowSize
             program.width = dims.x.toInt()

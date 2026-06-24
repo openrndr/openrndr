@@ -1,5 +1,6 @@
 [versions]
 androidGradlePlugin = "8.13.0"
+atomicfu = "0.33.0"
 jspecify = "1.0.0"
 kotlinApi = "2.4"
 kotlinLanguage = "2.4"
@@ -21,6 +22,7 @@ slf4j = "2.0.17"
 nmcp = "1.2.0"
 
 [libraries]
+kotlin-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu"}
 android-library-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "androidGradlePlugin" }
 
 jspecify =  { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }

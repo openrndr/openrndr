@@ -1,5 +1,9 @@
 package org.openrndr
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+
+private val logger = KotlinLogging.logger {}
 /**
  * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
  * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>

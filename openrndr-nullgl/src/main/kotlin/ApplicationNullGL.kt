@@ -9,7 +9,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
-val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 class ApplicationNullGL(override var program: Program, override var configuration: Configuration) : Application() {
 
