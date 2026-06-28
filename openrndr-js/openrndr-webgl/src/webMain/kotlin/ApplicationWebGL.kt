@@ -89,7 +89,12 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
         context = canvas?.getContext(WebGL2RenderingContext.ID, attrs)
             ?: error("failed to create webgl2 context")
-        Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
+
+        if (Driver.driver == null) {
+            Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
+        } else {
+            (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
+        }
         program.drawer = Drawer(Driver.instance)
         referenceTime = performance.now().toKotlinDouble()
 
@@ -344,6 +349,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
     override fun loop() {
         //("start loop")
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+
+            val storedContext = (Driver.instance as DriverWebGL).context
+
+            (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
             drawRequested = false
             program.dispatcher.execute()
 
@@ -357,6 +366,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
             defaultRenderTarget?.bindTarget()
             program.drawImpl()
+
+            (Driver.instance as DriverWebGL).context = storedContext
         }
 
         requestAnimationFrame {

@@ -19,12 +19,13 @@ internal fun Int.toJsUInt(): JsUInt = this.toJsNumber().unsafeCast<JsUInt>()
 
 private val logger = KotlinLogging.logger {  }
 
-class DriverWebGL(val context: GL) : Driver {
+class DriverWebGL(var context: GL) : Driver {
     init {
         Driver.driver = this
     }
 
     data class ShaderVertexDescription(
+        val context: GL,
         val shader: Int,
         val vertexBuffers: IntArray,
         val instanceAttributeBuffers: IntArray
@@ -33,6 +34,7 @@ class DriverWebGL(val context: GL) : Driver {
             if (this === other) return true
 
             other as ShaderVertexDescription
+            if (context !== other.context) return false
             if (shader != other.shader) return false
             if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
             if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
@@ -42,6 +44,7 @@ class DriverWebGL(val context: GL) : Driver {
 
         override fun hashCode(): Int {
             var result = shader
+            result = 31 * result + context.hashCode()
             result = 31 * result + vertexBuffers.contentHashCode()
             result = 31 * result + instanceAttributeBuffers.contentHashCode()
             return result
@@ -334,6 +337,7 @@ class DriverWebGL(val context: GL) : Driver {
         shader as ShaderWebGL
 
         val shaderVertexDescription = ShaderVertexDescription(
+            context,
             shader.program.hashCode(),
             vertexBuffers.map { (it as VertexBufferWebGL).buffer.hashCode() }.toIntArray(),
             IntArray(0)

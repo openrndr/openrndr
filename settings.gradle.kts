@@ -53,6 +53,8 @@ include(
         "openrndr-ktessellation",
 
         "openrndr-dependency-catalog",
-        "openrndr-module-catalog"
+        "openrndr-module-catalog",
+
+        "openrndr-web-demo"
     )
 )
