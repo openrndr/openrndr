@@ -2,6 +2,7 @@ package org.openrndr.internal
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import web.images.ImageBitmap
 
 /**
  * Driver interface. This is the internal interface
@@ -79,6 +80,16 @@ actual interface Driver {
     actual fun createColorBuffer(
         width: Int,
         height: Int,
+        contentScale: Double,
+        format: ColorFormat,
+        type: ColorType,
+        multisample: BufferMultisample,
+        levels: Int,
+        session: Session?
+    ): ColorBuffer
+
+    suspend fun createColorBufferFromImage(
+        image: ImageBitmap,
         contentScale: Double,
         format: ColorFormat,
         type: ColorType,

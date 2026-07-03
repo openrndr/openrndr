@@ -1,3 +1,4 @@
+import kotlinx.coroutines.runBlocking
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.loadImage
@@ -30,10 +31,12 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadGrayscaleImage() {
-        loadImage(locateImage("data/images/grayscale-8.jpg")).use { img ->
-            assertEquals(ColorFormat.RGBa, img.format)
-            assertEquals(ColorType.UINT8_SRGB, img.type)
-            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/grayscale-8.jpg")).use { img ->
+                assertEquals(ColorFormat.RGBa, img.format)
+                assertEquals(ColorType.UINT8_SRGB, img.type)
+                assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+            }
         }
     }
 
@@ -46,10 +49,12 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadRGBImage() {
-        loadImage(locateImage("data/images/rgb-8_8_8.jpg")).use { img ->
-            assertEquals(ColorFormat.RGBa, img.format)
-            assertEquals(ColorType.UINT8_SRGB, img.type)
-            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/rgb-8_8_8.jpg")).use { img ->
+                assertEquals(ColorFormat.RGBa, img.format)
+                assertEquals(ColorType.UINT8_SRGB, img.type)
+                assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+            }
         }
     }
 
@@ -63,10 +68,12 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadRGBImageWithoutMipmap() {
-        loadImage(locateImage("data/images/rgb-8_8_8.jpg"), loadMipmaps = false).use { img ->
-            assertEquals(ColorFormat.RGBa, img.format)
-            assertEquals(ColorType.UINT8_SRGB, img.type)
-            assertEquals(1, img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/rgb-8_8_8.jpg"), loadMipmaps = false).use { img ->
+                assertEquals(ColorFormat.RGBa, img.format)
+                assertEquals(ColorType.UINT8_SRGB, img.type)
+                assertEquals(1, img.levels)
+            }
         }
     }
 
@@ -80,10 +87,12 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadRGBa8Image() {
-        loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
-            assertEquals(ColorFormat.RGBa, img.format)
-            assertEquals(ColorType.UINT8_SRGB, img.type)
-            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
+                assertEquals(ColorFormat.RGBa, img.format)
+                assertEquals(ColorType.UINT8_SRGB, img.type)
+                assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+            }
         }
     }
 
@@ -97,10 +106,12 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadRGBa16Image() {
-        loadImage(locateImage("data/images/rgba-16_16_16_16.png")).use { img ->
-            assertEquals(ColorFormat.RGBa, img.format)
-            assertEquals(ColorType.UINT16, img.type)
-            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/rgba-16_16_16_16.png")).use { img ->
+                assertEquals(ColorFormat.RGBa, img.format)
+                assertEquals(ColorType.UINT16, img.type)
+                assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+            }
         }
     }
 
@@ -114,19 +125,23 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
      */
     @Test
     fun loadGrayscaleImage16() {
-        loadImage(locateImage("data/images/grayscale-16.png")).use { img ->
-            assertEquals(ColorFormat.R, img.format)
-            assertEquals(ColorType.UINT16, img.type)
-            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        runBlocking {
+            loadImage(locateImage("data/images/grayscale-16.png")).use { img ->
+                assertEquals(ColorFormat.R, img.format)
+                assertEquals(ColorType.UINT16, img.type)
+                assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+            }
         }
     }
 
     @Test
     fun dataUrls() {
-        loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
-            val dataUrl =  img.toDataUrl()
-            loadImage(dataUrl).use { img2 ->
-                assertEquals(img.width, img2.width)
+        runBlocking {
+            loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
+                val dataUrl =  img.toDataUrl()
+                loadImage(dataUrl).use { img2 ->
+                    assertEquals(img.width, img2.width)
+                }
             }
         }
     }
