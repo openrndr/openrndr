@@ -5,6 +5,8 @@ import org.openrndr.draw.font.BufferFlag
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
 import org.openrndr.math.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -271,6 +273,29 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
                     assertTrue(v3.z in 2.3-eps..2.3+eps)
                 }
             }
+        }
+    }
+
+    /**
+     * Tests that `imageAtomicAdd()` correctly adds integer values in a compute shader
+     * matching the `execute()` width * height.
+     *
+     * This test also verifies the correct GLSL layout of a `ColorType.UINT32_INT` with `ColorFormat.R` buffer
+     */
+    @Test
+    fun testImageAtomicAdd() {
+        if (Driver.capabilities.compute) {
+            val side = 4037
+            val acc = colorBuffer(1, 1, format = ColorFormat.R, type = ColorType.UINT32_INT)
+            val cs = computeStyle { computeTransform = "imageAtomicAdd(p_c, ivec2(0), 1);" }
+            cs.image("c", acc.imageBinding(0, BufferAccess.READ_WRITE))
+            cs.execute(side, side)
+
+            // Read the result back to CPU for the assertion
+            val buffer = ByteBuffer.allocateDirect(acc.width * acc.height * acc.format.componentCount * acc.type.componentSize)
+            acc.read(buffer)
+            buffer.order(ByteOrder.LITTLE_ENDIAN)
+            assertEquals(side * side, buffer.int)
         }
     }
 }
