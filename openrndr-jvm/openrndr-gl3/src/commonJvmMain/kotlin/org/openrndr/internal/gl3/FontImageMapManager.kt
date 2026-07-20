@@ -10,6 +10,7 @@ import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
+import kotlin.math.absoluteValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -91,8 +92,6 @@ class FontImageMapManager : FontMapManager() {
         image.write(bitmap)
         MemoryUtil.memFree(bitmap)
 
-        val ascent = face.ascent
-        val descent = face.descent
         val leading = face.lineGap
         return FontImageMap(
             image,
@@ -100,10 +99,10 @@ class FontImageMapManager : FontMapManager() {
             glyphMetrics,
             sizeInPoints,
             contentScale,
-            ascent / contentScale,
-            descent / contentScale,
-            (ascent + descent) / contentScale,
-            leading / contentScale,
+            face.ascent,
+            face.descent,
+            face.height,
+            leading,
             url
         ).apply {
             for (outer in characterSet) {

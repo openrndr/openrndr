@@ -3,9 +3,6 @@
 package org.openrndr.draw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.openrndr.draw.font.Face
-import org.openrndr.draw.font.fontHeightScaler
-import org.openrndr.draw.font.loadFace
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URI

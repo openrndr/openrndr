@@ -1,5 +1,6 @@
 package org.openrndr.fontdriver.stb
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryStack.stackPush
@@ -11,9 +12,14 @@ import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
 import java.nio.ByteBuffer
+import kotlin.math.absoluteValue
 
-class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPoints: Double,
-                override val contentScale: Double) : Face {
+private val logger = KotlinLogging.logger { }
+
+class FaceStbTt(
+    data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPoints: Double,
+    override val contentScale: Double
+) : Face {
 
 
     override val isVariable: Boolean
@@ -28,11 +34,12 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPo
 
     override fun getAxisValue(axis: String): Double = 0.0
 
-    override fun axisRange(axis: String): ClosedFloatingPointRange<Double> = 0.0 .. 0.0
+    override fun axisRange(axis: String): ClosedFloatingPointRange<Double> = 0.0..0.0
 
     val scale: Double by lazy {
         STBTruetype.stbtt_ScaleForMappingEmToPixels(fontInfo, sizeInPoints.toFloat()).toDouble()
     }
+
     override fun allCodePoints(): Sequence<Int> = sequence {
         for (i in 0 until 0xffff) {
             val index = STBTruetype.stbtt_FindGlyphIndex(fontInfo, i)
@@ -101,7 +108,7 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPo
     }
 
     override val height: Double
-        get() = 0.0
+        get() = ascent + descent.absoluteValue
 
     override val ascent: Double
         get() = ascentMetrics() * scale
@@ -111,6 +118,15 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPo
 
     override val lineGap: Double
         get() = lineGapMetrics() * scale
+
+    override val xHeight: Double
+        get() = glyphForCharacter('x').bounds().height
+
+    override val emWidth: Double
+        get() = glyphForCharacter('M').advanceWidth()
+
+    override val capHeight: Double
+        get() = glyphForCharacter('H').bounds().height
 
     override val bounds: Rectangle
         get() {
@@ -290,6 +306,11 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
  * @since 0.4.3
  */
 class FontDriverStbTt : FontDriver {
+
+    init {
+        logger.info { "initializing font driver: stb_truetype" }
+    }
+
     override fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Face {
         val (file, url) = resolveFileOrUrl(fileOrUrl)
         val byteArray = file?.readBytes() ?: url?.readBytes() ?: error("no content for file or url: '$fileOrUrl'")
