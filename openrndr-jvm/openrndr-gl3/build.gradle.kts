@@ -11,7 +11,7 @@ plugins {
 kotlin {
     jvm {
         compilations {
-            val demo by creating {
+            create("demo") {
             }
         }
     }

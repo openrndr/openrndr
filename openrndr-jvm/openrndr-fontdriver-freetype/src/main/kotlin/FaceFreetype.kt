@@ -19,8 +19,14 @@ import org.lwjgl.util.freetype.FreeType.FT_Set_Var_Design_Coordinates
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.Glyph
 import org.openrndr.shape.Rectangle
+import kotlin.math.absoluteValue
 
-class FaceFreetype(val ftLibrary: Long, val ftFace: FT_Face, override val sizeInPoints: Double, override val contentScale: Double) : Face {
+class FaceFreetype(
+    val ftLibrary: Long,
+    val ftFace: FT_Face,
+    override val sizeInPoints: Double,
+    override val contentScale: Double
+) : Face {
     override fun allCodePoints(): Sequence<Int> = sequence {
         MemoryStack.stackPush().use { stack ->
             val glyphIndexPtr = stack.mallocInt(1)
@@ -56,14 +62,33 @@ class FaceFreetype(val ftLibrary: Long, val ftFace: FT_Face, override val sizeIn
     override val height: Double
         get() = ppyem * ftFace.height().toDouble() / ftFace.units_per_EM().toDouble()
 
+
     override val ascent: Double
         get() = ppyem * ftFace.ascender().toDouble() / ftFace.units_per_EM().toDouble()
 
     override val descent: Double
         get() = ppyem * ftFace.descender().toDouble() / ftFace.units_per_EM().toDouble()
 
+
     override val lineGap: Double
-        get() = ftFace.height().toDouble() / ftFace.units_per_EM().toDouble() - ascent - descent
+        get() = height - ascent - descent.absoluteValue
+
+    override val xHeight: Double
+        get() {
+            return glyphForCharacter('x').bounds().position(0.0, 0.0).y.absoluteValue
+        }
+
+    override val capHeight: Double
+        get() {
+            return glyphForCharacter('H').bounds().position(0.0, 0.0).y.absoluteValue
+        }
+
+    override val emWidth: Double
+        get() {
+
+            return ppxem / ftFace.units_per_EM().toDouble()
+
+        }
 
     override fun kernAdvance(left: Char, right: Char): Double {
         val leftIndex = FT_Get_Char_Index(ftFace, left.code.toLong())

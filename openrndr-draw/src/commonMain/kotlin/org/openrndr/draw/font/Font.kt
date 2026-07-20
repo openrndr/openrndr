@@ -75,6 +75,12 @@ interface Face: AutoCloseable {
     fun unitsPerEm() : Int
 
 
+    val emWidth: Double
+
+    val xHeight: Double
+
+    val capHeight: Double
+
     val height: Double
 
     val ascent: Double
@@ -164,14 +170,3 @@ fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Fac
     return FontDriver.instance.loadFace(fileOrUrl, sizeInPoints, contentScale)
 }
 
-/**
- * Scale font based on ascender + descender height
- * @since 0.4.5
- */
-fun fontHeightScaler(font: Face) : Double = 1.0 / (font.ascentMetrics() - font.descentMetrics())
-
-/**
- * Scale font based on units per em
- * @since 0.4.5
- */
-fun fontEmScaler(font: Face) = 1.0 / font.unitsPerEm()
