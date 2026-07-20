@@ -11,15 +11,19 @@ fun main() {
 
 
 
-    println("ascent: ${faceStb.ascent}")
-    println("descent: ${faceStb.descent}")
-    println("linegap: ${faceStb.lineGap}")
-    println("height: ${faceStb.height}")
+    println("stb ascent: ${faceStb.ascent}")
+    println("stb descent: ${faceStb.descent}")
+    println("stb linegap: ${faceStb.lineGap}")
+    println("stb height: ${faceStb.height}")
+    println("stb x height: ${faceStb.xHeight}")
 
-    println("ascent: ${faceFt.ascent}")
-    println("descent: ${faceFt.descent}")
-    println("linegap: ${faceFt.lineGap}")
-    println("height: ${faceFt.height}")
+    println("--")
+    println("ft ascent: ${faceFt.ascent}")
+    println("ft descent: ${faceFt.descent}")
+    println("ft linegap: ${faceFt.lineGap}")
+    println("ft height: ${faceFt.height}")
+    println("ft x height: ${faceFt.xHeight}")
+
 
     val glyphStb = faceStb.glyphForCharacter('A')
     val glyphFt = faceFt.glyphForCharacter('A')

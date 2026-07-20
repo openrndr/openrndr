@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id("org.openrndr.convention.kotlin-jvm")
@@ -132,7 +134,27 @@ dependencies {
     implementation(libs.lwjgl.stb)
     api(project(":openrndr-math"))
 
+    testImplementation(project(":openrndr-jvm:openrndr-gl3"))
+    testImplementation(project(":openrndr-jvm:openrndr-application-glfw"))
     demoImplementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
+
+
+    demoRuntimeOnly(libs.slf4j.simple)
+    demoImplementation(project(":openrndr-application"))
+    demoImplementation(project(":openrndr-jvm:openrndr-gl3"))
+    demoImplementation(project(":openrndr-jvm:openrndr-application-glfw"))
+}
+tasks {
+    @Suppress("UNUSED_VARIABLE")
+    val test by getting(Test::class) {
+        onlyIf { !project.hasProperty("skip.gl3.tests") }
+
+        if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+            jvmArgs = jvmArgs + "-XstartOnFirstThread"
+        }
+        useJUnitPlatform()
+        testLogging.exceptionFormat = TestExceptionFormat.FULL
+    }
 }
 
 /*
