@@ -97,11 +97,15 @@ actual abstract class ColorBuffer: Texture, AutoCloseable {
 
     /** return a base64 data url representation */
     abstract fun toDataUrl(imageFileFormat: ImageFileFormat = ImageFileFormat.JPG): String
-    abstract fun write(
+    abstract fun writeBuffer(
         sourceBuffer: ByteBuffer,
         sourceFormat: ColorFormat = format,
         sourceType: ColorType = type,
-        level: Int = 0
+        level: Int = 0,
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = effectiveWidth / (1 shl level),
+        height: Int = effectiveHeight / (1 shl level),
     )
 
     /**
@@ -225,7 +229,10 @@ actual fun loadImage(
         val size = min(data.width, data.height)
         val levels = if (loadMipmaps) floor(log2(size.toDouble())).toInt() + 1 else 1
         val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, levels = levels, session = session)
-        cb.write(data.data?.byteBuffer ?: error("no data"))
+        cb.writeBuffer(
+            data.data?.byteBuffer ?: error("no data"),
+            level = 0,
+        )
         if (loadMipmaps) {
             cb.generateMipmaps()
         }

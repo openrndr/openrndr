@@ -724,20 +724,28 @@ class ColorBufferGL3(
 
     var realShadow: ColorBufferShadow? = null
 
-    override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+    override fun writeBuffer(
+        sourceBuffer: ByteBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        level: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
 
         require(sourceBuffer.remaining() > 0) {
             "sourceBuffer $sourceBuffer has no remaining data"
         }
 
-        val div = 1 shl level
         checkDestroyed()
         if (!sourceBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
         if (!sourceType.compressed) {
             val bytesNeeded =
-                sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
+                sourceFormat.componentCount * sourceType.componentSize * width * height
             require(bytesNeeded <= sourceBuffer.remaining()) {
                 "write requires $bytesNeeded bytes, buffer only has ${sourceBuffer.remaining()} bytes left, buffer capacity is ${sourceBuffer.capacity()}"
             }
@@ -758,10 +766,10 @@ class ColorBufferGL3(
                     glCompressedTexSubImage2D(
                         target,
                         level,
-                        0,
-                        0,
-                        width / div,
-                        height / div,
+                        x,
+                        y,
+                        width,
+                        height,
                         compressedType(sourceFormat, sourceType),
                         sourceBuffer
                     )
@@ -776,10 +784,10 @@ class ColorBufferGL3(
                     glTexSubImage2D(
                         target,
                         level,
-                        0,
-                        0,
-                        width / div,
-                        height / div,
+                        x,
+                        y,
+                        width,
+                        height,
                         internalType,
                         sourceType.glType(),
                         sourceBuffer
@@ -804,7 +812,16 @@ class ColorBufferGL3(
         height: Int,
         level: Int
     ) {
-        write(sourceBuffer.byteBuffer, sourceFormat, sourceType, level = level)
+        writeBuffer(
+            sourceBuffer.byteBuffer,
+            sourceFormat,
+            sourceType,
+            level = level,
+            x,
+            y,
+            width,
+            height,
+        )
     }
 
 
