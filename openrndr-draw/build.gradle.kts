@@ -5,6 +5,13 @@ plugins {
 }
 
 kotlin {
+
+    jvm {
+        compilations {
+            create("demo")
+        }
+    }
+
     applyDefaultHierarchyTemplate { // or .custom depending on your setup
         common {
             group("commonJvm") {
@@ -16,13 +23,13 @@ kotlin {
     }
 
     sourceSets {
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions)
             }
         }
 
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-color"))
@@ -42,11 +49,32 @@ kotlin {
                 dependsOn(commonJvmMain)
             }
         }
-        val webMain by getting {
+        getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)
             }
         }
+        val jvmDemo by getting {
+            dependencies {
+                implementation(project(":openrndr-application"))
+                implementation(project(":openrndr-math"))
+                implementation(project(":openrndr-utils"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
+                dependsOn(commonJvmMain)
+                runtimeOnly(libs.slf4j.simple)
+            }
+        }
+
     }
 }
+
+kotlin {
+    jvm().mainRun {
+        classpath(kotlin.jvm().compilations.getByName("demo").output.allOutputs)
+        classpath(kotlin.jvm().compilations.getByName("demo").configurations.runtimeDependencyConfiguration!!)
+    }
+}
+
+tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach { workingDir = rootDir }

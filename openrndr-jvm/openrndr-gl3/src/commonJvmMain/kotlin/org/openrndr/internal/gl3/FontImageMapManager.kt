@@ -10,7 +10,6 @@ import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
-import kotlin.math.absoluteValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -89,7 +88,7 @@ class FontImageMapManager : FontMapManager() {
         }
         logger.debug { "uploading bitmap to color buffer" }
         (bitmap as Buffer).rewind()
-        image.write(bitmap)
+        image.writeBuffer( bitmap, level = 0)
         MemoryUtil.memFree(bitmap)
 
         val leading = face.lineGap

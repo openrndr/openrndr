@@ -995,3 +995,41 @@ fun Segment2D(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true)
  */
 fun Segment2D(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) =
     Segment2D(start, listOf(c0, c1), end, corner)
+
+fun Segment2D.toQuadratics(tolerance: Double): List<Segment2D> {
+    val count = this.numQuadratics(tolerance)
+
+    if (count == 1) {
+        return listOf(this.quadratic)
+    } else {
+
+        val result = ArrayList<Segment2D>(count)
+        for (i in 0 until count) {
+            val t0 = i.toDouble() / count
+            val t1 = (i + 1.0) / count
+            result.add(sub(t0, t1).quadratic)
+        }
+        return result
+    }
+}
+
+
+internal fun Segment2D.cubicError(): Double {
+    val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
+    val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
+    return x * x + y * y
+}
+
+
+
+internal fun Segment2D.numQuadratics(tolerance: Double): Int {
+    return if (this.control.size == 2) {
+        val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
+        val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
+        val err = cubicError()
+        val result = err / (432.0 * tolerance * tolerance)
+        ceil(result.pow(1.0 / 6.0)).coerceAtLeast(1.0).toInt()
+    } else {
+        1
+    }
+}
