@@ -60,6 +60,8 @@ kotlin {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-utils"))
+                implementation(project(":openrndr-jvm:openrndr-fontdriver-freetype"))
+                implementation(project(":openrndr-jvm:openrndr-textshapingdriver-harfbuzz"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
                 dependsOn(commonJvmMain)

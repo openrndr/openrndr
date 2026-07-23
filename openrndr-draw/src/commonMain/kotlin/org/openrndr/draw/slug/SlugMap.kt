@@ -74,10 +74,24 @@ class SlugMap(val coordinates: ColorBuffer, val index: ColorBuffer) {
     }
 }
 
-class SlugGlyphMap(val face: Face, val slugMap: SlugMap, val glyphs: MutableMap<Int, Int> = mutableMapOf()) {
-    fun getGlyph(char: Char): Int {
-        return glyphs.getOrPut(char.code) {
-            slugMap.addShape(face.glyphForCharacter(char).shape())
+class SlugGlyphMap(val slugMap: SlugMap, val glyphs: MutableMap<Int, Int> = mutableMapOf()) {
+
+    private fun hash(face: Face, index: Int): Int {
+        return face.hashCode()*31 + index.hashCode()
+    }
+
+    fun getGlyphForIndex(face: Face, index: Int): Int {
+
+        return glyphs.getOrPut(hash(face, index)) {
+            val glyph = face.glyphForIndex(index)
+            slugMap.addShape(glyph.shape())
+        }
+    }
+
+    fun getGlyph(face: Face, char: Char): Int {
+        val glyph = face.glyphForCharacter(char)
+        return glyphs.getOrPut(hash(face, glyph.index)) {
+            slugMap.addShape(glyph.shape())
         }
     }
 }
