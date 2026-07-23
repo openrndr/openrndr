@@ -16,12 +16,14 @@ class SlugMap(val coordinates: ColorBuffer, val index: ColorBuffer) {
     fun writeCoordinates(buffer: MPPBuffer, point: Int) {
         val x = (totalSegments * 3 + point).mod(coordinates.width)
         val y = (totalSegments * 3 + point) / coordinates.width
+        require(y < coordinates.height)
         coordinates.write(buffer, x = x, y = y, width = 1, height = 1)
     }
 
     fun writeIndex(buffer: MPPBuffer, point: Int) {
-        val x = (shapes * 3 + point).mod(coordinates.width)
-        val y = (shapes * 3 + point) / coordinates.width
+        val x = (shapes * 3 + point).mod(index.width)
+        val y = (shapes * 3 + point) / index.width
+        require(y < index.height)
         index.write(buffer, x = x, y = y, width = 1, height = 1)
     }
 

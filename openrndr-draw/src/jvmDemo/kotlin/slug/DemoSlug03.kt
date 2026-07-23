@@ -17,6 +17,7 @@ import org.openrndr.draw.slug.SlugGlyphMap
 import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.vertexBuffer
 import org.openrndr.draw.vertexFormat
+import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.transform
@@ -86,8 +87,8 @@ fun main() {
 }
 """
             val slugMap = SlugMap(
-                colorBuffer(4096, 1, type = ColorType.FLOAT32, format = ColorFormat.RG),
-                colorBuffer(4096, 1, type = ColorType.FLOAT32, format = ColorFormat.RG)
+                colorBuffer(4096, 16, type = ColorType.FLOAT32, format = ColorFormat.RG),
+                colorBuffer(4096, 3, type = ColorType.FLOAT32, format = ColorFormat.RG)
             )
 
             val vb = vertexBuffer(vertexFormat {
@@ -95,7 +96,7 @@ fun main() {
                 textureCoordinate(2)
             }, 6)
 
-            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 80.0, 1.0)
+            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 40.0, 1.0)
 
             for (i in face.axes) {
                 println("$i ${face.getAxisValue(i)}")
@@ -109,7 +110,7 @@ fun main() {
                 attribute("transform", VertexElementType.MATRIX44_FLOAT32)
             }, 10_000)
 
-            val texts = listOf("안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!")
+            val texts = listOf("안녕하세요! 안녕하세요!", "안녕하세요! 안녕하세요!", "안녕하세요!", "안녕하세요! 안녕하세요! 안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "세상에, 저런 달팽이 상형문자라니!")
 
             val shaper = TextShapingDriverHarfBuzz()
             val shapeResults = texts.map { shaper.shape(face, it) }
@@ -122,16 +123,12 @@ fun main() {
                     var cursor = Vector2(0.0, (index+1) * face.height )
                     face.setAxisValue("Weight", 100.0 + index * 100.0)
 
-                    println(face.hashCode())
                     for ((index, i) in shapeResult.withIndex()) {
-
-
                         write(slugGlyphMap.getGlyphForIndex(face, i.glyphIndex).toFloat())
                         write(transform {
                             translate(cursor + shapeResult[index].offset)
                         })
                         cursor += shapeResult[index].advance
-
                     }
 
                 }
@@ -172,7 +169,7 @@ fun main() {
                         vec2 getIndexVec2(int slugIndex, int p) {
                             ivec2 ts = textureSize(p_slugIndex, 0);
                             int x = (slugIndex * 3 + p) % ts.x;
-                            int y = (ts.y -1) - (slugIndex * 3 + p) / ts.x;
+                            int y = ((slugIndex * 3 + p) / ts.x);
                             return texelFetch(p_slugIndex, ivec2(x, y), 0).xy;
                         }
                     """.trimIndent()
@@ -194,13 +191,19 @@ fun main() {
                         vec2 rotate(vec2 v) {
                         	return vec2(v.y, -v.x);
                         }
+                        
+                        vec2 fetchCoordinate(int index) {
+                            int x = index % textureSize(p_slugCoords,0).x;
+                            int y = index / textureSize(p_slugCoords,0).x;
+                            return texelFetch(p_slugCoords, ivec2(x, y), 0).xy; 
+                        }
                         $coveragePhrase
                     """.trimIndent()
                     fragmentTransform = """
                         
                         ivec2 its = textureSize(p_slugIndex, 0);
                         int x = (v_slugIndex*3) % its.x;
-                        int y = (its.y - 1) - (v_slugIndex*3) / its.x;
+                        int y =  (v_slugIndex*3) / its.x;
                         vec2 index = texelFetch(p_slugIndex, ivec2(x, y), 0).xy;
                         
                         int segments = int(index.g + 0.5);
@@ -213,17 +216,17 @@ fun main() {
                         float alpha = 0.0;
                         for (int s = 0; s < segments; ++s) {
                         
-                            int x = (base + s) * 3;
-                            int y = textureSize(p_slugIndex,0).y - 1;
+                            int x = ((base + s) * 3) % textureSize(p_slugCoords,0).x;
+                            int y = ((base + s) * 3) / textureSize(p_slugCoords,0).x;
                         
                         //for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
                         int i = 0; int j = 0;
                          {
                         
                             vec2 muv = uv + inverseDiameter * vec2(ivec2(i, j)) * 1.0;
-                            vec2 p0 = texelFetch(p_slugCoords, ivec2(x, y), 0).xy - uv;
-                            vec2 p1 = texelFetch(p_slugCoords, ivec2(x + 1, y), 0).xy - uv;
-                            vec2 p2 = texelFetch(p_slugCoords, ivec2(x + 2, y), 0).xy - uv;
+                            vec2 p0 = fetchCoordinate((base + s) * 3) - uv;
+                            vec2 p1 = fetchCoordinate((base + s) * 3 + 1) - uv;
+                            vec2 p2 = fetchCoordinate((base + s) * 3 + 2) - uv;
                             
                             
                             alpha += (1.0) * computeCoverage(1.0 * inverseDiameter.x, p0, p1, p2);
@@ -243,13 +246,17 @@ fun main() {
                     parameter("slugIndex", slugMap.index)
                 }
 
+                val start = System.currentTimeMillis()
                 drawer.vertexBufferInstances(listOf(vb), listOf(instances), DrawPrimitive.TRIANGLES, glyphCount)
+                Driver.instance.finish()
+                val end = System.currentTimeMillis()
+                println("that took ${end - start} ms")
 
 //                drawer.defaults()
                 drawer.shadeStyle = null
 //                drawer.shape(shape)
 
-            //    drawer.image(slugMap.coordinates)
+               drawer.image(slugMap.index)
             }
         }
     }
