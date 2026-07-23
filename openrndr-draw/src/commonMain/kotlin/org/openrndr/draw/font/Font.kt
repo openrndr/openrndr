@@ -11,6 +11,11 @@ import org.openrndr.utils.buffer.MPPBuffer
  * @since 0.4.3
  */
 interface Glyph {
+
+    val index: Int
+
+    val code: Int
+
     /**
      * Generate a [Shape] for this glyph
      * @param scale the scale at which to generate the shape
@@ -98,7 +103,7 @@ interface Face: AutoCloseable {
 
     fun glyphForCodePoint(codePoint: Int): Glyph
 
-    fun glyphForIndex(glyphIndex: Int, character: Char = Char(0)): Glyph
+    fun glyphForIndex(glyphIndex: Int): Glyph
 
     val bounds: Rectangle
 
