@@ -1013,6 +1013,46 @@ fun Segment2D.toQuadratics(tolerance: Double): List<Segment2D> {
     }
 }
 
+fun Segment2D.findIntersectionsX(x: Double): List<Double> {
+    return when (control.size) {
+        0 -> solveLinear(end.x - start.x, start.x - x).filter { it in 0.0..1.0 }
+        1 -> {
+            val a = start.x - 2.0 * control[0].x + end.x
+            val b = 2.0 * (control[0].x - start.x)
+            val c = start.x - x
+            solveQuadratic(a, b, c).filter { it in 0.0..1.0 }.distinct()
+        }
+        2 -> {
+            val a = -start.x + 3.0 * control[0].x - 3.0 * control[1].x + end.x
+            val b = 3.0 * start.x - 6.0 * control[0].x + 3.0 * control[1].x
+            val c = -3.0 * start.x + 3.0 * control[0].x
+            val d = start.x - x
+            solveCubic(a, b, c, d).filter { it in 0.0..1.0 }.distinct()
+        }
+        else -> emptyList()
+    }
+}
+
+fun Segment2D.findIntersectionsY(y: Double): List<Double> {
+    return when (control.size) {
+        0 -> solveLinear(end.y - start.y, start.y - y).filter { it in 0.0..1.0 }
+        1 -> {
+            val a = start.y - 2.0 * control[0].y + end.y
+            val b = 2.0 * (control[0].y - start.y)
+            val c = start.y - y
+            solveQuadratic(a, b, c).filter { it in 0.0..1.0 }.distinct()
+        }
+        2 -> {
+            val a = -start.y + 3.0 * control[0].y - 3.0 * control[1].y + end.y
+            val b = 3.0 * start.y - 6.0 * control[0].y + 3.0 * control[1].y
+            val c = -3.0 * start.y + 3.0 * control[0].y
+            val d = start.y - y
+            solveCubic(a, b, c, d).filter { it in 0.0..1.0 }.distinct()
+        }
+        else -> emptyList()
+    }
+}
+
 
 internal fun Segment2D.cubicError(): Double {
     val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
