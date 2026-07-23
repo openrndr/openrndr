@@ -1,5 +1,8 @@
+
 package slug
 
+import FontDriverFreetype
+import TextShapingDriverHarfBuzz
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorFormat
@@ -7,6 +10,7 @@ import org.openrndr.draw.ColorType
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.shadeStyle
 import org.openrndr.draw.slug.SlugGlyphMap
@@ -19,6 +23,7 @@ import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.SegmentType
 import org.openrndr.shape.toQuadratics
+import kotlin.math.cos
 
 fun main() {
     application {
@@ -29,6 +34,7 @@ fun main() {
         }
         program {
 
+            FontDriver.driver = FontDriverFreetype()
 
             val coveragePhrase = """float computeCoverage(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 	if (p0.y > 0.0 && p1.y > 0.0 && p2.y > 0.0) return 0.0;
@@ -89,26 +95,45 @@ fun main() {
                 textureCoordinate(2)
             }, 6)
 
-            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 40.0, 1.0)
+            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 80.0, 1.0)
 
-            val slugGlyphMap = SlugGlyphMap(face, slugMap)
+            for (i in face.axes) {
+                println("$i ${face.getAxisValue(i)}")
+            }
+            face.setAxisValue("Weight", 100.0)
+
+            val slugGlyphMap = SlugGlyphMap(slugMap)
 
             val instances = vertexBuffer(vertexFormat {
                 attribute("slugIndex", VertexElementType.FLOAT32)
                 attribute("transform", VertexElementType.MATRIX44_FLOAT32)
             }, 10_000)
 
-            val text = "Hello World! 안녕하세요! Chào thế giới!"
+            val texts = listOf("안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!")
+
+            val shaper = TextShapingDriverHarfBuzz()
+            val shapeResults = texts.map { shaper.shape(face, it) }
+
+            val glyphCount = shapeResults.sumOf { it.size }
 
             instances.put {
 
-                var cursor = 0.0
-                for ((index, i) in text.withIndex()) {
-                    write(slugGlyphMap.getGlyph(i).toFloat())
-                    write(transform {
-                        translate(cursor, 0.0)
-                    })
-                    cursor += face.glyphForCharacter(i).advanceWidth()
+                for ((index, shapeResult) in shapeResults.withIndex()) {
+                    var cursor = Vector2(0.0, (index+1) * face.height )
+                    face.setAxisValue("Weight", 100.0 + index * 100.0)
+
+                    println(face.hashCode())
+                    for ((index, i) in shapeResult.withIndex()) {
+
+
+                        write(slugGlyphMap.getGlyphForIndex(face, i.glyphIndex).toFloat())
+                        write(transform {
+                            translate(cursor + shapeResult[index].offset)
+                        })
+                        cursor += shapeResult[index].advance
+
+                    }
+
                 }
             }
 
@@ -136,6 +161,10 @@ fun main() {
 
 
             extend {
+
+                drawer.translate(drawer.bounds.center)
+                //drawer.scale(cos(seconds) * 2.5 + 3.5)
+                drawer.translate(-drawer.bounds.center)
                 drawer.shadeStyle = shadeStyle {
                     vertexPreamble = """
                         out vec2 uv;
@@ -161,6 +190,10 @@ fun main() {
                     fragmentPreamble = """
                         flat in int v_slugIndex;
                         in vec2 uv;
+                        
+                        vec2 rotate(vec2 v) {
+                        	return vec2(v.y, -v.x);
+                        }
                         $coveragePhrase
                     """.trimIndent()
                     fragmentTransform = """
@@ -183,16 +216,24 @@ fun main() {
                             int x = (base + s) * 3;
                             int y = textureSize(p_slugIndex,0).y - 1;
                         
+                        //for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
+                        int i = 0; int j = 0;
+                         {
+                        
+                            vec2 muv = uv + inverseDiameter * vec2(ivec2(i, j)) * 1.0;
                             vec2 p0 = texelFetch(p_slugCoords, ivec2(x, y), 0).xy - uv;
                             vec2 p1 = texelFetch(p_slugCoords, ivec2(x + 1, y), 0).xy - uv;
                             vec2 p2 = texelFetch(p_slugCoords, ivec2(x + 2, y), 0).xy - uv;
                             
                             
-                            alpha += computeCoverage(1.0 * inverseDiameter.x, p0, p1, p2);
+                            alpha += (1.0) * computeCoverage(1.0 * inverseDiameter.x, p0, p1, p2);
+                            alpha += (1.0) * computeCoverage(1.0 * inverseDiameter.y, rotate(p0), rotate(p1), rotate(p2));
+                            
+                            }
                         }
                
                         
-                        alpha = clamp(alpha, 0.0, 1.0);
+                        alpha = clamp(alpha * 0.5, 0.0, 1.0);
                         
                         x_fill = vec4(x_fill.rgb, alpha);                        
                     """.trimIndent()
@@ -202,8 +243,7 @@ fun main() {
                     parameter("slugIndex", slugMap.index)
                 }
 
-                drawer.translate(0.0, 400.0)
-                drawer.vertexBufferInstances(listOf(vb), listOf(instances), DrawPrimitive.TRIANGLES, text.length)
+                drawer.vertexBufferInstances(listOf(vb), listOf(instances), DrawPrimitive.TRIANGLES, glyphCount)
 
 //                drawer.defaults()
                 drawer.shadeStyle = null
