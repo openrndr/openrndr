@@ -32,7 +32,8 @@ fun main() {
         }
         program {
             FontDriver.driver = FontDriverFreetype()
-            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 140.0, 1.0)
+            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 14.0, 1.0)
+            val face2 = loadFace("data/fonts/default.otf", 12.0, 1.0)
 
             val slugMap = SlugMap2(
                 colorBuffer(4096, 16, type = ColorType.FLOAT32, format = ColorFormat.RG),
@@ -47,26 +48,33 @@ fun main() {
             val slugGlyphMap = SlugGlyphMap2(slugMap)
 
             val texts = listOf(
-                "안녕하세요! 안녕하세요!",
-                "안녕하세요! 안녕하세요!",
-                "안녕하세요! Yay it is working",
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                "안녕하세요! 안녕하세요! Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
+                "안녕하세요! At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
                 "안녕하세요! 안녕하세요! 안녕하세요!",
+                "안녕하세요! HELLO WORLD",
                 "안녕하세요!",
                 "안녕하세요!",
                 "안녕하세요!",
                 "안녕하세요!",
                 "안녕하세요!",
-                "안녕하세요!",
-                "안녕하세요!",
+                "안녕하세요! At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
                 "세상에, 저런 달팽이 상형문자라니!"
             )
 
+            val texts2 = listOf("OMG IBM PLEX omg")
+
             val shaper = TextShapingDriverHarfBuzz()
             val shapeResults = texts.map { shaper.shape(face, it) }
+            val shapeResults2 = texts2.map { shaper.shape(face2, it) }
 
-            val glyphCount = shapeResults.sumOf { it.size }
 
-            for ((index, shapeResult) in shapeResults.withIndex()) {
+
+            val glyphCount = shapeResults.sumOf { it.size } + shapeResults2.sumOf { it.size }
+
+            val shapeResultsAll = shapeResults + shapeResults2
+
+            for ((index, shapeResult) in shapeResultsAll.withIndex()) {
                 for (item in shapeResult) {
                     slugGlyphMap.getSlugForGlyphIndex(face, item.glyphIndex)
                 }
@@ -107,7 +115,7 @@ fun main() {
 
             instances.put {
 
-                for ((index, shapeResult) in shapeResults.withIndex()) {
+                for ((index, shapeResult) in shapeResultsAll.withIndex()) {
                     var cursor = Vector2(0.0, (index + 1) * face.height)
                     face.setAxisValue("Weight", 100.0 + index * 100.0)
 
@@ -118,7 +126,7 @@ fun main() {
                         val slugBandCount = slugMap.bandCounts[slugIndex]
 
                         write(transform {
-                            translate(cursor + shapeResult[index].offset)
+                            translate(cursor )
                         })
                         write(
                             Vector4(
@@ -305,6 +313,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                     """.trimIndent()
 
                     fragmentTransform = """
+                        #define FILTER_SPREAD ((1.0 / 3.0))
+                        #define FILTER_SAMPLES 5
                          vec2 slugPosition = mix(vi_slugBounds.xy, vi_slugBounds.zw, va_texCoord0.xy);
        
                         vec2 emsPerPixel = fwidth(slugPosition);
@@ -321,8 +331,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                         float xcov = 0.0;
                         float xwgt = 0.0;
 
-                        float xcovs[3] = float[](0.0, 0.0, 0.0);
-                        float xwgts[3] = float[](0.0, 0.0, 0.0);
+                        float xcovs[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
+                        float xwgts[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
 
 
                         for (int i = 0; i < hCurveCount; i++) {
@@ -334,8 +344,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                             readCurve(ascending, a, b, c);
                             
                             
-                            for (int s = -1; s <= 1; ++s) {
-                            vec2 o = float(s) * vec2(0.0, emsPerPixel.y * 0.5);
+                            for (int s = 0; s < FILTER_SAMPLES; ++s) {
+                            vec2 o = float(s-FILTER_SAMPLES/2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
                             
                             vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
                             vec2 p3 = c - (slugPosition + o);
@@ -363,8 +373,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
 		                    }
                             }
                         }
-                        xcov = (xcovs[0] + xcovs[1] + xcovs[2]) / 3.0;
-                        xwgt = (xwgts[0] + xwgts[1] + xwgts[2]) / 3.0;
+                        xcov = (xcovs[0] + xcovs[1] + xcovs[2] + xcovs[3] + xcovs[4]) / 5.0;
+                        xwgt = (xwgts[0] + xwgts[1] + xwgts[2] + xwgts[3] + xwgts[4]) / 5.0;
                         
                         int vCurveCount = 0;
                         int vCurveIndex = 0;
@@ -372,8 +382,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                         float ycov = 0.0;
                         float ywgt = 0.0;
                                            
-                        float ycovs[3] = float[](0.0, 0.0, 0.0);
-                        float ywgts[3] = float[](0.0, 0.0, 0.0);
+                        float ycovs[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
+                        float ywgts[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
                                            
                         readBandHeader(vi_bandIndex, vi_bandCount + bandIndex.x, vCurveCount, vCurveIndex, vBand);
 
@@ -385,8 +395,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                             vec2 a, b, c;
                             readCurve(ascending, a, b, c);
                             
-                            for (int s = -1; s <= 1; ++s) {
-                            vec2 o = float(s) * vec2(emsPerPixel.x * 0.5, 0.0);
+                            for (int s = 0; s < FILTER_SAMPLES; ++s) {
+                            vec2 o = float(s-FILTER_SAMPLES/2) * vec2(emsPerPixel.x * FILTER_SPREAD, 0.0);
                             
                             vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
                             vec2 p3 = c - (slugPosition + o);
@@ -407,8 +417,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                             }
                         }
                         }
-                        ycov = (ycovs[0] + ycovs[1] + ycovs[2]) / 3.0;
-                        ywgt = (ywgts[0] + ywgts[1] + ywgts[2]) / 3.0;
+                        ycov = (ycovs[0] + ycovs[1] + ycovs[2] + ycovs[3] + ycovs[4]) / 5.0;
+                        ywgt = (ywgts[0] + ywgts[1] + ywgts[2] + ywgts[3] + ywgts[4]) / 5.0;
                         float coverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
                         x_fill = vec4(1.0, 1.0, 1.0, coverage);
                     """

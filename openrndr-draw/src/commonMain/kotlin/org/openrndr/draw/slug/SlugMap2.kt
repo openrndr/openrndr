@@ -109,7 +109,7 @@ class SlugMap2(val curves: ColorBuffer, val bands: ColorBuffer) {
                 bounds.y + (bounds.height * y) / bandCount,
                 bounds.width + 2.0,
                 bounds.height / bandCount
-            )
+            ).offsetEdges(0.0, 1.0)
             val bandCurves = (segments.indices).filter { segments[it].bounds.intersects(band) }
 
             val asc = bandCurves.sortedBy { segments[it].bounds.x }
@@ -126,7 +126,7 @@ class SlugMap2(val curves: ColorBuffer, val bands: ColorBuffer) {
                 bounds.y - 1.0,
                 bounds.width / bandCount,
                 bounds.height + 2.0
-            )
+            ).offsetEdges(1.0, 0.0)
             val bandSegments = (segments.indices).filter { segments[it].bounds.intersects(band) }
 
             val asc = bandSegments.sortedBy { segments[it].bounds.y }
