@@ -33,6 +33,26 @@ actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
         return byteBuffer.remaining()
     }
 
+    actual fun limit(): Int {
+        return byteBuffer.limit()
+    }
+
+    actual fun limit(newLimit: Int) {
+        byteBuffer.limit(newLimit)
+    }
+
+    actual fun position(): Int {
+        return byteBuffer.position()
+    }
+
+    actual fun position(newPosition: Int) {
+        byteBuffer.position(newPosition)
+    }
+
+    actual fun flip() {
+        byteBuffer.flip()
+    }
+
     actual companion object {
         actual fun allocate(size: Int) : MPPBuffer {
             val byteBuffer = ByteBuffer.allocateDirect(size)
@@ -45,12 +65,25 @@ actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
             byteBuffer.order(ByteOrder.nativeOrder())
             byteBuffer.put(fromBytes)
             byteBuffer.flip()
+
             return MPPBuffer(byteBuffer)
         }
     }
 
     actual fun put(byte: Byte) {
         byteBuffer.put(byte)
+    }
+
+    actual fun put(ubyte: UByte) {
+        byteBuffer.put(ubyte.toByte())
+    }
+
+    actual fun put(short: Short) {
+        byteBuffer.putShort(short)
+    }
+
+    actual fun put(ushort: UShort) {
+        byteBuffer.putShort(ushort.toShort())
     }
 
     actual fun putFloat(float: Float) {
