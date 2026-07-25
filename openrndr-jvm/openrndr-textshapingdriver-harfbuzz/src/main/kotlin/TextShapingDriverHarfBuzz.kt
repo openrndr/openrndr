@@ -1,16 +1,20 @@
+import org.lwjgl.BufferUtils
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FreeType
 import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_LTR
 import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_RTL
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_codepoints
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf8
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_create
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_destroy
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_direction
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_language
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_script
+
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_ft_font_create
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_language_from_string
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape
@@ -52,9 +56,15 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         face as FaceFreetype
 
         val buf = hb_buffer_create()
-        val textUtf8 = MemoryUtil.memUTF8(text)
+        //val textUtf8 = MemoryUtil.memUTF8(text)
 
-        hb_buffer_add_utf8(buf, text, 0, -1)
+        val codePoints = IntArray(text.length) { text.codePointAt(it) }
+
+        val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size+1)
+        codePointsBuffer.put(codePoints)
+        codePointsBuffer.flip()
+
+        hb_buffer_add_codepoints(buf, codePointsBuffer, 0, codePoints.size)
 
         if (direction != null) {
             hb_buffer_set_direction(buf, direction.hbDirection())
@@ -87,7 +97,8 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
             ShapeResult(glyphInfo.get(it)!!.codepoint(), position, advance)
         }
 
-        MemoryUtil.memFree(textUtf8)
+        hb_buffer_destroy(buf)
+        MemoryUtil.memFree(codePointsBuffer)
         return shapeResult
     }
 }
