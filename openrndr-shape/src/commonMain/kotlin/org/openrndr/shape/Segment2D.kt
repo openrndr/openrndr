@@ -1053,6 +1053,28 @@ fun Segment2D.findIntersectionsY(y: Double): List<Double> {
     }
 }
 
+fun Segment2D.clip(mask: Rectangle): List<Segment2D> {
+    val ts = mutableSetOf(0.0, 1.0)
+    ts.addAll(findIntersectionsX(mask.corner.x))
+    ts.addAll(findIntersectionsX(mask.corner.x + mask.width))
+    ts.addAll(findIntersectionsY(mask.corner.y))
+    ts.addAll(findIntersectionsY(mask.corner.y + mask.height))
+
+    val sortedTs = ts.filter { it in 0.0..1.0 }.sorted()
+    val result = mutableListOf<Segment2D>()
+    for (i in 0 until sortedTs.size - 1) {
+        val t0 = sortedTs[i]
+        val t1 = sortedTs[i + 1]
+        if (t1 - t0 > 1E-9) {
+            val mid = position((t0 + t1) / 2.0)
+            if (mask.contains(mid)) {
+                result.add(sub(t0, t1))
+            }
+        }
+    }
+    return result
+}
+
 
 internal fun Segment2D.cubicError(): Double {
     val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x

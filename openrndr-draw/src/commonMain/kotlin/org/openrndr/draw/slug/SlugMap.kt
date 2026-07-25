@@ -4,10 +4,16 @@ import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.Glyph
 import org.openrndr.math.IntVector2
+import org.openrndr.shape.Rectangle
+import org.openrndr.shape.Segment2D
 import org.openrndr.shape.Shape
+import org.openrndr.shape.clip
+import org.openrndr.shape.findIntersectionsY
 import org.openrndr.shape.toQuadratics
 import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.math.ceil
+import kotlin.math.sqrt
+
 
 class SlugMap(val coordinates: ColorBuffer, val index: ColorBuffer) {
     private var totalSegments = 0
@@ -28,8 +34,27 @@ class SlugMap(val coordinates: ColorBuffer, val index: ColorBuffer) {
     }
 
     fun addShape(shape: Shape, quadraticTolerance: Double = 1.0): Int {
-        val segments = shape.contours.flatMap { it.reversed.segments.flatMap { it.toQuadratics(quadraticTolerance) } }
+        var segments = shape.contours.flatMap { it.reversed.segments.flatMap { it.toQuadratics(quadraticTolerance) } }
 
+        val bandCount = 8 //ceil(sqrt(segments.size.toDouble())).toInt().coerceIn(4..16)
+
+        val bounds = shape.bounds
+
+
+//        val bandedSegments = mutableListOf<Segment2D>()
+//
+//        for (y in 0 until bandCount) {
+//            val band = Rectangle(bounds.x-1.0, bounds.y + (bounds.height * y) / bandCount, bounds.width + 2.0, bounds.height / bandCount)
+//
+//            for (segment in segments) {
+//                if (segment.bounds.intersects(band)) {
+//                    bandedSegments.addAll(segment.clip(band))
+//
+//                }
+//            }
+//
+//        }
+//        segments = bandedSegments
         val buffer = MPPBuffer.allocate(2 * 4)
         buffer.rewind()
 
@@ -60,7 +85,7 @@ class SlugMap(val coordinates: ColorBuffer, val index: ColorBuffer) {
         indexBuffer.rewind()
         writeIndex(indexBuffer, 0)
 
-        val bounds = shape.bounds
+
         indexBuffer.putFloat(bounds.position(0.0, 0.0).x.toFloat())
         indexBuffer.putFloat(bounds.position(0.0, 0.0).y.toFloat())
         indexBuffer.rewind()

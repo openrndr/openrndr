@@ -94,17 +94,17 @@ class FaceStbTt(
 
     override fun glyphForCharacter(character: Char): Glyph {
         val glyphIndex = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, character.code)
-        return GlyphStbTt(this, character, glyphIndex)
+        return GlyphStbTt(this, character, glyphIndex, character.code)
     }
 
     override fun glyphForCodePoint(codePoint: Int): Glyph {
         val glyphIndex = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, codePoint)
         val character = Char(codePoint)
-        return GlyphStbTt(this, character, glyphIndex)
+        return GlyphStbTt(this, character, glyphIndex, character.code)
     }
 
-    override fun glyphForIndex(glyphIndex: Int, character: Char): Glyph {
-        return GlyphStbTt(this, Char(-1), glyphIndex)
+    override fun glyphForIndex(glyphIndex: Int): Glyph {
+        return GlyphStbTt(this, Char(-1), glyphIndex, -1)
     }
 
     override val height: Double
@@ -157,7 +157,8 @@ class FaceStbTt(
     }
 }
 
-class GlyphStbTt(private val face: FaceStbTt, private val character: Char, private val glyphIndex: Int) : Glyph {
+class GlyphStbTt(private val face: FaceStbTt, private val character: Char, override val index: Int,
+                 override val code: Int) : Glyph {
 
 
     val scale = face.scale
@@ -210,7 +211,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
     override fun advanceWidth(): Double {
         stackPush().use { stack ->
             val pAdvanceWidth = stack.mallocInt(1)
-            STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, glyphIndex, pAdvanceWidth, null)
+            STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, index, pAdvanceWidth, null)
             return pAdvanceWidth.get(0) * scale
         }
     }
@@ -218,7 +219,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
     override fun leftSideBearing(): Double {
         stackPush().use { stack ->
             val pLeftSideBearing = stack.mallocInt(1)
-            STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, glyphIndex, null, pLeftSideBearing)
+            STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, index, null, pLeftSideBearing)
             return pLeftSideBearing.get(0) * scale
         }
     }
@@ -233,7 +234,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             val px1 = stack.mallocInt(1)
             val py0 = stack.mallocInt(1)
             val py1 = stack.mallocInt(1)
-            STBTruetype.stbtt_GetGlyphBox(face.fontInfo, glyphIndex, px0, py0, px1, py1)
+            STBTruetype.stbtt_GetGlyphBox(face.fontInfo, index, px0, py0, px1, py1)
             val x0 = px0.get() * scale
             val y0 = py0.get() * scale
             val x1 = px1.get() * scale
@@ -255,7 +256,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             if (subpixel) {
                 STBTruetype.stbtt_GetGlyphBitmapBoxSubpixel(
                     face.fontInfo,
-                    glyphIndex,
+                    index,
                     (scale * face.contentScale).toFloat(), (scale * face.contentScale).toFloat(),
                     0.0f, 0.0f,
                     px0, py0,
@@ -264,7 +265,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             } else {
                 STBTruetype.stbtt_GetGlyphBitmapBox(
                     face.fontInfo,
-                    glyphIndex,
+                    index,
                     scale, scale,
                     px0, py0,
                     px1, py1
@@ -293,7 +294,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             (scale * face.contentScale).toFloat(),
             0.0f,
             0.0f,
-            glyphIndex
+            index
         )
     }
 

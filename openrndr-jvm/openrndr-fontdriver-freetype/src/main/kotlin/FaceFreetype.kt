@@ -27,6 +27,30 @@ class FaceFreetype(
     override val sizeInPoints: Double,
     override val contentScale: Double
 ) : Face {
+
+    private var axisHash = axisHash()
+
+    private fun axisHash(): Int {
+        var hash = 0
+        for (axis in axes) {
+            hash = hash * 31 + axis.hashCode()
+            hash = hash * 31 + getAxisValue(axis).hashCode()
+        }
+        return hash
+    }
+
+    private val staticHash = run {
+        var hash = 0
+        hash = hash * 31 + ftFace.hashCode()
+        hash = hash * 31 + sizeInPoints.hashCode()
+        hash = hash * 31 + contentScale.hashCode()
+        hash
+    }
+
+    override fun hashCode(): Int {
+        return staticHash * 31 + axisHash
+    }
+
     override fun allCodePoints(): Sequence<Int> = sequence {
         MemoryStack.stackPush().use { stack ->
             val glyphIndexPtr = stack.mallocInt(1)
@@ -103,17 +127,18 @@ class FaceFreetype(
     override fun glyphForCharacter(character: Char): GlyphFreetype {
         val index = FT_Get_Char_Index(ftFace, character.code.toLong())
         FT_Load_Glyph(ftFace, index, FT_LOAD_DEFAULT)
-        return GlyphFreetype(this, character, index)
+        return GlyphFreetype(this, character, index, character.code)
     }
 
     override fun glyphForCodePoint(codePoint: Int): Glyph {
-        return glyphForCharacter(Char(codePoint))
-
+        val index = FT_Get_Char_Index(ftFace, codePoint.toLong())
+        FT_Load_Glyph(ftFace, index, FT_LOAD_DEFAULT)
+        return GlyphFreetype(this, Char(codePoint), index, codePoint)
     }
 
-    override fun glyphForIndex(glyphIndex: Int, character: Char): Glyph {
+    override fun glyphForIndex(glyphIndex: Int): Glyph {
         FT_Load_Glyph(ftFace, glyphIndex, FT_LOAD_DEFAULT)
-        return GlyphFreetype(this, character, glyphIndex)
+        return GlyphFreetype(this, Char(0xffff), glyphIndex, -1)
     }
 
     /**
@@ -262,6 +287,8 @@ class FaceFreetype(
             // Set the new design coordinates
             FT_Set_Var_Design_Coordinates(ftFace, coords)
             FT_Done_MM_Var(ftLibrary, mmVar)
+
+            axisHash = axisHash()
         }
     }
 

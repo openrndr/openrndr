@@ -1,4 +1,3 @@
-
 package slug
 
 import FontDriverFreetype
@@ -91,6 +90,7 @@ fun main() {
                 colorBuffer(4096, 3, type = ColorType.FLOAT32, format = ColorFormat.RG)
             )
 
+
             val vb = vertexBuffer(vertexFormat {
                 position(3)
                 textureCoordinate(2)
@@ -110,20 +110,35 @@ fun main() {
                 attribute("transform", VertexElementType.MATRIX44_FLOAT32)
             }, 10_000)
 
-            val texts = listOf("안녕하세요! 안녕하세요!", "안녕하세요! 안녕하세요!", "안녕하세요!", "안녕하세요! 안녕하세요! 안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "안녕하세요!", "세상에, 저런 달팽이 상형문자라니!")
+            val texts = listOf(
+                "안녕하세요! 안녕하세요!",
+                "안녕하세요! 안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요! 안녕하세요! 안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "안녕하세요!",
+                "세상에, 저런 달팽이 상형문자라니!"
+            )
 
             val shaper = TextShapingDriverHarfBuzz()
             val shapeResults = texts.map { shaper.shape(face, it) }
 
             val glyphCount = shapeResults.sumOf { it.size }
 
+            val start = System.currentTimeMillis()
             instances.put {
 
                 for ((index, shapeResult) in shapeResults.withIndex()) {
-                    var cursor = Vector2(0.0, (index+1) * face.height )
+                    var cursor = Vector2(0.0, (index + 1) * face.height)
                     face.setAxisValue("Weight", 100.0 + index * 100.0)
 
                     for ((index, i) in shapeResult.withIndex()) {
+                        slugGlyphMap.getGlyphForIndex(face, i.glyphIndex).toFloat()
                         write(slugGlyphMap.getGlyphForIndex(face, i.glyphIndex).toFloat())
                         write(transform {
                             translate(cursor + shapeResult[index].offset)
@@ -133,6 +148,8 @@ fun main() {
 
                 }
             }
+            val end = System.currentTimeMillis()
+            println("building glyphs took ${end - start} ms")
 
             val b = Rectangle(0.0, 0.0, 1.0, 1.0)
             vb.put {
@@ -160,7 +177,7 @@ fun main() {
             extend {
 
                 drawer.translate(drawer.bounds.center)
-                //drawer.scale(cos(seconds) * 2.5 + 3.5)
+//                drawer.scale(cos(seconds) * 2.5 + 3.5)
                 drawer.translate(-drawer.bounds.center)
                 drawer.shadeStyle = shadeStyle {
                     vertexPreamble = """
@@ -197,6 +214,13 @@ fun main() {
                             int y = index / textureSize(p_slugCoords,0).x;
                             return texelFetch(p_slugCoords, ivec2(x, y), 0).xy; 
                         }
+                        
+                         vec2 getIndexVec2(int slugIndex, int p) {
+                            ivec2 ts = textureSize(p_slugIndex, 0);
+                            int x = (slugIndex * 3 + p) % ts.x;
+                            int y = ((slugIndex * 3 + p) / ts.x);
+                            return texelFetch(p_slugIndex, ivec2(x, y), 0).xy;
+                        }
                         $coveragePhrase
                     """.trimIndent()
                     fragmentTransform = """
@@ -204,7 +228,15 @@ fun main() {
                         ivec2 its = textureSize(p_slugIndex, 0);
                         int x = (v_slugIndex*3) % its.x;
                         int y =  (v_slugIndex*3) / its.x;
-                        vec2 index = texelFetch(p_slugIndex, ivec2(x, y), 0).xy;
+                        vec2 index = getIndexVec2(v_slugIndex, 0);
+                        vec2 bmin = getIndexVec2(v_slugIndex, 1);
+                        vec2 bmax = getIndexVec2(v_slugIndex, 2);
+                        
+                        float height = bmax.y - bmin.y;
+                        int band = int(((uv.y - bmin.y) / height) * 8.0); 
+                        
+                        float bandTop = bmin.y + height * (float(band)) / 8.0;
+                        float bandBottom = bmin.y + height * (float(band) + 1.0) / 8.0;
                         
                         int segments = int(index.g + 0.5);
                         int base = int(index.r + 0.5);
@@ -224,21 +256,29 @@ fun main() {
                          {
                         
                             vec2 muv = uv + inverseDiameter * vec2(ivec2(i, j)) * 1.0;
-                            vec2 p0 = fetchCoordinate((base + s) * 3) - uv;
+                            vec2 p0 = fetchCoordinate((base + s) * 3);
+                            
+                           if (true || p0.y >= bandTop && p0.y <= bandBottom) {
+                            
+                            p0 -=uv;
+                            
                             vec2 p1 = fetchCoordinate((base + s) * 3 + 1) - uv;
                             vec2 p2 = fetchCoordinate((base + s) * 3 + 2) - uv;
                             
                             
                             alpha += (1.0) * computeCoverage(1.0 * inverseDiameter.x, p0, p1, p2);
                             alpha += (1.0) * computeCoverage(1.0 * inverseDiameter.y, rotate(p0), rotate(p1), rotate(p2));
-                            
+                            }
                             }
                         }
                
                         
                         alpha = clamp(alpha * 0.5, 0.0, 1.0);
-                        
-                        x_fill = vec4(x_fill.rgb, alpha);                        
+
+                        //
+                        x_fill = vec4(x_fill.rgb, alpha);
+                          //x_fill = vec4(float(band)/8.0, 0.0, 0.0, 1.0);                      
+                                               
                     """.trimIndent()
 
 
@@ -248,7 +288,7 @@ fun main() {
 
                 val start = System.currentTimeMillis()
                 drawer.vertexBufferInstances(listOf(vb), listOf(instances), DrawPrimitive.TRIANGLES, glyphCount)
-                Driver.instance.finish()
+//                Driver.instance.finish()
                 val end = System.currentTimeMillis()
                 println("that took ${end - start} ms")
 
@@ -256,7 +296,7 @@ fun main() {
                 drawer.shadeStyle = null
 //                drawer.shape(shape)
 
-               drawer.image(slugMap.index)
+                drawer.image(slugMap.index)
             }
         }
     }

@@ -22,12 +22,12 @@ import org.openrndr.shape.ShapeContour
 import org.openrndr.shape.Segment2D
 import org.openrndr.utils.buffer.MPPBuffer
 
-class GlyphFreetype(private val face: FaceFreetype, private val character: Char, private val glyphIndex: Int) : Glyph {
+class GlyphFreetype(private val face: FaceFreetype, private val character: Char, override val index: Int, override val code: Int) : Glyph {
 
     //val scale = face.sizeInPoints
 
     override fun shape(): Shape {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val glyph = PointerBuffer.allocateDirect(1)
         FT_Get_Glyph(face.ftFace.glyph() ?: error("no slot"), glyph)
         val realGlyph = FT_Glyph.create(glyph.get(0))
@@ -95,22 +95,22 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     }
 
     override fun advanceWidth(): Double {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.advance()?.x() ?: 0L) / 64.0
     }
 
     override fun leftSideBearing(): Double {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.metrics()?.horiBearingX() ?: 0L) / 64.0
     }
 
     override fun topSideBearing(): Double {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.metrics()?.vertBearingY() ?: 0L) / 64.0
     }
 
     override fun bounds(): Rectangle {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
         val x = metrics.horiBearingX() / 64.0
         val y = -metrics.horiBearingY() / 64.0
@@ -120,7 +120,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     }
 
     override fun bitmapBounds(subpixel: Boolean): IntRectangle {
-        FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
         val contentScale = face.contentScale
         val x = ((metrics.horiBearingX() / 64.0) * contentScale).toInt()
@@ -137,7 +137,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     ) {
 
         face.rasterizing {
-            FT_Load_Glyph(face.ftFace, glyphIndex, FT_LOAD_DEFAULT)
+            FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
             val slot = face.ftFace.glyph() ?: error("no glyph slot")
 
             FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL)
