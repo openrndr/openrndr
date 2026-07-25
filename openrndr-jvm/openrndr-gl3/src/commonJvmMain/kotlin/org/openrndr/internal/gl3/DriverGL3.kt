@@ -450,7 +450,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
           |precision highp sampler2DArray;
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
-                    "precision highp image2D; precision highp image3D; precision highp imageCube; precision highp image2DArray;"
+                    "precision highp usampler2D; precision highp image2D; precision highp iimage2D; precision highp uimage2D; precision highp image3D; precision highp imageCube; precision highp image2DArray;"
                 } else {
                     ""
                 }
@@ -754,6 +754,9 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         levels: Int,
         session: Session?
     ): ColorBuffer {
+        checkGLErrors {
+            "pre-existing error in createColorBuffer"
+        }
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
             val colorBuffer =
