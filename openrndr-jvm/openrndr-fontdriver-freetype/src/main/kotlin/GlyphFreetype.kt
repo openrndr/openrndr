@@ -1,16 +1,13 @@
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FT_Glyph
-import org.lwjgl.util.freetype.FT_Outline
 import org.lwjgl.util.freetype.FT_OutlineGlyph
 import org.lwjgl.util.freetype.FT_Vector
 import org.lwjgl.util.freetype.FT_Outline_Funcs
-import org.lwjgl.util.freetype.FreeType.FT_ADVANCE_FLAG_FAST_ONLY
 import org.lwjgl.util.freetype.FreeType.FT_Get_Glyph
 import org.lwjgl.util.freetype.FreeType.FT_LOAD_DEFAULT
 import org.lwjgl.util.freetype.FreeType.FT_Load_Glyph
 import org.lwjgl.util.freetype.FreeType.FT_Outline_Decompose
-import org.lwjgl.util.freetype.FreeType.FT_Outline_New
 import org.lwjgl.util.freetype.FreeType.FT_Render_Glyph
 import org.lwjgl.util.freetype.FreeType.FT_RENDER_MODE_NORMAL
 import org.openrndr.draw.font.Glyph
@@ -27,6 +24,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     //val scale = face.sizeInPoints
 
     override fun shape(): Shape {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val glyph = PointerBuffer.allocateDirect(1)
         FT_Get_Glyph(face.ftFace.glyph() ?: error("no slot"), glyph)
@@ -38,7 +36,6 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         val contours = mutableListOf<ShapeContour>()
         var currentSegments = mutableListOf<Segment2D>()
         var currentPoint = Vector2.ZERO
-        var firstPoint = Vector2.ZERO
 
         val funcs = FT_Outline_Funcs.malloc()
 
@@ -49,7 +46,6 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
             }
             val toVec = FT_Vector.create(to)
             currentPoint = Vector2(toVec.x() / 64.0, -toVec.y() / 64.0)
-            firstPoint = currentPoint
             0
         }
 
@@ -95,21 +91,25 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     }
 
     override fun advanceWidth(): Double {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.advance()?.x() ?: 0L) / 64.0
     }
 
     override fun leftSideBearing(): Double {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.metrics()?.horiBearingX() ?: 0L) / 64.0
     }
 
     override fun topSideBearing(): Double {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         return (face.ftFace.glyph()?.metrics()?.vertBearingY() ?: 0L) / 64.0
     }
 
     override fun bounds(): Rectangle {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
         val x = metrics.horiBearingX() / 64.0
@@ -120,6 +120,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
     }
 
     override fun bitmapBounds(subpixel: Boolean): IntRectangle {
+        face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
         val contentScale = face.contentScale
@@ -135,7 +136,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         stride: Int,
         subpixel: Boolean
     ) {
-
+        face.makeActive()
         face.rasterizing {
             FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
             val slot = face.ftFace.glyph() ?: error("no glyph slot")

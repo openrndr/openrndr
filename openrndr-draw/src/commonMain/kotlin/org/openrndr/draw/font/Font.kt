@@ -56,6 +56,56 @@ interface Glyph {
 }
 
 /**
+ * Represents the master configuration for a font face, allowing manipulation of axis values
+ * within specified ranges for variable font adjustments.
+ *
+ * This class acts as a wrapper around a mutable map of axes, providing functionality to enforce
+ * valid axis ranges and copy the current instance.
+ *
+ * @property axes A map of axis names to their current values. This map is mutable and represents
+ *                the active state of the font's variable axis configurations.
+ * @property ranges A map of axis names to their valid floating-point ranges.
+ */
+
+class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<String, ClosedFloatingPointRange<Double>>) : MutableMap<String, Double> by axes {
+    override fun hashCode(): Int {
+        return axes.hashCode()
+    }
+
+    override fun put(key: String, value: Double): Double? {
+        require(key in axes.keys) {
+            "axis $key is not defined for this font"
+        }
+
+        return axes.put(key, value.coerceIn(ranges[key]!!))
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as FaceMaster
+
+        if (axes != other.axes) return false
+        return true
+    }
+
+    /**
+     * Creates and returns a copy of the current `FaceMaster` instance.
+     *
+     * The copied instance has a new mutable map for the axes that is initialized
+     * with the current axes' key-value pairs, and retains the same ranges map
+     * as the original instance.
+     *
+     * @return A new `FaceMaster` instance with the same data as the original.
+     */
+    fun copy(): FaceMaster {
+        return FaceMaster(axes.toMutableMap(), ranges)
+    }
+
+}
+
+/**
  * A face (font) representation
  */
 interface Face: AutoCloseable {
@@ -94,6 +144,18 @@ interface Face: AutoCloseable {
 
     val lineGap: Double
 
+    /**
+     * Calculates the horizontal kerning adjustment between two characters.
+     *
+     * The kerning adjustment is the additional or reduced horizontal spacing
+     * that should be applied when rendering the two characters next to each other
+     * to improve the visual balance and appearance of the text.
+     *
+     * @param left the first character in the pair.
+     * @param right the second character in the pair.
+     * @return the horizontal kerning adjustment in font units. A positive value increases spacing,
+     *         while a negative value decreases spacing.
+     */
     fun kernAdvance(left: Char, right: Char): Double
 
     /**
@@ -101,8 +163,26 @@ interface Face: AutoCloseable {
      */
     fun glyphForCharacter(character: Char): Glyph
 
+
+    /**
+     * Retrieves the glyph associated with the specified Unicode code point.
+     *
+     * @param codePoint the Unicode code point for which the glyph is to be retrieved.
+     * @return the corresponding [Glyph] object for the given code point.
+     */
     fun glyphForCodePoint(codePoint: Int): Glyph
 
+
+    /**
+     * Retrieves the glyph corresponding to the specified glyph index.
+     * 
+     * Note: Glyph indices are face-specific and may differ between fonts, even for the same character.
+     * They represent the internal indexing scheme used by the particular font face and should not be
+     * assumed to be portable across different font files.
+     * 
+     * @param glyphIndex the index of the glyph to retrieve.
+     * @return the [Glyph] object associated with the given glyph index.
+     */
     fun glyphForIndex(glyphIndex: Int): Glyph
 
     val bounds: Rectangle
@@ -117,53 +197,31 @@ interface Face: AutoCloseable {
     val isVariable: Boolean
 
     /**
-     * A list of strings representing the names of variable font axes supported by this font face.
+     * Represents the master configuration of a font face.
      *
-     * Variable font axes describe adjustable properties of a variable font, such as weight, width,
-     * or slant, which can be dynamically modified to produce a range of styles or characteristics.
-     * Each axis is identified by a unique name.
+     * This property encapsulates customizable variations of the font face,
+     * defined by its axes and ranges, which determine the adjustable properties of the font.
+     * It provides access to these variations in order to manipulate or query specific font characteristics.
      *
-     * This property is only populated for variable fonts. For static fonts, this list will be empty.
+     * Note: This property returns a mutable copy of this Face's master configuration. Changing the values
+     * in the returned master does not affect this Face instance. To create a new Face with modified master
+     * settings, use the returned master in combination with [withMaster].
      */
-    val axes: List<String>
+    val master: FaceMaster
+
 
     /**
-     * Retrieves the value associated with a specific variable font axis.
+     * Creates a new instance of the font face by applying the provided master parameters.
      *
-     * Variable font axes represent adjustable properties of a variable font, such as weight, width, or slant.
-     * This method fetches the current value for the specified axis name. The axis name must match one of
-     * the entries in the `axes` property of the `Face` interface.
+     * The `master` parameter specifies a set of axis values that override the current
+     * variation settings of the font face, allowing customization based on the specified
+     * axis values.
      *
-     * @param axis the name of the variable font axis for which the value is to be retrieved.
-     * @return the current value of the specified axis as a Double.
-     *         Returns 0.0 if the axis is not supported or if the face is not a variable font.
+     * @param master an instance of [FaceMaster] containing axis values and their ranges
+     *               to adjust the font variation settings.
+     * @return a new [Face] instance with the adjustments from the provided [FaceMaster].
      */
-    fun getAxisValue(axis: String): Double
-
-    /**
-     * Sets the value for a specified variable font axis.
-     *
-     * Variable font axes represent adjustable properties of a variable font, such as weight, width, or slant.
-     * This method allows modifying the value of a specific axis, and the axis name must correspond
-     * to one of the entries in the `axes` property of the `Face` class.
-     *
-     * @param axis the name of the variable font axis to modify.
-     * @param value the new value to set for the specified axis.
-     */
-    fun setAxisValue(axis: String, value: Double)
-
-    /**
-     * Retrieves the valid range of values for a specified variable font axis.
-     *
-     * Variable font axes define adjustable properties of fonts, such as weight, width, or slant.
-     * This method returns the minimum and maximum allowable values for the given axis.
-     *
-     * @param axis the name of the variable font axis for which the range is to be retrieved.
-     * @return a closed floating-point range representing the minimum and maximum allowable values for the specified axis.
-     *         Returns an empty range (e.g., 0.0..0.0) if the axis is not supported or if the font is not a variable font.
-     */
-    fun axisRange(axis: String): ClosedFloatingPointRange<Double>
-
+    fun withMaster(master: FaceMaster): Face
 }
 
 /**

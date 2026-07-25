@@ -6,6 +6,7 @@ import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.shape.*
@@ -21,20 +22,13 @@ class FaceStbTt(
     override val contentScale: Double
 ) : Face {
 
+    override val master: FaceMaster = FaceMaster(mutableMapOf(), mapOf())
+
+    override fun withMaster(master: FaceMaster): Face = this
 
     override val isVariable: Boolean
         get() = false
 
-
-    override val axes: List<String>
-        get() = emptyList()
-
-
-    override fun setAxisValue(axis: String, value: Double) = Unit
-
-    override fun getAxisValue(axis: String): Double = 0.0
-
-    override fun axisRange(axis: String): ClosedFloatingPointRange<Double> = 0.0..0.0
 
     val scale: Double by lazy {
         STBTruetype.stbtt_ScaleForMappingEmToPixels(fontInfo, sizeInPoints.toFloat()).toDouble()

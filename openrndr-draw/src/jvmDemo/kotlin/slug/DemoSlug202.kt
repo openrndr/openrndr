@@ -14,9 +14,7 @@ import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.shadeStyle
 import org.openrndr.draw.slug.SlugGlyphMap
-import org.openrndr.draw.slug.SlugGlyphMap2
 import org.openrndr.draw.slug.SlugMap
-import org.openrndr.draw.slug.SlugMap2
 import org.openrndr.draw.vertexBuffer
 import org.openrndr.draw.vertexFormat
 import org.openrndr.math.Vector2
@@ -32,47 +30,47 @@ fun main() {
         }
         program {
             FontDriver.driver = FontDriverFreetype()
-            val face = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 14.0, 1.0)
-            val face2 = loadFace("data/fonts/default.otf", 12.0, 1.0)
+            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 32.0, 1.0)
+            val m = pface.master
+            m["Weight"] = 900.0
+            val face = pface.withMaster(m)
+            //val face = loadFace("data/fonts/default.otf", 12.0, 1.0)
 
-            val slugMap = SlugMap2(
-                colorBuffer(4096, 16, type = ColorType.FLOAT32, format = ColorFormat.RG),
-                colorBuffer(4096, 16, type = ColorType.UINT16_INT, format = ColorFormat.RGBa)
+            val slugMap = SlugMap(
+                colorBuffer(4096, 64, type = ColorType.FLOAT32, format = ColorFormat.RG),
+                colorBuffer(4096, 64, type = ColorType.UINT16_INT, format = ColorFormat.RGBa)
             )
 
-            for (i in face.axes) {
-                println("$i ${face.getAxisValue(i)}")
-            }
-            face.setAxisValue("Weight", 100.0)
 
-            val slugGlyphMap = SlugGlyphMap2(slugMap)
+            val slugGlyphMap = SlugGlyphMap(slugMap)
 
             val texts = listOf(
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-                "안녕하세요! 안녕하세요! Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
-                "안녕하세요! At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
-                "안녕하세요! 안녕하세요! 안녕하세요!",
-                "안녕하세요! HELLO WORLD",
-                "안녕하세요!",
-                "안녕하세요!",
-                "안녕하세요!",
-                "안녕하세요!",
-                "안녕하세요!",
-                "안녕하세요! At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
-                "세상에, 저런 달팽이 상형문자라니!"
+                "형안안안안안녕하세요! 안녕하세요!",
+                "こんにちは世界！",
+                "你好世界！",
+                "안안안안안안녕하세요! 안녕하세요!",
+                "안안안안안안녕하세요! 안녕하세요!",
+                "세상에, 저런 달팽이 상형",
+                "HERE WE ARE NOWaaa",
+                "ENTERTAIN US",
+                "Hello, hello, hello, how low?\n" +
+                        "Hello, hello, hello, how low?\n" +
+                        "Hello, hello, hello, how low?\n" +
+                        "Hello, hello, hello",
+                "HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE",
+                "HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHEHELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHEHELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE \"HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HELLO HEHEHELLHEOHELHELHEOHELHELHE  LEHLEHE LHE",
+
+
             )
 
-            val texts2 = listOf("OMG IBM PLEX omg")
 
             val shaper = TextShapingDriverHarfBuzz()
             val shapeResults = texts.map { shaper.shape(face, it) }
-            val shapeResults2 = texts2.map { shaper.shape(face2, it) }
 
 
+            val glyphCount = shapeResults.sumOf { it.size }
 
-            val glyphCount = shapeResults.sumOf { it.size } + shapeResults2.sumOf { it.size }
-
-            val shapeResultsAll = shapeResults + shapeResults2
+            val shapeResultsAll = shapeResults
 
             for ((index, shapeResult) in shapeResultsAll.withIndex()) {
                 for (item in shapeResult) {
@@ -117,7 +115,6 @@ fun main() {
 
                 for ((index, shapeResult) in shapeResultsAll.withIndex()) {
                     var cursor = Vector2(0.0, (index + 1) * face.height)
-                    face.setAxisValue("Weight", 100.0 + index * 100.0)
 
                     for ((index, i) in shapeResult.withIndex()) {
                         val slugIndex = slugGlyphMap.getSlugForGlyphIndex(face, i.glyphIndex)
@@ -126,7 +123,7 @@ fun main() {
                         val slugBandCount = slugMap.bandCounts[slugIndex]
 
                         write(transform {
-                            translate(cursor )
+                            translate(cursor - i.offset )
                         })
                         write(
                             Vector4(
@@ -136,7 +133,6 @@ fun main() {
                                 slugBounds.y + slugBounds.height
                             )
                         )
-                        println("slugBandIndex: $slugBandIndex, slugBandCount: $slugBandCount")
                         write(slugBandIndex)
                         write(slugBandCount)
 
@@ -263,7 +259,7 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
 
             extend {
                 drawer.translate(drawer.bounds.center)
-                drawer.scale(1.0 + mouse.position.y / height)
+                //drawer.scale(1.0 + mouse.position.y / height)
                 drawer.translate(-drawer.bounds.center)
                 drawer.shadeStyle = shadeStyle {
                     vertexTransform = """

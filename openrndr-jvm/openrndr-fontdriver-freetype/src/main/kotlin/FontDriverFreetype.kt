@@ -30,7 +30,7 @@ class FontDriverFreetype(val library: Long) : FontDriver {
         require(FT_New_Memory_Face(library, buffer, 0L, face) == 0) { "Failed to load font face from $fileOrUrl" }
         val ftFace = FT_Face.create(face.get(0))
         FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
-        return FaceFreetype(library, ftFace, sizeInPoints, contentScale)
+        return FaceFreetype(library, ftFace, sizeInPoints, contentScale, FaceFreetype.masterForFace(library, ftFace))
     }
 }
 
