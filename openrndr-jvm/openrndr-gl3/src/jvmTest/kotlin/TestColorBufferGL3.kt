@@ -1,8 +1,13 @@
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.openrndr.draw.ColorFormat
+import org.openrndr.draw.ColorType
 import org.openrndr.draw.colorBuffer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.glType
+import org.openrndr.utils.buffer.MPPBuffer
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.test.Test
 
 class TestColorBufferGL3 : AbstractApplicationTestFixture() {
@@ -63,4 +68,56 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
             a.close()
             b.close()
     }
+
+    @Test
+    fun testIntFormat() {
+        val c = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT32_INT)
+        val buffer = ByteBuffer.allocateDirect(256 * 256 * 4)
+        buffer.order(ByteOrder.nativeOrder())
+        for (i in 0 until 256 * 256) {
+            buffer.putInt(i)
+        }
+        buffer.rewind()
+        c.writeBuffer(buffer)
+        buffer.rewind()
+        for (i in 0 until 256 * 256) {
+            assertEquals(i, buffer.getInt())
+        }
+        c.read(buffer)
+    }
+
+    @Test
+    fun testInt16Format() {
+        val c = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT16_INT)
+        val buffer = ByteBuffer.allocateDirect(256 * 256 *2)
+        buffer.order(ByteOrder.nativeOrder())
+        for (i in 0 until 256 * 256) {
+            buffer.putShort(i.toShort())
+        }
+        buffer.rewind()
+        c.writeBuffer(buffer)
+        buffer.rewind()
+        for (i in 0 until 256 * 256) {
+            assertEquals(i.toUShort(), buffer.getShort().toUShort())
+        }
+        c.read(buffer)
+    }
+
+    @Test
+    fun testIntFormatMPP() {
+        val c = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT32_INT)
+        val buffer = MPPBuffer.allocate(256 * 256 * 4)
+        for (i in 0 until 256 * 256) {
+            buffer.putInt(i)
+        }
+        buffer.rewind()
+        c.write(buffer, x = 0, y = 0, width = 256, height = 256, level = 0)
+        buffer.rewind()
+        for (i in 0 until 256 * 256) {
+            assertEquals(i, buffer.byteBuffer.getInt())
+        }
+        c.read(buffer.byteBuffer)
+    }
+
+
 }
