@@ -13,7 +13,18 @@ expect class MPPBuffer {
     fun get(target: ByteArray)
     fun remaining() : Int
 
+    fun limit(): Int
+    fun limit(newLimit: Int)
+    fun position(): Int
+    fun position(newPosition: Int)
+    fun flip()
+
     fun put(byte: Byte)
+    fun put(ubyte: UByte)
+
+    fun put(short: Short)
+    fun put(ushort: UShort)
+        
     fun putFloat(float: Float)
     fun putDouble(double: Double)
     fun putInt(int: Int)

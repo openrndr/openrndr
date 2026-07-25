@@ -7,7 +7,35 @@ import js.buffer.DataView
 
 actual class MPPBuffer(val dataView: DataView<ArrayBuffer>) {
     private var offset = 0
+    private var limit = dataView.byteLength
+
     actual fun rewind() {
+        offset = 0
+    }
+
+    actual fun limit(): Int {
+        return limit
+    }
+
+    actual fun limit(newLimit: Int) {
+        require(newLimit in 0..capacity()) { "newLimit: $newLimit, capacity: ${capacity()}" }
+        limit = newLimit
+        if (offset > limit) {
+            offset = limit
+        }
+    }
+
+    actual fun position(): Int {
+        return offset
+    }
+
+    actual fun position(newPosition: Int) {
+        require(newPosition in 0..limit) { "newPosition: $newPosition, limit: $limit" }
+        offset = newPosition
+    }
+
+    actual fun flip() {
+        limit = offset
         offset = 0
     }
 
@@ -57,7 +85,7 @@ actual class MPPBuffer(val dataView: DataView<ArrayBuffer>) {
     }
 
     actual fun remaining(): Int {
-        return dataView.byteLength - offset
+        return limit - offset
     }
 
 
@@ -74,13 +102,29 @@ actual class MPPBuffer(val dataView: DataView<ArrayBuffer>) {
             for ((index, i) in fromBytes.withIndex()) {
                 dv.setInt8(index, i)
             }
-            return MPPBuffer(dv)
+            val buf = MPPBuffer(dv)
+            buf.position(fromBytes.size)
+            buf.flip()
+            return buf
         }
     }
 
     actual fun put(byte: Byte) {
         dataView.setInt8(offset, byte)
         offset++
+    }
+
+    actual fun put(ubyte: UByte) {
+        dataView.setUint8(offset, ubyte.toByte())
+        offset++
+    }
+    actual fun put(short: Short) {
+        dataView.setInt16(offset, short, littleEndian = true)
+        offset += 2
+    }
+    actual fun put(ushort: UShort) {
+        dataView.setUint16(offset, ushort.toShort(), littleEndian = true)
+        offset += 2
     }
 
     actual fun putFloat(float: Float) {
