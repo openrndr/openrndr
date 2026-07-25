@@ -82,7 +82,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT16RGBA color buffer shadow`() {
-        if (Driver.glType == DriverTypeGL.GL ) {
+        if (Driver.glType == DriverTypeGL.GL) {
             val cb = colorBuffer(256, 256, type = ColorType.UINT16)
             cb.shadow.download()
             for (y in 0 until cb.height) {
@@ -96,7 +96,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT16RGB color buffer shadow`() {
-        if (Driver.glType == DriverTypeGL.GL ) {
+        if (Driver.glType == DriverTypeGL.GL) {
             val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type = ColorType.UINT16)
             cb.shadow.download()
             for (y in 0 until cb.height) {
@@ -110,7 +110,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT16RG color buffer shadow`() {
-        if (Driver.glType == DriverTypeGL.GL ) {
+        if (Driver.glType == DriverTypeGL.GL) {
             val cb = colorBuffer(256, 256, format = ColorFormat.RG, type = ColorType.UINT16)
             cb.shadow.download()
             for (y in 0 until cb.height) {
@@ -124,12 +124,44 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT16R color buffer shadow`() {
-        if (Driver.glType == DriverTypeGL.GL ) {
+        if (Driver.glType == DriverTypeGL.GL) {
             val cb = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT16)
             cb.shadow.download()
             for (y in 0 until cb.height) {
                 for (x in 0 until cb.width) {
                     cb.shadow[x, y]
+                }
+            }
+            cb.destroy()
+        }
+    }
+
+    @Test
+    fun `a FLOAT16RGBA color buffer shadow`() {
+        val formats = listOf(ColorFormat.R, ColorFormat.RG, ColorFormat.RGBa)
+
+        for (format in formats) {
+            val cb = colorBuffer(256, 256, format = format, type = ColorType.FLOAT16)
+
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    cb.shadow[x, y] = ColorRGBa(1.0, 2.0, 3.0, 4.0)
+                }
+            }
+            cb.shadow.upload()
+
+            cb.shadow.download()
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    val c = (cb.shadow[x, y])
+
+                    assertEquals(1.0, c.r)
+                    if (format.componentCount >= 2)
+                        assertEquals(2.0, c.g)
+                    if (format.componentCount >= 3)
+                        assertEquals(3.0, c.b)
+                    if (format.componentCount >= 4)
+                        assertEquals(4.0, c.a)
                 }
             }
             cb.destroy()

@@ -294,7 +294,7 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
             // Read the result back to CPU for the assertion
             val buffer = ByteBuffer.allocateDirect(acc.width * acc.height * acc.format.componentCount * acc.type.componentSize)
             acc.read(buffer)
-            buffer.order(ByteOrder.LITTLE_ENDIAN)
+            buffer.order(ByteOrder.nativeOrder())
             assertEquals(side * side, buffer.int)
         }
     }

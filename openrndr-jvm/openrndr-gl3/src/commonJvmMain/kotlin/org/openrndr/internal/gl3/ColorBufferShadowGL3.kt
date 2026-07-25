@@ -7,6 +7,8 @@ import org.openrndr.draw.BufferAlignment
 import org.openrndr.draw.BufferWriter
 import org.openrndr.draw.ColorBufferShadow
 import org.openrndr.draw.ColorType
+import org.openrndr.math.Float16
+import org.openrndr.math.toFloat16
 import java.nio.ByteBuffer
 
 
@@ -65,6 +67,13 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 if (cc > 3) buffer.putShort(offset + 6, ia)
             }
 
+            ColorType.FLOAT16 -> {
+                buffer.putShort(offset, r.toFloat16().v.toShort())
+                if (cc > 1) buffer.putShort(offset + 2, g.toFloat16().v.toShort())
+                if (cc > 2) buffer.putShort(offset + 4, b.toFloat16().v.toShort())
+                if (cc > 3) buffer.putShort(offset + 6, a.toFloat16().v.toShort())
+            }
+
             ColorType.FLOAT32 -> {
                 buffer.putFloat(offset, r.toFloat())
                 if (cc > 1) buffer.putFloat(offset + 4, g.toFloat())
@@ -109,6 +118,15 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     linearity
                 )
             }
+
+            ColorType.FLOAT16 -> {
+                val fr = Float16(buffer.getShort(offset).toUShort()).toDouble()
+                val fg = if (cc >= 2) Float16(buffer.getShort(offset + 2).toUShort()).toDouble() else 0.0
+                val fb = if (cc >= 3) Float16(buffer.getShort(offset + 4).toUShort()).toDouble() else 0.0
+                val fa = if (cc >= 4) Float16(buffer.getShort(offset + 6).toUShort()).toDouble() else 0.0
+                ColorRGBa(fr, fg, fb, fa, linearity)
+            }
+
 
             ColorType.FLOAT32 -> {
                 val fr = buffer.getFloat(offset)

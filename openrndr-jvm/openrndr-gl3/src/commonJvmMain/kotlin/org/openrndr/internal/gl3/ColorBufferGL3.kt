@@ -871,12 +871,15 @@ class ColorBufferGL3(
                 debugGLErrors()
                 glReadBuffer(GL_COLOR_ATTACHMENT0)
                 debugGLErrors()
+
+                val internalType = internalFormat(targetFormat, targetType).second
+
                 glReadPixels(
                     0,
                     0,
                     effectiveWidth,
                     effectiveHeight,
-                    format.glFormat(),
+                    internalType,
                     type.glType(),
                     targetBuffer
                 )
