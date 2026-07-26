@@ -243,6 +243,7 @@ class FaceFreetype(
      * It will be executed while specific FreeType character size settings are applied.
      */
     fun rasterizing(rasterize: () -> Unit) {
+        makeActive()
         FT_Set_Char_Size(
             ftFace, 0, (sizeInPoints * 64).toLong(), (72 * contentScale).toInt(),
             (72 * contentScale).toInt()
