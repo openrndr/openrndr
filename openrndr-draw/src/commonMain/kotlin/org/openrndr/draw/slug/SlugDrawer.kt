@@ -12,7 +12,9 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
 import org.openrndr.shape.Rectangle
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 data class SlugCommand(val slugIndex: Int, val transform: Matrix44, val fill: ColorRGBa, val stroke: ColorRGBa, val strokeWeight: Double)
 
 
