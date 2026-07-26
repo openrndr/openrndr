@@ -71,6 +71,8 @@ fun main() {
                     Vector2(10.0, y))
             }
 
+            slugTextDrawer.addText(pface, "Hey hoe gaat het?",
+                Rectangle(10.0, 360.0, 350.0, 720.0))
             extend {
                 slugTextDrawer.draw(drawer)
             }

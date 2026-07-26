@@ -56,7 +56,7 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         val codePoints = IntArray(text.length) { text.codePointAt(it) }
 
         // Allocate a buffer for the code points plus a null terminator
-        val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size + 2)
+        val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size + 4)
         codePointsBuffer.put(codePoints)
         codePointsBuffer.flip()
 
