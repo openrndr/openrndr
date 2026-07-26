@@ -22,6 +22,7 @@ import org.openrndr.draw.slug.SlugDrawer
 import org.openrndr.draw.slug.SlugGlyphMap
 import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.slug.SlugTextDrawer
+import org.openrndr.draw.slug.TextStyle
 import org.openrndr.draw.vertexBuffer
 import org.openrndr.draw.vertexFormat
 import org.openrndr.math.Vector2
@@ -51,6 +52,10 @@ fun main() {
 
             slugTextDrawer.addText(pface, text,
                 box)
+
+            slugTextDrawer.addText(pface, text,
+                box.movedBy(Vector2(360.0, 0.0)), style = TextStyle(true)
+            )
             extend {
                 drawer.isolated {
                     drawer.fill = null

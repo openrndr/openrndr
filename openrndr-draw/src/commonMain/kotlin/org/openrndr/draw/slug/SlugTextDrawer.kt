@@ -275,7 +275,15 @@ class SlugTextDrawer {
                         }
                     }
                     is KPItem.Glue -> {
-                        val adjustedWidth = if (r >= 0) {
+                        val isLastLine = lineIdx == bpChain.size - 2
+                        val adjustedWidth = if (!style.justify || isLastLine) {
+                            // When not justified or on the last line, only shrink to prevent overflow
+                            if (r < 0) {
+                                itm.glue.width + r * itm.glue.shrink
+                            } else {
+                                itm.glue.width
+                            }
+                        } else if (r >= 0) {
                             itm.glue.width + r * itm.glue.stretch
                         } else {
                             itm.glue.width + r * itm.glue.shrink
