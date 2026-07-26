@@ -13,6 +13,7 @@ import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
+import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 
 private data class KPBox(val width: Double, val shapeResults: List<ShapeResult>)
@@ -35,6 +36,9 @@ private data class KPBreakpoint(
     val previous: KPBreakpoint?
 )
 
+@JvmRecord
+data class TextStyle(val justify: Boolean)
+
 class SlugTextDrawer {
 
     val shaper = TextShapingDriver.instance
@@ -54,7 +58,7 @@ class SlugTextDrawer {
     val commands = mutableListOf<SlugCommand>()
 
 
-    fun addText(face: Face, text: String, box: Rectangle) {
+    fun addText(face: Face, text: String, box: Rectangle, style: TextStyle = TextStyle(false)) {
         
         
         val lineHeight = face.ascent - face.descent + face.lineGap
@@ -219,20 +223,25 @@ class SlugTextDrawer {
         val finalBp = activeBreakpoints.minByOrNull { it.demerits } ?: return
 
         // Collect breakpoints in order
-        val breakpoints = mutableListOf<Int>()
+        val bpChain = mutableListOf<KPBreakpoint>()
         var bp: KPBreakpoint? = finalBp
         while (bp != null) {
-            breakpoints.add(bp.index)
+            bpChain.add(bp)
             bp = bp.previous
         }
-        breakpoints.reverse()
+        bpChain.reverse()
 
         // Render lines
         var y = box.y + face.ascent
 
-        for (lineIdx in 0 until breakpoints.size - 1) {
-            val start = breakpoints[lineIdx]
-            val end = breakpoints[lineIdx + 1]
+        for (lineIdx in 0 until bpChain.size - 1) {
+            val startBp = bpChain[lineIdx]
+            val endBp = bpChain[lineIdx + 1]
+            val start = startBp.index
+            val end = endBp.index
+
+            // Compute adjustment ratio for this line
+            val r = computeAdjustmentRatio(startBp, end)
 
             var cursor = Vector2(box.x, y)
 
@@ -266,7 +275,12 @@ class SlugTextDrawer {
                         }
                     }
                     is KPItem.Glue -> {
-                        cursor += Vector2(itm.glue.width, 0.0)
+                        val adjustedWidth = if (r >= 0) {
+                            itm.glue.width + r * itm.glue.stretch
+                        } else {
+                            itm.glue.width + r * itm.glue.shrink
+                        }
+                        cursor += Vector2(adjustedWidth, 0.0)
                     }
                     is KPItem.Penalty -> { /* skip */ }
                 }
