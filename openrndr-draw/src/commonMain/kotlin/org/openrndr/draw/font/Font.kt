@@ -68,7 +68,6 @@ interface Glyph {
  * @property ranges A map of axis names to their valid floating-point ranges.
  */
 
-@JvmRecord
 data class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<String, ClosedFloatingPointRange<Double>>) : MutableMap<String, Double> by axes {
     override fun hashCode(): Int {
         return axes.hashCode()
