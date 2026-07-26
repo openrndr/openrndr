@@ -36,8 +36,22 @@ private data class KPBreakpoint(
     val previous: KPBreakpoint?
 )
 
+/**
+ * Represents a style configuration for text rendering.
+ *
+ * @property justify Determines whether the text should be justified.
+ * @property lineHeight Specifies the line height multiplier for the text.
+ * @property horizontalAlign Defines the horizontal alignment of the text, typically in the range [0.0, 1.0].
+ * @property verticalAlign Defines the vertical alignment of the text, typically in the range [0.0, 1.0].
+ */
+
 @JvmRecord
-data class TextStyle(val justify: Boolean)
+data class TextStyle(
+    val justify: Boolean = false,
+    val lineHeight: Double = 1.0,
+    val horizontalAlign: Double = 0.0,
+    val verticalAlign: Double = 0.0
+)
 
 class SlugTextDrawer {
 
@@ -61,7 +75,7 @@ class SlugTextDrawer {
     fun addText(face: Face, text: String, box: Rectangle, style: TextStyle = TextStyle(false)) {
         
         
-        val lineHeight = face.ascent - face.descent + face.lineGap
+        val lineHeight = (face.ascent - face.descent + face.lineGap) * style.lineHeight
         val lineWidth = box.width
 
         // Build items list from text (Box, Glue, Penalty per Knuth-Plass)
