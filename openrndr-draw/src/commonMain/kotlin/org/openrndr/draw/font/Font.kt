@@ -5,6 +5,7 @@ import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
 import org.openrndr.utils.buffer.MPPBuffer
+import kotlin.jvm.JvmRecord
 
 /**
  * Glyph representation
@@ -67,7 +68,8 @@ interface Glyph {
  * @property ranges A map of axis names to their valid floating-point ranges.
  */
 
-class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<String, ClosedFloatingPointRange<Double>>) : MutableMap<String, Double> by axes {
+@JvmRecord
+data class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<String, ClosedFloatingPointRange<Double>>) : MutableMap<String, Double> by axes {
     override fun hashCode(): Int {
         return axes.hashCode()
     }
