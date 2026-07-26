@@ -15,6 +15,7 @@ import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
+import org.openrndr.draw.isolated
 import org.openrndr.draw.shadeStyle
 import org.openrndr.draw.slug.SlugCommand
 import org.openrndr.draw.slug.SlugDrawer
@@ -38,42 +39,25 @@ fun main() {
             FontDriver.driver = FontDriverFreetype()
             TextShapingDriver.driver = TextShapingDriverHarfBuzz()
 
-            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 32.0, 1.0)
-//            val m = pface.master
-
-            val faces = (0 until 9
-                    ).map {
-                val m = pface.master
-                m["Weight"] = ((it+1) * 100).toDouble()
-                pface.withMaster(m)
-            }
+            val pface = loadFace("data/fonts/default.otf", 16.0, 1.0)
 
 
             val slugTextDrawer = SlugTextDrawer()
 
-            val texts = listOf(
-                "BRING THE FAMILY",
-                "『가족과 함께 오세요"  ,
-                "GET READY FOR PART 2",
-                "파트 2를 기대하세요⟨。⟩",
-                "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ",
-                "ㅇㅅㅇ (ㅎㅅㅎ)",
-                "○○○",
-                "배운 사람 입에서 어찌 ○○○란 말이 나올 수 있느냐?"
+            val text = "Hello world! Hoe gaat het? Is het al tijd om die lines te breaken?\nIk snap nog niet helemaal waarom de letters niet strak tegen de kantlijn staan. Oh nu werkt het een stuk beter denk ik. Behalve dat de text nu een stukje uitsteekt, dat is wat vervelend zeg. "
+
+            val box = Rectangle(10.0, 360.0, 350.0, 720.0)
 
 
-            )
-
-            var y = 0.0
-            for (text in texts.withIndex()) {
-                y += faces[text.index.mod(faces.size)].height * 1.2
-                slugTextDrawer.addText(faces[text.index.mod(faces.size)], text.value,
-                    Vector2(10.0, y))
-            }
-
-            slugTextDrawer.addText(pface, "Hey hoe gaat het?",
-                Rectangle(10.0, 360.0, 350.0, 720.0))
+            slugTextDrawer.addText(pface, text,
+                box)
             extend {
+                drawer.isolated {
+                    drawer.fill = null
+                    drawer.stroke = ColorRGBa.PINK
+                    drawer.rectangle(box)
+                }
+
                 slugTextDrawer.draw(drawer)
             }
         }

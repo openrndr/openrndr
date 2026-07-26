@@ -64,12 +64,24 @@ kotlin {
                 implementation(project(":openrndr-jvm:openrndr-textshapingdriver-harfbuzz"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
-                dependsOn(commonJvmMain)
+
                 runtimeOnly(libs.slf4j.simple)
+            }
+        }
+        getByName("jvmTest") {
+            dependencies {
+                implementation(project(":openrndr-jvm:openrndr-application-glfw"))
+                implementation(project(":openrndr-application"))
+                implementation(project(":openrndr-jvm:openrndr-fontdriver-freetype"))
+                implementation(project(":openrndr-jvm:openrndr-textshapingdriver-harfbuzz"))
             }
         }
 
     }
+}
+
+tasks.withType<Test>().configureEach {
+    outputs.cacheIf { false }
 }
 
 kotlin {
