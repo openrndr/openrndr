@@ -44,7 +44,7 @@ fun main() {
 
             val slugTextDrawer = SlugTextDrawer()
 
-            val text = "Hello world! Hoe gaat het? Is het al tijd om die lines te breaken?\nIk snap nog niet helemaal waarom de letters niet strak tegen de kantlijn staan. Oh nu werkt het een stuk beter denk ik. Behalve dat de text nu een stukje uitsteekt, dat is wat vervelend zeg. "
+            val text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
 
             val box = Rectangle(10.0, 360.0, 350.0, 720.0)
 
