@@ -1,11 +1,9 @@
-import org.lwjgl.BufferUtils
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FreeType
 import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_LTR
 import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_RTL
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_codepoints
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf8
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_create
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_destroy
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos
@@ -26,14 +24,14 @@ import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.math.Vector2
 import kotlin.code
 
-fun Direction.hbDirection() = when (this) {
+private fun Direction.hbDirection() = when (this) {
     Direction.LEFT_TO_RIGHT -> HB_DIRECTION_LTR
     Direction.RIGHT_TO_LEFT -> HB_DIRECTION_RTL
     Direction.TOP_TO_BOTTOM -> HB_DIRECTION_LTR
     Direction.BOTTOM_TO_TOP -> HB_DIRECTION_RTL
 }
 
-fun Script.hbScript(): Int {
+private fun Script.hbScript(): Int {
     val c1 = this.tag[0].code
     val c2 = this.tag[1].code
     val c3 = this.tag[2].code
@@ -43,6 +41,7 @@ fun Script.hbScript(): Int {
 
 class TextShapingDriverHarfBuzz : TextShapingDriver {
     init {
+        // Tell Harfbuzz to use the FreeType library
         Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary())
     }
 
@@ -54,52 +53,57 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         language: String?
     ): List<ShapeResult> {
         face as FaceFreetype
-
-        val buf = hb_buffer_create()
-        //val textUtf8 = MemoryUtil.memUTF8(text)
-
         val codePoints = IntArray(text.length) { text.codePointAt(it) }
 
-        val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size+1)
+        // Allocate a buffer for the code points plus a null terminator
+        val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size + 2)
         codePointsBuffer.put(codePoints)
         codePointsBuffer.flip()
 
-        hb_buffer_add_codepoints(buf, codePointsBuffer, 0, codePoints.size)
+        val buf = hb_buffer_create()
 
-        if (direction != null) {
-            hb_buffer_set_direction(buf, direction.hbDirection())
+        try {
+            hb_buffer_add_codepoints(buf, codePointsBuffer, 0, codePoints.size)
+
+            if (direction != null) {
+                hb_buffer_set_direction(buf, direction.hbDirection())
+            }
+            if (script != null) {
+                hb_buffer_set_script(buf, script.hbScript())
+            }
+            if (language != null) {
+                hb_buffer_set_language(buf, hb_language_from_string(language));
+            }
+
+            if (direction == null && script == null && language == null) {
+                hb_buffer_guess_segment_properties(buf)
+            }
+
+            require(face.ftFace.address() != 0L) {
+                "FT_Face is not initialized"
+            }
+
+            val hbFont = hb_ft_font_create(face.ftFace.address(), null)
+            require(hbFont != 0L) {
+                "Failed to create HarfBuzz font"
+            }
+
+            hb_shape(hbFont, buf, null)
+
+            val glyphInfo = hb_buffer_get_glyph_infos(buf) ?: error("No glyph info")
+            val glyphPosition = hb_buffer_get_glyph_positions(buf) ?: error("No glyph position")
+
+            return (0 until glyphInfo.count()).map {
+                val gp = glyphPosition[it] ?: error("No glyph position at index $it")
+                val position = Vector2(gp.x_offset() / 64.0, gp.y_offset() / 64.0)
+                val advance = Vector2(gp.x_advance() / 64.0, gp.y_advance() / 64.0)
+                ShapeResult(glyphInfo.get(it)!!.codepoint(), position, advance)
+            }
+        } finally {
+            // Clean up resources
+            hb_buffer_destroy(buf)
+            MemoryUtil.memFree(codePointsBuffer)
         }
-        if (script != null) {
-            hb_buffer_set_script(buf, script.hbScript())
-        }
-        if (language != null) {
-            hb_buffer_set_language(buf, hb_language_from_string(language));
-        }
-
-        if (direction == null && script == null && language == null) {
-            hb_buffer_guess_segment_properties(buf)
-        }
-
-        require(face.ftFace.address() != 0L) {
-            "FT_Face is not initialized"
-        }
-
-        val hbFont = hb_ft_font_create(face.ftFace.address(), null)
-        hb_shape(hbFont, buf, null)
-
-        val glyphInfo = hb_buffer_get_glyph_infos(buf)!!
-        val glyphPosition = hb_buffer_get_glyph_positions(buf)!!
-
-        val shapeResult = (0 until glyphInfo.count()).map {
-            val gp = glyphPosition[it]!!
-            val position = Vector2(gp.x_offset() / 64.0, gp.y_offset() / 64.0)
-            val advance = Vector2(gp.x_advance() / 64.0, gp.y_advance() / 64.0)
-            ShapeResult(glyphInfo.get(it)!!.codepoint(), position, advance)
-        }
-
-        hb_buffer_destroy(buf)
-        MemoryUtil.memFree(codePointsBuffer)
-        return shapeResult
     }
 }
 
