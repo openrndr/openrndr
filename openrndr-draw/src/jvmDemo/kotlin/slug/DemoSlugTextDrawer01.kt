@@ -54,7 +54,7 @@ fun main() {
                 box)
 
             slugTextDrawer.addText(pface, text,
-                box.movedBy(Vector2(360.0, 0.0)), style = TextStyle(true)
+                box.movedBy(Vector2(360.0, 0.0)), style = TextStyle(true, lineHeight = 1.2)
             )
             extend {
                 drawer.isolated {
