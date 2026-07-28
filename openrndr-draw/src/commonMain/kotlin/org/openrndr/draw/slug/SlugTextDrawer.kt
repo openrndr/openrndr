@@ -40,18 +40,100 @@ private data class KPBreakpoint(
  * Represents a style configuration for text rendering.
  *
  * @property justify Determines whether the text should be justified.
- * @property lineHeight Specifies the line height multiplier for the text.
+ * @property lineHeightInEm Specifies the line height multiplier for the text.
  * @property horizontalAlign Defines the horizontal alignment of the text, typically in the range [0.0, 1.0].
  * @property verticalAlign Defines the vertical alignment of the text, typically in the range [0.0, 1.0].
  */
 
 @JvmRecord
 data class TextStyle(
-    val justify: Boolean = false,
-    val lineHeight: Double = 1.0,
-    val horizontalAlign: Double = 0.0,
-    val verticalAlign: Double = 0.0
-)
+    val face: Face? = null,
+    val sizeInEm: Double? = null,
+    val justify: Boolean? = null,
+    val lineHeightInEm: Double? = null,
+    val characterSpacingInEm: Double? = null,
+    val baselineShiftInEm: Double? = null,
+    val horizontalAlign: Double? = null,
+    val verticalAlign: Double? = null,
+    val fill: ColorRGBa? = null,
+    val stroke: ColorRGBa? = null,
+    val strokeWeight: Double? = null,
+) {
+    fun cascade(other: TextStyle): TextStyle {
+        return copy(
+            face = other.face ?: face,
+            sizeInEm = other.sizeInEm ?: sizeInEm,
+            justify = other.justify ?: justify,
+            lineHeightInEm = other.lineHeightInEm ?: lineHeightInEm,
+            characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm,
+            baselineShiftInEm = other.baselineShiftInEm ?: baselineShiftInEm,
+            horizontalAlign = other.horizontalAlign ?: horizontalAlign,
+            verticalAlign = other.verticalAlign ?: verticalAlign,
+            fill = other.fill ?: fill,
+            stroke = other.stroke ?: stroke,
+            strokeWeight = other.strokeWeight ?: strokeWeight
+        )
+    }
+    companion object {
+        val Defaults = TextStyle(
+            sizeInEm = 1.0,
+            justify = false,
+            lineHeightInEm = 1.0,
+            characterSpacingInEm = 0.0,
+            baselineShiftInEm = 0.0,
+            horizontalAlign = 0.0,
+            verticalAlign = 0.0,
+            fill = ColorRGBa.WHITE,
+        )
+    }
+}
+
+class MutableTextStyle(
+    var face: Face? = null,
+    var sizeInEm: Double? = 1.0,
+    var justify: Boolean = false,
+    var lineHeight: Double = 1.0,
+    var characterSpacingInEm: Double = 0.0,
+    var baselineShiftInEm: Double = 0.0,
+    var horizontalAlign: Double = 0.0,
+    var verticalAlign: Double = 0.0,
+    var fill: ColorRGBa? = null,
+    var stroke: ColorRGBa? = null,
+    var strokeWeight: Double? = null
+) {
+
+    fun cascade(other: TextStyle) {
+        face = other.face ?: face
+        sizeInEm = other.sizeInEm ?: sizeInEm
+        justify = other.justify ?: justify
+        lineHeight = other.lineHeightInEm ?: lineHeight
+        characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm
+        horizontalAlign = other.horizontalAlign ?: horizontalAlign
+        verticalAlign = other.verticalAlign ?: verticalAlign
+        fill = other.fill ?: fill
+        stroke = other.stroke ?: stroke
+        strokeWeight = other.strokeWeight ?: strokeWeight
+    }
+
+    fun cascade(other: MutableTextStyle) {
+        face = other.face ?: face
+        sizeInEm = other.sizeInEm ?: sizeInEm
+        justify = other.justify ?: justify
+        lineHeight = other.lineHeight ?: lineHeight
+        characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm
+        horizontalAlign = other.horizontalAlign ?: horizontalAlign
+        verticalAlign = other.verticalAlign ?: verticalAlign
+        fill = other.fill ?: fill
+        stroke = other.stroke ?: stroke
+        strokeWeight = other.strokeWeight ?: strokeWeight
+    }
+
+
+}
+
+data class TextSpan(val text: String, val style: TextStyle?)
+
+data class TextBox(val box: Rectangle, val spans: List<TextSpan>)
 
 class SlugTextDrawer {
 
@@ -68,14 +150,32 @@ class SlugTextDrawer {
 
     val slugDrawer = SlugDrawer()
 
-
     val commands = mutableListOf<SlugCommand>()
 
+    var style = TextStyle.Defaults
 
-    fun addText(face: Face, text: String, box: Rectangle, style: TextStyle = TextStyle(false)) {
-        
-        
-        val lineHeight = (face.ascent - face.descent + face.lineGap) * style.lineHeight
+    fun pushStyle() {
+        styleStack.add(style)
+    }
+
+    fun popStyle() {
+        style = styleStack.removeLast()
+    }
+
+    val styleStack = mutableListOf<TextStyle>()
+
+    fun addText(text: String, box: Rectangle, style: TextStyle = TextStyle()) {
+
+        val style = this.style.cascade(style)
+
+        style.lineHeightInEm ?: error("lineHeightInEm not set")
+        style.verticalAlign ?: error("verticalAlign not set")
+        style.horizontalAlign ?: error("horizontalAlign not set")
+        style.justify ?: error("justify not set")
+
+
+        val face = style.face ?: error("face not set")
+        val lineHeight = (face.ascent - face.descent + face.lineGap) * style.lineHeightInEm
         val lineWidth = box.width
 
         // Build items list from text (Box, Glue, Penalty per Knuth-Plass)
@@ -84,20 +184,24 @@ class SlugTextDrawer {
         val currentWord = StringBuilder()
 
         for (ch in text) {
-            if (ch == ' ' || ch == '\t') {
-                if (currentWord.isNotEmpty()) {
-                    words.add(currentWord.toString())
-                    currentWord.clear()
+            when (ch) {
+                ' ', '\t' -> {
+                    if (currentWord.isNotEmpty()) {
+                        words.add(currentWord.toString())
+                        currentWord.clear()
+                    }
+                    words.add(" ")
                 }
-                words.add(" ")
-            } else if (ch == '\n') {
-                if (currentWord.isNotEmpty()) {
-                    words.add(currentWord.toString())
-                    currentWord.clear()
+                '\n' -> {
+                    if (currentWord.isNotEmpty()) {
+                        words.add(currentWord.toString())
+                        currentWord.clear()
+                    }
+                    words.add("\n")
                 }
-                words.add("\n")
-            } else {
-                currentWord.append(ch)
+                else -> {
+                    currentWord.append(ch)
+                }
             }
         }
         if (currentWord.isNotEmpty()) {
@@ -246,7 +350,10 @@ class SlugTextDrawer {
         bpChain.reverse()
 
         // Render lines
-        var y = box.y + face.ascent
+        val totalLines = bpChain.size - 1
+        val totalTextHeight = face.ascent + (totalLines - 1) * lineHeight - face.descent
+        val verticalOffset = (box.height - totalTextHeight) * style.verticalAlign
+        var y = box.y + face.ascent + verticalOffset
 
         for (lineIdx in 0 until bpChain.size - 1) {
             val startBp = bpChain[lineIdx]
@@ -257,8 +364,6 @@ class SlugTextDrawer {
             // Compute adjustment ratio for this line
             val r = computeAdjustmentRatio(startBp, end)
 
-            var cursor = Vector2(box.x, y)
-
             // Skip leading glue at the start of each line (after a line break)
             var lineStart = start
             if (lineIdx > 0) {
@@ -266,6 +371,31 @@ class SlugTextDrawer {
                     lineStart++
                 }
             }
+
+            // Compute natural line width for horizontal alignment
+            val naturalLineWidth = run {
+                var w = 0.0
+                val lr = computeAdjustmentRatio(startBp, end)
+                for (idx in lineStart until end) {
+                    when (val itm = items[idx]) {
+                        is KPItem.Box -> w += itm.box.width
+                        is KPItem.Glue -> {
+                            val isLastLine = lineIdx == bpChain.size - 2
+                            w += if (!style.justify || isLastLine) {
+                                if (lr < 0) itm.glue.width + lr * itm.glue.shrink else itm.glue.width
+                            } else if (lr >= 0) {
+                                itm.glue.width + lr * itm.glue.stretch
+                            } else {
+                                itm.glue.width + lr * itm.glue.shrink
+                            }
+                        }
+                        is KPItem.Penalty -> {}
+                    }
+                }
+                w
+            }
+            val horizontalOffset = (lineWidth - naturalLineWidth) * style.horizontalAlign
+            var cursor = Vector2(box.x + horizontalOffset, y)
 
             for (idx in lineStart until end) {
                 when (val itm = items[idx]) {
