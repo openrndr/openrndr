@@ -165,6 +165,11 @@ class SlugTextDrawer {
     val styleStack = mutableListOf<TextStyle>()
 
     fun addText(text: String, box: Rectangle, style: TextStyle = TextStyle()) {
+        addText(text, listOf(box), style)
+    }
+
+    fun addText(text: String, boxes: List<Rectangle>, style: TextStyle = TextStyle()) {
+        require(boxes.isNotEmpty()) { "boxes must not be empty" }
 
         val style = this.style.cascade(style)
 
@@ -176,7 +181,6 @@ class SlugTextDrawer {
 
         val face = style.face ?: error("face not set")
         val lineHeight = (face.ascent - face.descent + face.lineGap) * style.lineHeightInEm
-        val lineWidth = box.width
 
         // Build items list from text (Box, Glue, Penalty per Knuth-Plass)
         val items = mutableListOf<KPItem>()
@@ -238,6 +242,26 @@ class SlugTextDrawer {
         items.add(KPItem.Glue(KPGlue(0.0, 10000.0, 0.0)))
         items.add(KPItem.Penalty(KPPenalty(0.0, -10000.0, false)))
 
+        // Compute the maximum number of lines that fit across all boxes
+        val boxLineCapacities = boxes.map { box ->
+            val maxLines = ((box.height - face.ascent + face.descent) / lineHeight + 1).toInt()
+            maxOf(maxLines, 1)
+        }
+        val totalAvailableLines = boxLineCapacities.sum()
+
+        // Build a mapping from global line index to (boxIndex, lineWidth)
+        // This allows each line to use the width of the box it belongs to
+        data class LineInfo(val boxIndex: Int, val lineWidth: Double)
+        val lineInfos = mutableListOf<LineInfo>()
+        for ((boxIdx, box) in boxes.withIndex()) {
+            for (l in 0 until boxLineCapacities[boxIdx]) {
+                lineInfos.add(LineInfo(boxIdx, box.width))
+            }
+        }
+
+        // Use the first box's width as default line width for breakpoint finding
+        val defaultLineWidth = boxes.first().width
+
         // Compute cumulative widths
         val cumWidth = DoubleArray(items.size + 1)
         val cumStretch = DoubleArray(items.size + 1)
@@ -264,14 +288,19 @@ class SlugTextDrawer {
             KPBreakpoint(0, 0.0, 0, 0.0, 0.0, 0.0, null)
         )
 
+        fun lineWidthForLine(lineIndex: Int): Double {
+            return if (lineIndex < lineInfos.size) lineInfos[lineIndex].lineWidth else defaultLineWidth
+        }
+
         fun computeAdjustmentRatio(bp: KPBreakpoint, itemIndex: Int): Double {
+            val lw = lineWidthForLine(bp.line)
             val w = cumWidth[itemIndex] - bp.totalWidth
-            return if (w < lineWidth) {
+            return if (w < lw) {
                 val stretch = cumStretch[itemIndex] - bp.totalStretch
-                if (stretch > 0) (lineWidth - w) / stretch else 10000.0
-            } else if (w > lineWidth) {
+                if (stretch > 0) (lw - w) / stretch else 10000.0
+            } else if (w > lw) {
                 val shrink = cumShrink[itemIndex] - bp.totalShrink
-                if (shrink > 0) (lineWidth - w) / shrink else -10000.0
+                if (shrink > 0) (lw - w) / shrink else -10000.0
             } else {
                 0.0
             }
@@ -349,13 +378,53 @@ class SlugTextDrawer {
         }
         bpChain.reverse()
 
-        // Render lines
+        // Render lines across boxes
         val totalLines = bpChain.size - 1
-        val totalTextHeight = face.ascent + (totalLines - 1) * lineHeight - face.descent
-        val verticalOffset = (box.height - totalTextHeight) * style.verticalAlign
-        var y = box.y + face.ascent + verticalOffset
+
+        // Pre-compute which box each line belongs to
+        val lineBoxIndex = IntArray(totalLines)
+        val lineIndexInBox = IntArray(totalLines)
+        run {
+            var bi = 0
+            var lic = 0
+            for (li in 0 until totalLines) {
+                while (bi < boxes.size && lic >= boxLineCapacities[bi]) {
+                    bi++
+                    lic = 0
+                }
+                if (bi >= boxes.size) {
+                    // Lines that don't fit are assigned to the last box (will be clipped)
+                    lineBoxIndex[li] = boxes.size - 1
+                    lineIndexInBox[li] = lic
+                } else {
+                    lineBoxIndex[li] = bi
+                    lineIndexInBox[li] = lic
+                }
+                lic++
+            }
+        }
+
+        // Count total lines per box
+        val linesPerBox = IntArray(boxes.size)
+        for (li in 0 until totalLines) {
+            if (lineBoxIndex[li] < boxes.size) {
+                linesPerBox[lineBoxIndex[li]]++
+            }
+        }
 
         for (lineIdx in 0 until bpChain.size - 1) {
+            val currentBoxIndex = lineBoxIndex[lineIdx]
+            if (currentBoxIndex >= boxes.size) break
+
+            val box = boxes[currentBoxIndex]
+            val lineWidth = box.width
+            val linesInCurrentBox = lineIndexInBox[lineIdx]
+            val totalLinesInBox = linesPerBox[currentBoxIndex]
+
+            val totalTextHeightInBox = face.ascent + (totalLinesInBox - 1).coerceAtLeast(0) * lineHeight - face.descent
+            val verticalOffset = (box.height - totalTextHeightInBox) * style.verticalAlign
+            val y = box.y + face.ascent + verticalOffset + linesInCurrentBox * lineHeight
+
             val startBp = bpChain[lineIdx]
             val endBp = bpChain[lineIdx + 1]
             val start = startBp.index
@@ -438,7 +507,6 @@ class SlugTextDrawer {
                 }
             }
 
-            y += lineHeight
         }
     }
 
