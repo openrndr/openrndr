@@ -59,8 +59,8 @@ data class TextStyle(
     val stroke: ColorRGBa? = null,
     val strokeWeight: Double? = null,
 ) {
-    fun cascade(other: TextStyle): TextStyle {
-        return copy(
+    fun cascade(other: TextStyle?): TextStyle {
+        return if (other == null) this else copy(
             face = other.face ?: face,
             sizeInEm = other.sizeInEm ?: sizeInEm,
             justify = other.justify ?: justify,
@@ -167,6 +167,7 @@ class SlugTextDrawer {
     fun addText(text: String, box: Rectangle, style: TextStyle = TextStyle()) {
         addText(text, listOf(box), style)
     }
+
 
     fun addText(text: String, boxes: List<Rectangle>, style: TextStyle = TextStyle()) {
         require(boxes.isNotEmpty()) { "boxes must not be empty" }
@@ -477,10 +478,10 @@ class SlugTextDrawer {
                             val command = SlugCommand(
                                 slugIndex,
                                 transform {
-                                    translate(cursor + sr.offset * 0.0)
+                                    translate(cursor + sr.offset * 0.0 + Vector2(0.0, style.baselineShiftInEm ?: 0.0))
                                 },
-                                ColorRGBa.WHITE,
-                                ColorRGBa.TRANSPARENT,
+                                style.fill,
+                                style.stroke,
                                 0.0,
                             )
                             commands.add(command)

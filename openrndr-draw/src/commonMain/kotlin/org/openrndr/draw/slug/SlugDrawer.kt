@@ -15,7 +15,7 @@ import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
 
 @JvmRecord
-data class SlugCommand(val slugIndex: Int, val transform: Matrix44, val fill: ColorRGBa, val stroke: ColorRGBa, val strokeWeight: Double)
+data class SlugCommand(val slugIndex: Int, val transform: Matrix44, val fill: ColorRGBa?, val stroke: ColorRGBa?, val strokeWeight: Double)
 
 
 class SlugDrawer {
@@ -186,8 +186,8 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                     write(minmax)
                 }
 
-                write(command.fill)
-                write(command.stroke)
+                write(command.fill ?: ColorRGBa.TRANSPARENT)
+                write(command.stroke ?: ColorRGBa.TRANSPARENT)
                 write(command.strokeWeight.toFloat())
                 write(slugMap.bandIndices[command.slugIndex])
                 write(slugMap.bandCounts[command.slugIndex])
