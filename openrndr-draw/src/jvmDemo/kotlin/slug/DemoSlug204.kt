@@ -21,6 +21,7 @@ import org.openrndr.draw.slug.SlugDrawer
 import org.openrndr.draw.slug.SlugGlyphMap
 import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.slug.SlugTextDrawer
+import org.openrndr.draw.slug.TextStyle
 import org.openrndr.draw.vertexBuffer
 import org.openrndr.draw.vertexFormat
 import org.openrndr.math.Vector2
@@ -60,8 +61,6 @@ fun main() {
                 "ㅇㅅㅇ (ㅎㅅㅎ)",
                 "○○○",
                 "배운 사람 입에서 어찌 ○○○란 말이 나올 수 있느냐?"
-
-
             )
 
             var y = 0.0
@@ -71,8 +70,9 @@ fun main() {
                     Vector2(10.0, y))
             }
 
-            slugTextDrawer.addText(pface, "Hey hoe gaat het?",
-                Rectangle(10.0, 360.0, 350.0, 720.0))
+            slugTextDrawer.addText("Hey hoe gaat het?",
+                Rectangle(10.0, 360.0, 350.0, 720.0), TextStyle(face = pface)
+            )
             extend {
                 slugTextDrawer.draw(drawer)
             }

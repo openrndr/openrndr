@@ -1,33 +1,16 @@
 package slug
 
-import FaceFreetype
 import FontDriverFreetype
 import TextShapingDriverHarfBuzz
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.ColorFormat
-import org.openrndr.draw.ColorType
-import org.openrndr.draw.DrawPrimitive
-import org.openrndr.draw.MagnifyingFilter
-import org.openrndr.draw.MinifyingFilter
-import org.openrndr.draw.VertexElementType
-import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.isolated
-import org.openrndr.draw.shadeStyle
-import org.openrndr.draw.slug.SlugCommand
-import org.openrndr.draw.slug.SlugDrawer
-import org.openrndr.draw.slug.SlugGlyphMap
-import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.slug.SlugTextDrawer
 import org.openrndr.draw.slug.TextStyle
-import org.openrndr.draw.vertexBuffer
-import org.openrndr.draw.vertexFormat
 import org.openrndr.math.Vector2
-import org.openrndr.math.Vector4
-import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
 
 fun main() {
@@ -47,16 +30,21 @@ fun main() {
 
             val text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
 
-            val box = Rectangle(10.0, 360.0, 350.0, 720.0)
+            val box = Rectangle(10.0, 360.0, 350.0, 360.0)
 
 
-            slugTextDrawer.addText(pface, text,
-                box)
+            slugTextDrawer.addText(text,
+                box, TextStyle(pface, horizontalAlign = 0.5, verticalAlign = 0.5))
 
-            slugTextDrawer.addText(pface, text,
-                box.movedBy(Vector2(360.0, 0.0)), style = TextStyle(true, lineHeight = 1.2)
+            slugTextDrawer.addText(text,
+                box.movedBy(Vector2(360.0, 0.0)), style = TextStyle(pface, justify = true, lineHeightInEm = 1.2)
             )
             extend {
+                drawer.translate(drawer.bounds.center)
+                drawer.scale(1.0 + 2.0 * mouse.position.y / height)
+                drawer.translate(-drawer.bounds.center)
+
+
                 drawer.isolated {
                     drawer.fill = null
                     drawer.stroke = ColorRGBa.PINK
