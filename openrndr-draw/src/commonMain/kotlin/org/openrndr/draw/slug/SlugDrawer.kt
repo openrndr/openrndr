@@ -275,14 +275,19 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                             readBandCurveIndex(hCurveIndex + i, ascending, descending);
                             
                             vec2 a, b, c;
-                            readCurve(ascending, a, b, c);
+                            readCurve(descending, a, b, c);
                             
-                            
+                            #ifdef MULTISAMPLE 
                             for (int s = 0; s < FILTER_SAMPLES; ++s) {
                             vec2 o = float(s-FILTER_SAMPLES/2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
-                            
+                            #else
+                            vec2 o = vec2(0.0); 
+                            int s = 0;
+                            #endif
                             vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
                             vec2 p3 = c - (slugPosition + o);
+                            
+                            if (max(max(p12.x, p12.z), p3.x) * pixelsPerEm.x < -0.5) break;
                             
                             uint code = CalcRootCode(p12.y, p12.w, p3.y);
                             if (code != 0U) {
@@ -306,9 +311,16 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                                 }
 		                    }
                             }
+                        
+                        #ifdef MULTISAMPLE
                         }
                         xcov = (xcovs[0] + xcovs[1] + xcovs[2] + xcovs[3] + xcovs[4]) / 5.0;
                         xwgt = (xwgts[0] + xwgts[1] + xwgts[2] + xwgts[3] + xwgts[4]) / 5.0;
+                        #else 
+                        xcov = xcovs[0];
+                        xwgt = xwgts[0];
+                        #endif
+                        
                         
                         int vCurveCount = 0;
                         int vCurveIndex = 0;
@@ -354,7 +366,9 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
                         ycov = (ycovs[0] + ycovs[1] + ycovs[2] + ycovs[3] + ycovs[4]) / 5.0;
                         ywgt = (ywgts[0] + ywgts[1] + ywgts[2] + ywgts[3] + ywgts[4]) / 5.0;
                         float coverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
-                        x_fill = vec4(1.0, 1.0, 1.0, coverage);
+                        
+                        x_fill = vi_fill;
+                        x_fill.a *= coverage;
                     """
                 parameter("bands", slugMap.bands)
                 parameter("curves", slugMap.curves)
