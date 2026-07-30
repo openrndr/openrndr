@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":openrndr-application"))
     demoImplementation(project(":openrndr-jvm:openrndr-gl3"))
 
+    testImplementation(project(":openrndr-jvm:openrndr-gl3"))
     implementation(libs.lwjgl.freetype)
     implementation(libs.lwjgl.harfbuzz)
     implementation(libs.kotlin.coroutines)
