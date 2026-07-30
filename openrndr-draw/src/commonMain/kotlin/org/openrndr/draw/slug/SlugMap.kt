@@ -44,7 +44,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     fun writeBandHeader(curveCount: Int, offset :Int, band: Int): IntVector2 {
         bandBuffer.put(curveCount.toShort())
         bandBuffer.put(offset.toShort())
-        bandBuffer.put(band.toShort())
+        bandBuffer.put(0.toShort())
         bandBuffer.put(0.toShort())
         bandBuffer.rewind()
         return writeBand(bandBuffer)
@@ -137,13 +137,13 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
         for ((bindex, band) in hbands.withIndex()) {
             for ((cindex, i) in band.first.indices.withIndex()) {
-                writeBandCurveIndex(band.first[i], IntVector2(bindex, cindex))
+                writeBandCurveIndex(band.first[i], band.second[i])
             }
         }
 
         for ((bindex, band) in vbands.withIndex()) {
             for ((cindex, i) in band.first.indices.withIndex()) {
-                writeBandCurveIndex(band.first[i], IntVector2(bindex, cindex))
+                writeBandCurveIndex(band.first[i], band.second[i])
             }
         }
 
