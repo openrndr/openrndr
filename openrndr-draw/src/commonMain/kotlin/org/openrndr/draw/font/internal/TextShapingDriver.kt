@@ -18,6 +18,23 @@ import kotlin.jvm.JvmRecord
 @JvmRecord
 data class ShapeResult(val glyphIndex: Int, val offset: Vector2, val advance: Vector2)
 
+
+@JvmRecord
+data class ShapeFeature(val tag: String, val value: Int, val range: UIntRange = UIntRange(0u, 0xff_ff_ff_ffu)) {
+
+    companion object {
+        val DISABLE_COMMON_LIGATURES = ShapeFeature("clig", 0)
+        val ENABLE_SMALL_CAPS = ShapeFeature("smcp", 1)
+        val ENABLE_ALL_SMALL_CAPS = ShapeFeature("c2sc", 1)
+        val ENABLE_PETITE_CAPS = ShapeFeature("pcap", 1)
+        val ENABLE_UNICASE = ShapeFeature("unic", 1)
+        val ENABLE_TITLING_CAPS = ShapeFeature("titl", 1)
+        val ENABLE_TABULAR_NUMERALS = ShapeFeature("tnum", 1)
+    }
+
+
+}
+
 enum class Direction(val tag: String) {
     LEFT_TO_RIGHT("Ltr"),
     RIGHT_TO_LEFT("Rtl"),
@@ -231,10 +248,58 @@ interface TextShapingDriver {
     fun shape(
         face: Face,
         text: String,
+        features: List<ShapeFeature> = emptyList(),
         direction: Direction? = null,
         script: Script? = null,
-        language: String? = null
+        language: String? = null,
+
     ): List<ShapeResult>
+
+    /**
+     * Queries the substitution features available in the specified font face for a given script.
+     *
+     * Substitution features define how characters or glyphs are replaced or altered in the text
+     * shaping process for the specified script. This method returns a list of feature identifiers
+     * that represent the supported substitution capabilities.
+     *
+     * @param face the font face to query. This specifies the source of typographic data and capabilities.
+     * @param script the script for which substitution features are being queried. It determines
+     *               the writing system context (e.g., Latin, Arabic, Chinese).
+     * @return a list of strings, where each string is an identifier of a supported substitution feature.
+     */
+    fun querySubstitutionFeatures(face: Face, script: Script): List<String>
+
+    /**
+     * Queries the position features available in the specified font face for a given script.
+     *
+     * Position features define adjustments to glyph positioning during text shaping,
+     * such as kerning and positioning relative to baseline or other glyphs. This method
+     * returns a list of feature identifiers that represent the supported positioning
+     * capabilities in the context of the specified script.
+     *
+     * @param face the font face to query. This specifies the source of typographic data
+     *             and capabilities.
+     * @param script the script for which position features are being queried. It determines
+     *               the writing system context (e.g., Latin, Arabic, Chinese).
+     * @return a list of strings, where each string is an identifier of a supported positioning feature.
+     */
+    fun queryPositionFeatures(face: Face, script: Script): List<String>
+
+    /**
+     * Queries the scripts supported by the specified font face.
+     *
+     * This function returns a list of scripts that the given font face can handle during text shaping.
+     * Each script represents a writing system, such as Latin, Arabic, or Chinese, that the font face
+     * supports for rendering text.
+     *
+     * @param face the font face for which the supported scripts are being queried. It determines the
+     *             capabilities and supported writing systems of the font.
+     * @return a list of supported [Script] objects, where each [Script] describes a writing system
+     *         supported by the specified font face.
+     */
+    fun querySupportedScripts(face: Face): List<Script> {
+        return emptyList()
+    }
 
     companion object {
         var driver: TextShapingDriver? = null

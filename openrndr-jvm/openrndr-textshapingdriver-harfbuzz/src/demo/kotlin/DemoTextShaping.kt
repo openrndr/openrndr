@@ -12,6 +12,7 @@ fun main() {
             FontDriver.driver = fontDriver
             val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 64.0, RenderTarget.active.contentScale)
 
+
             val driver = TextShapingDriverHarfBuzz()
             val text = "오픈RNDR"
             val result = driver.shape(face, text)

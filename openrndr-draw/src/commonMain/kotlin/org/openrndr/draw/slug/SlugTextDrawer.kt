@@ -8,6 +8,7 @@ import org.openrndr.draw.MagnifyingFilter
 import org.openrndr.draw.MinifyingFilter
 import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.internal.ShapeFeature
 import org.openrndr.draw.font.internal.ShapeResult
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.math.Vector2
@@ -16,7 +17,7 @@ import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 
-private data class KPBox(val width: Double, val shapeResults: List<ShapeResult>)
+private data class KPBox(val width: Double, val shapeResults: List<ShapeResult>, val style: TextStyle)
 private data class KPGlue(val width: Double, val stretch: Double, val shrink: Double)
 private data class KPPenalty(val width: Double, val penalty: Double, val flagged: Boolean)
 
@@ -51,6 +52,7 @@ data class TextStyle(
     val sizeInEm: Double? = null,
     val justify: Boolean? = null,
     val lineHeightInEm: Double? = null,
+    val textWidthFactor: Double? = null,
     val characterSpacingInEm: Double? = null,
     val baselineShiftInEm: Double? = null,
     val horizontalAlign: Double? = null,
@@ -58,6 +60,7 @@ data class TextStyle(
     val fill: ColorRGBa? = null,
     val stroke: ColorRGBa? = null,
     val strokeWeight: Double? = null,
+    val features: List<ShapeFeature> = emptyList(),
 ) {
     fun cascade(other: TextStyle?): TextStyle {
         return if (other == null) this else copy(
@@ -65,13 +68,15 @@ data class TextStyle(
             sizeInEm = other.sizeInEm ?: sizeInEm,
             justify = other.justify ?: justify,
             lineHeightInEm = other.lineHeightInEm ?: lineHeightInEm,
+            textWidthFactor = other.textWidthFactor ?: textWidthFactor,
             characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm,
             baselineShiftInEm = other.baselineShiftInEm ?: baselineShiftInEm,
             horizontalAlign = other.horizontalAlign ?: horizontalAlign,
             verticalAlign = other.verticalAlign ?: verticalAlign,
             fill = other.fill ?: fill,
             stroke = other.stroke ?: stroke,
-            strokeWeight = other.strokeWeight ?: strokeWeight
+            strokeWeight = other.strokeWeight ?: strokeWeight,
+            features = features + other.features
         )
     }
     companion object {
@@ -79,6 +84,7 @@ data class TextStyle(
             sizeInEm = 1.0,
             justify = false,
             lineHeightInEm = 1.0,
+            textWidthFactor = 1.0,
             characterSpacingInEm = 0.0,
             baselineShiftInEm = 0.0,
             horizontalAlign = 0.0,
@@ -165,75 +171,87 @@ class SlugTextDrawer {
     val styleStack = mutableListOf<TextStyle>()
 
     fun addText(text: String, box: Rectangle, style: TextStyle = TextStyle()) {
-        addText(text, listOf(box), style)
+        addText(listOf(TextSpan(text, style)), listOf(box))
     }
 
-
     fun addText(text: String, boxes: List<Rectangle>, style: TextStyle = TextStyle()) {
+        addText(listOf(TextSpan(text, style)), boxes)
+    }
+
+    fun addText(spans: List<TextSpan>, boxes: List<Rectangle>) {
         require(boxes.isNotEmpty()) { "boxes must not be empty" }
+        require(spans.isNotEmpty()) { "spans must not be empty" }
 
-        val style = this.style.cascade(style)
+        // Resolve the base style from the first span (used for layout-level properties)
+        val baseStyle = this.style.cascade(spans.first().style)
 
-        style.lineHeightInEm ?: error("lineHeightInEm not set")
-        style.verticalAlign ?: error("verticalAlign not set")
-        style.horizontalAlign ?: error("horizontalAlign not set")
-        style.justify ?: error("justify not set")
+        baseStyle.lineHeightInEm ?: error("lineHeightInEm not set")
+        baseStyle.verticalAlign ?: error("verticalAlign not set")
+        baseStyle.horizontalAlign ?: error("horizontalAlign not set")
+        baseStyle.justify ?: error("justify not set")
 
+        val baseFace = baseStyle.face ?: error("face not set")
+        val lineHeight = (baseFace.ascent - baseFace.descent + baseFace.lineGap) * baseStyle.lineHeightInEm
 
-        val face = style.face ?: error("face not set")
-        val lineHeight = (face.ascent - face.descent + face.lineGap) * style.lineHeightInEm
-
-        // Build items list from text (Box, Glue, Penalty per Knuth-Plass)
+        // Build items list from all spans (Box, Glue, Penalty per Knuth-Plass)
         val items = mutableListOf<KPItem>()
-        val words = mutableListOf<String>()
-        val currentWord = StringBuilder()
 
-        for (ch in text) {
-            when (ch) {
-                ' ', '\t' -> {
-                    if (currentWord.isNotEmpty()) {
-                        words.add(currentWord.toString())
-                        currentWord.clear()
+        for (span in spans) {
+            val spanStyle = this.style.cascade(span.style)
+            val face = spanStyle.face ?: error("face not set in span")
+
+            val words = mutableListOf<String>()
+            val currentWord = StringBuilder()
+
+            for (ch in span.text) {
+                when (ch) {
+                    ' ', '\t' -> {
+                        if (currentWord.isNotEmpty()) {
+                            words.add(currentWord.toString())
+                            currentWord.clear()
+                        }
+                        words.add(" ")
                     }
-                    words.add(" ")
-                }
-                '\n' -> {
-                    if (currentWord.isNotEmpty()) {
-                        words.add(currentWord.toString())
-                        currentWord.clear()
+                    '\n' -> {
+                        if (currentWord.isNotEmpty()) {
+                            words.add(currentWord.toString())
+                            currentWord.clear()
+                        }
+                        words.add("\n")
                     }
-                    words.add("\n")
-                }
-                else -> {
-                    currentWord.append(ch)
+                    else -> {
+                        currentWord.append(ch)
+                    }
                 }
             }
-        }
-        if (currentWord.isNotEmpty()) {
-            words.add(currentWord.toString())
-        }
+            if (currentWord.isNotEmpty()) {
+                words.add(currentWord.toString())
+            }
 
-        // Measure space width
-        val spaceGlyph = face.glyphForCharacter(' ')
-        val spaceWidth = spaceGlyph.advanceWidth()
+            // Measure space width for this span's face
+            val spaceGlyph = face.glyphForCharacter(' ')
+            val spaceWidth = spaceGlyph.advanceWidth() * spanStyle.textWidthFactor!! * spanStyle.sizeInEm!!
 
-        for (word in words) {
-            when (word) {
-                " " -> {
-                    items.add(KPItem.Glue(KPGlue(spaceWidth, spaceWidth / 2.0, spaceWidth / 3.0)))
-                }
-                "\n" -> {
-                    items.add(KPItem.Penalty(KPPenalty(0.0, Double.POSITIVE_INFINITY, false)))
-                    items.add(KPItem.Glue(KPGlue(0.0, 10000.0, 0.0)))
-                    items.add(KPItem.Penalty(KPPenalty(0.0, -10000.0, false)))
-                }
-                else -> {
-                    val shaped = shaper.shape(face, word)
-                    var wordWidth = 0.0
-                    for (sr in shaped) {
-                        wordWidth += sr.advance.x
+            for (word in words) {
+                when (word) {
+                    " " -> {
+                        items.add(KPItem.Glue(KPGlue(spaceWidth, spaceWidth / 2.0, spaceWidth / 3.0)))
                     }
-                    items.add(KPItem.Box(KPBox(wordWidth, shaped)))
+                    "\n" -> {
+                        items.add(KPItem.Penalty(KPPenalty(0.0, Double.POSITIVE_INFINITY, false)))
+                        items.add(KPItem.Glue(KPGlue(0.0, 10000.0, 0.0)))
+                        items.add(KPItem.Penalty(KPPenalty(0.0, -10000.0, false)))
+                    }
+                    else -> {
+                        val features = spanStyle.features
+
+                        val shaped = shaper.shape(face, word, features)
+                        var wordWidth = 0.0
+                        for (sr in shaped) {
+                            wordWidth += sr.advance.x * spanStyle.textWidthFactor * spanStyle.sizeInEm
+                        }
+                        items.add(KPItem.Box(KPBox(wordWidth, shaped, spanStyle)))
+                    }
                 }
             }
         }
@@ -245,7 +263,7 @@ class SlugTextDrawer {
 
         // Compute the maximum number of lines that fit across all boxes
         val boxLineCapacities = boxes.map { box ->
-            val maxLines = ((box.height - face.ascent + face.descent) / lineHeight + 1).toInt()
+            val maxLines = ((box.height - baseFace.ascent + baseFace.descent) / lineHeight + 1).toInt()
             maxOf(maxLines, 1)
         }
         val totalAvailableLines = boxLineCapacities.sum()
@@ -422,9 +440,9 @@ class SlugTextDrawer {
             val linesInCurrentBox = lineIndexInBox[lineIdx]
             val totalLinesInBox = linesPerBox[currentBoxIndex]
 
-            val totalTextHeightInBox = face.ascent + (totalLinesInBox - 1).coerceAtLeast(0) * lineHeight - face.descent
-            val verticalOffset = (box.height - totalTextHeightInBox) * style.verticalAlign
-            val y = box.y + face.ascent + verticalOffset + linesInCurrentBox * lineHeight
+            val totalTextHeightInBox = baseFace.ascent + (totalLinesInBox - 1).coerceAtLeast(0) * lineHeight - baseFace.descent
+            val verticalOffset = (box.height - totalTextHeightInBox) * baseStyle.verticalAlign
+            val y = box.y + baseFace.ascent + verticalOffset + linesInCurrentBox * lineHeight
 
             val startBp = bpChain[lineIdx]
             val endBp = bpChain[lineIdx + 1]
@@ -451,7 +469,7 @@ class SlugTextDrawer {
                         is KPItem.Box -> w += itm.box.width
                         is KPItem.Glue -> {
                             val isLastLine = lineIdx == bpChain.size - 2
-                            w += if (!style.justify || isLastLine) {
+                            w += if (!baseStyle.justify || isLastLine) {
                                 if (lr < 0) itm.glue.width + lr * itm.glue.shrink else itm.glue.width
                             } else if (lr >= 0) {
                                 itm.glue.width + lr * itm.glue.stretch
@@ -464,33 +482,38 @@ class SlugTextDrawer {
                 }
                 w
             }
-            val horizontalOffset = (lineWidth - naturalLineWidth) * style.horizontalAlign
+            val horizontalOffset = (lineWidth - naturalLineWidth) * baseStyle.horizontalAlign
             var cursor = Vector2(box.x + horizontalOffset, y)
 
             for (idx in lineStart until end) {
                 when (val itm = items[idx]) {
                     is KPItem.Box -> {
+                        val boxStyle = itm.box.style
+                        val boxFace = boxStyle.face ?: error("face not set")
                         for (sr in itm.box.shapeResults) {
-                            slugGlyphMap.getSlugForGlyphIndex(face, sr.glyphIndex)
+                            slugGlyphMap.getSlugForGlyphIndex(boxFace, sr.glyphIndex)
                         }
                         for (sr in itm.box.shapeResults) {
-                            val slugIndex = slugGlyphMap.getSlugForGlyphIndex(face, sr.glyphIndex)
+                            val slugIndex = slugGlyphMap.getSlugForGlyphIndex(boxFace, sr.glyphIndex)
                             val command = SlugCommand(
                                 slugIndex,
                                 transform {
-                                    translate(cursor + sr.offset * 0.0 + Vector2(0.0, style.baselineShiftInEm ?: 0.0))
+                                    translate(cursor + sr.offset * boxStyle.textWidthFactor!! * boxStyle.sizeInEm!! + Vector2(0.0, -(boxStyle.baselineShiftInEm ?: 0.0) * boxStyle.face.height * boxStyle.sizeInEm))
+                                    if (boxStyle.sizeInEm * boxStyle.textWidthFactor != 1.0) {
+                                        scale(boxStyle.sizeInEm, boxStyle.sizeInEm * boxStyle.textWidthFactor, 1.0)
+                                    }
                                 },
-                                style.fill,
-                                style.stroke,
+                                boxStyle.fill,
+                                boxStyle.stroke,
                                 0.0,
                             )
                             commands.add(command)
-                            cursor += sr.advance
+                            cursor += sr.advance * boxStyle.textWidthFactor!! * boxStyle.sizeInEm!!
                         }
                     }
                     is KPItem.Glue -> {
                         val isLastLine = lineIdx == bpChain.size - 2
-                        val adjustedWidth = if (!style.justify || isLastLine) {
+                        val adjustedWidth = if (!baseStyle.justify || isLastLine) {
                             // When not justified or on the last line, only shrink to prevent overflow
                             if (r < 0) {
                                 itm.glue.width + r * itm.glue.shrink
