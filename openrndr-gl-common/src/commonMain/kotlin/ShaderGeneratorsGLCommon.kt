@@ -913,5 +913,13 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 
     """.trimMargin()
 
+    override fun slugVertexShader(shadeStructure: ShadeStructure): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun slugFragmentShader(shadeStructure: ShadeStructure): String {
+        TODO("Not yet implemented")
+    }
+
 
 }
