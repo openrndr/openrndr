@@ -39,4 +39,7 @@ interface ShaderGenerators {
 
     fun filterVertexShader(shadeStructure: ShadeStructure): String
     fun filterFragmentShader(shadeStructure: ShadeStructure): String
+
+    fun slugVertexShader(shadeStructure: ShadeStructure): String
+    fun slugFragmentShader(shadeStructure: ShadeStructure): String
 }
