@@ -10,6 +10,7 @@ import org.openrndr.shape.toQuadratics
 import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.math.ceil
 import kotlin.math.sqrt
+import kotlin.time.Clock
 
 
 class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
@@ -21,10 +22,17 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     val bandIndices = mutableListOf<IntVector2>()
 
     fun writeCoordinates(buffer: MPPBuffer, point: Int) {
-        val x = (totalSegments * 3 + point).mod(curves.width)
-        val y = (totalSegments * 3 + point) / curves.width
+        if (curveRowBuffer.position() == curves.width * 8) {
+            flushCurves()
+        }
+        val x = (curveIndex + curveRowBuffer.position() / 8).mod(curves.width)
+        val y = (curveIndex + curveRowBuffer.position() / 8) / curves.width
         require(y < curves.height)
-        curves.write(buffer, x = x, y = y, width = 1, height = 1)
+
+        buffer.rewind()
+        for (i in 0 until 8) {
+            curveRowBuffer.put(buffer.get())
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -32,16 +40,74 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     }
 
     private var bandIndex = 0
+    private var bandRowBuffer = MPPBuffer.allocate(bands.width * 8)
+
+    private var curveIndex = 0
+    private var curveRowBuffer = MPPBuffer.allocate(curves.width * 8)
+
+    fun flushCurves() {
+        var x = (curveIndex).mod(curves.width)
+        var y = (curveIndex) / curves.width
+        var bufferedCount = (curveRowBuffer.position() / 8)
+        if (bufferedCount > 0) {
+            curveRowBuffer.flip()
+            while (bufferedCount > 0) {
+                val remainingInRow = curves.width - x
+                val width = bufferedCount.coerceAtMost(remainingInRow)
+                curves.write(curveRowBuffer, x = x, y = y, width = width, height = 1)
+                curveIndex += width
+                bufferedCount -= width
+
+                x = (curveIndex).mod(curves.width)
+                y = (curveIndex) / curves.width
+                curveRowBuffer.position(curveRowBuffer.position() + width * 8)
+            }
+            curveRowBuffer.rewind()
+            curveRowBuffer.limit(curves.width * 8)
+        }
+    }
+
+    fun flushBands() {
+        var x = (bandIndex).mod(bands.width)
+        var y = (bandIndex) / bands.width
+        var bufferedCount = (bandRowBuffer.position() / 8)
+        if (bufferedCount > 0) {
+            bandRowBuffer.flip()
+            while (bufferedCount > 0) {
+                val remainingInRow = bands.width - x
+                val width = bufferedCount.coerceAtMost(remainingInRow)
+                bands.write(bandRowBuffer, x = x, y = y, width = width, height = 1)
+                bandIndex += width
+                bufferedCount -= width
+
+                x = (bandIndex).mod(bands.width)
+                y = (bandIndex) / bands.width
+                bandRowBuffer.position(bandRowBuffer.position() + width * 8)
+            }
+            bandRowBuffer.rewind()
+            bandRowBuffer.limit(bands.width * 8)
+        }
+    }
+
     fun writeBand(buffer: MPPBuffer): IntVector2 {
-        val x = (bandIndex).mod(bands.width)
-        val y = (bandIndex) / bands.width
+        if (bandRowBuffer.position() == bands.width * 8) {
+            flushBands()
+        }
+
+        val x = (bandIndex + bandRowBuffer.position() / 8).mod(bands.width)
+        val y = (bandIndex + bandRowBuffer.position() / 8) / bands.width
         require(y < bands.height)
-        bands.write(buffer, x = x, y = y, width = 1, height = 1)
-        bandIndex++
+
+        buffer.rewind()
+        for (i in 0 until 8) {
+            bandRowBuffer.put(buffer.get())
+        }
+
         return IntVector2(x, y)
     }
 
     fun writeBandHeader(curveCount: Int, offset :Int, band: Int): IntVector2 {
+        bandBuffer.rewind()
         bandBuffer.put(curveCount.toShort())
         bandBuffer.put(offset.toShort())
         bandBuffer.put(0.toShort())
@@ -51,6 +117,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     }
 
     fun writeBandCurveIndex(ascending: IntVector2, descending: IntVector2): IntVector2 {
+        bandBuffer.rewind()
         bandBuffer.put(ascending.x.toShort())
         bandBuffer.put(ascending.y.toShort())
         bandBuffer.put(descending.x.toShort())
@@ -66,16 +133,19 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
         val x = (totalSegments * 3).mod(curves.width)
         val y = (totalSegments * 3) / curves.width
+        buffer.rewind()
         buffer.putFloat(segment.start.x.toFloat())
         buffer.putFloat(segment.start.y.toFloat())
         buffer.rewind()
         writeCoordinates(buffer, 0)
 
+        buffer.rewind()
         buffer.putFloat(segment.control[0].x.toFloat())
         buffer.putFloat(segment.control[0].y.toFloat())
         buffer.rewind()
         writeCoordinates(buffer, 1)
 
+        buffer.rewind()
         buffer.putFloat(segment.end.x.toFloat())
         buffer.putFloat(segment.end.y.toFloat())
         buffer.rewind()
@@ -87,7 +157,8 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     }
 
     fun bandIndex(): IntVector2 {
-        return IntVector2(bandIndex.mod(bands.width), bandIndex / bands.width)
+        val totalIndex = bandIndex + bandRowBuffer.position() / 8
+        return IntVector2(totalIndex.mod(bands.width), totalIndex / bands.width)
     }
 
     fun addShape(shape: Shape, quadraticTolerance: Double = 1.0): Int {
@@ -147,6 +218,8 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
             }
         }
 
+        flushCurves()
+        flushBands()
         shapes++
         return shapes - 1
     }
