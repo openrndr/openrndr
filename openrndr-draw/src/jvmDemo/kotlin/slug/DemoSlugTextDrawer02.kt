@@ -48,8 +48,12 @@ fun main() {
             spans.add(TextSpan(text, TextStyle(f2)))
             spans.add(TextSpan("로렘 입숨 돌로르 싯 아멧 ", TextStyle(f1, fill = ColorRGBa.PINK)))
             spans.add(TextSpan("ロレム イプサム ドロール シット アメット", TextStyle(f1, fill = ColorRGBa.PINK)))
-            slugTextDrawer.addText(spans, listOf(box, box2))
 
+            val start = System.currentTimeMillis()
+            slugTextDrawer.addText(spans, listOf(box, box2))
+            val end = System.currentTimeMillis()
+
+            println("setting and font slugging: ${end - start}ms")
             extend {
                 drawer.translate(drawer.bounds.center)
                 drawer.scale(1.0 + 2.0 * mouse.position.y / height)
