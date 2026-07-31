@@ -482,9 +482,9 @@ data class Segment2D(
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
     /** Returns the bounding box. */
-    val bounds: Rectangle
-        get() = (listOf(start, end) + extremaPoints()).bounds
-
+    val bounds by lazy {
+        (listOf(start, end) + extremaPoints()).bounds
+    }
 
     private fun dPoints(): List<List<Vector2>> {
         val points = listOf(start) + control + listOf(end)
