@@ -200,8 +200,49 @@ float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags)
     fun draw(drawer: Drawer, slugMap: SlugMap) {
         drawer.isolated {
             drawer.shadeStyle = shadeStyle {
+
+                vertexPreamble = """
+vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 dim, out vec2 vpos)
+{
+	vec2 n = normalize(pos.zw);
+	float s = dot(m3.xy, pos.xy) + m3.w;
+	float t = dot(m3.xy, n);
+
+	float u = (s * dot(m0.xy, n) - t * (dot(m0.xy, pos.xy) + m0.w)) * dim.x;
+	float v = (s * dot(m1.xy, n) - t * (dot(m1.xy, pos.xy) + m1.w)) * dim.y;
+
+	float s2 = s * s;
+	float st = s * t;
+	float uv = u * u + v * v;   
+	vec2 d = pos.zw * (s2 * (st + sqrt(uv)) / (uv - st * st));
+
+	vpos = pos.xy + d;
+	return (vec2(tex.x + dot(d, jac.xy), tex.y + dot(d, jac.zw)));
+}                    
+                """
+                vertexPreamble = """
+                    out vec2 v_dilatedTexCoord;
+                """.trimIndent()
                 vertexTransform = """
-                        x_position = vec3(mix(i_slugBounds.xy, i_slugBounds.zw, a_texCoord0.xy), 0.0);
+                    vec2 p;
+                    x_position = vec3(mix(i_slugBounds.xy, i_slugBounds.zw, a_texCoord0.xy), 0.0);
+                    mat4 mvp = u_projectionMatrix * u_viewMatrix * i_transform;
+                    
+                    vec4 pos = vec4(x_position.xy, 0.0, 0.0);
+                    vec4 jac = vec4(i_transform[0][0], i_transform[0][1], i_transform[1][0], i_transform[1][1]);
+                    
+                    //float2 SlugDilate(float4 pos, float4 tex, float4 jac, float4 m0, float4 m1, float4 m3, float2 dim, out float2 vpos)
+                    // pos.xy = object-space vertex coordinates.
+                    // pos.zw = object-space normal vector.
+
+                    // tex.xy = em-space sample coordinates.
+                    // tex.z = location of glyph data in band texture (interpreted as integer):
+                    // jac - upper left part of i_transform
+                        
+                        vec2 dim = vec2(1440.0, 1440.0);
+
+                    
+                        
                         x_position = (i_transform * vec4(x_position, 1.0)).xyz;
                     """
 
