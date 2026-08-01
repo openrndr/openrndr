@@ -21,7 +21,50 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     val bounds = mutableListOf<Rectangle>()
     val bandIndices = mutableListOf<IntVector2>()
 
-    fun writeCoordinates(buffer: MPPBuffer, point: Int) {
+    private var batching = false
+
+    /**
+     * Begins a new batching operation for the SlugMap.
+     * 
+     * Batching mode accumulates curve and band data in memory buffers instead of immediately
+     * writing them to GPU textures after each shape is added. This significantly reduces the
+     * number of texture write operations, which are expensive GPU operations, by deferring
+     * all writes until [endBatch] is called.
+     * 
+     * This is particularly beneficial and advised when generating slugmaps dynamically at runtime
+     * (online generation), such as when processing multiple glyphs or shapes in sequence. Instead
+     * of performing one texture write per shape, batching allows all accumulated data to be written
+     * in fewer, larger operations when the batch is complete.
+     * 
+     * Usage pattern:
+     * ```
+     * slugMap.startBatch()
+     * // Add multiple shapes
+     * slugMap.addShape(shape1)
+     * slugMap.addShape(shape2)
+     * slugMap.addShape(shape3)
+     * slugMap.endBatch()  // All data written to GPU textures at once
+     * ```
+     * 
+     * This method ensures that the batching process is not already active by 
+     * requiring the `batching` property to be `false`. If the condition is met, 
+     * it sets the `batching` property to `true`, marking the start of a new batch.
+     *
+     * @throws IllegalArgumentException if batching is already active (i.e., `batching` is `true`).
+     * @see endBatch
+     */
+    fun startBatch() {
+        require(!batching)
+        batching = true
+    }
+
+    fun endBatch() {
+        require(batching)
+        flushCurves()
+        flushBands()
+    }
+
+    private fun writeCoordinates(buffer: MPPBuffer, point: Int) {
         if (curveRowBuffer.position() == curves.width * 8) {
             flushCurves()
         }
@@ -35,9 +78,6 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other)
-    }
 
     private var bandIndex = 0
     private var bandRowBuffer = MPPBuffer.allocate(bands.width * 8)
@@ -45,7 +85,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     private var curveIndex = 0
     private var curveRowBuffer = MPPBuffer.allocate(curves.width * 8)
 
-    fun flushCurves() {
+    private fun flushCurves() {
         var x = (curveIndex).mod(curves.width)
         var y = (curveIndex) / curves.width
         var bufferedCount = (curveRowBuffer.position() / 8)
@@ -67,7 +107,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         }
     }
 
-    fun flushBands() {
+    private fun flushBands() {
         var x = (bandIndex).mod(bands.width)
         var y = (bandIndex) / bands.width
         var bufferedCount = (bandRowBuffer.position() / 8)
@@ -89,7 +129,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         }
     }
 
-    fun writeBand(buffer: MPPBuffer): IntVector2 {
+    private fun writeBand(buffer: MPPBuffer): IntVector2 {
         if (bandRowBuffer.position() == bands.width * 8) {
             flushBands()
         }
@@ -106,7 +146,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         return IntVector2(x, y)
     }
 
-    fun writeBandHeader(curveCount: Int, offset :Int, band: Int): IntVector2 {
+    private fun writeBandHeader(curveCount: Int, offset: Int, band: Int): IntVector2 {
         bandBuffer.rewind()
         bandBuffer.put(curveCount.toShort())
         bandBuffer.put(offset.toShort())
@@ -116,7 +156,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         return writeBand(bandBuffer)
     }
 
-    fun writeBandCurveIndex(ascending: IntVector2, descending: IntVector2): IntVector2 {
+    private fun writeBandCurveIndex(ascending: IntVector2, descending: IntVector2): IntVector2 {
         bandBuffer.rewind()
         bandBuffer.put(ascending.x.toShort())
         bandBuffer.put(ascending.y.toShort())
@@ -129,7 +169,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     val buffer = MPPBuffer.allocate(2 * 4)
     val bandBuffer = MPPBuffer.allocate(2 * 4)
 
-    fun writeCurve(segment: Segment2D): IntVector2 {
+    private fun writeCurve(segment: Segment2D): IntVector2 {
 
         val x = (totalSegments * 3).mod(curves.width)
         val y = (totalSegments * 3) / curves.width
@@ -156,13 +196,13 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
     }
 
-    fun bandIndex(): IntVector2 {
+    private fun bandIndex(): IntVector2 {
         val totalIndex = bandIndex + bandRowBuffer.position() / 8
         return IntVector2(totalIndex.mod(bands.width), totalIndex / bands.width)
     }
 
     fun addShape(shape: Shape, quadraticTolerance: Double = 1.0): Int {
-        var segments = shape.contours.flatMap { it.segments.flatMap { it.toQuadratics(quadraticTolerance) } }
+        val segments = shape.contours.flatMap { it.segments.flatMap { it.toQuadratics(quadraticTolerance) } }
 
         val bandCount = ceil(sqrt(segments.size.toDouble())).toInt().coerceIn(4..16)
 
@@ -177,10 +217,10 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         val hbands = (0 until bandCount).map { y ->
             val band = Rectangle(
                 bounds.x - 1.0,
-                bounds.y + (bounds.height * y) / bandCount,
+                bounds.y + (bounds.height * y) / bandCount - 1.0,
                 bounds.width + 2.0,
-                bounds.height / bandCount
-            ).offsetEdges(0.0, 1.0)
+                bounds.height / bandCount + 2.0
+            )
             val bandCurves = (segments.indices).filter { segments[it].bounds.intersects(band) }
 
             val asc = bandCurves.sortedBy { segments[it].bounds.x }
@@ -192,11 +232,11 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
         val vbands = (0 until bandCount).map { x ->
             val band = Rectangle(
-                bounds.x + (bounds.width * x) / bandCount,
+                bounds.x + (bounds.width * x) / bandCount - 1.0,
                 bounds.y - 1.0,
-                bounds.width / bandCount,
+                bounds.width / bandCount + 2.0,
                 bounds.height + 2.0
-            ).offsetEdges(1.0, 0.0)
+            )
             val bandSegments = (segments.indices).filter { segments[it].bounds.intersects(band) }
 
             val asc = bandSegments.sortedBy { segments[it].bounds.y }
@@ -218,31 +258,11 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
             }
         }
 
-        flushCurves()
-        flushBands()
+        if (!batching) {
+            flushCurves()
+            flushBands()
+        }
         shapes++
         return shapes - 1
     }
 }
-
-class SlugGlyphMap(val slugMap: SlugMap, val glyphs: MutableMap<Int, Int> = mutableMapOf()) {
-
-    private fun hash(face: Face, index: Int): Int {
-        return face.hashCode() * 31 + index.hashCode()
-    }
-
-    fun getSlugForGlyphIndex(face: Face, index: Int): Int {
-        return glyphs.getOrPut(hash(face, index)) {
-            val glyph = face.glyphForIndex(index)
-            slugMap.addShape(glyph.shape())
-        }
-    }
-
-    fun getGlyph(face: Face, char: Char): Int {
-        val glyph = face.glyphForCharacter(char)
-        return glyphs.getOrPut(hash(face, glyph.index)) {
-            slugMap.addShape(glyph.shape())
-        }
-    }
-}
-

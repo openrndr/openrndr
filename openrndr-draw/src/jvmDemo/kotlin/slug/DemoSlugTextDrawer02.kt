@@ -50,7 +50,9 @@ fun main() {
             spans.add(TextSpan("ロレム イプサム ドロール シット アメット", TextStyle(f1, fill = ColorRGBa.PINK)))
 
             val start = System.currentTimeMillis()
+            slugTextDrawer.startBatch()
             slugTextDrawer.addText(spans, listOf(box, box2))
+            slugTextDrawer.endBatch()
             val end = System.currentTimeMillis()
 
             println("setting and font slugging: ${end - start}ms")
