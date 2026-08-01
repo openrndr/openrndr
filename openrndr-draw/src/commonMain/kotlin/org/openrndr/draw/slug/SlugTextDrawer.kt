@@ -94,81 +94,36 @@ data class TextStyle(
     }
 }
 
-class MutableTextStyle(
-    var face: Face? = null,
-    var sizeInEm: Double? = 1.0,
-    var justify: Boolean = false,
-    var lineHeight: Double = 1.0,
-    var characterSpacingInEm: Double = 0.0,
-    var baselineShiftInEm: Double = 0.0,
-    var horizontalAlign: Double = 0.0,
-    var verticalAlign: Double = 0.0,
-    var fill: ColorRGBa? = null,
-    var stroke: ColorRGBa? = null,
-    var strokeWeight: Double? = null
-) {
-
-    fun cascade(other: TextStyle) {
-        face = other.face ?: face
-        sizeInEm = other.sizeInEm ?: sizeInEm
-        justify = other.justify ?: justify
-        lineHeight = other.lineHeightInEm ?: lineHeight
-        characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm
-        horizontalAlign = other.horizontalAlign ?: horizontalAlign
-        verticalAlign = other.verticalAlign ?: verticalAlign
-        fill = other.fill ?: fill
-        stroke = other.stroke ?: stroke
-        strokeWeight = other.strokeWeight ?: strokeWeight
-    }
-
-    fun cascade(other: MutableTextStyle) {
-        face = other.face ?: face
-        sizeInEm = other.sizeInEm ?: sizeInEm
-        justify = other.justify ?: justify
-        lineHeight = other.lineHeight ?: lineHeight
-        characterSpacingInEm = other.characterSpacingInEm ?: characterSpacingInEm
-        horizontalAlign = other.horizontalAlign ?: horizontalAlign
-        verticalAlign = other.verticalAlign ?: verticalAlign
-        fill = other.fill ?: fill
-        stroke = other.stroke ?: stroke
-        strokeWeight = other.strokeWeight ?: strokeWeight
-    }
-
-
-}
-
 data class TextSpan(val text: String, val style: TextStyle?)
 
-data class TextBox(val box: Rectangle, val spans: List<TextSpan>)
 
 class SlugTextDrawer {
 
+    fun startBatch() {
+        slugMap.startBatch()
+    }
+
+    fun endBatch() {
+        slugMap.endBatch()
+    }
+
     val shaper = TextShapingDriver.instance
 
-    val slugMap = SlugMap(
+    private val slugMap = SlugMap(
         colorBuffer(4096, 64, type = ColorType.FLOAT32, format = ColorFormat.RG),
         colorBuffer(4096, 64, type = ColorType.UINT16_INT, format = ColorFormat.RGBa)
     ).apply {
         bands.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
     }
 
-    val slugGlyphMap = SlugGlyphMap(slugMap)
+    private val slugGlyphMap = SlugGlyphMap(slugMap)
 
-    val slugDrawer = SlugDrawer()
+    private val slugDrawer = SlugDrawer()
 
     val commands = mutableListOf<SlugCommand>()
 
     var style = TextStyle.Defaults
 
-    fun pushStyle() {
-        styleStack.add(style)
-    }
-
-    fun popStyle() {
-        style = styleStack.removeLast()
-    }
-
-    val styleStack = mutableListOf<TextStyle>()
 
     fun addText(text: String, box: Rectangle, style: TextStyle = TextStyle()) {
         addText(listOf(TextSpan(text, style)), listOf(box))
