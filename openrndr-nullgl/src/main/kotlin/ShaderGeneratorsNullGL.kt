@@ -91,4 +91,12 @@ class ShaderGeneratorsNullGL : ShaderGenerators {
     override fun filterFragmentShader(shadeStructure: ShadeStructure): String {
         return ""
     }
+
+    override fun slugVertexShader(shadeStructure: ShadeStructure): String {
+        return ""
+    }
+
+    override fun slugFragmentShader(shadeStructure: ShadeStructure): String {
+        return ""
+    }
 }
