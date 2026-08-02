@@ -35,10 +35,15 @@ fun main() {
                 val shape5 = Shape(listOf(c0, c1))
 
                 val colors = List(10000) {
-                    ColorRGBa(Random.nextDouble(), Random.nextDouble(), Random.nextDouble(), 1.0)
+                    ColorRGBa(Random.nextDouble(), Random.nextDouble(), Random.nextDouble(), Random.nextDouble())
                 }
                 val shapes = listOf(shape, shape2, shape3, shape4, shape5)
                 extend {
+
+                    drawer.translate(drawer.bounds.center)
+                    drawer.scale(1.0 + 3.0 * mouse.position.y / height)
+                    drawer.translate(-drawer.bounds.center)
+
                     val seconds = seconds * 0.1
                     slugShapeDrawer.clear()
                     for (i in 0 until 10000) {
@@ -52,11 +57,7 @@ fun main() {
                         }, colors[i])
                     }
                     slugShapeDrawer.draw(drawer)
-
-
                 }
-
-
             }
         }
     }

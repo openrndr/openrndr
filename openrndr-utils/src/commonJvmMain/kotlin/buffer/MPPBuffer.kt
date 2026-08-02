@@ -78,6 +78,10 @@ actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
         byteBuffer.put(ubyte.toByte())
     }
 
+    actual fun put(buffer: MPPBuffer) {
+        byteBuffer.put(buffer.byteBuffer)
+    }
+
     actual fun put(short: Short) {
         byteBuffer.putShort(short)
     }
