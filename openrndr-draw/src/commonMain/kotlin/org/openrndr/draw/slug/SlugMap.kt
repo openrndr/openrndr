@@ -73,9 +73,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         require(y < curves.height)
 
         buffer.rewind()
-        for (i in 0 until 8) {
-            curveRowBuffer.put(buffer.get())
-        }
+        curveRowBuffer.put(buffer)
     }
 
 
@@ -139,9 +137,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         require(y < bands.height)
 
         buffer.rewind()
-        for (i in 0 until 8) {
-            bandRowBuffer.put(buffer.get())
-        }
+        bandRowBuffer.put(buffer)
 
         return IntVector2(x, y)
     }
