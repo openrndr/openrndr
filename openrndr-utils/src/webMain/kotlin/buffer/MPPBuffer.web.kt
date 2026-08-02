@@ -118,6 +118,14 @@ actual class MPPBuffer(val dataView: DataView<ArrayBuffer>) {
         dataView.setUint8(offset, ubyte.toByte())
         offset++
     }
+
+    actual fun put(buffer: MPPBuffer) {
+        val sourceRemaining = buffer.remaining()
+        for (i in 0 until sourceRemaining) {
+            put(buffer.get())
+        }
+    }
+
     actual fun put(short: Short) {
         dataView.setInt16(offset, short, littleEndian = true)
         offset += 2

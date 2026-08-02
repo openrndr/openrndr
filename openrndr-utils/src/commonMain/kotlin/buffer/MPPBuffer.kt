@@ -19,8 +19,10 @@ expect class MPPBuffer {
     fun position(newPosition: Int)
     fun flip()
 
+
     fun put(byte: Byte)
     fun put(ubyte: UByte)
+    fun put(buffer: MPPBuffer)
 
     fun put(short: Short)
     fun put(ushort: UShort)
