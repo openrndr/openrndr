@@ -37,6 +37,14 @@ private data class KPBreakpoint(
     val previous: KPBreakpoint?
 )
 
+enum class StrokeMode(val mode: Int) {
+    CENTER(0),
+    INNER(1),
+    OUTER(2),
+    ERODE(3),
+
+}
+
 /**
  * Represents a style configuration for text rendering.
  *
@@ -60,6 +68,7 @@ data class TextStyle(
     val fill: ColorRGBa? = null,
     val stroke: ColorRGBa? = null,
     val strokeWeight: Double? = null,
+    val strokeMode: StrokeMode? = null,
     val features: List<ShapeFeature> = emptyList(),
 ) {
     fun cascade(other: TextStyle?): TextStyle {
@@ -76,6 +85,7 @@ data class TextStyle(
             fill = other.fill ?: fill,
             stroke = other.stroke ?: stroke,
             strokeWeight = other.strokeWeight ?: strokeWeight,
+            strokeMode = other.strokeMode ?: strokeMode,
             features = features + other.features
         )
     }
@@ -90,6 +100,7 @@ data class TextStyle(
             horizontalAlign = 0.0,
             verticalAlign = 0.0,
             fill = ColorRGBa.WHITE,
+            strokeMode = StrokeMode.CENTER
         )
     }
 }
@@ -460,7 +471,8 @@ class SlugTextDrawer {
                                 },
                                 boxStyle.fill,
                                 boxStyle.stroke,
-                                0.0,
+                                boxStyle.strokeWeight ?: 0.0,
+                                strokeMode =  (boxStyle.strokeMode ?: StrokeMode.CENTER).mode
                             )
                             commands.add(command)
                             cursor += sr.advance * boxStyle.textWidthFactor!! * boxStyle.sizeInEm!!
