@@ -10,6 +10,7 @@ import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.isolated
 import org.openrndr.draw.slug.SlugTextDrawer
+import org.openrndr.draw.slug.StrokeMode
 import org.openrndr.draw.slug.TextSpan
 import org.openrndr.draw.slug.TextStyle
 import org.openrndr.internal.Driver
@@ -44,8 +45,8 @@ fun main() {
 
             val spans = mutableListOf<TextSpan>()
             spans.add(TextSpan("Hello ", TextStyle(f2, fill = ColorRGBa.RED)))
-            spans.add(TextSpan("World! ", TextStyle(f2, fill = ColorRGBa.PINK)))
-            spans.add(TextSpan(text, TextStyle(f2)))
+            spans.add(TextSpan("World! ", TextStyle(f2, fill = ColorRGBa.TRANSPARENT, strokeWeight = 1.0, stroke = ColorRGBa.RED, strokeMode = StrokeMode.INNER)))
+            spans.add(TextSpan(text, TextStyle(f2, fill = ColorRGBa.GRAY.shade(0.5), strokeWeight = 2.0, stroke = ColorRGBa.RED, strokeMode = StrokeMode.OUTER)))
             spans.add(TextSpan("로렘 입숨 돌로르 싯 아멧 ", TextStyle(f1, fill = ColorRGBa.PINK)))
             spans.add(TextSpan("ロレム イプサム ドロール シット アメット", TextStyle(f1, fill = ColorRGBa.PINK)))
 
