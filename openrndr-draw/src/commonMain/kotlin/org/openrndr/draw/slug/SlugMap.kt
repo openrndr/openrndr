@@ -60,6 +60,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
     fun endBatch() {
         require(batching)
+        batching = false
         flushCurves()
         flushBands()
     }

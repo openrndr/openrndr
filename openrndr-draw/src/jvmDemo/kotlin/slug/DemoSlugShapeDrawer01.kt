@@ -54,7 +54,7 @@ fun main() {
                             )
                             rotate(seconds * 1000.0 + i)
                             //scale(cos(seconds + i * 0.9432) * 1.0 + 3.0)
-                        }, colors[i])
+                        }, colors[i], stroke = ColorRGBa.WHITE, strokeWeight = 0.5)
                     }
                     slugShapeDrawer.draw(drawer)
                 }
