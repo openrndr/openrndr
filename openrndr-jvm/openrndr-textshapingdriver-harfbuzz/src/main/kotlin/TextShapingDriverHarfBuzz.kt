@@ -1,3 +1,5 @@
+package org.openrndr.textshapingdriver.harfbuzz
+
 import org.lwjgl.BufferUtils
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryUtil
@@ -23,6 +25,7 @@ import org.openrndr.draw.font.internal.Script
 import org.openrndr.draw.font.internal.ShapeFeature
 import org.openrndr.draw.font.internal.ShapeResult
 import org.openrndr.draw.font.internal.TextShapingDriver
+import org.openrndr.fontdriver.freetype.FaceFreetype
 import org.openrndr.math.Vector2
 import java.nio.IntBuffer
 import kotlin.code
