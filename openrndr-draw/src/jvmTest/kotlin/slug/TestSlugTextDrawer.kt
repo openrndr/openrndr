@@ -1,13 +1,13 @@
 package slug
 
 import AbstractApplicationTestFixture
-import FontDriverFreetype
-import TextShapingDriverHarfBuzz
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.slug.SlugTextDrawer
 import org.openrndr.draw.slug.TextStyle
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import kotlin.test.*
