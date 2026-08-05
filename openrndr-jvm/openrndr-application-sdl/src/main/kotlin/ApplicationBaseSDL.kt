@@ -23,7 +23,8 @@ import org.openrndr.Configuration
 import org.openrndr.Display
 import org.openrndr.Program
 import org.openrndr.draw.font.internal.FontDriver
-import org.openrndr.fontdriver.stb.FontDriverStbTt
+import org.openrndr.draw.font.internal.TextShapingDriver
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.gl3.DriverGL3Configuration
@@ -33,6 +34,7 @@ import org.openrndr.internal.gl3.ImageDriverStbImage
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 private val logger = KotlinLogging.logger { }
 
@@ -102,7 +104,8 @@ class ApplicationBaseSDL : ApplicationBase() {
         }
         KeyboardDriver.driver = KeyboardDriverSDL()
         ImageDriver.driver = ImageDriverStbImage()
-        FontDriver.driver = FontDriverStbTt()
+        FontDriver.driver = FontDriverFreetype()
+        TextShapingDriver.driver = TextShapingDriverHarfBuzz()
     }
 
      fun close() {
