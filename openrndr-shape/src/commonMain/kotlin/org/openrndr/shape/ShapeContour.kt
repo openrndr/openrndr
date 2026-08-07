@@ -233,7 +233,7 @@ data class ShapeContour(
      * @param t The value of t in the range of `0.0` to `1.0` at which to return the pose at.
      */
     @Suppress("unused")
-    fun pose(t: Double): Matrix44 {
+    fun pose(t: Double, polarity: YPolarity = this.polarity): Matrix44 {
         val n = normal(t)
         val dx = n.perpendicular(polarity).xy0.xyz0
         val dy = n.xy0.xyz0
