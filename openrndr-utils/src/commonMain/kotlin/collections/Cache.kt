@@ -1,4 +1,4 @@
-package org.openrndr.internal.glcommon
+package org.openrndr.utils.collections
 
 class LRUCache<K, V>(val capacity: Int = 1_000) {
     val map = mutableMapOf<K, V>()

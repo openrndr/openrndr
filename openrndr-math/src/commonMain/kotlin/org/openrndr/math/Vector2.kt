@@ -12,7 +12,12 @@ import kotlin.math.*
  */
 enum class YPolarity {
     CCW_POSITIVE_Y,
-    CW_NEGATIVE_Y
+    CW_NEGATIVE_Y;
+
+    fun inverse() = when (this) {
+        CCW_POSITIVE_Y -> CW_NEGATIVE_Y
+        CW_NEGATIVE_Y -> CCW_POSITIVE_Y
+    }
 }
 
 
