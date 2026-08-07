@@ -8,6 +8,13 @@ import org.lwjgl.sdl.SDLStdinc.SDL_free
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Rect
 import org.openrndr.*
+import org.openrndr.Application
+import org.openrndr.ApplicationBase
+import org.openrndr.ApplicationConfiguration
+import org.openrndr.Configuration
+import org.openrndr.Display
+import org.openrndr.Program
+import org.openrndr.draw.font.internal.CachingTextShapingDriver
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
@@ -98,7 +105,7 @@ class ApplicationBaseSDL : ApplicationBase() {
         KeyboardDriver.driver = KeyboardDriverSDL()
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverFreetype()
-        TextShapingDriver.driver = TextShapingDriverHarfBuzz()
+        TextShapingDriver.driver = CachingTextShapingDriver(TextShapingDriverHarfBuzz())
     }
 
      fun close() {
