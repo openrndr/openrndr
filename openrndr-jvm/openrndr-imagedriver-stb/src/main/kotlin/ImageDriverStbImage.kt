@@ -145,17 +145,12 @@ class ImageDriverStbImage : ImageDriver {
             (buffer as Buffer).rewind()
             return loadImage(MPPBuffer(buffer), "data-url", formatHint, allowSRGB, details)
         } else {
-            val url = try {
-                URL(fileOrUrl)
-            } catch (e: MalformedURLException) {
-                null
-            }
+            val (file, url) = resolveFileOrUrl(fileOrUrl)
 
             if (url != null) {
                 return url.openStream().use {
                     val byteArray = url.readBytes()
                     if (byteArray.isEmpty()) {
-//                        error("read 0 bytes from stream $fileOrUrl")
                         error("")
                     }
                     val buffer = MemoryUtil.memAlloc(byteArray.size)
@@ -167,7 +162,7 @@ class ImageDriverStbImage : ImageDriver {
                         MemoryUtil.memFree(buffer)
                     }
                 }
-            } else {
+            } else if (file != null) {
                 require(Path.of(fileOrUrl).exists()) { "$fileOrUrl not found" }
                 return FileChannel.open(Path.of(fileOrUrl)).use { channel ->
                     val buffer = MemoryUtil.memAlloc(channel.size().toInt())
@@ -179,6 +174,8 @@ class ImageDriverStbImage : ImageDriver {
                         MemoryUtil.memFree(buffer)
                     }
                 }
+            } else {
+                error("could not resolve $fileOrUrl")
             }
         }
     }

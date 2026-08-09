@@ -13,7 +13,7 @@ import java.io.File
 
 private val logger = KotlinLogging.logger {  }
 fun bytesFromFileOrUrl(fileOrUrl: String): ByteArray {
-    return if (fileOrUrl.startsWith("http") || fileOrUrl.startsWith("file")) {
+    return if (fileOrUrl.startsWith("http") || fileOrUrl.startsWith("file") || fileOrUrl.startsWith("jar")) {
         java.net.URL(fileOrUrl).readBytes()
     } else {
         File(fileOrUrl).readBytes()
