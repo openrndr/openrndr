@@ -447,8 +447,8 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                     """.trimIndent()
 
         fragmentTransform = """
-                        #define FILTER_SPREAD ((1.0 / 3.0))
-                        #define FILTER_SAMPLES 5
+                        #define FILTER_SPREAD ((1.0 / 1.0))
+                        #define FILTER_SAMPLES 1
                         vec2 slugPosition = mix(vi_slugBounds.xy, vi_slugBounds.zw, v_dilatedTexCoord.xy);
        
                         vec2 emsPerPixel = fwidth(slugPosition);
@@ -466,9 +466,13 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                         float xcov = 0.0;
                         float xwgt = 0.0;
 
-                        float xcovs[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
-                        float xwgts[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
+                        float xcovs[FILTER_SAMPLES];// = float[](0.0, 0.0, 0.0, 0.0, 0.0);
+                        float xwgts[FILTER_SAMPLES];// = float[](0.0, 0.0, 0.0, 0.0, 0.0);
 
+                        for (int i = 0; i < FILTER_SAMPLES; ++i) {
+                            xcovs[i] = 0.0;
+                            xwgts[i] = 0.0;
+                        }
 
                         float minDist = 1E10;
 
@@ -490,7 +494,7 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                             
                             if (vi_fill.a > 0.0 || (vi_strokeMode&3) != 0) 
                             for (int s = 0; s < FILTER_SAMPLES; ++s) {
-                                vec2 o = float(s-FILTER_SAMPLES/2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
+                                vec2 o = float(s - FILTER_SAMPLES / 2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
                                 vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
                                 vec2 p3 = c - (slugPosition + o);
                                 
@@ -519,18 +523,26 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                                 }
                             }
                         }
-                        xcov = (xcovs[0] + xcovs[1] + xcovs[2] + xcovs[3] + xcovs[4]) / 5.0;
-                        xwgt = (xwgts[0] + xwgts[1] + xwgts[2] + xwgts[3] + xwgts[4]) / 5.0;
-                        
-                        
+                        for (int i = 0; i < FILTER_SAMPLES; ++i) {
+                            xcov += xcovs[i];
+                            xwgt += xwgts[i];
+                        }
+                        xcov /= float(FILTER_SAMPLES);
+                        xwgt /= float(FILTER_SAMPLES);
+                                                
                         int vCurveCount = 0;
                         int vCurveIndex = 0;
                         int vBand = 0;     
                         float ycov = 0.0;
                         float ywgt = 0.0;
                                            
-                        float ycovs[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
-                        float ywgts[FILTER_SAMPLES] = float[](0.0, 0.0, 0.0, 0.0, 0.0);
+                        float ycovs[FILTER_SAMPLES];
+                        float ywgts[FILTER_SAMPLES];
+                        
+                        for (int i = 0; i < FILTER_SAMPLES; ++i) {
+                            ycovs[i] = 0.0;
+                            ywgts[i] = 0.0;
+                        }
                                            
                         readBandHeader(vi_bandIndex, vi_bandCount + bandIndex.x, vCurveCount, vCurveIndex, vBand);
 
@@ -556,7 +568,9 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                                 
                                 vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
                                 vec2 p3 = c - (slugPosition + o);
-                                
+                                                                
+                                if (max(max(p12.y, p12.y), p3.y) * pixelsPerEm.y < -0.5) break;
+                               
                                 uint code = CalcRootCode(p12.x, p12.z, p3.x);
                                 if (code != 0U) {
                                     vec2 r = SolveVertPoly(p12, p3) * pixelsPerEm.y;
@@ -573,19 +587,23 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
                                 }
                             }
                         }
-                        ycov = (ycovs[0] + ycovs[1] + ycovs[2] + ycovs[3] + ycovs[4]) / 5.0;
-                        ywgt = (ywgts[0] + ywgts[1] + ywgts[2] + ywgts[3] + ywgts[4]) / 5.0;
+                        for (int i = 0; i < FILTER_SAMPLES; ++i) {
+                            ycov += ycovs[i];
+                            ywgt += ywgts[i];
+                        }
+                        ycov /= float(FILTER_SAMPLES);
+                        ywgt /= float(FILTER_SAMPLES);
+
                         float coverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
-                        
                         float strokeCoverage = 0.0;
                         
                         if (vi_stroke.a > 0.0 && vi_strokeWeight > 0.0) {
                             float w = fwidth(minDist);
-                            if (vi_strokeMode == 0) {
+                            if (vi_strokeMode == 0) { // CENTER
                                 strokeCoverage = smoothstep(vi_strokeWeight/2.0 + w, vi_strokeWeight/2.0 -w, minDist);
-                            } else if (vi_strokeMode == 1){
+                            } else if (vi_strokeMode == 1) { // INSIDE
                                 strokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight-w, minDist) * coverage;
-                            } else if (vi_strokeMode == 2){
+                            } else if (vi_strokeMode == 2) { // OUTSIDE
                                 strokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight-w, minDist) * (1.0 - coverage);
                             } else if (vi_strokeMode == 3) { // ERODE
                                 strokeCoverage = strokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight-w, minDist);
