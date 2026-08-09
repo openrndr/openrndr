@@ -1,33 +1,15 @@
 package slug
 
-import FaceFreetype
-import FontDriverFreetype
-import TextShapingDriverHarfBuzz
 import org.openrndr.application
-import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.ColorFormat
-import org.openrndr.draw.ColorType
-import org.openrndr.draw.DrawPrimitive
-import org.openrndr.draw.MagnifyingFilter
-import org.openrndr.draw.MinifyingFilter
-import org.openrndr.draw.VertexElementType
-import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
-import org.openrndr.draw.shadeStyle
-import org.openrndr.draw.slug.SlugCommand
-import org.openrndr.draw.slug.SlugDrawer
-import org.openrndr.draw.slug.SlugGlyphMap
-import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.slug.SlugTextDrawer
 import org.openrndr.draw.slug.TextStyle
-import org.openrndr.draw.vertexBuffer
-import org.openrndr.draw.vertexFormat
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
-import org.openrndr.math.Vector4
-import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 fun main() {
     application {

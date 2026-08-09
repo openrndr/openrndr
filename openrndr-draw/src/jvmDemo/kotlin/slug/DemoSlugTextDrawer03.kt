@@ -1,7 +1,5 @@
 package slug
 
-import FontDriverFreetype
-import TextShapingDriverHarfBuzz
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.internal.FontDriver
@@ -12,9 +10,11 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.slug.SlugTextDrawer
 import org.openrndr.draw.slug.TextSpan
 import org.openrndr.draw.slug.TextStyle
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 fun main() {
     application {
