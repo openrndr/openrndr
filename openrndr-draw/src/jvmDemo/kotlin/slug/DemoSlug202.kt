@@ -1,7 +1,5 @@
 package slug
 
-import FontDriverFreetype
-import TextShapingDriverHarfBuzz
 import org.openrndr.application
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
@@ -17,10 +15,12 @@ import org.openrndr.draw.slug.SlugGlyphMap
 import org.openrndr.draw.slug.SlugMap
 import org.openrndr.draw.vertexBuffer
 import org.openrndr.draw.vertexFormat
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
 import org.openrndr.math.transforms.transform
 import org.openrndr.shape.Rectangle
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 fun main() {
     application {
