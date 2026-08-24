@@ -9,7 +9,7 @@ private val logger = KotlinLogging.logger { }
 
 object AudioSystem {
     fun listDevices(): List<String> {
-        val devs = ALUtil.getStringList(MemoryUtil.NULL, ALC_ALL_DEVICES_SPECIFIER)?.map { it!! } ?: emptyList()
+        val devs = ALUtil.getStringList(MemoryUtil.NULL, ALC_ALL_DEVICES_SPECIFIER)?.map { it } ?: emptyList()
         return devs
     }
 
@@ -29,7 +29,7 @@ object AudioSystem {
             logger.error { "could not open device $deviceName with pan $pan" }
             return null
         } else {
-            logger.error { "opening device $deviceName with pan $pan" }
+            logger.debug { "opening device $deviceName with pan $pan" }
             return AudioDevice(device, pan)
         }
     }

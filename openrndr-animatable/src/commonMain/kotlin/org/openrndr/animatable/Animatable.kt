@@ -291,9 +291,7 @@ open class Animatable {
      * Queries if animations are cued.
      * @return `true` iff animations are cued.
      */
-    fun hasAnimations(): Boolean {
-        return propertyAnimationKeys.size != 0
-    }
+    fun hasAnimations() = propertyAnimationKeys.isNotEmpty()
 
     /**
      * Cancels all animations.
@@ -306,7 +304,7 @@ open class Animatable {
 
     private fun getFieldValue(variable: KMutableProperty0<Any>): Double {
         when (val g = variable.get()) {
-            is Double -> return g.toDouble()
+            is Double -> return g
         }
         return 0.0
     }
