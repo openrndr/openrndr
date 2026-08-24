@@ -85,33 +85,33 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(libs.findLibrary("kotlin-stdlib").get())
             }
         }
 
-        val jvmMain by getting {
+        val jvmMain = getByName("jvmMain") {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
             }
         }
 
         if (property("openrndr.platform.android")=="true") {
-            val androidMain by getting {
+            val androidMain = getByName("androidMain") {
                 dependencies {
                     implementation(libs.findLibrary("kotlin-logging").get())
                 }
             }
         }
 
-        val commonTest by getting {
+        val commonTest = getByName("commonTest") {
             dependencies {
                 implementation(libs.findLibrary("kotlin-test").get())
             }
         }
 
-        val jvmTest by getting {
+        val jvmTest = getByName("jvmTest") {
             dependencies {
                 runtimeOnly(libs.findBundle("jupiter").get())
                 runtimeOnly(libs.findLibrary("slf4j-simple").get())

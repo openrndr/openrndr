@@ -7,7 +7,7 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-math"))
                 implementation(libs.kotlin.serialization.core)

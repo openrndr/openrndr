@@ -1,6 +1,7 @@
 package org.openrndr.convention
 
 import org.gradle.kotlin.dsl.kotlin
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform")
@@ -8,16 +9,17 @@ plugins {
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 kotlin {
-    js(IR) {
+    js {
         browser()
         nodejs()
     }
-    wasmJs() {
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
         browser()
         nodejs()
     }
     sourceSets {
-        val webMain by creating {
+        create("webMain") {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
             }

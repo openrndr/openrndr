@@ -48,9 +48,9 @@ variants {
 //    jvm {
 //
 //        compilations {
-//            val main by getting
+//            val main = getByName("main")
 //
-//            val demo by creating {
+//            create("demo") {
 //                associateWith(main)
 //            }
 //        }
@@ -80,7 +80,7 @@ variants {
 //        }
 //    }
 //    sourceSets {
-//        val jvmMain by getting {
+//        val jvmMain = getByName("jvmMain") {
 //            dependencies {
 //                implementation(project(":openrndr-application"))
 //                implementation(project(":openrndr-draw"))
@@ -103,7 +103,7 @@ variants {
 //            }
 //        }
 //
-//        val jvmTest by getting {
+//        val jvmTest = getByName("jvmTest") {
 //            dependencies {
 //                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
 //                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
@@ -113,7 +113,7 @@ variants {
 //            }
 //        }
 //
-//        val jvmDemo by getting {
+//        val jvmDemo = getByName("jvmDemo") {
 //            dependencies {
 //                runtimeOnly(libs.slf4j.simple)
 //                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos-arm64"))

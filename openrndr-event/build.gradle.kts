@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
     id("org.openrndr.convention.kotlin-multiplatform")
     id("org.openrndr.convention.kotlin-multiplatform-js")
@@ -5,6 +7,7 @@ plugins {
 }
 
 kotlin {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate { // or .custom depending on your setup
         common {
             group("commonJvm") {
@@ -15,22 +18,22 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting
-        val commonJvmMain by getting
+        val commonMain = getByName("commonMain")
+        val commonJvmMain = getByName("commonJvmMain")
 //
-//        val commonJvmMain by creating {
+//        val commonJvmMain = getByName("commonJvmMain") {
 //            dependsOn(commonMain)
 //            kotlin.srcDirs("src/commonJvmMain")
 //
 //        }
 //
         if (platformConfiguration.android) {
-            val androidMain by getting {
+            val androidMain = getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
 //
-//        val jvmMain by getting {
+//        val jvmMain = getByName("jvmMain") {
 //            dependsOn(commonJvmMain)
 //        }
     }

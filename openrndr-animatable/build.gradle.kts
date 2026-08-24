@@ -6,13 +6,13 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-event"))
             }
         }
-        val webMain by getting {
+        val webMain = getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.browser)
             }

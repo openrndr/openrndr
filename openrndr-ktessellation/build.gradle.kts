@@ -8,13 +8,13 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-math"))
             }
         }
 
-        val commonTest by getting {
+        val commonTest = getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions)
                 implementation(project(":openrndr-shape"))

@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     sourceSets {
-        val webMain by getting {
+        val webMain = getByName("webMain") {
             dependencies {
                 api(project(":openrndr-application"))
                 api(project(":openrndr-draw"))
@@ -17,7 +17,7 @@ kotlin {
                 implementation(libs.kotlin.stdlib)
             }
         }
-        val wasmJsMain by getting {
+        val wasmJsMain = getByName("wasmJsMain") {
             dependencies {
                 implementation(libs.kotlin.stdlib)
             }
