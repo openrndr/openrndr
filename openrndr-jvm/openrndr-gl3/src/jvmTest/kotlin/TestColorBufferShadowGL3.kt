@@ -61,7 +61,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
-        val rt = renderTarget(256, 256) {
+        val rt = renderTarget(256, 256, 1.0) {
             colorBuffer(cb)
         }
         program.drawer.withTarget(rt) {

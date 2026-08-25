@@ -168,7 +168,7 @@ class DriverNullGL: Driver {
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsNullGL()
 
     override val activeRenderTarget: RenderTarget
-        get() = renderTarget(640, 480) {
+        get() = renderTarget(640, 480, 1.0) {
             colorBuffer()
             depthBuffer()
         }
