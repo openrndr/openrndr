@@ -515,7 +515,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     SDL_EVENT_DROP_FILE -> {
                         eventWindow.program.window.drop.trigger(
                             DropEvent(
-                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()).toDisplayUnits(scale),
                                 dropFiles
                             )
                         )
