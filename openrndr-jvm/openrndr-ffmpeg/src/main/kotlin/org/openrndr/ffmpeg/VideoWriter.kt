@@ -225,7 +225,7 @@ class VideoWriter(
             } else {
                 profileArguments += arrayOf("-vf", setPtsFilter)
             }
-            profileArguments += arrayOf("-vsync", "2")
+            profileArguments += arrayOf("-fps_mode", "vfr")
         }
 
         val command = mutableListOf<String>()
