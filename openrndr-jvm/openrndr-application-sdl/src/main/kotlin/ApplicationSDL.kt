@@ -254,6 +254,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         window = createApplicationWindowSDL(this, wc, program, null)
         SDL_GL_MakeCurrent(window.window, window.glContext)
         windowsById[SDL_GetWindowID(window.window)] = window
+        defaultRenderTarget.bind()
+        window.setupSizes()
         preload?.onProgramSetup(program)
     }
 
