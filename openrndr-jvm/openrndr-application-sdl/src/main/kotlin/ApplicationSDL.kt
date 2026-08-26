@@ -507,6 +507,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId)
                     ?: run { logger.warn { "got event (=SDL_EVENT_DROP_COMPLETE) for unknown window id (=${windowId}): " }; return };
 
+                val scale = eventWindow.windowContentScale
+
                 val dropEvent = event.drop()
 
                 when (dropType) {
@@ -522,7 +524,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     SDL_EVENT_DROP_TEXT -> {
                         eventWindow.program.window.dropTexts.trigger(
                             DropTextEvent(
-                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()).toDisplayUnits(scale),
                                 dropTexts
                             )
                         )
