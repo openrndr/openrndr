@@ -11,8 +11,7 @@ plugins {
 group = "org.openrndr"
 
 tasks {
-    @Suppress("UNUSED_VARIABLE")
-    val javadoc = tasks.getByName("javadoc", Javadoc::class) {
+    tasks.getByName("javadoc", Javadoc::class) {
         options {
             this as StandardJavadocDocletOptions
             addBooleanOption("Xdoclint:none", true)

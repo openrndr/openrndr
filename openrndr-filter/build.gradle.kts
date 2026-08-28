@@ -5,6 +5,7 @@ plugins {
 }
 
 val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
+    description = "Embeds GLSL shaders from `src/shaders/glsl/*` into `build/generated/shaderKotlin/*.kt`"
     inputDir.set(file("$projectDir/src/shaders/glsl"))
     outputDir.set(file("${layout.buildDirectory.get()}/generated/shaderKotlin"))
 
@@ -16,8 +17,7 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
 kotlin {
     kotlin.sourceSets.getByName("commonMain").kotlin.srcDir(embedShaders.outputDir)
     sourceSets {
-
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-draw"))
             }

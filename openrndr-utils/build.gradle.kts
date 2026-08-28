@@ -17,7 +17,7 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-math"))
                 implementation(libs.kotlin.coroutines)
@@ -29,18 +29,18 @@ kotlin {
 //            kotlin.srcDirs("src/commonJvmMain")
         }
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
 
-//        val jvmMain = getByName("jvmMain") {
+//        getByName("jvmMain") {
 //            dependsOn(commonJvmMain)
 ////            kotlin.srcDir("src/commonJvmMain/kotlin")
 //        }
 
 
-        val webMain = getByName("webMain") {
+        getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.js)
             }

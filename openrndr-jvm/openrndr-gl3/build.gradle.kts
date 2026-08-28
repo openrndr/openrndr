@@ -25,7 +25,7 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain = getByName("commonMain")
+        // getByName("commonMain")
 
         val commonJvmMain = getByName("commonJvmMain") {
             dependencies {
@@ -41,7 +41,7 @@ kotlin {
                 api(project(":openrndr-math"))
             }
         }
-        val jvmMain = getByName("jvmMain") {
+        getByName("jvmMain") {
             dependencies {
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.jemalloc)
@@ -51,7 +51,7 @@ kotlin {
             }
         }
 
-        val jvmDemo = getByName("jvmDemo") {
+        getByName("jvmDemo") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-extensions"))
@@ -61,14 +61,14 @@ kotlin {
             }
         }
 
-        val jvmTest = getByName("jvmTest") {
+        getByName("jvmTest") {
             dependencies {
                 implementation(project(":openrndr-jvm:openrndr-application-glfw"))
             }
         }
 
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }

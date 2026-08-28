@@ -19,13 +19,13 @@ kotlin {
     }
 
     sourceSets {
-        val commonTest = getByName("commonTest") {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions)
             }
         }
 
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-color"))
@@ -39,13 +39,12 @@ kotlin {
         }
         val commonJvmMain = getByName("commonJvmMain")
 
-
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
-        val webMain = getByName("webMain") {
+        getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)

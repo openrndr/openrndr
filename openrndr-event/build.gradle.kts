@@ -18,7 +18,7 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain = getByName("commonMain")
+//        val commonMain = getByName("commonMain")
         val commonJvmMain = getByName("commonJvmMain")
 //
 //        val commonJvmMain = getByName("commonJvmMain") {
@@ -28,7 +28,7 @@ kotlin {
 //        }
 //
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }

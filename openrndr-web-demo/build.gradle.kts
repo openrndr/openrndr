@@ -28,7 +28,7 @@ kotlin {
     }
 
     sourceSets {
-        val webMain = getByName("webMain") {
+        getByName("webMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))

@@ -16,7 +16,7 @@ kotlin {
     }
 
     sourceSets {
-        val jsMain = getByName("jsMain") {
+        getByName("jsMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))

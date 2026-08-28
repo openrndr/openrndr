@@ -27,7 +27,7 @@ kotlin {
     }
 
     sourceSets {
-        val wasmJsMain = getByName("wasmJsMain") {
+        getByName("wasmJsMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))

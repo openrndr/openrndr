@@ -6,14 +6,14 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))
             }
         }
 
-        val jsMain = getByName("jsMain") {
+        getByName("jsMain") {
             dependencies {
                 implementation(project(":openrndr-js:openrndr-webgl"))
             }

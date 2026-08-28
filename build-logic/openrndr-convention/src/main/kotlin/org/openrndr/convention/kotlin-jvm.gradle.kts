@@ -38,7 +38,7 @@ dependencies {
 }
 
 tasks {
-    val test = tasks.getByName("test", Test::class) {
+    tasks.getByName("test", Test::class) {
         useJUnitPlatform()
         testLogging.exceptionFormat = TestExceptionFormat.FULL
         allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"

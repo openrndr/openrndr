@@ -8,20 +8,20 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(libs.kotlin.serialization.core)
             }
         }
 
-        val commonTest = getByName("commonTest") {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotlin.serialization.json)
                 implementation(libs.kotest.assertions)
             }
         }
 
-        val jvmTest = getByName("jvmTest") {
+        getByName("jvmTest") {
             dependencies {
                 implementation(libs.kotlin.serialization.json)
             }

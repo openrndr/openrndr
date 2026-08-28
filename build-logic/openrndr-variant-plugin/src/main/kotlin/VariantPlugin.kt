@@ -142,9 +142,7 @@ abstract class VariantExtension(
 
         platformMainRuntimeElements.dependencies.addAll(variantContainer.getDependencies().runtimeOnly.dependencies.get())
 
-        /*
-        Setup dependencies for current platform. This will make in-module tests and demos work.
-         */
+        /* Set up dependencies for the current platform. This makes in-module tests and demos work */
         val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
         val currentArchitectureName: String = arch()
 
@@ -162,8 +160,7 @@ abstract class VariantExtension(
 }
 
 class VariantPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        val project = target
+    override fun apply(project: Project) {
         project.extensions.create("variants", VariantExtension::class.java)
     }
 }

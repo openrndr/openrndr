@@ -19,7 +19,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
 
                 implementation(libs.kotlin.logging)
@@ -35,11 +35,10 @@ kotlin {
 
         val commonJvmMain = getByName("commonJvmMain")
 
-        val jvmMain = getByName("jvmMain") {
+        // getByName("jvmMain") {}
 
-        }
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
                 dependencies {
                     implementation(libs.kotlin.coroutines)

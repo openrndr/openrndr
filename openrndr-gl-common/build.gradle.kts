@@ -19,7 +19,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-draw"))
                 implementation(libs.kotlin.logging)
@@ -29,7 +29,7 @@ kotlin {
         val commonJvmMain = getByName("commonJvmMain")
 
         if (platformConfiguration.android) {
-            val androidMain = getByName("androidMain") {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
