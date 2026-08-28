@@ -21,7 +21,7 @@ kotlin {
     jvm {}
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))
@@ -29,15 +29,14 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
+        getByName("jsMain") {
             dependencies {
                 implementation(project(":openrndr-gl-common"))
                 implementation(project(":openrndr-js:openrndr-webgl"))
             }
         }
 
-        val jvmMain by getting {
-
+        getByName("jvmMain") {
             dependencies {
                 runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
                 runtimeOnly(libs.slf4j.simple)

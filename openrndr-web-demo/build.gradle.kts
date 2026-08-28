@@ -4,7 +4,7 @@ plugins {
 }
 
 kotlin {
-    js() {
+    js {
         browser {
             commonWebpackConfig {
                 outputFileName = "openrndr-program.js"
@@ -15,7 +15,7 @@ kotlin {
         }
         binaries.executable()
     }
-    wasmJs() {
+    wasmJs {
         browser {
             commonWebpackConfig {
                 outputFileName = "openrndr-program.js"
@@ -28,7 +28,7 @@ kotlin {
     }
 
     sourceSets {
-        val webMain by getting {
+        getByName("webMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))

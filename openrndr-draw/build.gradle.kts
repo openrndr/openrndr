@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
     id("org.openrndr.convention.kotlin-multiplatform")
     id("org.openrndr.convention.kotlin-multiplatform-js")
@@ -5,6 +7,7 @@ plugins {
 }
 
 kotlin {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate { // or .custom depending on your setup
         common {
             group("commonJvm") {
@@ -16,13 +19,13 @@ kotlin {
     }
 
     sourceSets {
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions)
             }
         }
 
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-color"))
@@ -34,15 +37,14 @@ kotlin {
                 implementation(libs.kotlin.logging)
             }
         }
-        val commonJvmMain by getting
-
+        val commonJvmMain = getByName("commonJvmMain")
 
         if (platformConfiguration.android) {
-            val androidMain by getting {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
-        val webMain by getting {
+        getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)

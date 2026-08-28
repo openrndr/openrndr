@@ -7,19 +7,19 @@ plugins {
 kotlin {
     sourceSets {
 
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-utils"))
             }
         }
 
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions)
             }
         }
 
-        val jvmTest by getting {
+        getByName("jvmTest") {
             dependencies {
                 implementation("io.lacuna:artifex:0.1.0-alpha1")
             }

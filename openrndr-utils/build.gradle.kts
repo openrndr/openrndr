@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -9,6 +7,7 @@ plugins {
 }
 
 kotlin {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate { // or .custom depending on your setup
         common {
             group("commonJvm") {
@@ -18,34 +17,30 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-math"))
                 implementation(libs.kotlin.coroutines)
             }
         }
 
-        val commonJvmMain by getting {
-
-        }
+        val commonJvmMain = getByName("commonJvmMain") {
 //            dependsOn(commonMain)
 //            kotlin.srcDirs("src/commonJvmMain")
-//
-//        }
-//
+        }
         if (platformConfiguration.android) {
-            val androidMain by getting {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }
-//
-//        val jvmMain by getting {
+
+//        getByName("jvmMain") {
 //            dependsOn(commonJvmMain)
 ////            kotlin.srcDir("src/commonJvmMain/kotlin")
 //        }
 
 
-        val webMain by getting {
+        getByName("webMain") {
             dependencies {
                 implementation(libs.kotlin.js)
             }

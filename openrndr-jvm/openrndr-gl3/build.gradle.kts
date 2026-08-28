@@ -11,12 +11,11 @@ plugins {
 kotlin {
     jvm {
         compilations {
-            val demo by creating {
-            }
+            create("demo")
         }
     }
 
-    applyDefaultHierarchyTemplate{
+    applyDefaultHierarchyTemplate {
         // or .custom depending on your setup
         common {
             group("commonJvm") {
@@ -26,9 +25,9 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting
+        // getByName("commonMain")
 
-        val commonJvmMain by getting {
+        val commonJvmMain = getByName("commonJvmMain") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))
@@ -42,7 +41,7 @@ kotlin {
                 api(project(":openrndr-math"))
             }
         }
-        val jvmMain by getting {
+        getByName("jvmMain") {
             dependencies {
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.jemalloc)
@@ -52,7 +51,7 @@ kotlin {
             }
         }
 
-        val jvmDemo by getting {
+        getByName("jvmDemo") {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-extensions"))
@@ -62,14 +61,14 @@ kotlin {
             }
         }
 
-        val jvmTest by getting {
+        getByName("jvmTest") {
             dependencies {
                 implementation(project(":openrndr-jvm:openrndr-application-glfw"))
             }
         }
 
         if (platformConfiguration.android) {
-            val androidMain by getting {
+            getByName("androidMain") {
                 dependsOn(commonJvmMain)
             }
         }

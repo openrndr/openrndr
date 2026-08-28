@@ -45,6 +45,7 @@ include(
         "openrndr-js:openrndr-webgl",
         "openrndr-js:openrndr-webgl-js-demo",
         "openrndr-js:openrndr-webgl-wasmjs-demo",
+        "openrndr-js:openrndr-image-driver-browser",
         "openrndr-extensions",
         "openrndr-nullgl",
         "openrndr-utils",

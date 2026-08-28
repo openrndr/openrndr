@@ -9,8 +9,7 @@ plugins {
 
 
 tasks {
-    @Suppress("UNUSED_VARIABLE")
-    val test by getting(Test::class) {
+    getByName("test", Test::class) {
         onlyIf { !project.hasProperty("skip.gl3.tests") }
 
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {

@@ -6,7 +6,7 @@ plugins {
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-draw"))
@@ -14,7 +14,7 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
             }
         }
-        val jsMain by getting {
+        getByName("jsMain") {
             dependencies {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)

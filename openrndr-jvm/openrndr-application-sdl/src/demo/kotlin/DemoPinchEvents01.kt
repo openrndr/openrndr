@@ -1,4 +1,3 @@
-import org.openrndr.PointerTracker
 import org.openrndr.application
 
 fun main() {

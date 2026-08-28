@@ -67,10 +67,8 @@ dependencies {
 }
 
 sourceSets {
-    val main by getting
-    val demo by getting
-
-    demo {
+    val main = getByName("main")
+    getByName("demo") {
         runtimeClasspath += main.runtimeClasspath
         compileClasspath += main.compileClasspath
     }
