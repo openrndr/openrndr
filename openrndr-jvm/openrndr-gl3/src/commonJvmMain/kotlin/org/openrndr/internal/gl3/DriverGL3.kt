@@ -367,7 +367,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
     class Quirks {
         val clearIgnoresSRGB: Boolean by lazy {
-            val rt = renderTarget(64, 64) {
+            val rt = renderTarget(64, 64, 1.0) {
                 colorBuffer()
             }
             rt.bind()

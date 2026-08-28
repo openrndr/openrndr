@@ -53,7 +53,7 @@ class TestRenderTargetGL3 : AbstractApplicationTestFixture() {
     @Test
     fun testRenderTargetCubemap() {
         val cm = cubemap(256, format = ColorFormat.RGBa)
-        val rt = renderTarget(256, 256) {
+        val rt = renderTarget(256, 256, 1.0) {
             cubemap(cm, CubemapSide.POSITIVE_X)
             depthBuffer()
         }
@@ -68,7 +68,7 @@ class TestRenderTargetGL3 : AbstractApplicationTestFixture() {
     fun testRenderTargetVolumeTexture() {
         if (Driver.glType == DriverTypeGL.GL) {
             val vt = volumeTexture(256, 256, 256)
-            val rt = renderTarget(256, 256) {
+            val rt = renderTarget(256, 256, 1.0) {
                 volumeTexture(vt, 0)
                 depthBuffer()
             }
@@ -83,7 +83,7 @@ class TestRenderTargetGL3 : AbstractApplicationTestFixture() {
     @Test
     fun testRenderTargetArrayCubemap() {
         val cm = arrayCubemap(256, 10, format = ColorFormat.RGBa)
-        val rt = renderTarget(256, 256) {
+        val rt = renderTarget(256, 256, 1.0) {
             arrayCubemap(cm, CubemapSide.POSITIVE_X, 0)
             depthBuffer()
         }

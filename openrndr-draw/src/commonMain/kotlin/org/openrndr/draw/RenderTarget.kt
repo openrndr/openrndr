@@ -543,7 +543,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
  *
  * @param width The width of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
  * @param height The height of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
- * @param contentScale A scaling factor to apply to the render target's content. Defaults to 1.0.
+ * @param contentScale A scaling factor to apply to the render target's content. The default of null results in the content scale being set to the active render target's content scale.
  * @param multisample Specifies the multisampling configuration for the render target. Defaults to [BufferMultisample.Disabled].
  * @param session The session to which the render target belongs. Defaults to the currently active session.
  * @param builder A builder block for additional configuration of the render target.
@@ -554,7 +554,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 @OptIn(ExperimentalContracts::class)
 fun renderTarget(
     width: Int, height: Int,
-    contentScale: Double = 1.0,
+    contentScale: Double? = null,
     multisample: BufferMultisample = BufferMultisample.Disabled,
     session: Session? = Session.active,
     builder: RenderTargetBuilder.() -> Unit
@@ -564,10 +564,12 @@ fun renderTarget(
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    val effectiveWidth = (width * contentScale).toInt()
-    val effectiveHeight = (height * contentScale).toInt()
+    val scale = contentScale ?: RenderTarget.active.contentScale
+
+    val effectiveWidth = (width * scale).toInt()
+    val effectiveHeight = (height * scale).toInt()
     if (width <= 0 || height <= 0 || effectiveWidth > Driver.instance.properties.maxTextureSize || effectiveHeight > Driver.instance.properties.maxTextureSize) {
-        error("Unsupported render target dimensions ($width × $height @ $contentScale) maximum size: ${Driver.instance.properties.maxTextureSize}")
+        error("Unsupported render target dimensions ($width × $height @ $scale) maximum size: ${Driver.instance.properties.maxTextureSize}")
     }
 
     val effectiveMultisample = when (multisample) {
@@ -582,7 +584,7 @@ fun renderTarget(
         else -> multisample
     }
 
-    val renderTarget = Driver.instance.createRenderTarget(width, height, contentScale, effectiveMultisample, session)
+    val renderTarget = Driver.instance.createRenderTarget(width, height, scale, effectiveMultisample, session)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }
