@@ -78,7 +78,7 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
             buffer.putInt(i)
         }
         buffer.rewind()
-        c.writeBuffer(buffer)
+        c.write(buffer)
         buffer.rewind()
         for (i in 0 until 256 * 256) {
             assertEquals(i, buffer.getInt())
@@ -95,7 +95,7 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
             buffer.putShort(i.toShort())
         }
         buffer.rewind()
-        c.writeBuffer(buffer)
+        c.write(buffer)
         buffer.rewind()
         for (i in 0 until 256 * 256) {
             assertEquals(i.toUShort(), buffer.getShort().toUShort())
