@@ -8,14 +8,28 @@ import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
-import web.gl.GLenum
-import web.gl.TexImageSource
-import web.gl.WebGLFramebuffer
-import web.gl.WebGLTexture
+import web.gl.*
 import web.html.Image
+import kotlin.Boolean
+import kotlin.Double
+import kotlin.Int
+import kotlin.OptIn
+import kotlin.String
+import kotlin.Suppress
+import kotlin.TODO
+import kotlin.Unit
+import kotlin.collections.minus
+import kotlin.context
+import kotlin.error
+import kotlin.getValue
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toInt
+import kotlin.lazy
 import kotlin.math.log2
 import kotlin.math.pow
+import kotlin.require
+import kotlin.sequences.minus
+import kotlin.text.toInt
 import web.gl.WebGL2RenderingContext as GL
 
 
@@ -51,9 +65,9 @@ class ColorBufferWebGL(
             session: Session?
         ): ColorBufferWebGL {
             val texture = context.createTexture() ?: error("failed to create texture")
-            context.activeTexture(GL.TEXTURE0)
+            context.activeTexture(TEXTURE0)
             when (multisample) {
-                BufferMultisample.Disabled -> context.bindTexture(GL.TEXTURE_2D, texture)
+                BufferMultisample.Disabled -> context.bindTexture(TEXTURE_2D, texture)
                 is BufferMultisample.SampleCount -> error("multisample not supported on WebGL(1)")
             }
             val effectiveWidth = (width * contentScale).toInt()
@@ -67,7 +81,7 @@ class ColorBufferWebGL(
                 for (level in 0 until levels) {
                     val div = 1 shl level
                     context.texImage2D(
-                        GL.TEXTURE_2D,
+                        TEXTURE_2D,
                         level,
                         internalFormat,
                         effectiveWidth / div,
@@ -87,7 +101,7 @@ class ColorBufferWebGL(
                     val fcontext =
                         (context as? WebGLRenderingFixedCompressedTexImage) ?: error("cast failed")
                     fcontext.compressedTexImage2D(
-                        GL.TEXTURE_2D,
+                        TEXTURE_2D,
                         level,
                         internalFormat,
                         effectiveWidth / div,
@@ -103,17 +117,17 @@ class ColorBufferWebGL(
                 type == ColorType.FLOAT16 ||
                 (type == ColorType.FLOAT32 && caps.floatTexturesLinear)
             ) {
-                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
-                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR)
+                context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
+                context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
             } else {
-                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST)
-                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST)
+                context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, NEAREST)
+                context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, NEAREST)
             }
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
+            context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE)
+            context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, CLAMP_TO_EDGE)
             return ColorBufferWebGL(
                 context,
-                GL.TEXTURE_2D,
+                TEXTURE_2D,
                 texture,
                 width,
                 height,
@@ -132,18 +146,18 @@ class ColorBufferWebGL(
             session: Session? = Session.active
         ): ColorBufferWebGL {
             val texture = context.createTexture() ?: error("failed to create texture")
-            context.activeTexture(GL.TEXTURE0)
-            context.bindTexture(GL.TEXTURE_2D, texture)
-            context.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, image)
+            context.activeTexture(TEXTURE0)
+            context.bindTexture(TEXTURE_2D, texture)
+            context.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, image)
             if (log2(image.width.toDouble()) % 1.0 == 0.0 && log2(image.height.toDouble()) % 1.0 == 0.0) {
-                context.generateMipmap(GL.TEXTURE_2D)
+                context.generateMipmap(TEXTURE_2D)
             }
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR)
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
+            context.texParameteri(TEXTURE_2D,TEXTURE_MIN_FILTER, LINEAR)
+            context.texParameteri(TEXTURE_2D,TEXTURE_MAG_FILTER, LINEAR)
+            context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_S, CLAMP_TO_EDGE)
+            context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_T, CLAMP_TO_EDGE)
             return ColorBufferWebGL(
-                context, GL.TEXTURE_2D, texture, image.width, image.height, 1.0,
+                context, TEXTURE_2D, texture, image.width, image.height, 1.0,
                 ColorFormat.RGBa, ColorType.UINT8_SRGB, 1, BufferMultisample.Disabled, session
             )
         }
@@ -195,8 +209,8 @@ class ColorBufferWebGL(
     }
 
     fun bound(f: ColorBufferWebGL.() -> Unit) {
-        context.activeTexture(GL.TEXTURE0)
-        val current = context.getParameter(GL.TEXTURE_BINDING_2D) as WebGLTexture?
+        context.activeTexture(TEXTURE0)
+        val current = context.getParameter(TEXTURE_BINDING_2D) as WebGLTexture?
         context.bindTexture(target, texture)
         this.f()
         context.bindTexture(target, current)
@@ -237,7 +251,7 @@ class ColorBufferWebGL(
             } as RenderTargetWebGL
 
             writeTarget.bind()
-            context.bindFramebuffer(GL.READ_FRAMEBUFFER, readTarget.framebuffer)
+            context.bindFramebuffer(READ_FRAMEBUFFER, readTarget.framebuffer)
             context.checkErrors("bindFrameBuffer $this $target")
 
             val ssx = sourceRectangle.x
@@ -267,10 +281,10 @@ class ColorBufferWebGL(
                 tflip(tsy),
                 tex,
                 tflip(tey),
-                GL.COLOR_BUFFER_BIT,
+                COLOR_BUFFER_BIT,
                 filter.toGLFilter()
             )
-            context.bindFramebuffer(GL.READ_FRAMEBUFFER, null)
+            context.bindFramebuffer(READ_FRAMEBUFFER, null)
             context.checkErrors("blitFramebuffer $this $target")
             writeTarget.unbind()
 
@@ -295,7 +309,7 @@ class ColorBufferWebGL(
 
                 target as ColorBufferWebGL
                 readTarget.bind()
-                context.readBuffer(GL.COLOR_ATTACHMENT0)
+                context.readBuffer(COLOR_ATTACHMENT0)
                 context.checkErrors("readBuffer $this $target")
                 target.bound {
                     context.copyTexSubImage2D(
@@ -338,8 +352,8 @@ class ColorBufferWebGL(
     ) {
         require(!type.compressed)
         bind(0)
-        context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
-        this.context.texSubImage2D(target, level, x, y, GL.RGBA, GL.UNSIGNED_BYTE, source)
+        context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
+        this.context.texSubImage2D(target, level, x, y, RGBA, UNSIGNED_BYTE, source)
     }
 
     override fun write(
@@ -353,7 +367,7 @@ class ColorBufferWebGL(
         level: Int
     ) {
         bind(0)
-        context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
+        context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
 
         if (!sourceType.compressed) {
             this.context.texSubImage2D(
@@ -410,17 +424,17 @@ class ColorBufferWebGL(
         level: Int
     ) {
         bind(0)
-        val current = context.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
-        context.bindFramebuffer(GL.FRAMEBUFFER, readFrameBuffer)
-        context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, this.target, texture, 0)
-        context.readPixels(x, y, effectiveWidth, effectiveHeight, GL.RGBA, GL.UNSIGNED_BYTE, target)
-        context.bindFramebuffer(GL.FRAMEBUFFER, current)
+        val current = context.getParameter(FRAMEBUFFER_BINDING) as WebGLFramebuffer?
+        context.bindFramebuffer(FRAMEBUFFER, readFrameBuffer)
+        context.framebufferTexture2D(FRAMEBUFFER, COLOR_ATTACHMENT0, this.target, texture, 0)
+        context.readPixels(x, y, effectiveWidth, effectiveHeight, RGBA, UNSIGNED_BYTE, target)
+        context.bindFramebuffer(FRAMEBUFFER, current)
     }
 
     override fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
         bind(0)
-        context.texParameteri(target, GL.TEXTURE_MIN_FILTER, filterMin.toGLFilter())
-        context.texParameteri(target, GL.TEXTURE_MAG_FILTER, filterMag.toGLFilter())
+        context.texParameteri(target, TEXTURE_MIN_FILTER, filterMin.toGLFilter())
+        context.texParameteri(target, TEXTURE_MAG_FILTER, filterMag.toGLFilter())
     }
 
     override var wrapU: WrapMode
@@ -447,7 +461,7 @@ class ColorBufferWebGL(
                 lcolor.b.toFloat(),
                 lcolor.alpha.toFloat()
             )
-        context.clearBufferfv(GL.COLOR, 0, floatColorData, 0.0)
+        context.clearBufferfv(COLOR, 0, floatColorData, 0.0)
         writeTarget.unbind()
 
         writeTarget.detachColorAttachments()

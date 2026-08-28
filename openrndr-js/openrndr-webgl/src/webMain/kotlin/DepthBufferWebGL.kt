@@ -4,7 +4,11 @@ import org.openrndr.draw.BufferMultisample
 import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.DepthFormat
 import org.openrndr.draw.Session
-import web.gl.WebGLRenderbuffer
+import web.gl.*
+import kotlin.Int
+import kotlin.TODO
+import kotlin.context
+import kotlin.error
 import web.gl.WebGL2RenderingContext as GL
 
 class DepthBufferWebGL(
@@ -26,16 +30,16 @@ class DepthBufferWebGL(
             session: Session?
         ): DepthBufferWebGL {
             val buffer = context.createRenderbuffer() ?: error("buffer creation failed")
-            context.bindRenderbuffer(GL.RENDERBUFFER, buffer)
+            context.bindRenderbuffer(RENDERBUFFER, buffer)
 
             val webGlFormat = when(format) {
-                DepthFormat.DEPTH16 -> GL.DEPTH_COMPONENT16
-                DepthFormat.DEPTH_STENCIL -> GL.DEPTH_STENCIL
-                DepthFormat.STENCIL8 -> GL.STENCIL_INDEX8
+                DepthFormat.DEPTH16 -> DEPTH_COMPONENT16
+                DepthFormat.DEPTH_STENCIL -> DEPTH_STENCIL
+                DepthFormat.STENCIL8 -> STENCIL_INDEX8
                 else -> error("unsupported depth buffer format $format")
             }
 
-            context.renderbufferStorage(GL.RENDERBUFFER, webGlFormat, width, height)
+            context.renderbufferStorage(RENDERBUFFER, webGlFormat, width, height)
             return DepthBufferWebGL(context, buffer, width, height, format, multisample, session)
         }
     }

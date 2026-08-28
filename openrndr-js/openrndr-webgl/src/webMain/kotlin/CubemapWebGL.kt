@@ -5,9 +5,12 @@ import js.buffer.ArrayBufferView
 import js.typedarrays.Uint8Array
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
-import web.gl.GLenum
-import web.gl.TexImageSource
-import web.gl.WebGLTexture
+import web.gl.*
+import kotlin.Int
+import kotlin.Unit
+import kotlin.context
+import kotlin.error
+import kotlin.require
 import web.gl.WebGL2RenderingContext as GL
 
 class CubemapWebGL(
@@ -31,8 +34,8 @@ class CubemapWebGL(
             session: Session?
         ): CubemapWebGL {
             val texture = context.createTexture()
-            context.activeTexture(GL.TEXTURE0)
-            context.bindTexture(GL.TEXTURE_CUBE_MAP, texture)
+            context.activeTexture(TEXTURE0)
+            context.bindTexture(TEXTURE_CUBE_MAP, texture)
             val (internalFormat, _) = internalFormat(format, type)
             for (side in CubemapSide.entries) {
                 for (level in 0 until levels) {
@@ -50,7 +53,7 @@ class CubemapWebGL(
                     )
                 }
             }
-            return CubemapWebGL(context, GL.TEXTURE_CUBE_MAP, texture, width, format, type, levels, session)
+            return CubemapWebGL(context, TEXTURE_CUBE_MAP, texture, width, format, type, levels, session)
         }
     }
 
@@ -70,15 +73,15 @@ class CubemapWebGL(
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
         bound {
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, min.toGLFilter())
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, mag.toGLFilter())
+            context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, min.toGLFilter())
+            context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, mag.toGLFilter())
         }
     }
 
 
     fun bound(f: () -> Unit) {
-        context.activeTexture(GL.TEXTURE0)
-        context.bindTexture(GL.TEXTURE_CUBE_MAP, texture)
+        context.activeTexture(TEXTURE0)
+        context.bindTexture(TEXTURE_CUBE_MAP, texture)
         f()
     }
 
@@ -182,10 +185,10 @@ class CubemapWebGL(
 
 val CubemapSide.glTextureTarget
     get() = when (this) {
-        CubemapSide.POSITIVE_X -> GL.TEXTURE_CUBE_MAP_POSITIVE_X
-        CubemapSide.POSITIVE_Y -> GL.TEXTURE_CUBE_MAP_POSITIVE_Y
-        CubemapSide.POSITIVE_Z -> GL.TEXTURE_CUBE_MAP_POSITIVE_Z
-        CubemapSide.NEGATIVE_X -> GL.TEXTURE_CUBE_MAP_NEGATIVE_X
-        CubemapSide.NEGATIVE_Y -> GL.TEXTURE_CUBE_MAP_NEGATIVE_Y
-        CubemapSide.NEGATIVE_Z -> GL.TEXTURE_CUBE_MAP_NEGATIVE_Z
+        CubemapSide.POSITIVE_X -> TEXTURE_CUBE_MAP_POSITIVE_X
+        CubemapSide.POSITIVE_Y -> TEXTURE_CUBE_MAP_POSITIVE_Y
+        CubemapSide.POSITIVE_Z -> TEXTURE_CUBE_MAP_POSITIVE_Z
+        CubemapSide.NEGATIVE_X -> TEXTURE_CUBE_MAP_NEGATIVE_X
+        CubemapSide.NEGATIVE_Y -> TEXTURE_CUBE_MAP_NEGATIVE_Y
+        CubemapSide.NEGATIVE_Z -> TEXTURE_CUBE_MAP_NEGATIVE_Z
     }

@@ -5,6 +5,8 @@ import js.buffer.ArrayBuffer
 import js.typedarrays.Float32Array
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
+import web.gl.ARRAY_BUFFER
+import web.gl.DYNAMIC_DRAW
 import web.gl.WebGLBuffer
 import web.gl.WebGL2RenderingContext as GL
 
@@ -64,9 +66,9 @@ class VertexBufferWebGL(
         ): VertexBufferWebGL {
             logger.debug { "Creating vertex buffer with $vertexCount vertices, format $vertexFormat" }
             val buffer = context.createBuffer() ?: error("failed to create buffer")
-            context.bindBuffer(GL.ARRAY_BUFFER, buffer)
+            context.bindBuffer(ARRAY_BUFFER, buffer)
             val sizeInBytes = vertexFormat.size * vertexCount
-            context.bufferData(GL.ARRAY_BUFFER, sizeInBytes, GL.DYNAMIC_DRAW)
+            context.bufferData(ARRAY_BUFFER, sizeInBytes, DYNAMIC_DRAW)
             return VertexBufferWebGL(context, buffer, vertexFormat, vertexCount, session)
         }
     }
@@ -107,24 +109,24 @@ class VertexBufferWebGL(
     override fun write(data: Float32Array<ArrayBuffer>, offsetBytes: Int, floatCount: Int) {
         bind()
         val offsetFloats = offsetBytes / 4
-        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))
+        context.bufferSubData(ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))
         unbind()
     }
 
     override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
         bind()
         context.bufferSubData(
-            GL.ARRAY_BUFFER, targetByteOffset,
+            ARRAY_BUFFER, targetByteOffset,
             source.dataView
         )
         unbind()
     }
 
     fun bind() {
-        context.bindBuffer(GL.ARRAY_BUFFER, buffer)
+        context.bindBuffer(ARRAY_BUFFER, buffer)
     }
 
     fun unbind() {
-        context.bindBuffer(GL.ARRAY_BUFFER, null as WebGLBuffer?)
+        context.bindBuffer(ARRAY_BUFFER, null as WebGLBuffer?)
     }
 }

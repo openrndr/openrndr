@@ -6,7 +6,42 @@ import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import web.gl.WebGLFramebuffer
+import web.gl.*
+import kotlin.Boolean
+import kotlin.Deprecated
+import kotlin.Double
+import kotlin.Int
+import kotlin.ReplaceWith
+import kotlin.RuntimeException
+import kotlin.String
+import kotlin.TODO
+import kotlin.Unit
+import kotlin.collections.ArrayDeque
+import kotlin.collections.MutableList
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filterIsInstance
+import kotlin.collections.get
+import kotlin.collections.isNotEmpty
+import kotlin.collections.last
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
+import kotlin.collections.setOf
+import kotlin.collections.withIndex
+import kotlin.context
+import kotlin.error
+import kotlin.js.get
+import kotlin.js.toInt
+import kotlin.ranges.last
+import kotlin.require
+import kotlin.sequences.filterIsInstance
+import kotlin.sequences.last
+import kotlin.sequences.withIndex
+import kotlin.text.isNotEmpty
+import kotlin.text.iterator
+import kotlin.text.last
+import kotlin.text.toInt
+import kotlin.text.withIndex
 import web.gl.WebGL2RenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
@@ -70,7 +105,7 @@ open class RenderTargetWebGL(
 
     fun bindTarget() {
         context.checkErrors("preexisting errors")
-        context.bindFramebuffer(GL.FRAMEBUFFER, framebuffer)
+        context.bindFramebuffer(FRAMEBUFFER, framebuffer)
         context.checkErrors("bindFrameBuffer $this")
         context.viewport(0, 0, effectiveWidth, effectiveHeight)
         context.checkErrors("viewport")
@@ -96,15 +131,15 @@ open class RenderTargetWebGL(
             error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
         }
         context.framebufferTexture2D(
-            GL.FRAMEBUFFER,
+            FRAMEBUFFER,
             glColorAttachment(colorAttachments.size),
             colorBuffer.target,
             colorBuffer.texture,
             level
         )
         context.checkErrors("frameBufferTexture2D $colorBuffer")
-        val status = context.checkFramebufferStatus(GL.FRAMEBUFFER)
-        require(status == GL.FRAMEBUFFER_COMPLETE) {
+        val status = context.checkFramebufferStatus(FRAMEBUFFER)
+        require(status == FRAMEBUFFER_COMPLETE) {
             "status: $status, while attaching $colorBuffer"
         }
 
@@ -117,16 +152,16 @@ open class RenderTargetWebGL(
 
         val webGlAttachment =
             when (depthBuffer.format) {
-                DepthFormat.DEPTH_STENCIL -> GL.DEPTH_STENCIL_ATTACHMENT
-                DepthFormat.STENCIL8 -> GL.STENCIL_ATTACHMENT
-                DepthFormat.DEPTH16 -> GL.DEPTH_ATTACHMENT
+                DepthFormat.DEPTH_STENCIL -> DEPTH_STENCIL_ATTACHMENT
+                DepthFormat.STENCIL8 -> STENCIL_ATTACHMENT
+                DepthFormat.DEPTH16 -> DEPTH_ATTACHMENT
                 else -> error("unsupported depth buffer format '${depthBuffer.format}'")
             }
 
-        context.framebufferRenderbuffer(GL.FRAMEBUFFER, webGlAttachment, GL.RENDERBUFFER, depthBuffer.buffer)
+        context.framebufferRenderbuffer(FRAMEBUFFER, webGlAttachment, RENDERBUFFER, depthBuffer.buffer)
         context.checkErrors("framebufferRenderBuffer")
-        val status = context.checkFramebufferStatus(GL.FRAMEBUFFER)
-        require(status == GL.FRAMEBUFFER_COMPLETE) {
+        val status = context.checkFramebufferStatus(FRAMEBUFFER)
+        require(status == FRAMEBUFFER_COMPLETE) {
             "status: $status, while attaching $depthBuffer"
         }
         this.depthBuffer = depthBuffer
@@ -161,7 +196,7 @@ open class RenderTargetWebGL(
     override fun detachColorAttachments() {
         bound {
             for ((index, _) in colorAttachments.withIndex()) {
-                context.framebufferTexture2D(GL.FRAMEBUFFER, glColorAttachment(index), GL.TEXTURE_2D, null, 0)
+                context.framebufferTexture2D(FRAMEBUFFER, glColorAttachment(index), TEXTURE_2D, null, 0)
                 context.checkErrors("framebufferTexture2D detach $index")
             }
         }
@@ -177,7 +212,7 @@ open class RenderTargetWebGL(
 
     override fun detachDepthBuffer() {
         bound {
-            context.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, null)
+            context.framebufferRenderbuffer(FRAMEBUFFER, DEPTH_ATTACHMENT, RENDERBUFFER, null)
             context.checkErrors()
             depthBuffer = null
         }
@@ -198,7 +233,7 @@ open class RenderTargetWebGL(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         bound {
-            context.clearBufferfi(GL.DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            context.clearBufferfi(DEPTH_STENCIL, 0, depth.toFloat(), stencil)
         }
     }
 

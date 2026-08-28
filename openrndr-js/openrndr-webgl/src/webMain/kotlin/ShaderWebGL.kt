@@ -8,12 +8,22 @@ import js.numbers.JsNumbers.toKotlinInt
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.*
-import web.gl.Float32List
-import web.gl.GLenum
-import web.gl.WebGLProgram
-import web.gl.WebGLUniformLocation
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.unsafeCast
+import web.gl.*
+import kotlin.Array
+import kotlin.Boolean
+import kotlin.Double
+import kotlin.Float
+import kotlin.FloatArray
+import kotlin.Int
+import kotlin.IntArray
+import kotlin.OptIn
+import kotlin.String
+import kotlin.Suppress
+import kotlin.TODO
+import kotlin.context
+import kotlin.error
+import kotlin.require
+import kotlin.text.get
 import web.gl.WebGL2RenderingContext as GL
 
 private val logger = KotlinLogging.logger {  }
@@ -60,7 +70,7 @@ class ShaderWebGL(
             context.attachShader(program, fragmentShader.shaderObject)
             context.linkProgram(program)
 
-            val activeUniformCount = context.getProgramParameter(program, GL.ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
+            val activeUniformCount = context.getProgramParameter(program, ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
             val activeUniforms = (0 until activeUniformCount).mapNotNull {
                 val activeUniform = context.getActiveUniform(program, it.toJsUInt())
 
@@ -241,8 +251,8 @@ class ShaderWebGL(
         }
         if (index != null && activeUniform != null) {
             when (activeUniform.type) {
-                GL.INT -> context.uniform1i(index, value.toInt())
-                GL.FLOAT -> context.uniform1f(index, value.toFloat())
+                INT -> context.uniform1i(index, value.toInt())
+                FLOAT -> context.uniform1f(index, value.toFloat())
             }
 
             context.checkErrors("$name $value (float)")

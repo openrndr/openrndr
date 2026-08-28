@@ -8,10 +8,38 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
-import web.gl.WebGLVertexArrayObject
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toJsNumber
-import kotlin.js.unsafeCast
+import web.gl.*
+import kotlin.Any
+import kotlin.Boolean
+import kotlin.Double
+import kotlin.Int
+import kotlin.IntArray
+import kotlin.Long
+import kotlin.OptIn
+import kotlin.String
+import kotlin.TODO
+import kotlin.collections.List
+import kotlin.collections.contentEquals
+import kotlin.collections.contentHashCode
+import kotlin.collections.emptyList
+import kotlin.collections.forEach
+import kotlin.collections.getOrPut
+import kotlin.collections.map
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plus
+import kotlin.collections.setOf
+import kotlin.collections.toIntArray
+import kotlin.context
+import kotlin.error
+import kotlin.getValue
+import kotlin.hashCode
+import kotlin.lazy
+import kotlin.let
+import kotlin.plus
+import kotlin.require
+import kotlin.sequences.plus
+import kotlin.text.clear
+import kotlin.text.trimIndent
 import web.gl.WebGL2RenderingContext as GL
 
 @OptIn(ExperimentalWasmJsInterop::class)
@@ -58,8 +86,8 @@ class DriverWebGL(var context: GL) : Driver {
 
     @OptIn(ExperimentalWasmJsInterop::class)
     val capabilities = Capabilities(
-        colorBufferFloat = context.getExtension("EXT_color_buffer_float") != null,
-        floatTexturesLinear = context.getExtension("OES_texture_float_linear") != null,
+        colorBufferFloat = context.getExtensionOrNull<EXT_color_buffer_float>() != null,
+        floatTexturesLinear = context.getExtensionOrNull<OES_texture_float_linear>() != null,
     )
 
     override val contextID: Long
@@ -202,9 +230,9 @@ class DriverWebGL(var context: GL) : Driver {
     override fun clear(color: ColorRGBa) {
         context.clearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
         context.clearDepth(1.0f)
-        context.disable(GL.SCISSOR_TEST)
+        context.disable(SCISSOR_TEST)
         context.depthMask(true)
-        context.clear(GL.COLOR_BUFFER_BIT + GL.DEPTH_BUFFER_BIT + GL.STENCIL_BUFFER_BIT)
+        context.clear(COLOR_BUFFER_BIT + DEPTH_BUFFER_BIT + STENCIL_BUFFER_BIT)
         context.depthMask(false)
     }
 
@@ -238,7 +266,7 @@ class DriverWebGL(var context: GL) : Driver {
             val prefix = if (divisor == 0) "a" else "i"
             var attributeBindings = 0
 
-            context.bindBuffer(GL.ARRAY_BUFFER, (buffer as VertexBufferWebGL).buffer)
+            context.bindBuffer(ARRAY_BUFFER, (buffer as VertexBufferWebGL).buffer)
             val format = buffer.vertexFormat
             for (item in format.items) {
                 // skip over padding attributes
@@ -256,7 +284,7 @@ class DriverWebGL(var context: GL) : Driver {
                             for (i in 0 until item.arraySize) {
                                 context.enableVertexAttribArray((attributeIndex + i).toJsUInt())
                                 val glType = item.type.glType()
-                                if (glType == GL.FLOAT) {
+                                if (glType == FLOAT) {
                                     context.vertexAttribPointer(
                                         (attributeIndex + i).toJsUInt(),
                                         item.type.componentCount,
@@ -432,10 +460,10 @@ class DriverWebGL(var context: GL) : Driver {
                         (it.width * target.contentScale).toInt(),
                         (it.height * target.contentScale).toInt()
                     )
-                    context.enable(GL.SCISSOR_TEST)
+                    context.enable(SCISSOR_TEST)
                 }
             } else {
-                context.disable(GL.SCISSOR_TEST)
+                context.disable(SCISSOR_TEST)
             }
             cached.clip = drawStyle.clip
         }
@@ -453,14 +481,14 @@ class DriverWebGL(var context: GL) : Driver {
                 true -> context.depthMask(true)
                 false -> context.depthMask(false)
             }
-            context.enable(GL.DEPTH_TEST)
+            context.enable(DEPTH_TEST)
             cached.depthWrite = drawStyle.depthWrite
         }
         if (drawStyle.frontStencil === drawStyle.backStencil) {
             if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {
-                context.disable(GL.STENCIL_TEST)
+                context.disable(STENCIL_TEST)
             } else {
-                context.enable(GL.STENCIL_TEST)
+                context.enable(STENCIL_TEST)
                 context.stencilFunc(
                     glStencilTest(drawStyle.stencil.stencilTest),
                     drawStyle.stencil.stencilTestReference,
@@ -477,33 +505,33 @@ class DriverWebGL(var context: GL) : Driver {
                 //debugGLErrors()
             }
         } else {
-            context.enable(GL.STENCIL_TEST)
+            context.enable(STENCIL_TEST)
             context.stencilFuncSeparate(
-                GL.FRONT,
+                FRONT,
                 glStencilTest(drawStyle.frontStencil.stencilTest),
                 drawStyle.frontStencil.stencilTestReference,
                 drawStyle.frontStencil.stencilTestMask.toJsUInt()
             )
             context.stencilFuncSeparate(
-                GL.BACK,
+                BACK,
                 glStencilTest(drawStyle.backStencil.stencilTest),
                 drawStyle.backStencil.stencilTestReference,
                 drawStyle.backStencil.stencilTestMask.toJsUInt()
             )
             context.stencilOpSeparate(
-                GL.FRONT,
+                FRONT,
                 glStencilOp(drawStyle.frontStencil.stencilFailOperation),
                 glStencilOp(drawStyle.frontStencil.depthFailOperation),
                 glStencilOp(drawStyle.frontStencil.depthPassOperation)
             )
             context.stencilOpSeparate(
-                GL.BACK,
+                BACK,
                 glStencilOp(drawStyle.backStencil.stencilFailOperation),
                 glStencilOp(drawStyle.backStencil.depthFailOperation),
                 glStencilOp(drawStyle.backStencil.depthPassOperation)
             )
-            context.stencilMaskSeparate(GL.FRONT, drawStyle.frontStencil.stencilWriteMask.toJsUInt())
-            context.stencilMaskSeparate(GL.BACK, drawStyle.backStencil.stencilWriteMask.toJsUInt())
+            context.stencilMaskSeparate(FRONT, drawStyle.frontStencil.stencilWriteMask.toJsUInt())
+            context.stencilMaskSeparate(BACK, drawStyle.backStencil.stencilWriteMask.toJsUInt())
         }
         if (true) {
 
@@ -514,55 +542,55 @@ class DriverWebGL(var context: GL) : Driver {
                 // TODO: use https://developer.mozilla.org/en-US/docs/Web/API/OES_draw_buffers_indexed/blendEquationiOES
                 when (blendMode) {
                     BlendMode.OVER -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.FUNC_ADD)
-                        context.blendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+                        context.enable(BLEND)
+                        context.blendEquation(FUNC_ADD)
+                        context.blendFunc(ONE, ONE_MINUS_SRC_ALPHA)
                     }
 
                     BlendMode.BLEND -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.FUNC_ADD)
-                        context.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+                        context.enable(BLEND)
+                        context.blendEquation(FUNC_ADD)
+                        context.blendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
                     }
 
                     BlendMode.ADD -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.FUNC_ADD)
-                        context.blendFunc(GL.ONE, GL.ONE)
+                        context.enable(BLEND)
+                        context.blendEquation(FUNC_ADD)
+                        context.blendFunc(ONE, ONE)
                     }
 
                     BlendMode.REPLACE -> {
-                        context.disable(GL.BLEND)
+                        context.disable(BLEND)
                     }
 
                     BlendMode.SUBTRACT -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
-                        context.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE, GL.ONE, GL.ONE)
+                        context.enable(BLEND)
+                        context.blendEquationSeparate(FUNC_REVERSE_SUBTRACT, FUNC_ADD)
+                        context.blendFuncSeparate(SRC_ALPHA, ONE, ONE, ONE)
                     }
 
                     BlendMode.MULTIPLY -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.FUNC_ADD)
-                        context.blendFunc(GL.DST_COLOR, GL.ONE_MINUS_SRC_ALPHA)
+                        context.enable(BLEND)
+                        context.blendEquation(FUNC_ADD)
+                        context.blendFunc(DST_COLOR, ONE_MINUS_SRC_ALPHA)
                     }
 
                     BlendMode.REMOVE -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.FUNC_ADD)
-                        context.blendFunc(GL.ZERO, GL.ONE_MINUS_SRC_ALPHA)
+                        context.enable(BLEND)
+                        context.blendEquation(FUNC_ADD)
+                        context.blendFunc(ZERO, ONE_MINUS_SRC_ALPHA)
                     }
 
                     BlendMode.MIN -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.MIN)
-                        context.blendFunc(GL.ONE, GL.ONE)
+                        context.enable(BLEND)
+                        context.blendEquation(MIN)
+                        context.blendFunc(ONE, ONE)
                     }
 
                     BlendMode.MAX -> {
-                        context.enable(GL.BLEND)
-                        context.blendEquation(GL.MAX)
-                        context.blendFunc(GL.ONE, GL.ONE)
+                        context.enable(BLEND)
+                        context.blendEquation(MAX)
+                        context.blendFunc(ONE, ONE)
                     }
                     else -> error("blendmode ${drawStyle.blendMode} is not supported")
                 }
@@ -571,41 +599,41 @@ class DriverWebGL(var context: GL) : Driver {
         }
         if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
             if (drawStyle.alphaToCoverage) {
-                context.enable(GL.SAMPLE_ALPHA_TO_COVERAGE)
-                context.disable(GL.BLEND)
+                context.enable(SAMPLE_ALPHA_TO_COVERAGE)
+                context.disable(BLEND)
             } else {
-                context.disable(GL.SAMPLE_ALPHA_TO_COVERAGE)
+                context.disable(SAMPLE_ALPHA_TO_COVERAGE)
             }
             cached.alphaToCoverage = drawStyle.alphaToCoverage
         }
         if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
             when (drawStyle.depthTestPass) {
                 DepthTestPass.ALWAYS -> {
-                    context.depthFunc(GL.ALWAYS)
+                    context.depthFunc(ALWAYS)
                 }
 
                 DepthTestPass.GREATER -> {
-                    context.depthFunc(GL.GREATER)
+                    context.depthFunc(GREATER)
                 }
 
                 DepthTestPass.GREATER_OR_EQUAL -> {
-                    context.depthFunc(GL.GEQUAL)
+                    context.depthFunc(GEQUAL)
                 }
 
                 DepthTestPass.LESS -> {
-                    context.depthFunc(GL.LESS)
+                    context.depthFunc(LESS)
                 }
 
                 DepthTestPass.LESS_OR_EQUAL -> {
-                    context.depthFunc(GL.LEQUAL)
+                    context.depthFunc(LEQUAL)
                 }
 
                 DepthTestPass.EQUAL -> {
-                    context.depthFunc(GL.EQUAL)
+                    context.depthFunc(EQUAL)
                 }
 
                 DepthTestPass.NEVER -> {
-                    context.depthFunc(GL.NEVER)
+                    context.depthFunc(NEVER)
                 }
             }
             //debugGLErrors()
@@ -614,22 +642,22 @@ class DriverWebGL(var context: GL) : Driver {
         if (dirty || cached.cullTestPass != drawStyle.cullTestPass) {
             when (drawStyle.cullTestPass) {
                 CullTestPass.ALWAYS -> {
-                    context.disable(GL.CULL_FACE)
+                    context.disable(CULL_FACE)
                 }
 
                 CullTestPass.FRONT -> {
-                    context.enable(GL.CULL_FACE)
-                    context.cullFace(GL.BACK)
+                    context.enable(CULL_FACE)
+                    context.cullFace(BACK)
                 }
 
                 CullTestPass.BACK -> {
-                    context.enable(GL.CULL_FACE)
-                    context.cullFace(GL.FRONT)
+                    context.enable(CULL_FACE)
+                    context.cullFace(FRONT)
                 }
 
                 CullTestPass.NEVER -> {
-                    context.enable(GL.CULL_FACE)
-                    context.cullFace(GL.FRONT_AND_BACK)
+                    context.enable(CULL_FACE)
+                    context.cullFace(FRONT_AND_BACK)
                 }
             }
             cached.cullTestPass = drawStyle.cullTestPass
@@ -694,7 +722,7 @@ class DriverWebGL(var context: GL) : Driver {
         DriverProperties(
             maxRenderTargetSamples = 4,
             maxTextureSamples = 4,
-            maxTextureSize = context.getParameter(GL.MAX_TEXTURE_SIZE) as? Int ?: 4096
+            maxTextureSize = context.getParameter(MAX_TEXTURE_SIZE) as? Int ?: 4096
         )
     }
 
