@@ -71,10 +71,10 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
         for (y in 0 until cb.height) {
             for (x in 0 until cb.width) {
                 val c = cb.shadow[x, y]
-                assertEquals(c.r, 127.0 / 255.0)
-                assertEquals(c.g, 0.0)
-                assertEquals(c.b, 0.0)
-                assertEquals(c.alpha, 1.0)
+                assertEquals(127.0 / 255.0, c.r)
+                assertEquals(0.0, c.g)
+                assertEquals(0.0, c.b)
+                assertEquals(1.0, c.alpha)
             }
         }
         cb.destroy()
@@ -161,7 +161,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                     if (format.componentCount >= 3)
                         assertEquals(3.0, c.b)
                     if (format.componentCount >= 4)
-                        assertEquals(4.0, c.a)
+                        assertEquals(4.0, c.alpha)
                 }
             }
             cb.destroy()
