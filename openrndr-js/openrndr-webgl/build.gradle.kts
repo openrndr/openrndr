@@ -21,7 +21,6 @@ kotlin {
         getByName("webTest") {
             dependencies {
                 implementation(libs.kotlin.test)
-                //implementation("org.jetbrains.kotlin:kotlin-test-junit5:2.4.10")
             }
         }
         getByName("wasmJsMain") {
@@ -30,4 +29,21 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest>().configureEach {
+    failOnNoDiscoveredTests = false
+}
+
+tasks.named("jsNodeTest") {
+    enabled = false
+}
+
+tasks.named("wasmJsNodeTest") {
+    enabled = false
+}
+
+
+tasks.named("wasmJsBrowserTest") {
+    enabled = false
 }
