@@ -31,8 +31,10 @@ class TestColorBufferWebGL : AbstractApplicationTestFixture() {
             buffer.put(255.toByte())
 
         }
+        buffer.rewind()
         val cb = colorBuffer(100, 100)
-        //cb.write(buffer)
+        cb.write(buffer)
         cb.destroy()
     }
+
 }
