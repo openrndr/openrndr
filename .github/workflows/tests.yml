@@ -25,7 +25,10 @@ jobs:
         with:
           swap-size-gb: 8
 
+      - name: Test glxinfo
+        run: |
+          sudo apt-get install -y mesa-utils xvfb
+          xvfb-run glxinfo
+
       - name: Test openrndr-gl3
-        uses: coactions/setup-xvfb@v1
-        with:
-          run: ./gradlew check
+        run: xvfb-run ./gradlew check
