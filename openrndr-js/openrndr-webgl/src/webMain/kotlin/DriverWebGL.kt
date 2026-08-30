@@ -9,37 +9,6 @@ import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import web.gl.*
-import kotlin.Any
-import kotlin.Boolean
-import kotlin.Double
-import kotlin.Int
-import kotlin.IntArray
-import kotlin.Long
-import kotlin.OptIn
-import kotlin.String
-import kotlin.TODO
-import kotlin.collections.List
-import kotlin.collections.contentEquals
-import kotlin.collections.contentHashCode
-import kotlin.collections.emptyList
-import kotlin.collections.forEach
-import kotlin.collections.getOrPut
-import kotlin.collections.map
-import kotlin.collections.mutableMapOf
-import kotlin.collections.plus
-import kotlin.collections.setOf
-import kotlin.collections.toIntArray
-import kotlin.context
-import kotlin.error
-import kotlin.getValue
-import kotlin.hashCode
-import kotlin.lazy
-import kotlin.let
-import kotlin.plus
-import kotlin.require
-import kotlin.sequences.plus
-import kotlin.text.clear
-import kotlin.text.trimIndent
 import web.gl.WebGL2RenderingContext as GL
 
 @OptIn(ExperimentalWasmJsInterop::class)
@@ -50,6 +19,13 @@ private val logger = KotlinLogging.logger {  }
 class DriverWebGL(var context: GL) : Driver {
     init {
         Driver.driver = this
+    }
+
+    var enableErrorChecking = false
+        private set
+
+    override fun enableErrorChecking() {
+        enableErrorChecking = true
     }
 
     data class ShaderVertexDescription(

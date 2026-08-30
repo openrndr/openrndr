@@ -7,25 +7,27 @@ import js.numbers.JsNumbers.toJsFloat
 import js.numbers.JsNumbers.toKotlinInt
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import web.gl.*
 import web.gl.WebGL2RenderingContext as GL
 
-private val logger = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger { }
 inline fun GL.checkErrors(msg: String = "") {
-    // TODO add this back-in for situations in which we really need to check the error
-//    val e = getError()
-//    if (e != GL.NO_ERROR) {
-//        val m = when (e) {
-//            GL.INVALID_ENUM -> "Invalid enum"
-//            GL.INVALID_VALUE -> "Invalid value"
-//            GL.INVALID_OPERATION -> "Invalid operation"
-//            GL.INVALID_FRAMEBUFFER_OPERATION -> "Invalid framebuffer operation"
-//            GL.OUT_OF_MEMORY -> "Out of memory"
-//            GL.CONTEXT_LOST_WEBGL -> "Context lst webgl"
-//        }
-//        error("$m: $msg")
-//    }
+    if ((Driver.instance as DriverWebGL).enableErrorChecking) {
+        val e = getError()
+        if (e != NO_ERROR) {
+            val m = when (e) {
+                INVALID_ENUM -> "Invalid enum"
+                INVALID_VALUE -> "Invalid value"
+                INVALID_OPERATION -> "Invalid operation"
+                INVALID_FRAMEBUFFER_OPERATION -> "Invalid framebuffer operation"
+                OUT_OF_MEMORY -> "Out of memory"
+                CONTEXT_LOST_WEBGL -> "Context lost webgl"
+            }
+            error("$m: $msg")
+        }
+    }
 }
 
 data class ActiveUniform(val name: String, val size: Int, val type: GLenum)
@@ -48,14 +50,15 @@ class ShaderWebGL(
             @Suppress("UNUSED_PARAMETER") name: String,
             session: Session?
         ): ShaderWebGL {
-            logger.debug { "creating shader from $vertexShader $fragmentShader"}
+            logger.debug { "creating shader from $vertexShader $fragmentShader" }
 
             val program = context.createProgram()
             context.attachShader(program, vertexShader.shaderObject)
             context.attachShader(program, fragmentShader.shaderObject)
             context.linkProgram(program)
 
-            val activeUniformCount = context.getProgramParameter(program, ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
+            val activeUniformCount =
+                context.getProgramParameter(program, ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
             val activeUniforms = (0 until activeUniformCount).mapNotNull {
                 val activeUniform = context.getActiveUniform(program, it.toJsUInt())
 
@@ -85,10 +88,12 @@ class ShaderWebGL(
     override val types: Set<ShaderType> = setOf(ShaderType.FRAGMENT, ShaderType.VERTEX)
 
     override fun begin() {
+        logger.info { "begin shader $this" }
         context.useProgram(program)
     }
 
     override fun end() {
+        logger.info { "end shader $this" }
         context.useProgram(null as WebGLProgram?)
     }
 

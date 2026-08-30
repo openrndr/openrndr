@@ -30,6 +30,8 @@ data class DriverProperties(
  */
 expect interface Driver {
 
+    fun enableErrorChecking()
+
     /**
      * Represents the configuration properties for a driver.
      * This object encapsulates various settings and preferences

@@ -13,6 +13,8 @@ private val logger = KotlinLogging.logger {}
  */
 actual interface Driver {
 
+    actual fun enableErrorChecking()
+
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
     fun createDrawThread(session: Session? = Session.active): DrawThread
 

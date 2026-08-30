@@ -11,6 +11,10 @@ kotlin {
     js {
         browser()
         nodejs()
+//        compilerOptions {
+//            sourceMap = true
+//            sourceMapEmbedSources = org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS
+//        }
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {

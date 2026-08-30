@@ -15,7 +15,6 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.min
 
@@ -89,6 +88,9 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 private class CacheState(val cachedTextureBindings: LongArray = LongArray(32) { -1 })
 abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
+    override fun enableErrorChecking() {
+
+    }
     private val cacheStates = mutableMapOf<Long, CacheState>()
     private val cacheState: CacheState
         get() = synchronized(cacheStates) { cacheStates.getOrPut(contextID) { CacheState() } }

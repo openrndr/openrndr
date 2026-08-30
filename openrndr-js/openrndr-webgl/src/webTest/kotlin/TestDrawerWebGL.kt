@@ -1,8 +1,13 @@
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.shadeStyle
+import org.openrndr.shape.Circle
 import org.openrndr.shape.contour
+import web.console.console
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class TestDrawerWebGL: AbstractApplicationTestFixture() {
+class TestDrawerWebGL : AbstractApplicationTestFixture() {
 
     @Test
     fun drawCircle() {
@@ -36,6 +41,38 @@ class TestDrawerWebGL: AbstractApplicationTestFixture() {
             close()
         }
         program.drawer.contour(contour)
+    }
+
+
+    @Test
+    fun drawContourWithShadeStyle() {
+        // https://github.com/openrndr/openrndr/issues/423
+        val drawer = program.drawer
+        fun createCurve() = Circle(drawer.bounds.center, 100.0).contour
+        val curve = createCurve()
+
+        drawer.clear(ColorRGBa.PINK)
+        drawer.strokeWeight = 10.0
+        drawer.shadeStyle = shadeStyle {
+            fragmentTransform = """
+                    float lfo = sin(p_seconds) * 0.5 + 0.5;
+                    x_stroke = vec4(lfo, lfo, lfo, 1.0);
+                """.trimIndent()
+            parameter("seconds", program.seconds)
+            parameter("someInt", 1)
+        }
+
+        assertEquals("int", drawer.shadeStyle?.parameterType("someInt"))
+        assertEquals("float", drawer.shadeStyle?.parameterType("seconds"))
+        drawer.contour(curve)
+
+        drawer.shadeStyle?.
+            parameter("seconds", program.seconds + 1.0)
+
+        drawer.contour(curve)
+        console.log("hello")
+
+        drawer.circle(100.0, 100.0, 20.0)
     }
 
 }

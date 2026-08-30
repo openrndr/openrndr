@@ -71,6 +71,7 @@ $this"""
                         }
                     }
                 }
+                shader.begin()
                 dispatchBufferBindings(style, shader)
                 dispatchParameters(style, shader, shader.textureBindings)
                 dispatchImageBindings(style, shader)

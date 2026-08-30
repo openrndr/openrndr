@@ -6,8 +6,10 @@ if (process.platform === 'darwin') {
                 flags: [
                     '--headless=new',
                     '--use-gl=angle',
-                    '--use-angle=swiftshader',
+                    '--use-angle=metal',
                     '--enable-webgl',
+                    '--enable-gpu-debugging',
+                    '--enable-gpu-client-logging',
                     '--ignore-gpu-blocklist',
                     '--no-sandbox'
                 ]
@@ -27,6 +29,8 @@ if (process.env.GITHUB_ACTIONS) {
                     '--use-gl=angle',
                     '--use-angle=swiftshader',
                     '--enable-webgl',
+                    '--enable-gpu-debugging',
+                    '--enable-gpu-client-logging',
                     '--ignore-gpu-blocklist',
                     '--no-sandbox',
                     '--disable-dev-shm-usage'

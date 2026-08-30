@@ -7,8 +7,6 @@ import org.openrndr.math.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 inline fun <reified F> shadeStyleTypeOrNull(): String? {
     return when (F::class) {
@@ -136,10 +134,12 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit)
 @Suppress("unused")
 open class ShadeStyle(
     override var parameterValues: MutableMap<String, Any> = mutableMapOf(),
-    override var textureBaseIndex: Int = 2) : StyleParameters, StyleBufferBindings, StyleImageBindings {
+    override var textureBaseIndex: Int = 2
+) : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var dirty = true
 
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
+
     /**
      * Represents the preamble for vertex shading code in the shade style.
      * This property is used to define custom vertex processing logic and,
@@ -158,6 +158,10 @@ open class ShadeStyle(
             dirty = true
             field = value
         }
+
+    fun parameterType(name: String): String {
+        return parameterTypes[name] ?: "unknown"
+    }
 
     /**
      * Represents an optional preamble string for a shader's fragment stage.

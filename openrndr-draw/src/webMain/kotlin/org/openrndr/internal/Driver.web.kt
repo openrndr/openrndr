@@ -8,28 +8,8 @@ import org.openrndr.draw.*
  */
 actual interface Driver {
 
-    //    fun createColorBufferFromStream(
-//        stream: InputStream,
-//        name: String? = null,
-//        formatHint: ImageFileFormat? = null,
-//        session: Session? = Session.active
-//    ): ColorBuffer
+    actual fun enableErrorChecking()
 
-    //    fun createColorBufferFromBuffer(
-//        buffer: ByteBuffer,
-//        name: String? = null,
-//        formatHint: ImageFileFormat? = null,
-//        session: Session? = Session.active
-//    ): ColorBuffer
-
-    //    fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
-//    fun createDrawThread(session: Session? = Session.active): DrawThread
-
-    //    fun clear(color: ColorRGBa) {
-//        clear(color.r, color.g, color.b, color.a)
-//    }
-
-    //    fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session? = Session.active): VertexBuffer
     actual val contextID: Long
 
     /**

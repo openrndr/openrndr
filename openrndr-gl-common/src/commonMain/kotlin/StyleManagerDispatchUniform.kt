@@ -9,15 +9,25 @@ interface StyleManagerDispatchUniform {
 
     fun <T> dispatchParameters(style: StyleParameters, shader: T, textureBindings: TextureBindings) where T: ShaderUniforms {
         textureIndex = style.textureBaseIndex
-        for (it in style.parameterValues.entries) {
-            setUniform(shader, textureBindings,"p_${it.key}", it.key, it.value)
+        for ((key, value) in style.parameterValues) {
+            val type = style.parameterTypes[key] ?: error("parameter type not found for $key")
+            setUniform(shader, textureBindings,"p_$key", type, key, value)
         }
     }
 
-    fun <T> setUniform(shader: T, textureBindings: TextureBindings, targetName: String, name: String, value: Any) where T : ShaderUniforms {
+    fun <T> setUniform(shader: T, textureBindings: TextureBindings, targetName: String, type: String, name: String, value: Any) where T : ShaderUniforms {
+
+        println("${value is Int} ${value is Double}")
         when (value) {
             is Boolean -> shader.uniform(targetName, value)
-            is Int -> shader.uniform(targetName, value)
+            is Int -> {
+                when (type) {
+                    "int" ->
+                    shader.uniform(targetName, value as Int)
+                    "float" -> shader.uniform(targetName, value as Double)
+                }
+
+            }
             is Float -> shader.uniform(targetName, value)
             is Double -> shader.uniform(targetName, value)
             is Matrix44 -> shader.uniform(targetName, value)
@@ -121,7 +131,7 @@ interface StyleManagerDispatchUniform {
 
                     is Struct<*> -> {
                         for (i in 0 until value.size) {
-                            setUniform(shader, textureBindings,"$targetName[$i]", "", value[i]!!)
+                            setUniform(shader, textureBindings,"$targetName[$i]", "struct","", value[i]!!)
                         }
                     }
                 }
@@ -133,7 +143,8 @@ interface StyleManagerDispatchUniform {
 
             is Struct<*> -> {
                 for (f in value.values.keys) {
-                    setUniform(shader, textureBindings,"$targetName.$f", "", value.values.getValue(f))
+                    val type = value.types[f]!!
+                    setUniform(shader, textureBindings,"$targetName.$f", type,"", value.values.getValue(f))
                 }
             }
 

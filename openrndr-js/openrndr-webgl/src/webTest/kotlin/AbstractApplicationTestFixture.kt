@@ -2,6 +2,7 @@ import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.ProgramImplementation
 import org.openrndr.draw.Session
+import org.openrndr.internal.Driver
 import org.openrndr.webgl.ApplicationBaseWebGL
 import org.openrndr.webgl.ApplicationWebGL
 import web.dom.ElementId
@@ -34,6 +35,7 @@ abstract class AbstractApplicationTestFixture {
         var error: Throwable? = null
         val setupBlock: suspend () -> Unit = {
             application.setup()
+            Driver.instance.enableErrorChecking()
         }
         setupBlock.startCoroutine(object : Continuation<Unit> {
             override val context: CoroutineContext get() = EmptyCoroutineContext

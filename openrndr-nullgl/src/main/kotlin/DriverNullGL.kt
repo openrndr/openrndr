@@ -6,6 +6,10 @@ import org.openrndr.internal.*
 import java.nio.Buffer
 
 class DriverNullGL: Driver {
+
+    override fun enableErrorChecking() {
+    }
+
     override val contextID: Long
     get() {
         return Thread.currentThread().id
