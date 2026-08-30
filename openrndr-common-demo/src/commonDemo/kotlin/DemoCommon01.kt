@@ -1,10 +1,13 @@
 import org.openrndr.application
 
+/**
+ * Draw a single circle
+ */
 fun main() {
     application {
         program {
             extend {
-                drawer.circle(100.0, 100.0, 40.0)
+                drawer.circle(drawer.bounds.center, 40.0)
             }
         }
     }
