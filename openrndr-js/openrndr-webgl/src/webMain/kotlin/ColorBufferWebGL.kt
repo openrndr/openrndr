@@ -425,10 +425,18 @@ class ColorBufferWebGL(
 
     override var wrapU: WrapMode
         get() = TODO("Not yet implemented")
-        set(_) {}
+        set(_) {
+            bound {
+                context.texParameteri(target, TEXTURE_WRAP_S, wrapU.toGLWrap())
+            }
+        }
     override var wrapV: WrapMode
         get() = TODO("Not yet implemented")
-        set(_) {}
+        set(_) {
+            bound {
+                context.texParameteri(target, TEXTURE_WRAP_T, wrapU.toGLWrap())
+            }
+        }
 
     override fun fill(color: ColorRGBa, level: Int) {
         val lcolor = color.toLinear()
@@ -456,5 +464,14 @@ class ColorBufferWebGL(
 
     override fun toString(): String {
         return "ColorBufferWebGL(target=$target, width=$width, height=$height, contentScale=$contentScale, format=$format, type=$type, levels=$levels, multisample=$multisample, flipV=$flipV)"
+    }
+}
+
+private fun WrapMode.toGLWrap(): GLenum {
+
+    return when(this) {
+        WrapMode.CLAMP_TO_EDGE -> CLAMP_TO_EDGE
+        WrapMode.MIRRORED_REPEAT -> MIRRORED_REPEAT
+        WrapMode.REPEAT -> REPEAT
     }
 }
