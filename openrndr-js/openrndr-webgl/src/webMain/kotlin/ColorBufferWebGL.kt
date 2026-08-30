@@ -10,26 +10,8 @@ import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.*
 import web.html.Image
-import kotlin.Boolean
-import kotlin.Double
-import kotlin.Int
-import kotlin.OptIn
-import kotlin.String
-import kotlin.Suppress
-import kotlin.TODO
-import kotlin.Unit
-import kotlin.collections.minus
-import kotlin.context
-import kotlin.error
-import kotlin.getValue
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toInt
-import kotlin.lazy
 import kotlin.math.log2
 import kotlin.math.pow
-import kotlin.require
-import kotlin.sequences.minus
-import kotlin.text.toInt
 import web.gl.WebGL2RenderingContext as GL
 
 
@@ -407,7 +389,11 @@ class ColorBufferWebGL(
         height: Int,
         level: Int
     ) {
-        write(sourceBuffer, sourceFormat, sourceType, x, y, width, height, level)
+        @Suppress("UNCHECKED_CAST")
+        write(
+            sourceBuffer.dataView as ArrayBufferView<ArrayBufferLike>,
+            sourceFormat, sourceType, x, y, width, height, level
+        )
     }
 
     private val readFrameBuffer by lazy {
@@ -439,10 +425,18 @@ class ColorBufferWebGL(
 
     override var wrapU: WrapMode
         get() = TODO("Not yet implemented")
-        set(_) {}
+        set(_) {
+            bound {
+                context.texParameteri(target, TEXTURE_WRAP_S, wrapU.toGLWrap())
+            }
+        }
     override var wrapV: WrapMode
         get() = TODO("Not yet implemented")
-        set(_) {}
+        set(_) {
+            bound {
+                context.texParameteri(target, TEXTURE_WRAP_T, wrapU.toGLWrap())
+            }
+        }
 
     override fun fill(color: ColorRGBa, level: Int) {
         val lcolor = color.toLinear()
@@ -470,5 +464,14 @@ class ColorBufferWebGL(
 
     override fun toString(): String {
         return "ColorBufferWebGL(target=$target, width=$width, height=$height, contentScale=$contentScale, format=$format, type=$type, levels=$levels, multisample=$multisample, flipV=$flipV)"
+    }
+}
+
+private fun WrapMode.toGLWrap(): GLenum {
+
+    return when(this) {
+        WrapMode.CLAMP_TO_EDGE -> CLAMP_TO_EDGE
+        WrapMode.MIRRORED_REPEAT -> MIRRORED_REPEAT
+        WrapMode.REPEAT -> REPEAT
     }
 }

@@ -1,6 +1,5 @@
 package org.openrndr.convention
 
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -19,6 +18,9 @@ kotlin {
         nodejs()
     }
     sourceSets {
+        create("webTest") {
+
+        }
         create("webMain") {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())

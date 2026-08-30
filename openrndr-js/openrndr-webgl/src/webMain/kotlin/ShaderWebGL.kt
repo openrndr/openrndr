@@ -9,21 +9,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.*
 import web.gl.*
-import kotlin.Array
-import kotlin.Boolean
-import kotlin.Double
-import kotlin.Float
-import kotlin.FloatArray
-import kotlin.Int
-import kotlin.IntArray
-import kotlin.OptIn
-import kotlin.String
-import kotlin.Suppress
-import kotlin.TODO
-import kotlin.context
-import kotlin.error
-import kotlin.require
-import kotlin.text.get
 import web.gl.WebGL2RenderingContext as GL
 
 private val logger = KotlinLogging.logger {  }
@@ -412,8 +397,14 @@ class ShaderWebGL(
         TODO("Not yet implemented")
     }
 
+    private var destroyed = false
+
     override fun destroy() {
-        TODO("Not yet implemented")
+        if (!destroyed) {
+            context.deleteProgram(program)
+            destroyed = true
+            session?.untrack(this)
+        }
     }
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
