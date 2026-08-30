@@ -16,4 +16,14 @@ class TestRenderTargetWebGL : AbstractApplicationTestFixture() {
         }
         rt.destroy()
     }
+
+    @Test
+    fun testRenderTargetClear() {
+        val rt = renderTarget(100, 100) {
+            colorBuffer()
+            depthBuffer()
+        }
+        rt.clearColor(0, ColorRGBa.PINK)
+        rt.destroy()
+    }
 }

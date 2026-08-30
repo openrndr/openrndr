@@ -1,5 +1,8 @@
 package org.openrndr.webgl
 
+import js.buffer.ArrayBufferLike
+import js.numbers.JsNumbers.toJsFloat
+import js.typedarrays.Float32Array
 import org.openrndr.Program
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
@@ -7,41 +10,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import web.gl.*
-import kotlin.Boolean
-import kotlin.Deprecated
-import kotlin.Double
-import kotlin.Int
-import kotlin.ReplaceWith
-import kotlin.RuntimeException
-import kotlin.String
-import kotlin.TODO
-import kotlin.Unit
-import kotlin.collections.ArrayDeque
-import kotlin.collections.MutableList
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.filterIsInstance
-import kotlin.collections.get
-import kotlin.collections.isNotEmpty
-import kotlin.collections.last
-import kotlin.collections.mutableListOf
-import kotlin.collections.set
-import kotlin.collections.setOf
-import kotlin.collections.withIndex
-import kotlin.context
-import kotlin.error
-import kotlin.js.get
-import kotlin.js.toInt
-import kotlin.ranges.last
-import kotlin.require
-import kotlin.sequences.filterIsInstance
-import kotlin.sequences.last
-import kotlin.sequences.withIndex
-import kotlin.text.isNotEmpty
-import kotlin.text.iterator
-import kotlin.text.last
-import kotlin.text.toInt
-import kotlin.text.withIndex
 import web.gl.WebGL2RenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
@@ -90,7 +58,7 @@ open class RenderTargetWebGL(
             multisample: BufferMultisample = BufferMultisample.Disabled,
             session: Session?
         ): RenderTargetWebGL {
-            val framebuffer = context.createFramebuffer() ?: error("framebuffer creation failed")
+            val framebuffer = context.createFramebuffer()
             return RenderTargetWebGL(context, framebuffer, width, height, contentScale, multisample, session)
         }
 
@@ -143,7 +111,15 @@ open class RenderTargetWebGL(
             "status: $status, while attaching $colorBuffer"
         }
 
-        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level, ownedByRenderTarget))
+        colorAttachments.add(
+            ColorBufferAttachment(
+                colorAttachments.size,
+                name,
+                colorBuffer,
+                level,
+                ownedByRenderTarget
+            )
+        )
         blendModes.add(BlendMode.OVER)
     }
 
@@ -228,7 +204,20 @@ open class RenderTargetWebGL(
     }
 
     override fun clearColor(index: Int, color: ColorRGBa) {
-        TODO("Not yet implemented")
+        bound {
+            val values = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+
+            val v2 = Float32Array.of(
+                values[0].toJsFloat(),
+                values[1].toJsFloat(), values[2].toJsFloat(), values[3].toJsFloat()
+            )
+            context.clearBufferfv(
+                COLOR,
+                index,
+                v2 as Float32Array<ArrayBufferLike>,
+                )
+
+        }
     }
 
     override fun clearDepth(depth: Double, stencil: Int) {
