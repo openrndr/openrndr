@@ -27,3 +27,9 @@ jobs:
 
       - name: Test openrndr-gl3
         run: xvfb-run ./gradlew check
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: "**/build/reports/tests/"
