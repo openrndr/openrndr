@@ -109,8 +109,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
             val resizeDpr = min(configuration.maxContentScale, devicePixelRatio)
 
-            val width = canvasParent.clientWidth
-            val height = canvasParent.clientHeight
+            val width = canvas?.clientWidth!!
+            val height = canvas?.clientHeight!!
             val w = max(0.0, floor(width * resizeDpr)).toInt()
             val h = max(0.0, floor(height * resizeDpr)).toInt()
             if (canvas != null && (canvas!!.width != w || canvas!!.height != h)) {
