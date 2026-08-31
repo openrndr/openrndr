@@ -5,10 +5,6 @@ import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.DepthFormat
 import org.openrndr.draw.Session
 import web.gl.*
-import kotlin.Int
-import kotlin.TODO
-import kotlin.context
-import kotlin.error
 import web.gl.WebGL2RenderingContext as GL
 
 class DepthBufferWebGL(
@@ -30,7 +26,9 @@ class DepthBufferWebGL(
             session: Session?
         ): DepthBufferWebGL {
             val buffer = context.createRenderbuffer() ?: error("buffer creation failed")
+            context.checkErrors("create render buffer")
             context.bindRenderbuffer(RENDERBUFFER, buffer)
+            context.checkErrors("bindRenderBuffer")
 
             val webGlFormat = when(format) {
                 DepthFormat.DEPTH16 -> DEPTH_COMPONENT16
@@ -40,6 +38,7 @@ class DepthBufferWebGL(
             }
 
             context.renderbufferStorage(RENDERBUFFER, webGlFormat, width, height)
+            context.checkErrors("renderBufferStorage")
             return DepthBufferWebGL(context, buffer, width, height, format, multisample, session)
         }
     }
@@ -54,6 +53,7 @@ class DepthBufferWebGL(
 
     override fun destroy() {
         context.deleteRenderbuffer(buffer)
+        context.checkErrors("deleteRenderBuffer")
     }
 
     override fun close() {

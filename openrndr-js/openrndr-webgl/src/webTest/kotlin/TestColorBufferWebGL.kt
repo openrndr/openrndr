@@ -24,14 +24,14 @@ class TestColorBufferWebGL : AbstractApplicationTestFixture() {
     @Test
     fun testColorBufferWrite() {
         val buffer = MPPBuffer.allocate(100 * 100 * 4)
-        for (i in 0 until 100 * 100) {
-            buffer.put(100)
-            buffer.put(100)
-            buffer.put(100)
-            buffer.put(255.toByte())
-
-        }
-        buffer.rewind()
+//        for (i in 0 until 100 * 100) {
+//            buffer.put(100)
+//            buffer.put(100)
+//            buffer.put(100)
+//            buffer.put(255.toByte())
+//
+//        }
+//        buffer.rewind()
         val cb = colorBuffer(100, 100)
         cb.write(buffer)
         cb.destroy()

@@ -19,22 +19,27 @@ class IndexBufferWebGL(val context: GL,
         fun create(context: GL, type: IndexType, indexCount: Int, session: Session?) : IndexBufferWebGL {
             val buffer = context.createBuffer() ?: error("failed to create buffer")
             context.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer)
+            context.checkErrors()
             val sizeInBytes = type.sizeInBytes * indexCount
             context.bufferData(ELEMENT_ARRAY_BUFFER, sizeInBytes, DYNAMIC_DRAW)
+            context.checkErrors()
             return IndexBufferWebGL(context, buffer, type, indexCount, session)
         }
     }
 
     fun bind() {
         context.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer)
+        context.checkErrors()
     }
 
     fun unbind() {
         context.bindBuffer(ELEMENT_ARRAY_BUFFER, null)
+        context.checkErrors()
     }
 
     override fun destroy() {
         context.deleteBuffer(buffer)
+        context.checkErrors()
     }
 
     override fun close() {

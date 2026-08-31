@@ -18,6 +18,7 @@ private val logger = KotlinLogging.logger {  }
 
 class DriverWebGL(var context: GL) : Driver {
     init {
+        logger.debug { "Creating WebGL driver" }
         Driver.driver = this
     }
 
@@ -56,12 +57,14 @@ class DriverWebGL(var context: GL) : Driver {
     }
 
     data class Capabilities(
+        val srgb: Boolean,
         val colorBufferFloat: Boolean,
         val floatTexturesLinear: Boolean,
     )
 
     @OptIn(ExperimentalWasmJsInterop::class)
     val capabilities = Capabilities(
+        srgb = context.getExtensionOrNull<EXT_sRGB>() != null,
         colorBufferFloat = context.getExtensionOrNull<EXT_color_buffer_float>() != null,
         floatTexturesLinear = context.getExtensionOrNull<OES_texture_float_linear>() != null,
     )
@@ -204,12 +207,19 @@ class DriverWebGL(var context: GL) : Driver {
     }
 
     override fun clear(color: ColorRGBa) {
+        context.checkErrors("pre-existing errors")
         context.clearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+        context.checkErrors("clearColor")
         context.clearDepth(1.0f)
+        context.checkErrors("clearDepth")
         context.disable(SCISSOR_TEST)
+        context.checkErrors("disable(SCISSOR_TEST")
         context.depthMask(true)
+        context.checkErrors("depthMask(true)")
         context.clear(COLOR_BUFFER_BIT + DEPTH_BUFFER_BIT + STENCIL_BUFFER_BIT)
+        context.checkErrors("clear")
         context.depthMask(false)
+        context.checkErrors("depthMask(false)")
     }
 
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session?): VertexBuffer {
@@ -243,6 +253,7 @@ class DriverWebGL(var context: GL) : Driver {
             var attributeBindings = 0
 
             context.bindBuffer(ARRAY_BUFFER, (buffer as VertexBufferWebGL).buffer)
+            context.checkErrors("bindBuffer(ARRAY_BUFFER)")
             val format = buffer.vertexFormat
             for (item in format.items) {
                 // skip over padding attributes
@@ -259,6 +270,7 @@ class DriverWebGL(var context: GL) : Driver {
                         in scalarVectorTypes -> {
                             for (i in 0 until item.arraySize) {
                                 context.enableVertexAttribArray((attributeIndex + i).toJsUInt())
+                                context.checkErrors("enableVertexAttribArray")
                                 val glType = item.type.glType()
                                 if (glType == FLOAT) {
                                     context.vertexAttribPointer(
@@ -266,10 +278,12 @@ class DriverWebGL(var context: GL) : Driver {
                                         item.type.componentCount,
                                         glType, false, format.size, item.offset + i * item.type.sizeInBytes
                                     )
+                                    context.checkErrors("vertexAttribPointer")
                                 } else {
                                     error("integer attributes are not supported by WebGL")
                                 }
                                 context.vertexAttribDivisor(attributeIndex.toJsUInt(), divisor.toJsUInt())
+                                context.checkErrors()
                                 attributeBindings++
                             }
                         }
@@ -278,6 +292,7 @@ class DriverWebGL(var context: GL) : Driver {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 4) {
                                     context.enableVertexAttribArray((attributeIndex + column + i * 4).toJsUInt())
+                                    context.checkErrors()
                                     context.vertexAttribPointer(
                                         (attributeIndex + column + i * 4).toJsUInt(),
                                         4,
@@ -286,7 +301,9 @@ class DriverWebGL(var context: GL) : Driver {
                                         format.size,
                                         item.offset + column * 16 + i * 64
                                     )
+                                    context.checkErrors()
                                     context.vertexAttribDivisor((attributeIndex + column + i * 4).toJsUInt(), divisor.toJsUInt())
+                                    context.checkErrors()
                                     attributeBindings++
                                 }
                             }
@@ -296,12 +313,15 @@ class DriverWebGL(var context: GL) : Driver {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 3) {
                                     context.enableVertexAttribArray((attributeIndex + column + i * 3).toJsUInt())
+                                    context.checkErrors()
                                     context.vertexAttribPointer(
                                         (attributeIndex + column + i * 3).toJsUInt(),
                                         3,
                                         item.type.glType(), false, format.size, item.offset + column * 12 + i * 48
                                     )
+                                    context.checkErrors()
                                     context.vertexAttribDivisor((attributeIndex + column + i * 3).toJsUInt(), divisor.toJsUInt())
+                                    context.checkErrors()
                                     attributeBindings++
                                 }
                             }
@@ -349,17 +369,22 @@ class DriverWebGL(var context: GL) : Driver {
 
         val vao = vaos.getOrPut(shaderVertexDescription) {
             val localVao = context.createVertexArray()
+            context.checkErrors()
             context.bindVertexArray(localVao)
+            context.checkErrors()
             setupFormat(vertexBuffers, emptyList(), shader)
             context.bindVertexArray(null)
+            context.checkErrors()
             localVao
         }
 
         context.bindVertexArray(vao)
-
+        context.checkErrors()
 //        setupFormat(vertexBuffers, emptyList(), shader)
         context.drawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+        context.checkErrors()
         context.bindVertexArray(null)
+        context.checkErrors()
     }
 
     override fun drawMultiVertexBuffer(
@@ -405,6 +430,7 @@ class DriverWebGL(var context: GL) : Driver {
         }
         //console.log("drawing instances", vertexOffset, vertexCount, instanceCount)
         context.drawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        context.checkErrors()
         //extensions.instancedArrays?.drawArraysInstancedANGLE(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount) ?: error("instancing not supported")
     }
 
@@ -437,9 +463,11 @@ class DriverWebGL(var context: GL) : Driver {
                         (it.height * target.contentScale).toInt()
                     )
                     context.enable(SCISSOR_TEST)
+                    context.checkErrors()
                 }
             } else {
                 context.disable(SCISSOR_TEST)
+                context.checkErrors()
             }
             cached.clip = drawStyle.clip
         }
@@ -450,6 +478,7 @@ class DriverWebGL(var context: GL) : Driver {
                 drawStyle.channelWriteMask.blue,
                 drawStyle.channelWriteMask.alpha
             )
+            context.checkErrors()
             cached.channelWriteMask = drawStyle.channelWriteMask
         }
         if (dirty || cached.depthWrite != drawStyle.depthWrite) {
@@ -458,7 +487,9 @@ class DriverWebGL(var context: GL) : Driver {
                 false -> context.depthMask(false)
             }
             context.enable(DEPTH_TEST)
+            context.checkErrors()
             cached.depthWrite = drawStyle.depthWrite
+            context.checkErrors()
         }
         if (drawStyle.frontStencil === drawStyle.backStencil) {
             if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {

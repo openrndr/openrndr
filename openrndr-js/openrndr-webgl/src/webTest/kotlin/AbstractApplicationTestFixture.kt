@@ -1,3 +1,4 @@
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.ProgramImplementation
@@ -15,6 +16,7 @@ import kotlin.coroutines.startCoroutine
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
+private val logger = KotlinLogging.logger {  }
 abstract class AbstractApplicationTestFixture {
     lateinit var applicationBase: ApplicationBaseWebGL
     lateinit var application: ApplicationWebGL
@@ -22,6 +24,7 @@ abstract class AbstractApplicationTestFixture {
 
     @BeforeTest
     open fun setup() {
+        logger.info { "Setting up test"}
         program = ProgramImplementation()
         val configuration = Configuration()
         var canvas = document.getElementById(ElementId(configuration.canvasId)) as? HTMLCanvasElement
@@ -48,6 +51,8 @@ abstract class AbstractApplicationTestFixture {
 
     @AfterTest
     open fun teardown() {
+        logger.info { "Tearing down test" }
         Session.root.end()
+        Driver.driver = null
     }
 }

@@ -9,7 +9,6 @@ actual class ApplicationBaseWebGL : ApplicationBase() {
     actual override fun build(program: Program, configuration: Configuration): Application {
         // We need this here to make sure [applicationBaseFunc] is initialized.
         applicationBaseWebGLInitializer
-        console.log("building application")
         return ApplicationWebGL(program, configuration)
     }
 }

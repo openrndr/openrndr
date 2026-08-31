@@ -17,7 +17,9 @@ class FragmentShaderWebGL(val shaderObject: WebGLShader, val name: String) {
 
             val shader = context.createShader(FRAGMENT_SHADER) ?: error("failed to create shader")
             context.shaderSource(shader, code)
+            context.checkErrors("shaderSource")
             context.compileShader(shader)
+            context.checkErrors("compileShader")
             require(context.getShaderParameter(shader, COMPILE_STATUS)?.unsafeCast<JsBoolean>()?.toBoolean() == true) {
                 val error = context.getShaderInfoLog(shader)?:""
                 error.split("\n").forEach {

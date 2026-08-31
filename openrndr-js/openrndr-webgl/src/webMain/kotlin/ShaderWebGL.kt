@@ -53,15 +53,20 @@ class ShaderWebGL(
             logger.debug { "creating shader from $vertexShader $fragmentShader" }
 
             val program = context.createProgram()
+            context.checkErrors()
             context.attachShader(program, vertexShader.shaderObject)
+            context.checkErrors()
             context.attachShader(program, fragmentShader.shaderObject)
+            context.checkErrors()
             context.linkProgram(program)
+            context.checkErrors()
 
             val activeUniformCount =
                 context.getProgramParameter(program, ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
+            context.checkErrors()
             val activeUniforms = (0 until activeUniformCount).mapNotNull {
                 val activeUniform = context.getActiveUniform(program, it.toJsUInt())
-
+                context.checkErrors()
                 if (activeUniform != null) {
                     ActiveUniform(activeUniform.name, activeUniform.size, activeUniform.type)
                 } else {
@@ -78,6 +83,7 @@ class ShaderWebGL(
 
     fun attributeIndex(name: String): Int {
         val index = context.getAttribLocation(program, name)
+        context.checkErrors()
         if (index == -1) {
             logger.warn { "missing attribute $name" }
             //console.warn("missing attribute $name")
@@ -88,17 +94,18 @@ class ShaderWebGL(
     override val types: Set<ShaderType> = setOf(ShaderType.FRAGMENT, ShaderType.VERTEX)
 
     override fun begin() {
-        logger.info { "begin shader $this" }
         context.useProgram(program)
+        context.checkErrors("ShaderWebGL.begin(), useProgram($program)")
     }
 
     override fun end() {
-        logger.info { "end shader $this" }
         context.useProgram(null as WebGLProgram?)
+        context.checkErrors("ShaderWebGL.end(), useProgram(null)")
     }
 
     fun uniformIndex(uniform: String): WebGLUniformLocation? {
         val index = context.getUniformLocation(program, uniform)
+        context.checkErrors("ShaderWebGL.uniformIndex($uniform), getUniformLocation($program, $uniform)")
         if (index == null) {
             //console.warn("missing uniform $uniform")
         }
@@ -166,6 +173,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform2fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
+            context.checkErrors()
         }
     }
 
@@ -173,6 +181,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform4i(index, value.x, value.y, value.z, value.w)
+            context.checkErrors()
         }
     }
 
@@ -180,6 +189,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform3i(index, value.x, value.y, value.z)
+            context.checkErrors()
         }
     }
 
@@ -187,25 +197,30 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform2i(index, value.x, value.y)
+            context.checkErrors()
         }
     }
 
     override fun uniform(name: String, value: BooleanVector4) {
         uniform(name, value.toIntVector4())
+        context.checkErrors()
     }
 
     override fun uniform(name: String, value: BooleanVector3) {
         uniform(name, value.toIntVector3())
+        context.checkErrors()
     }
 
     override fun uniform(name: String, value: BooleanVector2) {
         uniform(name, value.toIntVector2())
+        context.checkErrors()
     }
 
     override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform4f(index, x, y, z, w)
+            context.checkErrors()
         }
     }
 
@@ -213,6 +228,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform3f(index, x, y, z)
+            context.checkErrors()
         }
     }
 
@@ -220,6 +236,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform2f(index, x, y)
+            context.checkErrors()
         }
     }
 
@@ -227,6 +244,7 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform1f(index, value)
+            context.checkErrors()
         }
     }
 
@@ -407,6 +425,7 @@ class ShaderWebGL(
     override fun destroy() {
         if (!destroyed) {
             context.deleteProgram(program)
+            context.checkErrors()
             destroyed = true
             session?.untrack(this)
         }

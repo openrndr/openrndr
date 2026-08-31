@@ -3,6 +3,10 @@ package org.openrndr.webgl
 import WebGLRenderingFixedCompressedTexImage
 import js.buffer.ArrayBufferLike
 import js.buffer.ArrayBufferView
+import js.typedarrays.Float16Array
+import js.typedarrays.Float32Array
+import js.typedarrays.Uint16Array
+import js.typedarrays.Uint8Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -14,6 +18,8 @@ import kotlin.math.log2
 import kotlin.math.pow
 import web.gl.WebGL2RenderingContext as GL
 
+//inline val SRGB_ALPHA_EXT: GLenum
+//    get() = GLenum(0x8C42)
 
 class ColorBufferWebGL(
     val context: GL,
@@ -46,10 +52,13 @@ class ColorBufferWebGL(
             levels: Int,
             session: Session?
         ): ColorBufferWebGL {
+            context.checkErrors("pre-existing errors in ColorBufferWebGL.create()")
             val texture = context.createTexture() ?: error("failed to create texture")
+            context.checkErrors("create texture")
             context.activeTexture(TEXTURE0)
+            context.checkErrors("active texture")
             when (multisample) {
-                BufferMultisample.Disabled -> context.bindTexture(TEXTURE_2D, texture)
+                BufferMultisample.Disabled -> { context.bindTexture(TEXTURE_2D, texture); context.checkErrors("bindTexture") }
                 is BufferMultisample.SampleCount -> error("multisample not supported on WebGL(1)")
             }
             val effectiveWidth = (width * contentScale).toInt()
@@ -91,6 +100,7 @@ class ColorBufferWebGL(
                         0,
                         null
                     )
+                    context.checkErrors("compressedTexImage2D")
                 }
             }
 
@@ -100,13 +110,19 @@ class ColorBufferWebGL(
                 (type == ColorType.FLOAT32 && caps.floatTexturesLinear)
             ) {
                 context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR)
+                context.checkErrors()
                 context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+                context.checkErrors()
             } else {
                 context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, NEAREST)
+                context.checkErrors()
                 context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, NEAREST)
+                context.checkErrors()
             }
             context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE)
+            context.checkErrors()
             context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, CLAMP_TO_EDGE)
+            context.checkErrors()
             return ColorBufferWebGL(
                 context,
                 TEXTURE_2D,
@@ -135,9 +151,13 @@ class ColorBufferWebGL(
                 context.generateMipmap(TEXTURE_2D)
             }
             context.texParameteri(TEXTURE_2D,TEXTURE_MIN_FILTER, LINEAR)
+            context.checkErrors()
             context.texParameteri(TEXTURE_2D,TEXTURE_MAG_FILTER, LINEAR)
+            context.checkErrors()
             context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_S, CLAMP_TO_EDGE)
+            context.checkErrors()
             context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_T, CLAMP_TO_EDGE)
+            context.checkErrors()
             return ColorBufferWebGL(
                 context, TEXTURE_2D, texture, image.width, image.height, 1.0,
                 ColorFormat.RGBa, ColorType.UINT8_SRGB, 1, BufferMultisample.Disabled, session
@@ -147,11 +167,13 @@ class ColorBufferWebGL(
 
     override fun destroy() {
         context.deleteTexture(texture)
+        context.checkErrors()
     }
 
     fun bind(unit: Int) {
         context.checkErrors("pre-existing errors")
         context.activeTexture(glTextureEnum(unit))
+        context.checkErrors()
         context.bindTexture(target, texture)
         context.checkErrors("bindTexture unit:$unit $this")
     }
@@ -190,7 +212,9 @@ class ColorBufferWebGL(
         copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
     }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     fun bound(f: ColorBufferWebGL.() -> Unit) {
+        context.checkErrors("pre-existing errors in ColorBufferWebGL.bound()")
         context.activeTexture(TEXTURE0)
         val current = context.getParameter(TEXTURE_BINDING_2D) as WebGLTexture?
         context.bindTexture(target, texture)
@@ -266,6 +290,7 @@ class ColorBufferWebGL(
                 COLOR_BUFFER_BIT,
                 filter.toGLFilter()
             )
+            context.checkErrors()
             context.bindFramebuffer(READ_FRAMEBUFFER, null)
             context.checkErrors("blitFramebuffer $this $target")
             writeTarget.unbind()
@@ -350,6 +375,31 @@ class ColorBufferWebGL(
     ) {
         bind(0)
         context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
+        context.checkErrors("pixelStorei")
+
+        
+        
+        fun format(colorFormat: ColorFormat, colorType: ColorType): GLenum {
+            val srgb = context.getExtensionOrNull<EXT_sRGB>()
+
+            return when (colorType) {
+                ColorType.UINT8_SRGB -> {
+                    when (colorFormat) {
+                        ColorFormat.RGBa -> SRGB8_ALPHA8
+                        else -> error("Unsupported color format $colorFormat for color type $colorType")
+                    }
+                }
+                else -> colorFormat.glFormat()
+            }
+        }
+
+        val sourceArray = when (sourceType) {
+            ColorType.UINT8_SRGB, ColorType.UINT8 -> Uint8Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.FLOAT16 -> Float16Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.FLOAT32 -> Float32Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.UINT16 -> Uint16Array(source.buffer, source.byteOffset, source.byteLength)
+            else -> error("Unsupported color type $sourceType")
+        }
 
         if (!sourceType.compressed) {
             this.context.texSubImage2D(
@@ -361,7 +411,15 @@ class ColorBufferWebGL(
                 height,
                 sourceFormat.glFormat(),
                 sourceType.glType(),
-                source
+                sourceArray
+            )
+            context.checkErrors(
+                "texSubImage2D, x:$x, y:$y, width: $width, height: $height, ${sourceFormat}, ${sourceType}, ${source.byteLength}, ${
+                    format(
+                        sourceFormat,
+                        sourceType
+                    )
+                }"
             )
         } else {
             this.context.compressedTexSubImage2D(
@@ -372,7 +430,7 @@ class ColorBufferWebGL(
                 width,
                 height,
                 sourceType.glType(),
-                source,
+                sourceArray,
                 0.0,
                 0.toJsUInt()
             )

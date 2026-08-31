@@ -3,7 +3,6 @@ import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.shadeStyle
 import org.openrndr.shape.Circle
 import org.openrndr.shape.contour
-import web.console.console
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -70,7 +69,6 @@ class TestDrawerWebGL : AbstractApplicationTestFixture() {
             parameter("seconds", program.seconds + 1.0)
 
         drawer.contour(curve)
-        console.log("hello")
 
         drawer.circle(100.0, 100.0, 20.0)
     }

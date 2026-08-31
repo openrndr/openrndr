@@ -26,7 +26,7 @@ class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexB
     }
 
     override fun destroy() {
-        //
+
     }
 
     override fun writer(): BufferWriter {
@@ -66,9 +66,12 @@ class VertexBufferWebGL(
         ): VertexBufferWebGL {
             logger.debug { "Creating vertex buffer with $vertexCount vertices, format $vertexFormat" }
             val buffer = context.createBuffer() ?: error("failed to create buffer")
+            context.checkErrors("VertexBufferWebGL.createDynamic(), pre-existing errors")
             context.bindBuffer(ARRAY_BUFFER, buffer)
+            context.checkErrors("VertexBufferWebGL.createDynamic(), bindBuffer")
             val sizeInBytes = vertexFormat.size * vertexCount
             context.bufferData(ARRAY_BUFFER, sizeInBytes, DYNAMIC_DRAW)
+            context.checkErrors("VertexBufferWebGL.createDynamic(), bufferData")
             return VertexBufferWebGL(context, buffer, vertexFormat, vertexCount, session)
         }
     }
@@ -86,6 +89,7 @@ class VertexBufferWebGL(
     override fun destroy() {
         if (!destroyed) {
             context.deleteBuffer(buffer)
+            context.checkErrors("VertexBufferWebGL.destroy() $buffer")
             destroyed = true
         }
         Session.active.untrack(this)
@@ -108,8 +112,10 @@ class VertexBufferWebGL(
 
     override fun write(data: Float32Array<ArrayBuffer>, offsetBytes: Int, floatCount: Int) {
         bind()
+
         val offsetFloats = offsetBytes / 4
         context.bufferSubData(ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))
+        context.checkErrors("VertexBufferWebGL.write(data: Float32Array<ArrayBuffer>, offsetBytes: Int, floatCount: Int)")
         unbind()
     }
 
@@ -119,14 +125,21 @@ class VertexBufferWebGL(
             ARRAY_BUFFER, targetByteOffset,
             source.dataView
         )
+        context.checkErrors("VertexBufferWebGL.write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int)")
         unbind()
     }
 
     fun bind() {
+        context.checkErrors("VertexBufferWebGL.bind(), pre-existing error")
+        require(!destroyed) { "VertexBufferWebGL.bind() called on destroyed VertexBufferWebGL" }
         context.bindBuffer(ARRAY_BUFFER, buffer)
+        context.checkErrors("VertexBufferWebGL.bind() $buffer")
     }
 
     fun unbind() {
+        context.checkErrors("VertexBufferWebGL.unbind(), pre-existing error")
+        require(!destroyed) { "VertexBufferWebGL.unbind() called on destroyed VertexBufferWebGL" }
         context.bindBuffer(ARRAY_BUFFER, null as WebGLBuffer?)
+        context.checkErrors("VertexBufferWebGL.unbind()")
     }
 }

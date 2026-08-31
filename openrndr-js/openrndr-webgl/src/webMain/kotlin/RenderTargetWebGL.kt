@@ -59,6 +59,7 @@ open class RenderTargetWebGL(
             session: Session?
         ): RenderTargetWebGL {
             val framebuffer = context.createFramebuffer()
+            context.checkErrors("createFramebuffer")
             return RenderTargetWebGL(context, framebuffer, width, height, contentScale, multisample, session)
         }
 
@@ -72,7 +73,7 @@ open class RenderTargetWebGL(
     override var depthBuffer: DepthBuffer? = null
 
     fun bindTarget() {
-        context.checkErrors("preexisting errors")
+        context.checkErrors("pre-existing errors in RenderTarget.bindTarget()")
         context.bindFramebuffer(FRAMEBUFFER, framebuffer)
         context.checkErrors("bindFrameBuffer $this")
         context.viewport(0, 0, effectiveWidth, effectiveHeight)
@@ -110,7 +111,7 @@ open class RenderTargetWebGL(
         require(status == FRAMEBUFFER_COMPLETE) {
             "status: $status, while attaching $colorBuffer"
         }
-
+        context.checkErrors()
         colorAttachments.add(
             ColorBufferAttachment(
                 colorAttachments.size,
@@ -137,6 +138,7 @@ open class RenderTargetWebGL(
         context.framebufferRenderbuffer(FRAMEBUFFER, webGlAttachment, RENDERBUFFER, depthBuffer.buffer)
         context.checkErrors("framebufferRenderBuffer")
         val status = context.checkFramebufferStatus(FRAMEBUFFER)
+        context.checkErrors()
         require(status == FRAMEBUFFER_COMPLETE) {
             "status: $status, while attaching $depthBuffer"
         }
@@ -216,6 +218,7 @@ open class RenderTargetWebGL(
                 index,
                 v2 as Float32Array<ArrayBufferLike>,
                 )
+            context.checkErrors("RenderTargetWebGL.clearColor(), clearBufferfv")
 
         }
     }
@@ -223,6 +226,7 @@ open class RenderTargetWebGL(
     override fun clearDepth(depth: Double, stencil: Int) {
         bound {
             context.clearBufferfi(DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            context.checkErrors("RenderTargetWebGL.clearDepth(), clearBufferfi")
         }
     }
 
@@ -235,7 +239,7 @@ open class RenderTargetWebGL(
 
     var bound = false
     override fun bind() {
-        context.checkErrors("preexisting errors")
+        context.checkErrors("pre-existing errors in RenderTarget.bind()")
         if (bound) {
             throw RuntimeException("already bound")
         } else {

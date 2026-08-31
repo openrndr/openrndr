@@ -14,12 +14,15 @@ class VertexShaderWebGL(val shaderObject: WebGLShader, val name: String) {
         fun fromString(context: GL, code: String, name: String): VertexShaderWebGL {
             logger.debug { "Creating vertex shader"}
             val shader = context.createShader(VERTEX_SHADER) ?: error("failed to create shader")
+            context.checkErrors()
             logger.debug { "Got shader: $shader" }
 
             logger.debug { "set shader source" }
             context.shaderSource(shader, code)
+            context.checkErrors()
             logger.debug { "compiler shader" }
             context.compileShader(shader)
+            context.checkErrors()
             require(context.getShaderParameter(shader, COMPILE_STATUS)?.unsafeCast<JsBoolean>()?.toBoolean() == true) {
                 val error = context.getShaderInfoLog(shader)?:""
                 error.split("\n").forEach {

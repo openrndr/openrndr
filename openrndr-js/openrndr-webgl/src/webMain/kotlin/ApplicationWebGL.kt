@@ -25,12 +25,7 @@ import web.mouse.SECONDARY
 import web.mouse.WheelEvent
 import web.performance.performance
 import web.resize.ResizeObserver
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.JsAny
-import kotlin.js.JsName
-import kotlin.js.JsString
 import kotlin.js.Promise
-import kotlin.js.unsafeCast
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -78,11 +73,11 @@ class ApplicationWebGL(override var program: Program, override var configuration
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun setup() {
-        logger.info { "in setup()" }
+        logger.debug { "in setup()" }
         canvas = document.getElementById(ElementId( configuration.canvasId)) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
 
-        logger.info { "creating context" }
+        logger.debug { "creating context" }
         val attrs = JsObject.create(null).unsafeCast<WebGLContextAttributes>()
         attrs.stencil = true
         attrs.preserveDrawingBuffer = true
@@ -95,6 +90,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
         } else {
             (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
         }
+        context?.checkErrors("ApplicationWebGL.setup(), pre-existing errors")
+
         program.drawer = Drawer(Driver.instance)
         referenceTime = performance.now().toKotlinDouble()
 
