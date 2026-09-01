@@ -2,10 +2,6 @@
 
 package org.openrndr.draw
 
-import org.openrndr.shape.Circle
-import org.openrndr.shape.Path3D
-import org.openrndr.shape.Segment3D
-import org.openrndr.shape.ShapeTopology
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
@@ -18,11 +14,9 @@ import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.scale
 import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
-import kotlin.jvm.JvmName
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.Shape
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.jvm.JvmName
 import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.reflect.KMutableProperty0
@@ -211,6 +205,11 @@ class Drawer(val driver: Driver) {
 
     /**
      * Sets the [projection] matrix to orthogonal using [left], [right], [bottom], [top], [near], [far]
+     *
+     * Usage example:
+     * ```
+     * drawer.ortho(left = 0.0, right = 100.0, bottom = 100.0, top = 0.0, near = -1.0, far = 1.0)
+     * ```
      * @param left left value
      * @param right right value
      * @param bottom bottom value
@@ -239,6 +238,10 @@ class Drawer(val driver: Driver) {
     /**
      * Rotates a transform to look at a given target point in 3D space.
      *
+     * Usage example:
+     * ```
+     * drawer.lookAt(from = Vector3(0.0, 0.0, 10.0), to = Vector3.ZERO, up = Vector3.UNIT_Y)
+     * ```
      * @param from The starting point of the look-at operation as a Vector3.
      * @param to The target point to look at as a Vector3.
      * @param up The "up" direction as a Vector3, defaulting to UNIT_Y.
@@ -318,7 +321,10 @@ class Drawer(val driver: Driver) {
 
     /**
      * Translates the target by the specified x, y, and z values.
-     *
+     * Usage example:
+     * ```
+     * drawer.translate(1.0, 1.0, 1.0)
+     * ```
      * @param x The translation value along the X-axis.
      * @param y The translation value along the Y-axis.
      * @param z The translation value along the Z-axis.
@@ -332,6 +338,13 @@ class Drawer(val driver: Driver) {
     /**
      * Rotates the target by the specified angle in degrees around the Z-axis.
      *
+     * Usage example:
+     * ```
+     * // rotate around the point at (100.0, 100.0)
+     * drawer.translate(100.0, 100.0)
+     * drawer.rotate(45.0)
+     * drawer.translate(-100.0, -100.0)
+     * ```
      * @param rotationInDegrees The angle in degrees by which to rotate.
      * @param target The target object to apply the rotation to. Defaults to TransformTarget.MODEL.
      */
@@ -357,6 +370,10 @@ class Drawer(val driver: Driver) {
     /**
      * Clears the current drawing buffer with the specified color.
      *
+     * Usage example:
+     * ```
+     * drawer.clear(ColorRGBa.PINK)
+     * ```
      * @param color The color used to clear the buffer. It is an instance of ColorRGBa.
      */
     fun clear(color: ColorRGBa) {
@@ -544,6 +561,12 @@ class Drawer(val driver: Driver) {
     /**
      * Draws a rectangle based on the specified properties.
      *
+     * Usage example:
+     * ```
+     * drawer.fill = ColorRGBa.PINK
+     * drawer.stroke = null
+     * drawer.rectangle(Rectangle(10.0, 10.0, 100.0, 100.0))
+     * ```
      * @param rectangle The Rectangle object containing the x and y coordinates, width, and height of the rectangle.
      */
     fun rectangle(rectangle: Rectangle) {
@@ -1664,6 +1687,18 @@ class Drawer(val driver: Driver) {
  * are managed. Ensures that the applied transforms and styles are reverted after
  * the function execution, maintaining isolation for the block of code.
  *
+ * Usage example:
+ * ```
+ * drawer.fill = ColorRGBa.PINK
+ * drawer.isolated {
+ *     drawer.fill = ColorRGBa.BLACK
+ *     drawer.translate(100.0, 100.0)
+ *     drawer.circle(0.0, 0.0, 50.0)
+ * }
+ * // fill is PINK and translation is reset
+ * drawer.circle(0.0, 0.0, 50.0)
+ * ```
+ *
  * @param function A lambda function that operates within the isolated drawing context.
  * @see Drawer.isolatedWithTarget
  */
@@ -1689,6 +1724,24 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
  * This method binds the provided render target, executes the function within an isolated context,
  * and then ensures that the render target is unbound after execution.
  *
+ * Usage example:
+ * ```
+ * val rt = renderTarget(100, 100) {
+ *     colorBuffer()
+ *     depthBuffer()
+ * }
+ * drawer.fill = ColorRGBa.PINK
+ * drawer.isolatedWithTarget(rt) {
+ *     // set a new projection transform
+ *     drawer.ortho(rt)
+ *     drawer.fill = ColorRGBa.BLACK
+ *     drawer.translate(100.0, 100.0)
+ *     drawer.circle(0.0, 0.0, 50.0)
+ * }
+ * drawer.image(rt.colorBuffer(0))
+ * // close the render target to free up resources
+ * rt.close()
+ * ```
  * @param target The render target to bind during the execution of the provided function.
  * @param function The drawing function to execute within the isolated context.
  * @see Drawer.isolated

@@ -151,7 +151,16 @@ actual abstract class ColorBuffer : Texture, AutoCloseable {
 }
 
 /**
- * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
+ * Load an image from a file or url encoded as [String], also accepts base64 encoded data urls
+ * Usage example:
+ * ```
+ * program {
+ *     val image = loadImage("data/images/cheeta.jpg")
+ *     extend {
+ *         drawer.image(image)
+ *     }
+ * }
+ * ```
  */
 actual fun loadImage(
     fileOrUrl: String,

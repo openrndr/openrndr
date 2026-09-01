@@ -49,6 +49,13 @@ abstract class ApplicationBuilder {
      * Allows customization of various application settings by applying the desired
      * configurations to the [Configuration] instance.
      *
+     * Usage example:
+     * ```
+     * configure {
+     *     width = 720
+     *     height = 720
+     * }
+     * ```
      * @param init A lambda function that operates on an instance of [Configuration].
      *             This lambda is used to define the application's configuration settings.
      */
@@ -61,6 +68,14 @@ abstract class ApplicationBuilder {
      * allowing for configuration and definition of the program's behavior, including
      * setup, input handling, rendering, and other lifecycle-related operations.
      *
+     * Usage example:
+     * ```
+     * program {
+     *     extend {
+     *         drawer.clear(ColorRGBa.PINK)
+     *     }
+     * }
+     * ```
      * @param init A suspendable lambda that operates on the `Program` instance.
      *             This lambda is used to define the behavior and structure of the program.
      * @return The configured `Program` instance.
@@ -91,8 +106,22 @@ abstract class ApplicationBuilder {
  * including its program behavior, configuration, and other components, using
  * the DSL provided by the [ApplicationBuilder].
  *
- * @param build A lambda function with a receiver of type [ApplicationBuilder].
- *              It is used to configure the application's properties and behavior.
+ * Usage example:
+ * ```
+ * fun main() = application {
+ *     configure {
+ *         width = 720
+ *         height = 720
+ *         title = "My OPENRNDR Application"
+ *     }
+ *     program {
+ *         extend {
+ *             drawer.clear(ColorRGBa.PINK)
+ *             drawer.circle(width / 2.0, height / 2.0, 100.0)
+ *         }
+ *     }
+ * }
+ * ```
  */
 expect fun application(build: ApplicationBuilder.() -> Unit)
 

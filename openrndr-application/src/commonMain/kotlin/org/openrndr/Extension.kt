@@ -63,6 +63,13 @@ interface ExtensionHost : InputEvents {
      * Adds an extension to the host and applies a configuration block to it. This method allows customization
      * or extension of the host's functionality by invoking a user-defined configuration on the provided extension.
      *
+     * Usage example:
+     * ```
+     * extend(Screenshots()) {
+     *     contentScale = 1.0
+     * }
+     * ```
+     *
      * @param extension The extension instance to be added and configured.
      * @param configure A lambda function defining the configuration to be applied to the extension.
      * @return The configured extension instance.
@@ -72,6 +79,13 @@ interface ExtensionHost : InputEvents {
     /**
      * Adds an extension to the program that executes a user-defined block of code at a specified extension stage.
      * The execution stage can be `SETUP`, `BEFORE_DRAW`, or `AFTER_DRAW`. This method prevents nesting of `extend` calls.
+     *
+     * Usage example:
+     * ```
+     * extend {
+     *     drawer.clear(ColorRGBa.PINK)
+     * }
+     * ```
      *
      * @param stage The stage in the program's lifecycle where the extension will be executed.
      * @param userDraw The block of code to be executed as part of the extension.

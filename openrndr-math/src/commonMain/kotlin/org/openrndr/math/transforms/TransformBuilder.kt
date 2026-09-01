@@ -85,6 +85,17 @@ class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
 
     /**
      * multiply by [matrix]
+     * ```
+     * val t = transform {
+     *     // multiply by identity, does nothing
+     *     multiply(Matrix44.IDENTITY)
+     *
+     *     // multiply by another transform
+     *     multiply(transform {
+     *         rotate(45.0)
+     *     })
+     * }
+     * ```
      */
     fun multiply(matrix: Matrix44) {
         transform *= matrix
@@ -93,8 +104,17 @@ class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
 
 /**
  * Build a transform presented by a Matrix44
+ *
+ * Usage example:
+ * ```
+ * val t = transform {
+ *     translate(10.0, 20.0, 30.0)
+ *     rotate(45.0)
+ *     scale(2.0, 2.0, 2.0)
+ * }
+ * ```
  * @param baseTransform the transform to start with, default is an identity matrix
- * @param builder a function that is invoke inside the [TransformBuilder] context
+ * @param builder a function that is invoked inside the [TransformBuilder] context
  */
 @OptIn(ExperimentalContracts::class)
 fun transform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: TransformBuilder.() -> Unit): Matrix44 {

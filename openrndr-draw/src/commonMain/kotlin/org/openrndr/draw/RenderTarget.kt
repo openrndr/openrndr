@@ -541,6 +541,17 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 /**
  * Creates a new render target with the specified dimensions and properties.
  *
+ * Usage example:
+ * ```
+ * // create a RenderTarget at the active content scale
+ * val rt = renderTarget(640, 480) {
+ *     // add a color attachment
+ *     colorBuffer()
+ *     // add a depth attachment
+ *     depthBuffer()
+ * }
+ * ```
+ *
  * @param width The width of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
  * @param height The height of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
  * @param contentScale A scaling factor to apply to the render target's content. The default of null results in the content scale being set to the active render target's content scale.

@@ -4,10 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 
 private val logger = KotlinLogging.logger {}
-/**
- * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
- * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
- */
+
 actual fun application(build: ApplicationBuilder.() -> Unit){
     logger.info { "application, ${build}" }
     ApplicationBuilderJS().apply {
