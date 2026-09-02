@@ -188,7 +188,7 @@ kotlin {
             // By depending on commonDemo we allow IntelliJ to run applications as JVM applications
             dependsOn(commonDemo)
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-application-sdl"))
                 runtimeOnly(libs.slf4j.simple)
             }
         }

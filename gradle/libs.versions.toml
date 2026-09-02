@@ -69,6 +69,7 @@ slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-js-plain-objects = { id = "org.jetbrains.kotlin.plugin.js-plain-objects", version.ref = "kotlin" }
 nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
 nmcp = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
 
