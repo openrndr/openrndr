@@ -16,8 +16,6 @@ interface StyleManagerDispatchUniform {
     }
 
     fun <T> setUniform(shader: T, textureBindings: TextureBindings, targetName: String, type: String, name: String, value: Any) where T : ShaderUniforms {
-
-        println("${value is Int} ${value is Double}")
         when (value) {
             is Boolean -> shader.uniform(targetName, value)
             is Int -> {

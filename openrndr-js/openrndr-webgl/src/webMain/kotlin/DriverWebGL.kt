@@ -428,10 +428,8 @@ class DriverWebGL(var context: GL) : Driver {
         require(instanceOffset == 0) {
             "instance offsets are not supported"
         }
-        //console.log("drawing instances", vertexOffset, vertexCount, instanceCount)
         context.drawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
         context.checkErrors()
-        //extensions.instancedArrays?.drawArraysInstancedANGLE(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount) ?: error("instancing not supported")
     }
 
     override fun drawIndexedInstances(

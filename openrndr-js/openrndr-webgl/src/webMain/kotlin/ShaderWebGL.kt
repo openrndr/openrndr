@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBuffer
 import js.numbers.JsInt
 import js.numbers.JsNumbers.toJsFloat
+import js.numbers.JsNumbers.toJsInt
 import js.numbers.JsNumbers.toKotlinInt
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -60,6 +61,7 @@ class ShaderWebGL(
             context.checkErrors()
             context.linkProgram(program)
             context.checkErrors()
+            val linkStatus = context.getProgramParameter(program, LINK_STATUS)
 
             val activeUniformCount =
                 context.getProgramParameter(program, ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
@@ -319,35 +321,34 @@ class ShaderWebGL(
     }
 
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
-        TODO("Not yet implemented")
+        error("WebGL 2.0 does not support ssbos")
     }
 
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
-        TODO("Not yet implemented")
+        error("WebGL 2.0 does not support ssbos")
     }
 
     override fun buffer(name: String, counterBuffer: AtomicCounterBuffer) {
-        TODO("Not yet implemented")
+        error("WebGL 2.0 does not support ssbos")
     }
 
     override fun uniform(name: String, value: Array<Vector4>) {
-        error("not implemented")
-//        val floatValues = Float32Array(ArrayBuffer(value.size * 4))
-//        for (i in value.indices) {
-//            floatValues[i * 4] = value[i].x.toFloat()
-//            floatValues[i * 4 + 1] = value[i].y.toFloat()
-//            floatValues[i * 4 + 2] = value[i].z.toFloat()
-//            floatValues[i * 4 + 3] = value[i].w.toFloat()
-//        }
-//        val index = uniformIndex(name)
-//        if (index != null) {
-//            context.uniform4fv(index, floatValues, null, null)
-//            context.checkErrors("$name $value")
-//        }
+        val floatValues = Float32List(ArrayBuffer(value.size * 4 * 4))
+        for (i in value.indices) {
+            floatValues[i * 4] = value[i].x.toFloat().toJsFloat()
+            floatValues[i * 4 + 1] = value[i].y.toFloat().toJsFloat()
+            floatValues[i * 4 + 2] = value[i].z.toFloat().toJsFloat()
+            floatValues[i * 4 + 3] = value[i].w.toFloat().toJsFloat()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform4fv(index, floatValues)
+            context.checkErrors("$name $value")
+        }
     }
 
     override fun uniform(name: String, value: Array<Vector3>) {
-        val floatValues = Float32List(ArrayBuffer(value.size * 3))
+        val floatValues = Float32List(ArrayBuffer(value.size * 4 * 3))
         for (i in value.indices) {
             floatValues[i * 3] = value[i].x.toFloat().toJsFloat()
             floatValues[i * 3 + 1] = value[i].y.toFloat().toJsFloat()
@@ -355,13 +356,13 @@ class ShaderWebGL(
         }
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform3fv(index, floatValues, 0.0, 0.toJsUInt())
+            context.uniform3fv(index, floatValues)
             context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: Array<Vector2>) {
-        val floatValues = Float32List(ArrayBuffer(value.size * 2))
+        val floatValues = Float32List(ArrayBuffer(value.size * 4 * 2))
         for (i in value.indices) {
             floatValues[i * 3] = value[i].x.toFloat().toJsFloat()
             floatValues[i * 3 + 1] = value[i].y.toFloat().toJsFloat()
@@ -369,32 +370,74 @@ class ShaderWebGL(
 
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform3fv(index, floatValues, 0.0, 0.toJsUInt())
+            context.uniform3fv(index, floatValues)
             context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: Array<IntVector4>) {
-        TODO("Not yet implemented")
+        val intValues = Int32List(ArrayBuffer(value.size * 4 * 4))
+        for (i in value.indices) {
+            intValues[i * 4] = value[i].x.toJsInt()
+            intValues[i * 4 + 1] = value[i].y.toJsInt()
+            intValues[i * 4 + 2] = value[i].z.toJsInt()
+            intValues[i * 4 + 3] = value[i].w.toJsInt()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform4iv(index, intValues)
+            context.checkErrors("$name $value")
+        }
     }
 
     override fun uniform(name: String, value: Array<IntVector3>) {
-        TODO("Not yet implemented")
+        val intValues = Int32List(ArrayBuffer(value.size * 4 * 3))
+        for (i in value.indices) {
+            intValues[i * 3] = value[i].x.toJsInt()
+            intValues[i * 3 + 1] = value[i].y.toJsInt()
+            intValues[i * 3 + 2] = value[i].z.toJsInt()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform3iv(index, intValues)
+            context.checkErrors("$name $value")
+        }
     }
 
     override fun uniform(name: String, value: Array<IntVector2>) {
-        TODO("Not yet implemented")
+        val intValues = Int32List(ArrayBuffer(value.size * 4 * 2))
+        for (i in value.indices) {
+            intValues[i * 2] = value[i].x.toJsInt()
+            intValues[i * 2 + 1] = value[i].y.toJsInt()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform2iv(index, intValues)
+            context.checkErrors("$name $value")
+        }
     }
 
     override fun uniform(name: String, value: Array<ColorRGBa>) {
-        TODO("Not yet implemented")
+
+        val floatValues = Float32List(ArrayBuffer(value.size * 4))
+        for (i in value.indices) {
+            val lin = value[i].toLinear()
+            floatValues[i * 4] = lin.r.toFloat().toJsFloat()
+            floatValues[i * 4 + 1] = lin.g.toFloat().toJsFloat()
+            floatValues[i * 4 + 2] = lin.b.toFloat().toJsFloat()
+            floatValues[i * 4 + 3] = lin.alpha.toFloat().toJsFloat()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform4fv(index, floatValues)
+            context.checkErrors("$name $value")
+        }
     }
 
     override fun uniform(name: String, value: Array<Double>) {
         val floatValues = Float32List(ArrayBuffer(value.size * 4))
         for (i in value.indices) {
             floatValues[i] = value[i].toFloat().toJsFloat()
-
         }
         val index = uniformIndex(name)
         if (index != null) {
@@ -417,7 +460,15 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: IntArray) {
-        TODO("Not yet implemented")
+        val intValues = Int32List(ArrayBuffer(value.size * 4))
+        for (i in value.indices) {
+            intValues[i] = value[i].toJsInt()
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform1iv(index, intValues, 0.0, 0.toJsUInt())
+            context.checkErrors("$name $value")
+        }
     }
 
     private var destroyed = false
