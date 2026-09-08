@@ -297,12 +297,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_DISPLAY_CHANGED -> {
-//                println("display changed")
             }
 
             SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED -> {
-//                println("display scale changed")
-            }
+           }
 
             SDL_EVENT_WINDOW_MOVED -> {
                 val windowId = event.window().windowID()

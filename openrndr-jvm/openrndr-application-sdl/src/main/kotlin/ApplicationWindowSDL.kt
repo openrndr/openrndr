@@ -2,119 +2,19 @@ package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.sdl.SDLError.SDL_GetError
-import org.lwjgl.sdl.SDLKeyboard.SDL_HasKeyboard
-import org.lwjgl.sdl.SDLKeyboard.SDL_SetTextInputArea
-import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
-import org.lwjgl.sdl.SDLMouse.SDL_CreateSystemCursor
-import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
-import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_DEFAULT
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_EW_RESIZE
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_NS_RESIZE
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_POINTER
-import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
-import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
-import org.lwjgl.sdl.SDLMouse.SDL_SetWindowRelativeMouseMode
-import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
-import org.lwjgl.sdl.SDLProperties.SDL_CreateProperties
-import org.lwjgl.sdl.SDLProperties.SDL_DestroyProperties
-import org.lwjgl.sdl.SDLProperties.SDL_SetBooleanProperty
-import org.lwjgl.sdl.SDLProperties.SDL_SetNumberProperty
-import org.lwjgl.sdl.SDLProperties.SDL_SetPointerProperty
-import org.lwjgl.sdl.SDLProperties.SDL_SetStringProperty
-import org.lwjgl.sdl.SDLVideo.SDL_CreateWindowWithProperties
-import org.lwjgl.sdl.SDLVideo.SDL_DestroyWindow
-import org.lwjgl.sdl.SDLVideo.SDL_GL_ACCELERATED_VISUAL
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_FLAGS
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_MAJOR_VERSION
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_MINOR_VERSION
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_PROFILE_CORE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_PROFILE_ES
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_PROFILE_MASK
-import org.lwjgl.sdl.SDLVideo.SDL_GL_CreateContext
-import org.lwjgl.sdl.SDLVideo.SDL_GL_DEPTH_SIZE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_DOUBLEBUFFER
-import org.lwjgl.sdl.SDLVideo.SDL_GL_FRAMEBUFFER_SRGB_CAPABLE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_MULTISAMPLEBUFFERS
-import org.lwjgl.sdl.SDLVideo.SDL_GL_MULTISAMPLESAMPLES
-import org.lwjgl.sdl.SDLVideo.SDL_GL_MakeCurrent
-import org.lwjgl.sdl.SDLVideo.SDL_GL_ResetAttributes
-import org.lwjgl.sdl.SDLVideo.SDL_GL_SHARE_WITH_CURRENT_CONTEXT
-import org.lwjgl.sdl.SDLVideo.SDL_GL_STENCIL_SIZE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_SetAttribute
-import org.lwjgl.sdl.SDLVideo.SDL_GL_SwapWindow
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowFlags
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowID
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_DRAGGABLE
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_NORMAL
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_BOTTOM
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_BOTTOMLEFT
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_BOTTOMRIGHT
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_LEFT
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_RIGHT
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_TOP
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_TOPLEFT
-import org.lwjgl.sdl.SDLVideo.SDL_HITTEST_RESIZE_TOPRIGHT
-import org.lwjgl.sdl.SDLVideo.SDL_MaximizeWindow
-import org.lwjgl.sdl.SDLVideo.SDL_MinimizeWindow
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_PARENT_POINTER
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_TITLE_STRING
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_X_NUMBER
-import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_Y_NUMBER
-import org.lwjgl.sdl.SDLVideo.SDL_SetWindowHitTest
-import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
-import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
-import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSurfaceVSync
-import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
-import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
-import org.lwjgl.sdl.SDLVideo.SDL_SyncWindow
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MINIMIZED
+import org.lwjgl.sdl.SDLKeyboard.*
+import org.lwjgl.sdl.SDLMouse.*
+import org.lwjgl.sdl.SDLProperties.*
+import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Point
 import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
-import org.openrndr.ApplicationWindow
-import org.openrndr.CursorType
-import org.openrndr.Fullscreen
-import org.openrndr.Hit
-import org.openrndr.MouseCursorHideMode
-import org.openrndr.PresentationMode
-import org.openrndr.Program
-import org.openrndr.ProgramEvent
-import org.openrndr.ProgramEventType
-import org.openrndr.UnfocusBehaviour
-import org.openrndr.WindowConfiguration
-import org.openrndr.WindowMultisample
-import org.openrndr.WindowProgram
+import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.DriverGL3Configuration
-import org.openrndr.internal.gl3.DriverTypeGL
-import org.openrndr.internal.gl3.ProgramRenderTargetGL3
-import org.openrndr.internal.gl3.glVersion
-import org.openrndr.internal.gl3.glViewport
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
-import kotlin.use
 
 
 private val logger = KotlinLogging.logger { }
@@ -122,7 +22,7 @@ private val logger = KotlinLogging.logger { }
 class ApplicationWindowSDL(
     val application: ApplicationSDL,
     window: Long,
-    val glContext: Long,
+    var glContext: Long,
     windowTitle: String,
     override var windowResizable: Boolean,
     override var windowMultisample: WindowMultisample,
@@ -340,6 +240,7 @@ class ApplicationWindowSDL(
     }
 
     internal fun setupSizes() {
+
         require(!destroyed) { "window destroyed" }
         stackPush().use { stack ->
             program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
@@ -412,6 +313,13 @@ class ApplicationWindowSDL(
             SDL_GL_SwapWindow(window)
             lastUpdate = ct
         }
+    }
+
+    fun recreateContext() {
+        SDL_GL_MakeCurrent(window, glContext)
+        SDL_GL_DestroyContext(glContext)
+        glContext = SDL_GL_CreateContext(window)
+        require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
     }
 }
 
@@ -549,6 +457,7 @@ fun createApplicationWindowSDL(
                     SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER,
                     (configuration.height * scale).toLong()
                 )
+
                 window = SDL_CreateWindowWithProperties(props)
                 require(window != 0L) { "Failed to re-create window with configuration $configuration" }
             }
@@ -560,11 +469,25 @@ fun createApplicationWindowSDL(
     require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
 
     SDL_ShowWindow(window)
-    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
-        if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) 1 else 0)) {
-            logger.warn { "Failed to set vsync for window $window" }
+
+//    if (!SDL_SetWindowSurfaceVSync(window, 1)) {
+//        logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
+//    }
+
+    if (configuration.vsync) {
+        if (!SDL_GL_SetSwapInterval(-1)) {
+            logger.warn { "Failed to set adaptive vsync for window $window: ${SDL_GetError()}" }
+            if (!SDL_GL_SetSwapInterval(1)) {
+                logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
+            }
         }
     }
+
+//    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
+//        if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) 1 else 0)) {
+//            logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
+//        }
+//    }
 
     if (configuration.hideMouseCursor) {
         if (!SDL_HideCursor()) {
@@ -582,6 +505,7 @@ fun createApplicationWindowSDL(
             SDL_StartTextInput(window)
         }
     }
+
 
     val drawer = drawer ?: Drawer(Driver.instance)
     SDL_SyncWindow(window)
