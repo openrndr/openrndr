@@ -8,6 +8,7 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
+import web.images.ImageBitmap
 import web.gl.*
 import web.gl.WebGL2RenderingContext as GL
 
@@ -162,6 +163,19 @@ class DriverWebGL(var context: GL) : Driver {
         session: Session?
     ): ColorBuffer {
         return ColorBufferWebGL.create(context, width, height, contentScale, format, type, multisample, levels, session)
+    }
+
+
+    override suspend fun createColorBufferFromImage(
+        image: ImageBitmap,
+        contentScale: Double,
+        format: ColorFormat,
+        type: ColorType,
+        multisample: BufferMultisample,
+        levels: Int,
+        session: Session?
+    ): ColorBuffer {
+        return ColorBufferWebGL.fromImageBitmap(context, image, session = session, allowSRGB = false, flipV = false)
     }
 
 
