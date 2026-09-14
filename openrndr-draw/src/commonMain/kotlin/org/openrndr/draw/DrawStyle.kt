@@ -3,7 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
-import org.openrndr.shape.*
+import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
 
 /**
@@ -112,10 +112,14 @@ data class StencilStyle(
     var stencilTest: StencilTest = StencilTest.DISABLED
 ) {
 
-    fun stencilFunc(stencilTest: StencilTest, testReference: Int, writeMask: Int) {
+    fun stencilMask(writeMask: Int) {
+        this.stencilWriteMask = writeMask
+    }
+
+    fun stencilFunc(stencilTest: StencilTest, testReference: Int, testMask: Int) {
         this.stencilTest = stencilTest
         this.stencilTestReference = testReference
-        this.stencilWriteMask = writeMask
+        this.stencilTestMask = testMask
     }
 
     fun stencilOp(
