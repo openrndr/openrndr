@@ -51,7 +51,7 @@ variants {
     }
 }
 
-val main by sourceSets.getting
+val main = sourceSets.getByName("main")
 
 dependencies {
     implementation(project(":openrndr-application"))
