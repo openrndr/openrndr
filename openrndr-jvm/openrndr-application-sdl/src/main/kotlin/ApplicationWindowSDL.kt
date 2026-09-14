@@ -14,6 +14,8 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
 
 
@@ -508,6 +510,11 @@ fun createApplicationWindowSDL(
 
 
     val drawer = drawer ?: Drawer(Driver.instance)
+
+    //
+    if (Platform.type == PlatformType.MAC) {
+        SDL_RaiseWindow(window)
+    }
     SDL_SyncWindow(window)
     return ApplicationWindowSDL(
         application,
