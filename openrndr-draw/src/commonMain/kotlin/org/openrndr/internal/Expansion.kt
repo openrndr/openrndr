@@ -27,6 +27,14 @@ internal enum class ExpansionType {
     SKIP
 }
 
+/**
+ * Represents an expansion operation for a specific vertex buffer,
+ * used for rendering paths with strokes, joins, caps, or other geometric operations.
+ *
+ * @param type The type of expansion operation, defined by the `ExpansionType` enumeration.
+ * @param fb The FloatArray serving as the vertex buffer to store calculated geometry.
+ * @param bufferStart The starting index (in floats) from which geometry data will be written in `fb`
+ */
 internal class Expansion(val type: ExpansionType, val fb: FloatArray, val bufferStart: Int) {
     var vertexCount = 0
     var minx = Double.POSITIVE_INFINITY
@@ -60,9 +68,6 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         lw: Double, rw: Double, lu: Double, ru: Double,
         offset: Double
     ) {
-
-
-
         val dlx0 = p0.dy
         val dly0 = -p0.dx
         val dlx1 = p1.dy
