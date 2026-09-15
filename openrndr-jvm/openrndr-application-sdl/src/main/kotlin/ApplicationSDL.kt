@@ -214,13 +214,13 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             override val contextID: Long
                 get() = SDL_GL_GetCurrentContext()
         }
-        logger.info { "Created primary window with id ${SDL_GetWindowID(primaryWindow)}" }
+        logger.debug { "Created primary window with id ${SDL_GetWindowID(primaryWindow)}" }
     }
 
     override suspend fun setup() {
         createPrimaryWindow()
 
-        val preload = Application.getPreload()
+        val preload = getPreload()
 
         preload?.onConfiguration(configuration)
 
