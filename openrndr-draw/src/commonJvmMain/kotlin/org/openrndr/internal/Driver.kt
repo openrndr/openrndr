@@ -45,7 +45,7 @@ actual interface Driver {
         commandBuffer: CommandBuffer<Command>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
-        primitiveType: DrawPrimitive, commandCount: Int, commandBufferIndex: Int
+        drawPrimitive: DrawPrimitive, commandCount: Int, commandBufferIndex: Int
     )
 
     actual fun drawIndexedCommandBuffer(

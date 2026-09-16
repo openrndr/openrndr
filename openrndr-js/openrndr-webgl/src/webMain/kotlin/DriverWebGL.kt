@@ -29,7 +29,6 @@ class DriverWebGL(var context: GL) : Driver {
         enableErrorChecking = true
     }
 
-    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer {
     override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
         TODO("Not yet implemented")
     }

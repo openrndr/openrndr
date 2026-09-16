@@ -85,7 +85,7 @@ expect interface Driver {
         commandBuffer: CommandBuffer<Command>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
-        primitiveType: DrawPrimitive,
+        drawPrimitive: DrawPrimitive,
         commandCount: Int,
         commandBufferIndex: Int = 0
     )

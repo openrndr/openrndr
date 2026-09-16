@@ -9,8 +9,6 @@ import org.openrndr.draw.*
 actual interface Driver {
 
     actual fun enableErrorChecking()
-    actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer
-
 
     actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command>
 
@@ -21,7 +19,7 @@ actual interface Driver {
         commandBuffer: CommandBuffer<Command>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
-        primitiveType: DrawPrimitive, commandCount: Int, commandBufferIndex: Int)
+        drawPrimitive: DrawPrimitive, commandCount: Int, commandBufferIndex: Int)
 
     //    fun createColorBufferFromStream(
 //        stream: InputStream,

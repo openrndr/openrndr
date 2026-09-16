@@ -3,7 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
 
-internal data class Command(
+internal data class ExpansionCommand(
     val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
     val minX: Double, val minY: Double, val maxX: Double, val maxY: Double
 )
@@ -50,7 +50,7 @@ internal class ExpansionDrawer {
     private fun renderStrokeCommands(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
-        commands: List<Command>,
+        commands: List<ExpansionCommand>,
         fringeWidth: Double
     ) {
 
@@ -120,7 +120,7 @@ internal class ExpansionDrawer {
     private fun renderStrokeCommandsInterleaved(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
-        commands: List<Command>,
+        commands: List<ExpansionCommand>,
         fringeScale: Double
     ) {
         if (commands.isNotEmpty()) {
@@ -189,7 +189,7 @@ internal class ExpansionDrawer {
     private fun renderConvexFillCommands(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
-        commands: List<Command>,
+        commands: List<ExpansionCommand>,
         fringeScale: Double
     ) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
@@ -231,7 +231,7 @@ internal class ExpansionDrawer {
     private fun renderFillCommands(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
-        commands: List<Command>,
+        commands: List<ExpansionCommand>,
         fringeWidth: Double
     ) {
         if (commands.isEmpty()) {
@@ -362,16 +362,16 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): Command {
+    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): ExpansionCommand {
         if (expansion.vertexCount > 0) {
 
             if (expansion.type == ExpansionType.FILL) {
                 if (expansion.vertexCount < 3) {
-                    return Command(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
+                    return ExpansionCommand(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
                 }
 
                 val vertexCount = (expansion.vertexCount - 2) * 3
-                val command = Command(
+                val command = ExpansionCommand(
                     vertices, expansion.type, vertexOffset, vertexCount,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
@@ -391,7 +391,7 @@ internal class ExpansionDrawer {
                 return command
 
             } else {
-                val command = Command(
+                val command = ExpansionCommand(
                     vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
@@ -414,7 +414,7 @@ internal class ExpansionDrawer {
 
 
         } else {
-            return Command(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
+            return ExpansionCommand(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
         }
     }
 
