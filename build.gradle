@@ -1,3 +1,9 @@
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.flow.FlowScope
+
+import javax.inject.Inject
+
 plugins {
     alias(libs.plugins.nebula.release)
     alias(libs.plugins.nmcp)
@@ -56,7 +62,32 @@ dependencies {
     dokka(project(":openrndr-js:openrndr-webgl:"))
 }
 
-gradle.buildFinished {
-    println("\n")
-    println("openrndr = \"${version}\"")
+abstract class VersionPrinterFlowAction implements FlowAction<VersionPrinterFlowAction.Parameters> {
+    interface Parameters extends FlowParameters {
+        @Input
+        Property<String> getVersion()
+    }
+
+    @Override
+    void execute(Parameters parameters) {
+        println("\n")
+        println("openrndr = \"${parameters.version.get()}\"")
+    }
 }
+
+// FlowScope.always() is the configuration-cache-compatible replacement for
+// the deprecated `gradle.buildFinished` hook: it fires once, at the very end
+// of every build (cache hit or not), regardless of build outcome.
+abstract class VersionPrinterPlugin implements Plugin<Project> {
+    @Inject
+    abstract FlowScope getFlowScope()
+
+    @Override
+    void apply(Project project) {
+        flowScope.always(VersionPrinterFlowAction) {
+            it.parameters.version.set(project.provider { project.version.toString() })
+        }
+    }
+}
+
+apply plugin: VersionPrinterPlugin
