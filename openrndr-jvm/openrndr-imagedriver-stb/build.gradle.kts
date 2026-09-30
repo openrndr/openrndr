@@ -7,10 +7,10 @@ plugins {
     id("org.openrndr.convention.variant")
 }
 
-
 tasks {
     getByName("test", Test::class) {
-        onlyIf { !project.hasProperty("skip.gl3.tests") }
+        val skipGl3Tests = project.hasProperty("skip.gl3.tests")
+        onlyIf { !skipGl3Tests }
 
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
             jvmArgs = jvmArgs + "-XstartOnFirstThread"
