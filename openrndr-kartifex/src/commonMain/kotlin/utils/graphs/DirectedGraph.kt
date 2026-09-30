@@ -42,7 +42,7 @@ fun <E> Set<E>.indexOf(e: E): Int {
     val i = iterator()
     var index = 0
     while (i.hasNext()) {
-        if (i.next() === e) {
+        if (i.next() == e) {
             return index
         }
         index++
@@ -393,7 +393,7 @@ object Graphs {
                                 val u: V = stack.removeLast()
                                 if (blocked.contains(u)) {
                                     blocked.remove(u)
-                                    blocking[u] ?: emptySet<V>()
+                                    (blocking[u] ?: emptySet<V>())
                                         .forEach { value: V -> stack.addLast(value) }
                                     blocking.remove(u)
                                 }
