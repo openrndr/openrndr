@@ -12,6 +12,8 @@ import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -560,6 +562,9 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLSL(version.glslVersion)
         }
 
+    private fun onPremise(premise: Boolean, emit: String): String {
+        return if (premise) emit else ""
+    }
     @Suppress("SpellCheckingInspection")
     override fun shaderConfiguration(type: ShaderType): String = """
         #version ${version.glslVersion}
@@ -567,7 +572,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         ${
         if (type == ShaderType.VERTEX) {
             """
-            #extension GL_ANGLE_multi_draw:require
+            ${onPremise(this.version.type == DriverTypeGL.GLES && Platform.type == PlatformType.MAC, "#extension GL_ANGLE_multi_draw: enable")}
             """
         } else {
             ""
