@@ -1,12 +1,50 @@
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.ints.shouldBeExactly
-import org.openrndr.kartifex.Matrix3
-import org.openrndr.kartifex.Region2
-import org.openrndr.kartifex.Ring2
-import org.openrndr.kartifex.Vec2
+import io.kotest.matchers.shouldBe
+import org.openrndr.kartifex.*
+import kotlin.math.abs
 import kotlin.test.Test
 
+private fun ringFromPoints(points: List<Vec2>): Ring2 =
+    Ring2(points.indices.map { i -> Line2.line(points[i], points[(i + 1) % points.size]) })
+
 class CommonTestClip {
+
+    @Test
+    fun testSelfTouchingRingIntersection() {
+        // A single ring visiting the same vertex twice: two triangles joined at one exact
+        // vertex, analogous to a marching-squares contour threading through a saddle point.
+        // Without splitting at that shared vertex, the two triangles get merged into a single
+        // self-touching ring instead of being resolved as two separate simple triangles.
+        val bowtie = Region2.of(
+            ringFromPoints(
+                listOf(
+                    Vec2(0.0, 0.0),
+                    Vec2(10.0, 0.0),
+                    Vec2(5.0, 8.0),
+                    Vec2(0.0, 0.0),
+                    Vec2(-10.0, 0.0),
+                    Vec2(-5.0, -8.0)
+                )
+            )
+        )
+        val square = Region2.of(
+            ringFromPoints(
+                listOf(
+                    Vec2(-20.0, -20.0),
+                    Vec2(20.0, -20.0),
+                    Vec2(20.0, 20.0),
+                    Vec2(-20.0, 20.0)
+                )
+            )
+        )
+
+        val result = square.intersection(bowtie)
+        result.rings.size.shouldBeExactly(2)
+        val totalArea = result.rings.sumOf { abs(it.area) }
+        totalArea shouldBe (80.0 plusOrMinus 1E-9)
+    }
 
     @Test
     fun testCircleIntersection() {

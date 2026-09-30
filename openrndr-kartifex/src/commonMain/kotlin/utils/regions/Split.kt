@@ -43,8 +43,32 @@ fun split(a: Region2, b: Region2): SplitResult {
             }
         }
     }
+    // A single ring can be self-touching without being self-crossing (e.g. marching-squares
+    // output threading through a saddle point): it visits the same vertex more than once. The
+    // sweep above only finds intersections *between* a and b, so such a vertex is never added
+    // to `union`, and partition() (which only cuts a ring where it meets a vertex from `splits`)
+    // never separates the loops that share it. They end up merged into a single arc, which is
+    // then classified (inside/outside) as one unit instead of as independent loops, silently
+    // dropping or retaining more geometry than it should.
+    markSelfTouchingVertices(a, union)
+    markSelfTouchingVertices(b, union)
+
     val deduped = intersections.mapValues { (c, acc) -> dedupe(c, acc, union) }
     return SplitResult(split(a, deduped, union), split(b, deduped, union), union.roots())
+}
+
+private fun markSelfTouchingVertices(region: Region2, union: VertexUnion) {
+    for (r in region.rings) {
+        val counts = mutableMapOf<Vec2, Int>()
+        for (c in r.curves) {
+            counts[c.start()] = (counts[c.start()] ?: 0) + 1
+        }
+        for ((p, count) in counts) {
+            if (count > 1) {
+                union.join(p, p)
+            }
+        }
+    }
 }
 
 private fun split(
