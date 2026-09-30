@@ -64,6 +64,10 @@ dependencies {
     implementation(libs.lwjgl.opengles)
 
     demoImplementation(libs.slf4j.simple)
+
+    // Enable these two dependencies for Preload.kt
+    //demoImplementation(project(":openrndr-extensions"))
+    //demoImplementation(project(":openrndr-jvm:openrndr-ffmpeg"))
 }
 
 sourceSets {
