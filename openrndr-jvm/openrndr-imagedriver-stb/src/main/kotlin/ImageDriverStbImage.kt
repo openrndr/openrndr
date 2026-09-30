@@ -10,7 +10,10 @@ import org.lwjgl.stb.STBImage.stbi_info_from_memory
 import org.lwjgl.stb.STBImageWrite
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.util.tinyexr.*
+import org.lwjgl.util.tinyexr.EXRChannelInfo
+import org.lwjgl.util.tinyexr.EXRHeader
+import org.lwjgl.util.tinyexr.EXRImage
+import org.lwjgl.util.tinyexr.EXRVersion
 import org.lwjgl.util.tinyexr.TinyEXR.*
 import org.openrndr.dds.loadDDS
 import org.openrndr.draw.ColorFormat
@@ -698,11 +701,16 @@ class ImageDriverStbImage : ImageDriver {
 
     override fun imageToDataUrl(imageData: ImageData, formatHint: ImageFileFormat?): String {
         val imageFileFormat = formatHint ?: ImageFileFormat.JPG
-        val saveBuffer = ByteBuffer.allocate(1_024 * 1_024 * 2)
+        // Grows as needed -- a fixed-size buffer here (previously 2 MiB) silently overflows for
+        // larger images or low-compressibility (high-entropy) content, e.g. a screenshot of
+        // dense, noisy pixel data rather than flat vector-ish fills.
+        val saveBuffer = java.io.ByteArrayOutputStream(1_024 * 1_024 * 2)
         val writeFunc = object : STBIWriteCallback() {
             override fun invoke(context: Long, data: Long, size: Int) {
                 val sourceBuffer = MemoryUtil.memByteBuffer(data, size)
-                saveBuffer?.put(sourceBuffer)
+                val bytes = ByteArray(size)
+                sourceBuffer.get(bytes)
+                saveBuffer.write(bytes)
             }
         }
 
@@ -742,10 +750,7 @@ class ImageDriverStbImage : ImageDriver {
             }
         }
 
-        val byteArray = ByteArray((saveBuffer as Buffer).position())
-        (saveBuffer as Buffer).rewind()
-        saveBuffer.get(byteArray)
-        val base64Data = Base64.getEncoder().encodeToString(byteArray)
+        val base64Data = Base64.getEncoder().encodeToString(saveBuffer.toByteArray())
 
         return "data:${imageFileFormat.mimeType};base64,$base64Data"
     }
