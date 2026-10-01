@@ -368,6 +368,7 @@ internal class Path {
 
         val iw = if (w > 0.0) 1.0 / w else 0.0
         var nleft = 0
+        var turnSum = 0.0
 
         var p0 = points[points.size - 1]
         var p1 = points[0]
@@ -396,6 +397,8 @@ internal class Path {
                 nleft += 1
                 p1.flags = p1.flags or LEFT
             }
+            val dot = p0.dx * p1.dx + p0.dy * p1.dy
+            turnSum += atan2(cross, dot)
 
             // Calculate if we should use bevel or miter for inner join.
             val limit = max(1.01, min(p0.length, p1.length) * iw)
@@ -420,7 +423,21 @@ internal class Path {
                 p1 = points[p1ptr]
             }
         }
-        convex = nleft == points.size
+        // A simple polygon is convex when every corner turns the same way, regardless of whether
+        // that's clockwise or counter-clockwise -- `nleft` alone only recognizes one of the two
+        // windings, which misclassifies e.g. the clockwise rectangles OPENRNDR's default
+        // (CW_NEGATIVE_Y) polarity produces as non-convex.
+        //
+        // That sign check alone isn't sufficient, though: a self-intersecting star polygon (e.g.
+        // a pentagram traced vertex-to-vertex) also turns the same way at every vertex, but winds
+        // around its center more than once. By the turning number theorem, any *simple* closed
+        // curve's signed turning sums to exactly one full turn (+-2*PI); a curve that winds twice
+        // (like that pentagram) sums to +-4*PI instead. The fast convex fill path assumes a
+        // non-overlapping fan triangulation, which only holds for a simple polygon, so both checks
+        // are required.
+        val sameSignedTurns = nleft == points.size || nleft == 0
+        val windsOnce = abs(abs(turnSum) - 2.0 * PI) < 1E-2
+        convex = sameSignedTurns && windsOnce
     }
 
     fun prepare(points: List<PathPoint>) {
@@ -593,7 +610,6 @@ internal class Path {
             if (contours.size > 1) {
                 convex = false
             }
-            convex = false
             val woff = 0.5 * fringeWidth
             val generateFringe = fringeWidth > 0.0
             val pathOffset = 0.0
