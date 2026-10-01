@@ -33,6 +33,12 @@ private fun copySign(magnitude: Double, sign: Double): Double {
  *
  * It maintains a priority queue to handle events based on their keys, and a set to track currently active elements.
  *
+ * A quasi-implementation of the plane sweep algorithm.  This will only compare edges which overlap on the x-axis, but
+ * does not maintain a sorted tree of the y-axis to ensure only adjacent curves have intersection checks.  This means
+ * that this is worst-case O(N ^ 2) rather than O(N log N), but outside of heavy-duty GIS applications I'm not sure this
+ * is a real problem.  This may be worth revisiting.
+ *
+ *
  * @param T The type of the values stored in the events processed by this queue.
  */
 class SweepQueue<T> {

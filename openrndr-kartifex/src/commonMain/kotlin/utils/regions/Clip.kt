@@ -33,7 +33,10 @@ private fun operation(
     aPredicate: (Type) -> Boolean,
     bPredicate: (Type) -> Boolean
 ): Region2 {
-    val split: SplitResult = split(ra, rb)
+    // ra === rb happens when resolving a region's own self-intersections (see
+    // removeSelfIntersections); selfSplit sweeps a single queue instead of comparing two
+    // (identical) queues against each other, halving the pairwise comparisons.
+    val split: SplitResult = if (ra === rb) selfSplit(ra) else split(ra, rb)
     val a: Region2 = split.a
     val b: Region2 = split.b
 
@@ -415,7 +418,7 @@ private fun windingNumber(region: Region2, p: Vec2): Int {
  * don't border a winding-number change and are discarded.
  */
 fun nonZeroSelfUnion(r: Region2): Region2 {
-    val split: SplitResult = split(r, r)
+    val split: SplitResult = selfSplit(r)
     val allArcs: List<Arc> = partition(split.a, split.splits)
 
     val kept = mutableSetOf<Arc>()

@@ -64,6 +64,53 @@ fun split(a: Region2, b: Region2): SplitResult {
     return SplitResult(split(a, deduped, union), split(b, deduped, union), union.roots())
 }
 
+/**
+ * Finds the self-intersections (and self-touching vertices) of [r] and splits it at those points.
+ *
+ * This is the single-region analogue of [split]: that function pushes each operand's curves into
+ * its own queue and compares the two queues against each other, which -- when both operands are
+ * the same region (as [removeSelfIntersections][Region2.removeSelfIntersections] needs) -- means
+ * every curve is queued twice and every pair ends up compared twice over. Here a single queue is
+ * swept instead, and each newly-opened curve is compared only against the others already active
+ * (skipping itself), so every pair of curves is compared exactly once.
+ *
+ * Since the result only ever stands in for both operands of a self-union, the resolved region is
+ * built once and reused for both [SplitResult.a] and [SplitResult.b].
+ */
+fun selfSplit(r: Region2): SplitResult {
+    val queue = SweepQueue<Curve2>()
+    addToQueue(r, queue)
+
+    val union = VertexUnion()
+    val intersections = mutableMapOf<Curve2, DoubleAccumulator>()
+
+    while (true) {
+        val c0 = queue.take() ?: break
+        intersections[c0] = DoubleAccumulator()
+        for (c1 in queue.active()) {
+            if (c0 === c1) {
+                continue
+            }
+            val ts = c0.intersections(c1)
+            for (i in ts.indices) {
+                val t0 = ts[i].x
+                val t1 = ts[i].y
+                intersections[c0]?.add(t0)
+                intersections[c1]?.add(t1)
+                val p0 = c0.position(t0)
+                val p1 = c1.position(t1)
+                union.join(p0, p1)
+            }
+        }
+    }
+
+    markSelfTouchingVertices(r, union)
+
+    val deduped = intersections.mapValues { (c, acc) -> dedupe(c, acc, union) }
+    val cut = split(r, deduped, union)
+    return SplitResult(cut, cut, union.roots())
+}
+
 private fun markSelfTouchingVertices(region: Region2, union: VertexUnion) {
     for (r in region.rings) {
         val counts = mutableMapOf<Vec2, Int>()
