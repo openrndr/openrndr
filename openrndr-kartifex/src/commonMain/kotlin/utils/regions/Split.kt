@@ -28,9 +28,16 @@ fun split(a: Region2, b: Region2): SplitResult {
         if (cs[idx] == null) {
             break
         }
-        intersections[cs[idx] ?: error("null")] = DoubleAccumulator()
+        intersections.getOrPut(cs[idx] ?: error("null")) { DoubleAccumulator() }
         for (c in queues[1 - idx].active()) {
             cs[1 - idx] = c
+            // When splitting a region against itself (removeSelfIntersections), the exact same
+            // curve instance is queued on both sides, so it will eventually appear as "active" on
+            // the opposite queue too; comparing a curve against itself is degenerate and must be
+            // skipped rather than treated as a self-intersection.
+            if (cs[0] === cs[1]) {
+                continue
+            }
             val ts = cs[0]!!.intersections(cs[1]!!)
             for (i in ts.indices) {
                 val t0 = ts[i].x

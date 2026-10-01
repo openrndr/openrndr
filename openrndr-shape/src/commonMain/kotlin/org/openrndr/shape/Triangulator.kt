@@ -11,8 +11,8 @@ import org.openrndr.math.Vector3
 import kotlin.jvm.JvmName
 
 enum class FillRule {
-    ODD,
-    NONZERO_WINDING,
+    EVEN_ODD,
+    NON_ZERO,
 }
 
 /**
@@ -23,7 +23,7 @@ enum class FillRule {
 fun triangulate(
     shape: Shape,
     distanceTolerance: Double = 0.5,
-    fillRule: FillRule = FillRule.NONZERO_WINDING
+    fillRule: FillRule = FillRule.NON_ZERO
 ): List<Vector2> {
     if (shape.contours.isEmpty() || shape.topology == ShapeTopology.OPEN) {
         return emptyList()
@@ -31,8 +31,8 @@ fun triangulate(
     val tessellator = Tessellator()
     if (shape.topology == ShapeTopology.CLOSED) {
         when (fillRule) {
-            FillRule.ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
-            FillRule.NONZERO_WINDING -> tessellator.gluTessProperty(
+            FillRule.EVEN_ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
+            FillRule.NON_ZERO -> tessellator.gluTessProperty(
                 GLU.GLU_TESS_WINDING_RULE,
                 GLU.GLU_TESS_WINDING_NONZERO
             )
@@ -109,7 +109,7 @@ fun triangulate(
 @JvmName("triangulateV2")
 fun triangulate(
     shape: List<List<Vector2>>,
-    fillRule: FillRule = FillRule.NONZERO_WINDING
+    fillRule: FillRule = FillRule.NON_ZERO
 ): List<Int> {
     if (shape.isEmpty()) {
         return emptyList()
@@ -117,8 +117,8 @@ fun triangulate(
     val tessellator = IndexedTessellator()
 
     when (fillRule) {
-        FillRule.ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
-        FillRule.NONZERO_WINDING -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NONZERO)
+        FillRule.EVEN_ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
+        FillRule.NON_ZERO -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NONZERO)
     }
 
     tessellator.gluTessBeginPolygon(null)
@@ -202,7 +202,7 @@ fun triangulate(
 @JvmName("triangulateV3")
 fun triangulate(
     shape: List<List<Vector3>>,
-    fillRule: FillRule = FillRule.NONZERO_WINDING
+    fillRule: FillRule = FillRule.NON_ZERO
 ): List<Int> {
     if (shape.isEmpty()) {
         return emptyList()
@@ -210,8 +210,8 @@ fun triangulate(
     val tessellator = IndexedTessellator()
 
     when (fillRule) {
-        FillRule.ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
-        FillRule.NONZERO_WINDING -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NONZERO)
+        FillRule.EVEN_ODD -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_ODD)
+        FillRule.NON_ZERO -> tessellator.gluTessProperty(GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NONZERO)
     }
 
     tessellator.gluTessBeginPolygon(null)

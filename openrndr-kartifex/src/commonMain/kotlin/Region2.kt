@@ -2,7 +2,14 @@ package org.openrndr.kartifex
 
 import org.openrndr.kartifex.utils.regions.difference
 import org.openrndr.kartifex.utils.regions.intersection
+import org.openrndr.kartifex.utils.regions.nonZeroSelfUnion
 import org.openrndr.kartifex.utils.regions.union
+
+
+enum class FillRule {
+    EVEN_ODD,
+    NON_ZERO
+}
 
 /**
  * Represents a 2D region composed of multiple rings, where each ring defines a contour of the region.
@@ -55,6 +62,17 @@ class Region2(val rings: Array<Ring2>) {
 
     fun difference(region: Region2): Region2 {
         return difference(this, region)
+    }
+
+    /**
+     * Resolves self-intersecting or self-touching rings into an equivalent region made up of
+     * simple rings.
+     */
+    fun removeSelfIntersections(fill: FillRule): Region2 {
+        return when (fill) {
+            FillRule.EVEN_ODD -> union(this, this)
+            FillRule.NON_ZERO -> nonZeroSelfUnion(this)
+        }
     }
 
     companion object {

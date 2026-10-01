@@ -8,6 +8,8 @@ import org.openrndr.math.YPolarity
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmRecord
 import kotlin.math.abs
+import org.openrndr.kartifex.FillRule as KFillRule
+
 
 private fun Vector2.toVec2(): Vec2 {
     return Vec2(x, y)
@@ -774,4 +776,14 @@ private fun performSplit(from: ShapeContour, ints: List<ContourIntersection>):
     } else {
         listOf(from)
     }
+}
+
+fun Shape.removeSelfIntersections(fillRule: FillRule = FillRule.NON_ZERO): Shape {
+
+    val kfill = when (fillRule) {
+        FillRule.EVEN_ODD -> KFillRule.EVEN_ODD
+        FillRule.NON_ZERO -> KFillRule.NON_ZERO
+    }
+
+    return this.region2.removeSelfIntersections(kfill).toShape()
 }

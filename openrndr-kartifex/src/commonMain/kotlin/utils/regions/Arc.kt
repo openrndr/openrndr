@@ -10,7 +10,7 @@ import org.openrndr.kartifex.Vec2
  *
  * @property list The mutable list of curves that constitute the arc.
  */
-internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList<Curve2> by list {
+internal class Arc(val list: MutableList<Curve2> = mutableListOf()) : MutableList<Curve2> by list {
 
     private var hashProxy = 0.5
 
@@ -56,12 +56,31 @@ internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList
         throw IllegalStateException()
     }
 
+    /**
+     * @param t a parametric point along the whole arc, within [0, 1]
+     * @return the (unnormalized) tangent direction at that point
+     */
+    fun direction(t: Double): Vec2 {
+        val length = length()
+        var offset = 0.0
+        val threshold = length * t
+        for (c in this) {
+            val l: Double = c.end().sub(c.start()).length()
+            val i = Interval(offset, offset + l)
+            if (i.contains(threshold)) {
+                return c.direction(i.normalize(threshold))
+            }
+            offset = i.hi
+        }
+        throw IllegalStateException()
+    }
+
     fun reverse(): Arc {
         return Arc(reversed().map { it.reverse() }.toMutableList())
     }
 
     fun vertices(): List<Vec2> {
-        return listOf(head()) + map { it.end()}
+        return listOf(head()) + map { it.end() }
     }
 
     override fun hashCode(): Int {

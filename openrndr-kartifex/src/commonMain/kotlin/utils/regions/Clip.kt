@@ -1,15 +1,14 @@
 package org.openrndr.kartifex.utils.regions
 
-import org.openrndr.kartifex.Curve2
-import org.openrndr.kartifex.Region2
-import org.openrndr.kartifex.Ring2
-import org.openrndr.kartifex.Vec2
+import org.openrndr.kartifex.*
+import org.openrndr.kartifex.utils.Intersections
 import org.openrndr.kartifex.utils.combinations
 import org.openrndr.kartifex.utils.graphs.DirectedGraph
 import org.openrndr.kartifex.utils.graphs.Graphs
 import org.openrndr.kartifex.utils.permutations
 import kotlin.math.E
 import kotlin.math.abs
+import kotlin.math.max
 
 
 // The approach used here is described at https://ideolalia.com/2018/08/28/artifex.html.  The "simplest" approach would
@@ -50,6 +49,17 @@ private fun operation(
     pa.filter { arc: Arc -> aPredicate(classify(b, arc)) }.forEach { value -> arcs.add(value) }
     pb.filter { arc: Arc -> bPredicate(classify(a, arc)) }.forEach { value -> arcs.add(value) }
 
+    return assembleRegion(arcs, pa + pb)
+}
+
+/**
+ * Reassembles a region out of a (filtered, oriented) subset of arcs, by extracting complete
+ * cycles out of the graph they form and, where the graph is left with unmatched vertices,
+ * iteratively repairing it with arcs drawn from [allArcs].
+ */
+private fun assembleRegion(initialArcs: Set<Arc>, allArcs: List<Arc>): Region2 {
+    var arcs = initialArcs.toMutableSet()
+
     /*
 describe("split", split.splits.elements());
 describe("arcs", arcs.elements().stream().map(Arc::vertices).toArray(IList[]::new));
@@ -70,7 +80,7 @@ VERTICES.forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + v));
 
         //graph.vertices().forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + graph.out(v).stream().map(VERTICES::indexOf).collect(Lists.linearCollector())));
         if (i > 0) {
-            for (path in repairGraph(graph, (pa + pb) - arcs - consumed)) {
+            for (path in repairGraph(graph, allArcs - arcs - consumed)) {
                 for (arc in path) {
                     // if the graph currently contains the arc, remove it
                     if (arcs.contains(arc)) {
@@ -349,4 +359,79 @@ fun difference(a: Region2, b: Region2): Region2 {
         Operation.DIFFERENCE,
         { t: Type -> t == Type.OUTSIDE || t == Type.DIFF_EDGE },
         { t: Type -> t == Type.INSIDE })
+}
+
+/**
+ * Computes the signed, nonzero-rule winding number of [region]'s (possibly self-intersecting or
+ * overlapping) boundary around [p]: a ray is cast from [p] to the right, and every curve it
+ * crosses contributes +1 (heading "up", in increasing y) or -1 (heading "down"). Unlike
+ * [Region2.test], which stops at the first ring that claims the point under the even-odd rule,
+ * every curve of every ring contributes here -- which is what makes it meaningful for geometry
+ * that overlaps or crosses itself.
+ */
+private fun windingNumber(region: Region2, p: Vec2): Int {
+    var winding = 0
+    for (r in region.rings) {
+        for (c in r.curves) {
+            val dy = c.end().y - c.start().y
+            if (dy == 0.0) {
+                continue
+            }
+            val b: Box2 = c.bounds()
+            val flat = b.height() == 0.0
+
+            if (p.x < b.lx) {
+                // the curve is entirely to the right of p: it crosses the ray iff p's height
+                // falls within its (half-open) vertical extent, which also avoids double-counting
+                // a ray that passes exactly through a vertex shared by two curves
+                if (p.y >= b.ly && p.y < b.uy) {
+                    winding += if (dy > 0) 1 else -1
+                }
+            } else if (b.expand(Vec2(Intersections.SPATIAL_EPSILON, 0.0)).contains(p)) {
+                val i: Vec2? = Intersections.lineCurve(Line2.line(p, Vec2(b.ux + 1, p.y)), c)
+                    .map { v: Vec2 -> v.map { n: Double -> Intersections.round(n, Intersections.PARAMETRIC_EPSILON) } }
+                    .filter { v -> Intersections.PARAMETRIC_BOUNDS.contains(v) }
+                    .minByOrNull { v: Vec2 -> v.x }
+
+                if (i != null && i.x != 0.0 && !flat && p.y < b.uy) {
+                    winding += if (dy > 0) 1 else -1
+                }
+            }
+        }
+    }
+    return winding
+}
+
+/**
+ * Resolves a region whose rings may self-intersect, self-touch, or overlap into an equivalent
+ * region made up of simple rings, under the nonzero fill rule: a point belongs to the result iff
+ * [windingNumber] around it is nonzero.
+ *
+ * The region is first split at its own self-intersections (and self-touching vertices, exactly as
+ * [union] does for the even-odd rule), so that every arc of the resulting boundary runs between
+ * two points where the winding number can change. Each arc is then kept -- oriented so its
+ * interior faces left, matching this library's CCW-positive convention -- only where the two
+ * sides disagree on whether they're "inside" (nonzero) or "outside" (zero); arcs whose sides agree
+ * don't border a winding-number change and are discarded.
+ */
+fun nonZeroSelfUnion(r: Region2): Region2 {
+    val split: SplitResult = split(r, r)
+    val allArcs: List<Arc> = partition(split.a, split.splits)
+
+    val kept = mutableSetOf<Arc>()
+    for (arc in allArcs) {
+        val mid = arc.position(0.5)
+        val dir = arc.direction(0.5).norm()
+        val eps = max(arc.length() * 1e-3, 1e-6)
+        val normal = Vec2(-dir.y, dir.x) * eps
+
+        val leftInside = windingNumber(r, mid + normal) != 0
+        val rightInside = windingNumber(r, mid - normal) != 0
+
+        when {
+            leftInside && !rightInside -> kept.add(arc)
+            rightInside && !leftInside -> kept.add(arc.reverse())
+        }
+    }
+    return assembleRegion(kept, kept.toList())
 }
