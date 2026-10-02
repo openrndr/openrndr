@@ -592,9 +592,39 @@ open class RenderTargetGL3(
         this.depthBuffer?.let {
             it as DepthBufferGL3
             bufferBound {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, it.target, 0, 0)
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, it.target, 0, 0)
-                checkGLErrors()
+                // mirror attach()'s texture-vs-renderbuffer branching: a multisampled
+                // DepthBuffer on GLES is renderbuffer-backed (texture == -1) and was attached
+                // via glFramebufferRenderbuffer at the *combined* GL_DEPTH_STENCIL_ATTACHMENT
+                // point for depth+stencil formats, not via glFramebufferTexture2D at the split
+                // GL_DEPTH_ATTACHMENT/GL_STENCIL_ATTACHMENT points. Detaching with the wrong
+                // function/attachment point for that case triggers a GL_INVALID_OPERATION.
+                if (it.texture != -1) {
+                    if (it.hasDepth) {
+                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, it.target, 0, 0)
+                        checkGLErrors { null }
+                    }
+                    if (it.hasStencil) {
+                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, it.target, 0, 0)
+                        checkGLErrors { null }
+                    }
+                } else {
+                    when (Pair(it.hasDepth, it.hasStencil)) {
+                        Pair(true, true) -> glFramebufferRenderbuffer(
+                            GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0
+                        )
+
+                        Pair(false, true) -> glFramebufferRenderbuffer(
+                            GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0
+                        )
+
+                        Pair(true, false) -> glFramebufferRenderbuffer(
+                            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0
+                        )
+
+                        else -> error("DepthBuffer should have at least depth or stencil components")
+                    }
+                    checkGLErrors()
+                }
             }
         }
     }

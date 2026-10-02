@@ -93,7 +93,7 @@ class DepthBufferGL3(
                             glRenderbufferStorageMultisample(
                                 GL_RENDERBUFFER,
                                 multisample.sampleCount,
-                                GL_DEPTH32F_STENCIL8,
+                                type,
                                 width,
                                 height
                             )
@@ -169,11 +169,14 @@ class DepthBufferGL3(
     }
 
     override fun resolveTo(target: DepthBuffer) {
-        val readTarget = renderTarget(width, height, multisample = multisample) {
+        // width/height are already effective (post-contentScale) pixel dimensions, so contentScale
+        // must be pinned to 1.0 here, otherwise renderTarget() re-applies the currently active
+        // render target's contentScale and the resulting dimension check in attach() fails.
+        val readTarget = renderTarget(width, height, contentScale = 1.0, multisample = multisample) {
             depthBuffer(this@DepthBufferGL3)
         } as RenderTargetGL3
 
-        val writeTarget = renderTarget(target.width, target.height, multisample = target.multisample) {
+        val writeTarget = renderTarget(target.width, target.height, contentScale = 1.0, multisample = target.multisample) {
             depthBuffer(target)
         } as RenderTargetGL3
 
@@ -187,12 +190,11 @@ class DepthBufferGL3(
 
         readTarget.detachColorAttachments()
         readTarget.destroy()
-
     }
 
     override fun copyTo(target: DepthBuffer) {
         require(!destroyed)
-        val readTarget = renderTarget(width, height) {
+        val readTarget = renderTarget(width, height, contentScale = 1.0) {
             depthBuffer(this@DepthBufferGL3)
         } as RenderTargetGL3
 
