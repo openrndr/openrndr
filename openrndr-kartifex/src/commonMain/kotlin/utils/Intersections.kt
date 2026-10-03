@@ -2,7 +2,9 @@ package org.openrndr.kartifex.utils
 
 import org.openrndr.kartifex.*
 import kotlin.jvm.JvmName
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 @JvmName("kartifexHackSort1")
 fun <T> Array<T>.sort(start: Int = 0, end: Int = size, selector: (T) -> Double) {
@@ -649,6 +651,14 @@ object Intersections {
         b: FatLine,
         acc: MutableList<Vec2>
     ) {
+        if (a.range.start() == a.range.end() || b.range.start() == b.range.end()) {
+            // one side has collapsed to a single spatial point (e.g. a cusp): the
+            // line-line intersection formula below needs two distinct points per side,
+            // and Line2.line() requires that too, so fall back to recording the
+            // midpoint parameters directly instead of crashing.
+            acc.add(Vec2(a.mid(), b.mid()))
+            return
+        }
         val la: Line2 = a.line()
         val lb: Line2 = b.line()
         val av: Vec2 = la.end().sub(la.start())
