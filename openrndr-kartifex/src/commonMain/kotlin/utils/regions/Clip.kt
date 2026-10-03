@@ -192,14 +192,14 @@ private fun partition(
         if (offset == cs.size) {
             result.add(Arc(cs.toMutableList()))
         } else {
-            var acc = Arc()
+            var acc: MutableList<Curve2> = mutableListOf()
             for (i in offset until cs.size) {
                 val c: Curve2 = cs[i]
                 if (vertices.contains(c.start())) {
-                    if (acc.size > 0) {
-                        result.add(acc)
+                    if (acc.isNotEmpty()) {
+                        result.add(Arc(acc))
                     }
-                    acc = Arc(mutableListOf(c))
+                    acc = mutableListOf(c)
                 } else {
                     acc.add(c)
                 }
@@ -207,8 +207,8 @@ private fun partition(
             for (i in 0 until offset) {
                 acc.add(cs[i])
             }
-            if (acc.size > 0) {
-                result.add(acc)
+            if (acc.isNotEmpty()) {
+                result.add(Arc(acc))
             }
         }
     }
@@ -424,12 +424,27 @@ fun nonZeroSelfUnion(r: Region2): Region2 {
     val kept = mutableSetOf<Arc>()
     for (arc in allArcs) {
         val mid = arc.position(0.5)
-        val dir = arc.direction(0.5).norm()
-        val eps = max(arc.length() * 1e-3, 1e-6)
-        val normal = Vec2(-dir.y, dir.x) * eps
+        val normal0 = arc.direction(0.5).norm().let { Vec2(-it.y, it.x) }
 
-        val leftInside = windingNumber(r, mid + normal) != 0
-        val rightInside = windingNumber(r, mid - normal) != 0
+        // Near a self-tangent/near-cusp spot the "inside" sliver can be thinner than the
+        // initial probe distance, which makes both sides land on the same side of the
+        // boundary and the classification below ambiguous. Shrink the probe distance until
+        // the two sides disagree instead of giving up immediately, since giving up drops the
+        // arc and can break the ring's connectivity.
+        var eps = max(arc.length() * 1e-3, 1e-6)
+        var leftInside: Boolean
+        var rightInside: Boolean
+        var attempts = 0
+        while (true) {
+            val normal = normal0 * eps
+            leftInside = windingNumber(r, mid + normal) != 0
+            rightInside = windingNumber(r, mid - normal) != 0
+            attempts++
+            if (leftInside != rightInside || attempts >= 20 || eps < 1e-12) {
+                break
+            }
+            eps *= 0.1
+        }
 
         when {
             leftInside && !rightInside -> kept.add(arc)

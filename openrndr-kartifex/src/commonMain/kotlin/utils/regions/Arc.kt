@@ -6,13 +6,11 @@ import org.openrndr.kartifex.Vec2
 
 /**
  * Represents an arc, which is a collection of curves that form a continuous shape.
- * This class implements the `MutableList` interface and delegates behavior to the underlying list of `Curve2` objects.
+ * This class implements the `List` interface and delegates behavior to the underlying list of `Curve2` objects.
  *
- * @property list The mutable list of curves that constitute the arc.
+ * @property list The list of curves that constitute the arc.
  */
-internal class Arc(val list: MutableList<Curve2> = mutableListOf()) : MutableList<Curve2> by list {
-
-    private var hashProxy = 0.5
+internal class Arc(val list: List<Curve2> = emptyList()) : List<Curve2> by list {
 
     private var length = Double.NaN
     private var area = Double.NaN
@@ -81,13 +79,5 @@ internal class Arc(val list: MutableList<Curve2> = mutableListOf()) : MutableLis
 
     fun vertices(): List<Vec2> {
         return listOf(head()) + map { it.end() }
-    }
-
-    override fun hashCode(): Int {
-        return hashProxy.hashCode()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return this === other
     }
 }
