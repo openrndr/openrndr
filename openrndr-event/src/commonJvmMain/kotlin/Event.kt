@@ -149,6 +149,7 @@ actual class Event<T> actual constructor(val name: String, var postpone: Boolean
     }
     actual fun cancel(listener: (T) -> Unit) {
         listeners.remove(listener)
+        oneShotListeners.remove(listener)
     }
 
     actual fun listenOnce(listener: (T) -> Unit) {
