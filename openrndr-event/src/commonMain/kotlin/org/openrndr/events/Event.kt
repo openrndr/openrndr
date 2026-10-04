@@ -18,8 +18,8 @@ expect class Event<T>(name: String = "<unnamed-event>", postpone: Boolean = fals
      * cancel a listener
      */
     fun cancel(listener: (T) -> Unit)
-    fun listenOnce(listener: (T) -> Unit)
-    fun listenOnce(listener: Event<T>)
+    fun listenOnce(listener: (T) -> Unit): (T) -> Unit
+    fun listenOnce(listener: Event<T>): (T) -> Unit
 
     override fun close()
 }

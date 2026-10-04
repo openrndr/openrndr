@@ -69,12 +69,15 @@ actual class Event<T> actual constructor(val name: String, val postpone: Boolean
         oneShotListeners.remove(listener)
     }
 
-    actual fun listenOnce(listener: (T) -> Unit) {
+    actual fun listenOnce(listener: (T) -> Unit): (T) -> Unit {
         oneShotListeners.add(listener)
+        return listener
     }
 
-    actual fun listenOnce(listener: Event<T>) {
-        oneShotListeners.add { v1 -> listener.trigger(v1) }
+    actual fun listenOnce(listener: Event<T>): (T) -> Unit {
+        val listenFunction = { m: T -> listener.trigger(m) }
+        oneShotListeners.add(listenFunction)
+        return listenFunction
     }
 
     actual override fun close() {
