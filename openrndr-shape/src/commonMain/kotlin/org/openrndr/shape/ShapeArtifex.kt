@@ -680,6 +680,80 @@ fun intersections(a: Shape, b: Shape): List<ContourIntersection> {
     }
 }
 
+/**
+ * Finds every pair of distinct parameters (t1, t2), with t1 < t2, at which this [Curve2]
+ * revisits the same point, i.e. where it loops back on itself. Only a cubic curve can do this:
+ * a line is straight by definition, and a quadratic BΓ©zier traces a monotonic parabolic arc
+ * that never revisits a point, so both return an empty list immediately.
+ *
+ * Detected by recursively bisecting the curve and collecting self-intersections of either half,
+ * plus crossings between the two halves -- using kartifex's own pairwise curve-intersection
+ * finder, [Intersections.intersections], and ignoring the point the two halves necessarily share
+ * at the split. A loop entirely contained within a single leaf interval at [maxDepth] would be
+ * missed, but that requires an extremely tight loop relative to the curve's overall size.
+ */
+private fun Curve2.selfIntersectionParameters(maxDepth: Int = 6): List<Vec2> {
+    if (this is Line2 || this is Bezier2.QuadraticBezier2 || maxDepth <= 0) {
+        return emptyList()
+    }
+    val halves = split(0.5)
+    val a = halves[0]
+    val b = halves[1]
+    val result = mutableListOf<Vec2>()
+    a.selfIntersectionParameters(maxDepth - 1).forEach { (t1, t2) -> result.add(Vec2(t1 * 0.5, t2 * 0.5)) }
+    b.selfIntersectionParameters(maxDepth - 1).forEach { (t1, t2) -> result.add(Vec2(0.5 + t1 * 0.5, 0.5 + t2 * 0.5)) }
+    Intersections.intersections(a, b).forEach { (ta, tb) ->
+        // ignore the point a and b necessarily share at the split, in either direction: the
+        // second also covers this whole curve's own start coinciding with its own end, which
+        // happens once this is itself an extracted loop (see removeSelfIntersections) and isn't
+        // a genuine self-intersection on its own.
+        val trivial = (ta > 1.0 - Intersections.PARAMETRIC_EPSILON && tb < Intersections.PARAMETRIC_EPSILON) ||
+            (ta < Intersections.PARAMETRIC_EPSILON && tb > 1.0 - Intersections.PARAMETRIC_EPSILON)
+        if (!trivial) {
+            result.add(Vec2(ta * 0.5, 0.5 + tb * 0.5))
+        }
+    }
+    return result
+}
+
+/** `true` if this [Curve2] loops back on itself anywhere. See [selfIntersectionParameters]. */
+private fun Curve2.hasSelfIntersection(maxDepth: Int = 6): Boolean =
+    selfIntersectionParameters(maxDepth).isNotEmpty()
+
+/**
+ * `true` if this [ShapeContour] crosses or touches itself anywhere: either a single segment
+ * that loops back on itself, or two (not necessarily adjacent) segments that cross or touch.
+ *
+ * This goes directly to kartifex's curve-intersection finder ([Intersections.intersections]) on
+ * every pair of segments, rather than reusing [intersections]: that function explicitly skips
+ * comparing a segment against itself (`a === b`), so it can never detect a single BΓ©zier segment
+ * looping back on itself -- only crossings between distinct segments.
+ */
+val ShapeContour.isSelfIntersecting: Boolean
+    get() {
+        val curves = segments
+            .filterNot { it.linear && it.length == 0.0 }
+            .map { it.toCurve2() }
+
+        if (curves.any { it.hasSelfIntersection() }) {
+            return true
+        }
+
+        for (ia in curves.indices) {
+            for (ib in (ia + 1) until curves.size) {
+                val hits = Intersections.intersections(curves[ia], curves[ib])
+                val genuine = hits.any { (ta, tb) ->
+                    !((ta > 1.0 - Intersections.PARAMETRIC_EPSILON && tb < Intersections.PARAMETRIC_EPSILON) ||
+                        (ta < Intersections.PARAMETRIC_EPSILON && tb > 1.0 - Intersections.PARAMETRIC_EPSILON))
+                }
+                if (genuine) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
 
 /**
  * Splits a [Shape] into two separate [Shape]s from given [LineSegment].
@@ -758,24 +832,55 @@ fun split(from: ShapeContour, cutters: List<ShapeContour>): List<ShapeContour> {
 }
 
 /**
+ * Splits this [ShapeContour] at each of the given contour-relative parameters, welding
+ * near-duplicate split points (within 1E-6) and padding the ends with 0.0/1.0 for an open
+ * contour so the first and last pieces reach all the way to its actual endpoints.
+ */
+private fun ShapeContour.splitAt(ts: List<Double>): List<ShapeContour> {
+    return if (ts.isNotEmpty()) {
+        val sortedTs = ts.sorted()
+        val weldedTs = (if (closed) {
+            sortedTs + (if (sortedTs.first() > 0.0) 1 + sortedTs.first() else null)
+        } else {
+            listOf(if (sortedTs.first() > 0.0) 0.0 else null) +
+                    sortedTs + (if (sortedTs.last() < 1.0) 1.0 else null)
+        }).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
+        weldedTs.zipWithNext().map { sub(it.first, it.second) }
+    } else {
+        listOf(this)
+    }
+}
+
+/**
  * Performs the actual ShapeContour cutting. Receive the shape to be cut
  * and a list of all the cut points.
  */
 private fun performSplit(from: ShapeContour, ints: List<ContourIntersection>):
         List<ShapeContour> {
-    return if (ints.isNotEmpty()) {
-        val sortedInts = ints.map { it.a.contourT }.sorted()
-        val weldedInts = (if (from.closed) {
-            sortedInts + (if (sortedInts.first() > 0.0) 1 +
-                    sortedInts.first() else null)
-        } else {
-            listOf(if (sortedInts.first() > 0.0) 0.0 else null) +
-                    sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)
-        }).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
-        weldedInts.zipWithNext().map { from.sub(it.first, it.second) }
-    } else {
-        listOf(from)
+    return from.splitAt(ints.map { it.a.contourT })
+}
+
+/**
+ * `true` if this [Shape] crosses or touches itself anywhere: either one of its [ShapeContour]s
+ * is self-intersecting on its own ([ShapeContour.isSelfIntersecting]), or two distinct contours
+ * cross or touch each other.
+ *
+ * Distinct contours are compared with [intersections], which is reliable for that case -- the
+ * gap it has (comparing a segment against itself) only matters when checking a contour against
+ * itself, which [ShapeContour.isSelfIntersecting] handles correctly instead.
+ */
+fun Shape.isSelfIntersecting(): Boolean {
+    if (contours.any { it.isSelfIntersecting }) {
+        return true
     }
+    for (i in contours.indices) {
+        for (j in (i + 1) until contours.size) {
+            if (intersections(contours[i], contours[j]).isNotEmpty()) {
+                return true
+            }
+        }
+    }
+    return false
 }
 
 fun Shape.removeSelfIntersections(fillRule: FillRule = FillRule.NON_ZERO): Shape {
@@ -786,4 +891,64 @@ fun Shape.removeSelfIntersections(fillRule: FillRule = FillRule.NON_ZERO): Shape
     }
 
     return this.region2.removeSelfIntersections(kfill).toShape()
+}
+
+/**
+ * Finds every pair of contour-relative parameters (t1, t2), with t1 < t2, at which this
+ * [ShapeContour] revisits a point it has already visited -- whether that's a single segment
+ * looping back on itself (via [Curve2.selfIntersectionParameters], which [intersections] can
+ * never detect on its own, since it skips comparing a segment against itself), or a crossing
+ * between two distinct segments (via [intersections]).
+ */
+private fun ShapeContour.selfIntersectionParameters(): List<Pair<Double, Double>> {
+    val n = segments.size
+    val loopPairs = segments.indices.flatMap { i ->
+        segments[i].toCurve2().selfIntersectionParameters().map { (t1, t2) -> (i + t1) / n to (i + t2) / n }
+    }
+    val crossingPairs = intersections(this, this).map {
+        val t1 = it.a.contourT
+        val t2 = it.b.contourT
+        minOf(t1, t2) to maxOf(t1, t2)
+    }
+    return loopPairs + crossingPairs
+}
+
+/**
+ * Resolves self-intersections of this [ShapeContour].
+ *
+ * For a closed contour this delegates to [Shape.removeSelfIntersections], which resolves the
+ * enclosed area under [fillRule].
+ *
+ * An open contour doesn't enclose an area, so there's no fill rule to apply (the [fillRule]
+ * parameter is ignored): every self-crossing loop is excised instead, trimming the two crossing
+ * strands back to the point they share and reconnecting them, repeatedly, until no crossing
+ * remains -- preserving the contour's original start and end point. The result always has
+ * exactly one contour.
+ */
+fun ShapeContour.removeSelfIntersections(fillRule: FillRule = FillRule.NON_ZERO): Shape {
+    return if (closed) {
+        shape.removeSelfIntersections(fillRule)
+    } else {
+        Shape(listOf(exciseSelfIntersectionLoops()))
+    }
+}
+
+private fun ShapeContour.exciseSelfIntersectionLoops(attempts: Int = 0): ShapeContour {
+    if (attempts > 32) {
+        error("tried more than 32 times to remove self-intersection loops")
+    }
+    val (t1, t2) = selfIntersectionParameters().minByOrNull { it.first } ?: return this
+
+    val head = sub(0.0, t1)
+    val tail = sub(t2, 1.0)
+    return when {
+        head.segments.isEmpty() -> tail.exciseSelfIntersectionLoops(attempts + 1)
+        tail.segments.isEmpty() -> head.exciseSelfIntersectionLoops(attempts + 1)
+        else -> {
+            val tailSegments = tail.segments.toMutableList()
+            tailSegments[0] = tailSegments.first().copy(start = head.segments.last().end)
+            val stitchedTail = ShapeContour(tailSegments, closed = false)
+            head.exciseSelfIntersectionLoops(attempts + 1) + stitchedTail.exciseSelfIntersectionLoops(attempts + 1)
+        }
+    }
 }
