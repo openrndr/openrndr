@@ -450,34 +450,68 @@ fun nonZeroSelfUnion(r: Region2): Region2 {
     val allArcs: List<Arc> = partition(split.a, split.splits)
 
     val kept = mutableSetOf<Arc>()
+    val discarded = mutableListOf<Arc>()
     for (arc in allArcs) {
-        val mid = arc.position(0.5)
-        val normal0 = arc.direction(0.5).norm().let { Vec2(-it.y, it.x) }
-
-        // Near a self-tangent/near-cusp spot the "inside" sliver can be thinner than the
-        // initial probe distance, which makes both sides land on the same side of the
-        // boundary and the classification below ambiguous. Shrink the probe distance until
-        // the two sides disagree instead of giving up immediately, since giving up drops the
-        // arc and can break the ring's connectivity.
-        var eps = max(arc.length() * 1e-3, 1e-6)
-        var leftInside: Boolean
-        var rightInside: Boolean
-        var attempts = 0
-        while (true) {
-            val normal = normal0 * eps
-            leftInside = windingNumber(r, mid + normal) != 0
-            rightInside = windingNumber(r, mid - normal) != 0
-            attempts++
-            if (leftInside != rightInside || attempts >= 20 || eps < 1e-12) {
-                break
-            }
-            eps *= 0.1
-        }
-
+        val (leftInside, rightInside) = classifyNonZero(r, arc)
         when {
             leftInside && !rightInside -> kept.add(arc)
             rightInside && !leftInside -> kept.add(arc.reverse())
+            else -> discarded.add(arc)
         }
     }
-    return assembleRegion(kept, kept.toList())
+
+    // Should an arc still be misclassified, the ring it belongs to can't close and would be lost
+    // entirely. Offering the discarded arcs (in both orientations, since we don't know which one
+    // would be right) lets assembleRegion's repair step reconnect it; repair only runs when the
+    // kept arcs leave unmatched vertices, so a correctly classified region is unaffected.
+    return assembleRegion(kept, kept.toList() + discarded + discarded.map { it.reverse() })
+}
+
+private val NON_ZERO_PROBE_POSITIONS = doubleArrayOf(0.5, 0.25, 0.75, 1.0 / E, 1.0 - 1.0 / E)
+
+/**
+ * Determines whether the nonzero-rule region lies to the left and/or right of [arc], by probing
+ * the winding number of [r] on either side of it.
+ *
+ * Crossing a single boundary arc changes the winding number by exactly one, so a probe pair whose
+ * winding numbers don't differ by one has landed somewhere misleading -- on the far side of
+ * another boundary curve, typically, where the region is thinner than the probe distance. Such
+ * pairs are retried closer to the arc and at other positions along it.
+ */
+private fun classifyNonZero(r: Region2, arc: Arc): Pair<Boolean, Boolean> {
+    val eps0 = max(arc.length() * 1e-3, 1e-6)
+    for (t in NON_ZERO_PROBE_POSITIONS) {
+        val p = arc.position(t)
+        val normal0 = arc.direction(t).norm().let { Vec2(-it.y, it.x) }
+        var eps = eps0
+        for (k in 0 until 4) {
+            val left = windingNumber(r, p + normal0 * eps)
+            val right = windingNumber(r, p - normal0 * eps)
+            if (abs(left - right) == 1) {
+                return Pair(left != 0, right != 0)
+            }
+            eps *= 0.1
+        }
+    }
+
+    // No consistent probe pair, as happens where the arc coincides with another boundary arc.
+    // Fall back to shrinking the probe distance at the arc's middle until the two sides disagree
+    // on being inside, since giving up drops the arc and can break the ring's connectivity.
+    val mid = arc.position(0.5)
+    val normal0 = arc.direction(0.5).norm().let { Vec2(-it.y, it.x) }
+    var eps = eps0
+    var leftInside: Boolean
+    var rightInside: Boolean
+    var attempts = 0
+    while (true) {
+        val normal = normal0 * eps
+        leftInside = windingNumber(r, mid + normal) != 0
+        rightInside = windingNumber(r, mid - normal) != 0
+        attempts++
+        if (leftInside != rightInside || attempts >= 20 || eps < 1e-12) {
+            break
+        }
+        eps *= 0.1
+    }
+    return Pair(leftInside, rightInside)
 }
