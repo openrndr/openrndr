@@ -376,31 +376,59 @@ private fun windingNumber(region: Region2, p: Vec2): Int {
     var winding = 0
     for (r in region.rings) {
         for (c in r.curves) {
-            val dy = c.end().y - c.start().y
-            if (dy == 0.0) {
-                continue
+            winding += windingContribution(c, p)
+        }
+    }
+    return winding
+}
+
+/**
+ * The contribution of a single curve to [windingNumber] around [p].
+ *
+ * The curve is cut at its axis extrema ([Curve2.inflections]) into pieces that are monotonic in
+ * both x and y, so that the ray crosses each piece at most once and in the direction of the
+ * piece's own dy. Each piece's vertical extent is treated as half-open, which avoids
+ * double-counting a ray that passes exactly through a vertex shared by two pieces or curves.
+ *
+ * This deliberately avoids [Intersections.lineCurve]: its parametric rounding is relative to the
+ * length of the ray, so a crossing very close to [p] -- exactly where the probes in
+ * [nonZeroSelfUnion] sit for short arcs -- would be rounded onto [p] and dropped.
+ */
+private fun windingContribution(c: Curve2, p: Vec2): Int {
+    val b: Box2 = c.bounds()
+    if (p.y < b.ly || p.y >= b.uy || p.x >= b.ux) {
+        return 0
+    }
+
+    val ts = c.inflections().sorted()
+    var winding = 0
+    var t0 = 0.0
+    var p0 = c.start()
+    for (i in 0..ts.size) {
+        val t1 = if (i < ts.size) ts[i] else 1.0
+        val p1 = if (i < ts.size) c.position(t1) else c.end()
+        if (p0.y != p1.y && p.y >= minOf(p0.y, p1.y) && p.y < maxOf(p0.y, p1.y)) {
+            val crosses = when {
+                p.x < minOf(p0.x, p1.x) -> true
+                p.x >= maxOf(p0.x, p1.x) -> false
+                else -> {
+                    // bisect for the point on this (y-monotonic) piece at p's height
+                    val up = p1.y > p0.y
+                    var lo = t0
+                    var hi = t1
+                    for (k in 0 until 60) {
+                        val mid = (lo + hi) * 0.5
+                        if ((c.position(mid).y < p.y) == up) lo = mid else hi = mid
+                    }
+                    c.position((lo + hi) * 0.5).x > p.x
+                }
             }
-            val b: Box2 = c.bounds()
-            val flat = b.height() == 0.0
-
-            if (p.x < b.lx) {
-                // the curve is entirely to the right of p: it crosses the ray iff p's height
-                // falls within its (half-open) vertical extent, which also avoids double-counting
-                // a ray that passes exactly through a vertex shared by two curves
-                if (p.y >= b.ly && p.y < b.uy) {
-                    winding += if (dy > 0) 1 else -1
-                }
-            } else if (b.expand(Vec2(Intersections.SPATIAL_EPSILON, 0.0)).contains(p)) {
-                val i: Vec2? = Intersections.lineCurve(Line2.line(p, Vec2(b.ux + 1, p.y)), c)
-                    .map { v: Vec2 -> v.map { n: Double -> Intersections.round(n, Intersections.PARAMETRIC_EPSILON) } }
-                    .filter { v -> Intersections.PARAMETRIC_BOUNDS.contains(v) }
-                    .minByOrNull { v: Vec2 -> v.x }
-
-                if (i != null && i.x != 0.0 && !flat && p.y < b.uy) {
-                    winding += if (dy > 0) 1 else -1
-                }
+            if (crosses) {
+                winding += if (p1.y > p0.y) 1 else -1
             }
         }
+        t0 = t1
+        p0 = p1
     }
     return winding
 }
