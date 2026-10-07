@@ -13,7 +13,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.*
-import web.html.Image
+import web.images.ImageBitmap
 import kotlin.math.log2
 import kotlin.math.pow
 import web.gl.WebGL2RenderingContext as GL
@@ -138,30 +138,61 @@ class ColorBufferWebGL(
             )
         }
 
-        fun fromImage(
+        fun fromImageBitmap(
             context: GL,
-            image: Image,
+            imageBitmap: ImageBitmap,
+            allowSRGB: Boolean = true,
+            generateMipmaps: Boolean = true,
+            flipV: Boolean = true,
             session: Session? = Session.active
         ): ColorBufferWebGL {
-            val texture = context.createTexture() ?: error("failed to create texture")
+            val width = imageBitmap.width
+            val height = imageBitmap.height
+            require(width > 0 && height > 0) {
+                "image has invalid dimensions: ${width}x${height}"
+            }
+
+            val texture = context.createTexture()
             context.activeTexture(TEXTURE0)
             context.bindTexture(TEXTURE_2D, texture)
-            context.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, image)
-            if (log2(image.width.toDouble()) % 1.0 == 0.0 && log2(image.height.toDouble()) % 1.0 == 0.0) {
+
+            val maxDim = maxOf(width, height)
+            val levels = if (generateMipmaps) (log2(maxDim.toDouble()).toInt() + 1).coerceAtLeast(1) else 1
+            context.texStorage2D(TEXTURE_2D, levels, RGBA8, width, height)
+
+            context.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, if (levels > 1) LINEAR_MIPMAP_LINEAR else LINEAR)
+            context.checkErrors()
+            context.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+            context.checkErrors()
+            context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE)
+            context.checkErrors()
+            context.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, CLAMP_TO_EDGE)
+            context.checkErrors()
+            context.texSubImage2D(
+                TEXTURE_2D, 0, 0, 0,
+                RGBA, UNSIGNED_BYTE, imageBitmap
+            )
+
+            if (levels > 1) {
                 context.generateMipmap(TEXTURE_2D)
             }
-            context.texParameteri(TEXTURE_2D,TEXTURE_MIN_FILTER, LINEAR)
-            context.checkErrors()
-            context.texParameteri(TEXTURE_2D,TEXTURE_MAG_FILTER, LINEAR)
-            context.checkErrors()
-            context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_S, CLAMP_TO_EDGE)
-            context.checkErrors()
-            context.texParameteri(TEXTURE_2D,TEXTURE_WRAP_T, CLAMP_TO_EDGE)
-            context.checkErrors()
-            return ColorBufferWebGL(
-                context, TEXTURE_2D, texture, image.width, image.height, 1.0,
-                ColorFormat.RGBa, ColorType.UINT8_SRGB, 1, BufferMultisample.Disabled, session
-            )
+
+            val colorType = if (allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
+
+            val cb = ColorBufferWebGL(
+                context,
+                TEXTURE_2D,
+                texture,
+                width,
+                height,
+                1.0,
+                ColorFormat.RGBa,
+                colorType,
+                levels,
+                BufferMultisample.Disabled,
+                session
+            ).also { it.flipV = flipV }
+            return cb
         }
     }
 
@@ -377,8 +408,8 @@ class ColorBufferWebGL(
         context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
         context.checkErrors("pixelStorei")
 
-        
-        
+
+
         fun format(colorFormat: ColorFormat, colorType: ColorType): GLenum {
             val srgb = context.getExtensionOrNull<EXT_sRGB>()
 

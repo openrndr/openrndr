@@ -2,7 +2,6 @@
 
 package org.openrndr.draw
 
-import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.ImageSaveConfiguration
@@ -213,14 +212,14 @@ actual abstract class ColorBuffer: Texture, AutoCloseable {
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-actual fun loadImage(
-    fileOrUrl: String,
+actual suspend fun loadImage(
+    url: String,
     formatHint: ImageFileFormat?,
     allowSRGB: Boolean,
     loadMipmaps: Boolean,
     session: Session?
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB, probeImage(fileOrUrl))
+    val data = ImageDriver.instance.loadImage(url, formatHint, allowSRGB, probeImage(url))
     return try {
         val size = min(data.width, data.height)
         val levels = if (loadMipmaps) floor(log2(size.toDouble())).toInt() + 1 else 1
@@ -239,7 +238,7 @@ actual fun loadImage(
 /**
  * load an image from [File]
  */
-fun loadImage(
+suspend fun loadImage(
     file: File,
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(file.extension),
     allowSRGB: Boolean = true,
@@ -252,7 +251,7 @@ fun loadImage(
 /**
  * load an image from an [url]
  */
-fun loadImage(
+suspend fun loadImage(
     url: URL,
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(url.toExternalForm().split(".").lastOrNull()),
     allowSRGB: Boolean = true,
@@ -260,15 +259,4 @@ fun loadImage(
     session: Session? = Session.active
 ): ColorBuffer {
     return loadImage(url.toExternalForm(), formatHint, allowSRGB, loadMipmaps, session)
-}
-
-actual suspend fun loadImageSuspend(
-    fileOrUrl: String,
-    formatHint: ImageFileFormat?,
-    allowSRGB: Boolean,
-    session: Session?
-): ColorBuffer {
-    return runBlocking {
-        loadImage(fileOrUrl, formatHint, allowSRGB, true, session)
-    }
 }
