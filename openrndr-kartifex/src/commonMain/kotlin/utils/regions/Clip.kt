@@ -461,10 +461,35 @@ fun nonZeroSelfUnion(r: Region2): Region2 {
     }
 
     // Should an arc still be misclassified, the ring it belongs to can't close and would be lost
-    // entirely. Offering the discarded arcs (in both orientations, since we don't know which one
-    // would be right) lets assembleRegion's repair step reconnect it; repair only runs when the
-    // kept arcs leave unmatched vertices, so a correctly classified region is unaffected.
-    return assembleRegion(kept, kept.toList() + discarded + discarded.map { it.reverse() })
+    // entirely. Offering every arc in both orientations lets assembleRegion's repair step reconnect
+    // it, whether the arc was wrongly discarded or kept the wrong way around. The latter happens
+    // where the boundary doubles back on itself over about SPATIAL_EPSILON (e.g. a curve whose
+    // last control point overshoots its end), leaving a hairpin arc whose two sides can't be told
+    // apart. Repair only runs when the kept arcs leave unmatched vertices, so a correctly
+    // classified region is unaffected.
+    val assembled = assembleRegion(
+        kept,
+        kept.toList() + kept.map { it.reverse() } + discarded + discarded.map { it.reverse() }
+    )
+
+    // Where boundaries cross at a shallow angle or nearly touch, the split can leave behind tiny
+    // rings that are thinner than the precision intersections are found with. They carry no real
+    // area and needn't even be simple, so drop them.
+    return Region2(assembled.rings.filter { !isSliver(it) })
+}
+
+private const val SLIVER_THICKNESS = 10 * Intersections.SPATIAL_EPSILON
+
+/**
+ * Whether [ring] is a sliver: a ring whose mean thickness (twice its area over its perimeter,
+ * which is exact for a long thin strip) is below [SLIVER_THICKNESS]. The perimeter is measured
+ * along chords, as [Arc.length] does, since [Curve2.length] isn't implemented for beziers; a
+ * ring's curves are split at their extrema, so chords underestimate it only slightly, which errs
+ * on the side of keeping a ring.
+ */
+private fun isSliver(ring: Ring2): Boolean {
+    val perimeter = ring.curves.sumOf { it.end().sub(it.start()).length() }
+    return perimeter == 0.0 || 2.0 * ring.area / perimeter < SLIVER_THICKNESS
 }
 
 private val NON_ZERO_PROBE_POSITIONS = doubleArrayOf(0.5, 0.25, 0.75, 1.0 / E, 1.0 - 1.0 / E)
