@@ -1,9 +1,6 @@
 package org.openrndr.kartifex
 
-import org.openrndr.kartifex.utils.regions.difference
-import org.openrndr.kartifex.utils.regions.intersection
-import org.openrndr.kartifex.utils.regions.nonZeroSelfUnion
-import org.openrndr.kartifex.utils.regions.union
+import org.openrndr.kartifex.utils.regions.*
 
 
 enum class FillRule {
@@ -69,9 +66,12 @@ class Region2(val rings: Array<Ring2>) {
      * simple rings.
      */
     fun removeSelfIntersections(fill: FillRule): Region2 {
+        // flatten folds thinner than the intersection precision first; they'd otherwise resolve
+        // into zero-width spikes and sliver rings (see removeFolds)
+        val unfolded = removeFolds(this)
         return when (fill) {
-            FillRule.EVEN_ODD -> union(this, this)
-            FillRule.NON_ZERO -> nonZeroSelfUnion(this)
+            FillRule.EVEN_ODD -> union(unfolded, unfolded)
+            FillRule.NON_ZERO -> nonZeroSelfUnion(unfolded)
         }
     }
 
