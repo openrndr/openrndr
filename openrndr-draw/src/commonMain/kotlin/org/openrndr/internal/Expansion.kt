@@ -63,10 +63,43 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         return doubleArrayOf(x0, y0, x1, y1)
     }
 
+    /**
+     * Emits the bevel triangle (outer corner [o0], inner miter point [inner], outer corner [o1])
+     * with its own vertices, so it can be anti-aliased along the bevel edge [o0]-[o1] alone.
+     *
+     * The regular per-vertex across-stroke coordinate (0 at the outer corners, 1 at the inner miter
+     * point) fades the triangle linearly from the bevel edge all the way to the inner miter point,
+     * which for a sharp join lies many stroke widths back, smearing the bevel edge out over that
+     * distance. Instead, the bevel is treated like a butt cap:
+     * - u runs across the stroke, along the bevel edge: 0 at [o0], 1 at [o1], and the inner miter
+     *   point's projection onto the bevel edge in between, so the sides fade as they do along the
+     *   rest of the stroke;
+     * - v fades the bevel edge itself: 0 on the edge, reaching 1 at [aa] from it (the stroke shader
+     *   saturates it with `min(1, v)`, which keeps the fade sharp however far the inner point is).
+     *
+     * The surrounding vertices are repeated so the extra triangles in the strip are degenerate.
+     */
+    private fun bevelTriangle(o0x: Double, o0y: Double, ix: Double, iy: Double, o1x: Double, o1y: Double, aa: Double, offset: Double) {
+        val ex = o1x - o0x
+        val ey = o1y - o0y
+        val el2 = ex * ex + ey * ey
+        val d = if (el2 > 0.0) abs((ix - o0x) * ey - (iy - o0y) * ex) / sqrt(el2) else 0.0
+        val t = if (el2 > 0.0) (((ix - o0x) * ex + (iy - o0y) * ey) / el2).coerceIn(0.0, 1.0) else 0.5
+        addVertex(o0x, o0y, 0.0, 0.0, offset)
+        addVertex(ix, iy, t, d / aa, offset)
+        addVertex(o1x, o1y, 1.0, 0.0, offset)
+        addVertex(o1x, o1y, 1.0, 0.0, offset)
+    }
+
+    /**
+     * @param aa the fringe width; when positive, a beveled join with an inner miter point is
+     * anti-aliased along its bevel edge only (see [bevelTriangle])
+     */
     fun bevelJoin(
         p0: PathPoint, p1: PathPoint,
         lw: Double, rw: Double, lu: Double, ru: Double,
-        offset: Double
+        offset: Double,
+        aa: Double = 0.0
     ) {
         val dlx0 = p0.dy
         val dly0 = -p0.dx
@@ -86,7 +119,10 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(lx0, ly0, lu, 1.0, offset)
             addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
-            if (p1.flags and BEVEL != 0) {
+            if (p1.flags and BEVEL != 0 && p1.flags and INNER_BEVEL == 0 && aa > 0.0) {
+                // turning left: the bevel is on the right, the inner miter point (lx0 == lx1) on the left
+                bevelTriangle(p1.x - dlx0 * rw, p1.y - dly0 * rw, lx0, ly0, p1.x - dlx1 * rw, p1.y - dly1 * rw, aa, offset)
+            } else if (p1.flags and BEVEL != 0) {
                 addVertex(lx0, ly0, lu, 1.0, offset)
                 addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
@@ -120,7 +156,10 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
-            if (p1.flags and BEVEL != 0) {
+            if (p1.flags and BEVEL != 0 && p1.flags and INNER_BEVEL == 0 && aa > 0.0) {
+                // turning right: the bevel is on the left, the inner miter point (rx0 == rx1) on the right
+                bevelTriangle(p1.x + dlx0 * lw, p1.y + dly0 * lw, rx0, ry0, p1.x + dlx1 * lw, p1.y + dly1 * lw, aa, offset)
+            } else if (p1.flags and BEVEL != 0) {
                 addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
                 addVertex(rx0, ry0, ru, 1.0, offset)
 
@@ -384,10 +423,11 @@ internal class Path {
             p1.dmy = (dly0 + dly1) * 0.5
             val dmr2 = p1.dmx * p1.dmx + p1.dmy * p1.dmy
             if (dmr2 > 0.000001f) {
-                var scale = 1.0 / dmr2
-                if (scale > 600.0) {
-                    scale = 600.0
-                }
+                // scale the averaged normal into the miter vector, whose length is 1 / |dm|.
+                // NanoVG clamps this scale at 600, which makes the miter of joins sharper than
+                // ~4.7 degrees (miter ratio > sqrt(600)) shrink back towards the vertex instead
+                // of growing; joins that would produce excessive miters are beveled below instead.
+                val scale = 1.0 / dmr2
                 p1.dmx *= scale
                 p1.dmy *= scale
             }
@@ -411,6 +451,11 @@ internal class Path {
                 if (dmr2 * miterLimit * miterLimit < 1.0f || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
                     p1.flags = p1.flags or BEVEL
                 }
+            } else if (dmr2 * miterLimit * miterLimit < 1.0f) {
+                // A smooth (non-corner) vertex normally turns only slightly, but one that turns
+                // sharply (e.g. at a cusp of a flattened curve) would otherwise get an unbounded
+                // miter, now that the miter scale is no longer clamped.
+                p1.flags = p1.flags or BEVEL
             }
 
             if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
@@ -545,7 +590,7 @@ internal class Path {
                     if (lineJoin === LineJoin.ROUND) {
                         expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, offset)
                     } else {
-                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, offset)
+                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, offset, aa)
                     }
                 } else {
                     expansion.addVertex(p1.x + p1.dmx * weight, p1.y + p1.dmy * weight, 0.0, 1.0, offset)
