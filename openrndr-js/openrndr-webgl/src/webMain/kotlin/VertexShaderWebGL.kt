@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
