@@ -38,6 +38,37 @@ enum class DriverTypeGL {
 }
 
 @Suppress("SpellCheckingInspection")
+/**
+ * Opaque types that GLSL ES gives no default precision (or only a lowp one, sampler2D and samplerCube),
+ * grouped by the GLSL ES version that introduced them. Declaring a precision for a type the version
+ * does not know is a compile error, so each group is only emitted for versions that have it.
+ */
+private val glesOpaqueTypes30 = listOf(
+    "sampler2D", "isampler2D", "usampler2D",
+    "sampler3D", "isampler3D", "usampler3D",
+    "samplerCube", "isamplerCube", "usamplerCube",
+    "sampler2DArray", "isampler2DArray", "usampler2DArray",
+    "sampler2DShadow", "samplerCubeShadow", "sampler2DArrayShadow"
+)
+
+private val glesOpaqueTypes31 = listOf(
+    "sampler2DMS", "isampler2DMS", "usampler2DMS",
+    "image2D", "iimage2D", "uimage2D",
+    "image3D", "iimage3D", "uimage3D",
+    "imageCube", "iimageCube", "uimageCube",
+    "image2DArray", "iimage2DArray", "uimage2DArray"
+)
+
+private val glesOpaqueTypes32 = listOf(
+    "samplerBuffer", "isamplerBuffer", "usamplerBuffer",
+    "samplerCubeArray", "isamplerCubeArray", "usamplerCubeArray", "samplerCubeArrayShadow",
+    "sampler2DMSArray", "isampler2DMSArray", "usampler2DMSArray",
+    "imageBuffer", "iimageBuffer", "uimageBuffer",
+    "imageCubeArray", "iimageCubeArray", "uimageCubeArray"
+)
+
+private fun glesPrecision(types: List<String>) = types.joinToString(" ") { "precision highp $it;" }
+
 enum class DriverVersionGL(
     val type: DriverTypeGL,
     val glslVersion: String,
@@ -594,17 +625,17 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             DriverTypeGL.GL -> "#define OR_GL"
             DriverTypeGL.GLES -> """#define OR_GLES
           |precision highp float;
-          |precision highp sampler2DArray;
+          |${glesPrecision(glesOpaqueTypes30)}
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
-                    "precision highp usampler2D; precision highp image2D; precision highp iimage2D; precision highp uimage2D; precision highp image3D; precision highp imageCube; precision highp image2DArray;"
+                    glesPrecision(glesOpaqueTypes31)
                 } else {
                     ""
                 }
             }
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_2) {
-                    "precision highp imageCubeArray;"
+                    glesPrecision(glesOpaqueTypes32)
                 } else {
                     ""
                 }
@@ -1135,7 +1166,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
-        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2) {
+        require(instanceOffset == 0 || Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_2)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
         applyTextureBindings(shader.textureBindings)

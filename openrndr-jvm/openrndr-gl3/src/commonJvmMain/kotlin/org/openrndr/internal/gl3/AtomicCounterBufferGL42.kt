@@ -12,18 +12,13 @@ class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicC
         fun create(counterCount: Int): AtomicCounterBufferGL42 {
             val counterBuffer = glGenBuffers()
             glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, counterBuffer)
-            val useBufferStorage =
-                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4
-            if (useBufferStorage) {
-                glBufferData(GL_ATOMIC_COUNTER_BUFFER, IntArray(counterCount), GL_DYNAMIC_DRAW)
-            } else {
-                glBufferStorage(GL_ATOMIC_COUNTER_BUFFER, counterCount * 4L, GL_DYNAMIC_STORAGE_BIT)
-            }
+            // glBufferData (not glBufferStorage) so the counters start at zero
+            glBufferData(GL_ATOMIC_COUNTER_BUFFER, IntArray(counterCount), GL_DYNAMIC_DRAW)
             return AtomicCounterBufferGL42(counterBuffer, counterCount)
         }
     }
 
-    val useNamedBuffers = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5
+    val useNamedBuffers = (Driver.instance as DriverGL3).version.isAtLeast(DriverVersionGL.GL_VERSION_4_5)
 
 
     override fun write(data: IntArray) {
