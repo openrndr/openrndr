@@ -147,7 +147,8 @@ dependencies {
 tasks {
     @Suppress("UNUSED_VARIABLE")
     val test by getting(Test::class) {
-        onlyIf { !project.hasProperty("skip.gl3.tests") }
+        val skipGl3Tests = project.hasProperty("skip.gl3.tests")
+        onlyIf { !skipGl3Tests }
 
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
             jvmArgs = jvmArgs + "-XstartOnFirstThread"
