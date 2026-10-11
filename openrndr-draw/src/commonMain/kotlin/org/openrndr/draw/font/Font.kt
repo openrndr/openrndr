@@ -5,7 +5,6 @@ import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
 import org.openrndr.utils.buffer.MPPBuffer
-import kotlin.jvm.JvmRecord
 
 /**
  * Glyph representation
@@ -37,22 +36,26 @@ interface Glyph {
 
     /**
      * Compute the bitmap bounds of the glyph
-     * @param scale the size for which the bounds should be found
+     * @param contentScale the content scale for which the bounds should be found
+     * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
-    fun bitmapBounds(subpixel:Boolean = true): IntRectangle
+    fun bitmapBounds(contentScale: Double, subpixel: Boolean = true): IntRectangle
 
     /**
-     * Rasterize the glyph at the given size
+     * Rasterize the glyph at the face's size
+     * @param contentScale the content scale at which to rasterize
      * @param bitmap a MPPBuffer positioned at the top left corner of the glyph
      * @param stride the stride (width) of the bitmap buffer
      * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
     fun rasterize(
-                  bitmap: MPPBuffer,
-                  stride: Int,
-                  subpixel: Boolean)
+        contentScale: Double,
+        bitmap: MPPBuffer,
+        stride: Int,
+        subpixel: Boolean
+    )
 
 }
 
@@ -112,7 +115,6 @@ data class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<Stri
 interface Face: AutoCloseable {
 
     val sizeInPoints: Double
-    val contentScale: Double
 
 
     /**
@@ -223,14 +225,26 @@ interface Face: AutoCloseable {
      * @return a new [Face] instance with the adjustments from the provided [FaceMaster].
      */
     fun withMaster(master: FaceMaster): Face
+
+    /**
+     * Creates a new instance of the font face at the given size.
+     *
+     * The returned face shares the font data with this face.
+     *
+     * @param sizeInPoints the size of the face in points
+     * @return a new [Face] instance at the given size
+     */
+    fun withSize(sizeInPoints: Double): Face
 }
 
 /**
  * Load a face
+ *
+ * The face is loaded at [FontDriver.DEFAULT_SIZE_IN_POINTS], use [Face.withSize] to obtain the face at other sizes.
  * @param fileOrUrl a file or url to load the face from
  * @since 0.4.3
  */
-fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Face {
-    return FontDriver.instance.loadFace(fileOrUrl, sizeInPoints, contentScale)
+fun loadFace(fileOrUrl: String): Face {
+    return FontDriver.instance.loadFace(fileOrUrl)
 }
 

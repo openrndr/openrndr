@@ -1,4 +1,3 @@
-import org.openrndr.draw.font.internal.Script
 import kotlin.test.Test
 
 class TestTextShapingDriverHarfBuzz {
@@ -6,7 +5,7 @@ class TestTextShapingDriverHarfBuzz {
     fun test() {
 //        val fontDriver = FontDriverFreetype()
 //        val driver = TextShapingDriverHarfBuzz()
-//        val face = fontDriver.loadFace("../../data/fonts/NotoSansKR-VariableFont_wght.ttf", 64.0, 1.0)
+//        val face = fontDriver.loadFace("../../data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(64.0)
 //
 //        val features = driver.queryOpenTypeFeatures(face)
 //        assert(features.isNotEmpty())

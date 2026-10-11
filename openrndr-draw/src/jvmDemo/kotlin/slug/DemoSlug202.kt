@@ -1,20 +1,11 @@
 package slug
 
 import org.openrndr.application
-import org.openrndr.draw.ColorFormat
-import org.openrndr.draw.ColorType
-import org.openrndr.draw.DrawPrimitive
-import org.openrndr.draw.MagnifyingFilter
-import org.openrndr.draw.MinifyingFilter
-import org.openrndr.draw.VertexElementType
-import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.*
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.loadFace
-import org.openrndr.draw.shadeStyle
 import org.openrndr.draw.slug.SlugGlyphMap
 import org.openrndr.draw.slug.SlugMap
-import org.openrndr.draw.vertexBuffer
-import org.openrndr.draw.vertexFormat
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
@@ -30,11 +21,11 @@ fun main() {
         }
         program {
             FontDriver.driver = FontDriverFreetype()
-            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 32.0, 1.0)
+            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(32.0)
             val m = pface.master
             m["Weight"] = 900.0
             val face = pface.withMaster(m)
-            //val face = loadFace("data/fonts/default.otf", 12.0, 1.0)
+            //val face = loadFace("data/fonts/default.otf").withSize(12.0)
 
             val slugMap = SlugMap(
                 colorBuffer(4096, 64, type = ColorType.FLOAT32, format = ColorFormat.RG),

@@ -1,23 +1,18 @@
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.buildTransform
-import org.openrndr.shape.Circle
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.Segment2D
-import org.openrndr.shape.Shape
-import org.openrndr.shape.ShapeContour
-import org.openrndr.shape.union
+import org.openrndr.shape.*
 
 fun main() {
     application {
         program {
             val fontDriver = FontDriverFreetype()
             FontDriver.driver = fontDriver
-            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 256.0, RenderTarget.active.contentScale)
+            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(256.0)
 
             var os = face.glyphForCharacter('O').shape()
             os = os.transform(buildTransform {

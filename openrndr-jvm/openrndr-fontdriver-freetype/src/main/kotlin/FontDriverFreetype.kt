@@ -2,11 +2,12 @@ package org.openrndr.fontdriver.freetype
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.PointerBuffer
+import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FT_Face
+import org.lwjgl.util.freetype.FreeType
 import org.lwjgl.util.freetype.FreeType.FT_Init_FreeType
 import org.lwjgl.util.freetype.FreeType.FT_New_Memory_Face
-import org.lwjgl.util.freetype.FreeType.FT_Set_Char_Size
 import org.openrndr.draw.font.internal.FontDriver
 import java.io.File
 
@@ -21,8 +22,12 @@ fun bytesFromFileOrUrl(fileOrUrl: String): ByteArray {
 }
 
 class FontDriverFreetype(val library: Long) : FontDriver {
+    init {
+        // HarfBuzz (used for kerning) is bundled with the FreeType library
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary())
+    }
 
-    override fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): FaceFreetype {
+    override fun loadFace(fileOrUrl: String): FaceFreetype {
         val face = MemoryUtil.memAllocPointer(1)
         val fontBytes = bytesFromFileOrUrl(fileOrUrl)
         val buffer = MemoryUtil.memCalloc(fontBytes.size)
@@ -31,8 +36,12 @@ class FontDriverFreetype(val library: Long) : FontDriver {
 
         require(FT_New_Memory_Face(library, buffer, 0L, face) == 0) { "Failed to load font face from $fileOrUrl" }
         val ftFace = FT_Face.create(face.get(0))
-        FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
-        return FaceFreetype(library, ftFace, sizeInPoints, contentScale, FaceFreetype.masterForFace(library, ftFace))
+        return FaceFreetype(
+            library,
+            ftFace,
+            FontDriver.DEFAULT_SIZE_IN_POINTS,
+            FaceFreetype.masterForFace(library, ftFace)
+        )
     }
 }
 

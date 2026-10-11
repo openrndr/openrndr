@@ -23,10 +23,10 @@ class FontImageMapManager : FontMapManager() {
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
-        val face = loadFace(url, sizeInPoints, contentScale)
+        val face = loadFace(url).withSize(sizeInPoints)
 
         val glyphDimensions = characterSet.associateWith { c ->
-            val bounds = face.glyphForCharacter(c).bitmapBounds()
+            val bounds = face.glyphForCharacter(c).bitmapBounds(contentScale)
             IntVector2(bounds.width, bounds.height)
         }
         val sanding = 3
@@ -73,7 +73,7 @@ class FontImageMapManager : FontMapManager() {
 
                 val glyph = face.glyphForCharacter(it.key)
 
-                val bitmapBounds = glyph.bitmapBounds()
+                val bitmapBounds = glyph.bitmapBounds(contentScale)
 
                 glyphMetrics[it.key] = GlyphMetrics(
                     advanceWidth = glyph.advanceWidth(),
@@ -83,7 +83,7 @@ class FontImageMapManager : FontMapManager() {
                 )
                 (bitmap as Buffer).rewind()
                 (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)
-                glyph.rasterize( MPPBuffer(bitmap), packSize, true)
+                glyph.rasterize(contentScale, MPPBuffer(bitmap), packSize, true)
             }
         }
         logger.debug { "uploading bitmap to color buffer" }

@@ -1,19 +1,20 @@
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.buildTransform
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
-import org.openrndr.shape.selfUnion
+import org.openrndr.shape.removeSelfIntersections
 import org.openrndr.shape.union
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 import kotlin.math.roundToInt
 
 fun Shape.selfUnion() : Shape {
-    return selfUnion(this)
+    return removeSelfIntersections()
 }
 
 fun Shape.unionCompounds(): Shape {
@@ -36,7 +37,7 @@ fun main() {
 
             val fontDriver = FontDriverFreetype()
             FontDriver.driver = fontDriver
-            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 128.0, RenderTarget.active.contentScale)
+            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(128.0)
 
             val driver = TextShapingDriverHarfBuzz()
             val text = "오픈RNDR"

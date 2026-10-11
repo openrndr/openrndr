@@ -3,7 +3,6 @@ package slug
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.internal.FontDriver
-import org.openrndr.draw.font.internal.ShapeFeature
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.isolated
@@ -12,7 +11,6 @@ import org.openrndr.draw.slug.StrokeMode
 import org.openrndr.draw.slug.TextSpan
 import org.openrndr.draw.slug.TextStyle
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
-import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
@@ -29,7 +27,7 @@ fun main() {
             TextShapingDriver.driver = TextShapingDriverHarfBuzz()
 
 
-            val f2 = loadFace("data/fonts/Platypi-Regular.ttf", 64.0, 1.0)
+            val f2 = loadFace("data/fonts/Platypi-Regular.ttf").withSize(64.0)
 
 
             val slugTextDrawer = SlugTextDrawer()

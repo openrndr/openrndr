@@ -21,7 +21,7 @@ fun main() {
             FontDriver.driver = FontDriverFreetype()
             TextShapingDriver.driver = TextShapingDriverHarfBuzz()
 
-            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 32.0, 1.0)
+            val pface = loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(32.0)
 //            val m = pface.master
 
             val faces = (0 until 9
