@@ -17,14 +17,21 @@ import kotlin.math.absoluteValue
 
 private val logger = KotlinLogging.logger { }
 
-class FaceStbTt(
-    data: ByteBuffer, fontInfo: STBTTFontinfo, override val sizeInPoints: Double,
-    override val contentScale: Double
+class FaceStbTt private constructor(
+    private val state: State, override val sizeInPoints: Double
 ) : Face {
+
+    constructor(data: ByteBuffer, fontInfo: STBTTFontinfo, sizeInPoints: Double) :
+            this(State(data, fontInfo), sizeInPoints)
 
     override val master: FaceMaster = FaceMaster(mutableMapOf(), mapOf())
 
     override fun withMaster(master: FaceMaster): Face = this
+
+    override fun withSize(sizeInPoints: Double): Face {
+        state.reference()
+        return FaceStbTt(state, sizeInPoints)
+    }
 
     override val isVariable: Boolean
         get() = false
@@ -32,6 +39,17 @@ class FaceStbTt(
 
     val scale: Double by lazy {
         STBTruetype.stbtt_ScaleForMappingEmToPixels(fontInfo, sizeInPoints.toFloat()).toDouble()
+    }
+
+    /**
+     * Handles rasterization of glyphs at the given content scale.
+     *
+     * @param contentScale The content scale at which to rasterize.
+     * @param rasterize The lambda function that performs the actual rasterization logic.
+     * It receives the scale from font units to bitmap pixels.
+     */
+    fun <T> rasterizing(contentScale: Double, rasterize: (rasterScale: Float) -> T): T {
+        return rasterize((scale * contentScale).toFloat())
     }
 
     override fun allCodePoints(): Sequence<Int> = sequence {
@@ -43,9 +61,21 @@ class FaceStbTt(
         }
     }
 
+    /**
+     * Font data shared between faces of different sizes, freed when the last face is closed
+     */
     class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo) : AutoCloseable {
+        private var references = 1
+
+        fun reference() {
+            references++
+        }
+
         override fun close() {
-            MemoryUtil.memFree(data)
+            references--
+            if (references == 0) {
+                MemoryUtil.memFree(data)
+            }
         }
     }
 
@@ -53,7 +83,6 @@ class FaceStbTt(
         get() {
             return state.fontInfo
         }
-    private val state = State(data, fontInfo)
 
 
     override fun ascentMetrics(): Int {
@@ -239,8 +268,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, overr
         }
     }
 
-    override fun bitmapBounds(subpixel: Boolean): IntRectangle {
-        @Suppress("NAME_SHADOWING") val scale = scale.toFloat()
+    override fun bitmapBounds(contentScale: Double, subpixel: Boolean): IntRectangle = face.rasterizing(contentScale) { rasterScale ->
         stackPush().use { stack ->
             val px0 = stack.mallocInt(1)
             val px1 = stack.mallocInt(1)
@@ -251,7 +279,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, overr
                 STBTruetype.stbtt_GetGlyphBitmapBoxSubpixel(
                     face.fontInfo,
                     index,
-                    (scale * face.contentScale).toFloat(), (scale * face.contentScale).toFloat(),
+                    rasterScale, rasterScale,
                     0.0f, 0.0f,
                     px0, py0,
                     px1, py1
@@ -260,7 +288,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, overr
                 STBTruetype.stbtt_GetGlyphBitmapBox(
                     face.fontInfo,
                     index,
-                    scale, scale,
+                    rasterScale, rasterScale,
                     px0, py0,
                     px1, py1
                 )
@@ -271,25 +299,27 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, overr
             val y1 = py1.get()
 
             // returned values are for up=-y
-            return IntRectangle(x0, y0, x1 - x0, y1 - y0)
+            IntRectangle(x0, y0, x1 - x0, y1 - y0)
         }
     }
 
-    override fun rasterize(bitmap: MPPBuffer, stride: Int, subpixel: Boolean) {
+    override fun rasterize(contentScale: Double, bitmap: MPPBuffer, stride: Int, subpixel: Boolean) {
         val bitmapBuffer = bitmap.byteBuffer
-        val bounds = bitmapBounds(subpixel)
-        STBTruetype.stbtt_MakeGlyphBitmapSubpixel(
-            face.fontInfo,
-            bitmapBuffer,
-            bounds.width,
-            bounds.height,
-            stride,
-            (scale * face.contentScale).toFloat(),
-            (scale * face.contentScale).toFloat(),
-            0.0f,
-            0.0f,
-            index
-        )
+        val bounds = bitmapBounds(contentScale, subpixel)
+        face.rasterizing(contentScale) { rasterScale ->
+            STBTruetype.stbtt_MakeGlyphBitmapSubpixel(
+                face.fontInfo,
+                bitmapBuffer,
+                bounds.width,
+                bounds.height,
+                stride,
+                rasterScale,
+                rasterScale,
+                0.0f,
+                0.0f,
+                index
+            )
+        }
     }
 
 
@@ -306,7 +336,7 @@ class FontDriverStbTt : FontDriver {
         logger.info { "initializing font driver: stb_truetype" }
     }
 
-    override fun loadFace(fileOrUrl: String, sizeInPoints: Double, contentScale: Double): Face {
+    override fun loadFace(fileOrUrl: String): Face {
         val (file, url) = resolveFileOrUrl(fileOrUrl)
         val byteArray = file?.readBytes() ?: url?.readBytes() ?: error("no content for file or url: '$fileOrUrl'")
         val fileSize = byteArray.size
@@ -318,6 +348,6 @@ class FontDriverStbTt : FontDriver {
 
         val status = STBTruetype.stbtt_InitFont(fontInfo, bb)
         check(status) { "failed to load font $fileOrUrl" }
-        return FaceStbTt(bb, fontInfo, sizeInPoints, contentScale)
+        return FaceStbTt(bb, fontInfo, FontDriver.DEFAULT_SIZE_IN_POINTS)
     }
 }

@@ -1,3 +1,4 @@
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.fontdriver.stb.FontDriverStbTt
 import org.openrndr.utils.buffer.MPPBuffer
 
@@ -6,8 +7,8 @@ fun main() {
     val fontStb = FontDriverStbTt()
     val fontFt = FontDriverFreetype()
 
-    val faceStb = fontStb.loadFace("data/fonts/Platypi-Regular.ttf", 24.0, 1.0)
-    val faceFt = fontFt.loadFace("data/fonts/Platypi-Regular.ttf", 24.0, 1.0)
+    val faceStb = fontStb.loadFace("data/fonts/Platypi-Regular.ttf").withSize(24.0)
+    val faceFt = fontFt.loadFace("data/fonts/Platypi-Regular.ttf").withSize(24.0)
 
 
 
@@ -41,7 +42,7 @@ fun main() {
     println("ft bounding box: ${glyphFt.bounds()}")
 
     val buffer = MPPBuffer.allocate(256*256)
-    glyphStb.rasterize(buffer, 256, true)
-    glyphFt.rasterize(buffer, 256, true)
+    glyphStb.rasterize(1.0, buffer, 256, true)
+    glyphFt.rasterize(1.0, buffer, 256, true)
 
 }

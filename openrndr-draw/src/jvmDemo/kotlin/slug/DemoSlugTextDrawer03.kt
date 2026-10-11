@@ -3,10 +3,8 @@ package slug
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.internal.FontDriver
-import org.openrndr.draw.font.internal.ShapeFeature
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
-import org.openrndr.draw.isolated
 import org.openrndr.draw.slug.SlugTextDrawer
 import org.openrndr.draw.slug.TextSpan
 import org.openrndr.draw.slug.TextStyle
@@ -26,7 +24,7 @@ fun main() {
             FontDriver.driver = FontDriverFreetype()
             TextShapingDriver.driver = TextShapingDriverHarfBuzz()
 
-            val f2 = loadFace("data/fonts/Platypi-Regular.ttf", 32.0, 1.0)
+            val f2 = loadFace("data/fonts/Platypi-Regular.ttf").withSize(32.0)
 
             val scripts = TextShapingDriver.instance.querySupportedScripts(f2)
             for (script in scripts) {

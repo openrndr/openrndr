@@ -9,7 +9,7 @@ fun main() {
             height = 720
         }
         program {
-            val face = loadFace("https://github.com/IBM/plex/raw/master/packages/plex-mono/fonts/complete/otf/IBMPlexMono-Bold.otf", 32.0, 1.0)
+            val face = loadFace("https://github.com/IBM/plex/raw/master/packages/plex-mono/fonts/complete/otf/IBMPlexMono-Bold.otf").withSize(32.0)
             extend {
                 drawer.clear(ColorRGBa.PINK)
                 val size = 0.2

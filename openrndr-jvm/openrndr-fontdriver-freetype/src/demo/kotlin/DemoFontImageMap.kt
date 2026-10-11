@@ -3,6 +3,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.loadFont
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 
 fun main() {
     application {
@@ -11,7 +12,7 @@ fun main() {
             val driverFreeType = FontDriverFreetype()
             FontDriver.driver = driverFreeType
 
-            val face = loadFace("data/fonts/default.otf", 64.0, 1.0)
+            val face = loadFace("data/fonts/default.otf").withSize(64.0)
             val font = loadFont("data/fonts/default.otf", 64.0, contentScale = 2.0)
 
             extend {

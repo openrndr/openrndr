@@ -3,16 +3,17 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.loadFace
 import org.openrndr.draw.isolated
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 
 fun main() {
     application {
         program {
 
-            val faceStb = loadFace("data/fonts/Platypi-Regular.ttf", 64.0, 1.0)
+            val faceStb = loadFace("data/fonts/Platypi-Regular.ttf").withSize(64.0)
             val driverFreeType = FontDriverFreetype()
 
             FontDriver.driver = driverFreeType
-            val faceFt = loadFace("data/fonts/Platypi-Regular.ttf", 64.0, 1.0)
+            val faceFt = loadFace("data/fonts/Platypi-Regular.ttf").withSize(64.0)
             extend {
                 drawer.clear(ColorRGBa.PINK)
                 drawer.translate(200.0, height / 2.0)

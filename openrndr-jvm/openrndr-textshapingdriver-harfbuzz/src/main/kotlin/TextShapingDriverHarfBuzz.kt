@@ -1,34 +1,16 @@
 package org.openrndr.textshapingdriver.harfbuzz
 
-import org.lwjgl.BufferUtils
 import org.lwjgl.system.Configuration
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FreeType
-import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_LTR
-import org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_RTL
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_codepoints
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_create
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_destroy
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_direction
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_language
-import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_script
-
 import org.lwjgl.util.harfbuzz.HarfBuzz.*
 import org.lwjgl.util.harfbuzz.OpenType.*
 import org.lwjgl.util.harfbuzz.hb_feature_t
 import org.openrndr.draw.font.Face
-import org.openrndr.draw.font.internal.Direction
-import org.openrndr.draw.font.internal.Script
-import org.openrndr.draw.font.internal.ShapeFeature
-import org.openrndr.draw.font.internal.ShapeResult
-import org.openrndr.draw.font.internal.TextShapingDriver
+import org.openrndr.draw.font.internal.*
 import org.openrndr.fontdriver.freetype.FaceFreetype
 import org.openrndr.math.Vector2
-import java.nio.IntBuffer
-import kotlin.code
 
 private fun Direction.hbDirection() = when (this) {
     Direction.LEFT_TO_RIGHT -> HB_DIRECTION_LTR
@@ -68,6 +50,7 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         codePointsBuffer.flip()
 
         val buf = hb_buffer_create()
+        val featureBuffer = if (features.isNotEmpty()) hb_feature_t.calloc(features.size) else null
 
         try {
             hb_buffer_add_codepoints(buf, codePointsBuffer, 0, codePoints.size)
@@ -90,13 +73,6 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
                 "FT_Face is not initialized"
             }
 
-            val hbFont = hb_ft_font_create(face.ftFace.address(), null)
-            require(hbFont != 0L) {
-                "Failed to create HarfBuzz font"
-            }
-
-            val featureBuffer = if (features.isNotEmpty()) hb_feature_t.calloc(features.size) else null
-
             if (featureBuffer != null) {
                 for ((index, feature) in features.withIndex()) {
                     featureBuffer[index].tag(hb_tag_from_string(feature.tag))
@@ -106,7 +82,7 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
                 }
             }
 
-            hb_shape(hbFont, buf, featureBuffer)
+            face.shaping { hbFont -> hb_shape(hbFont, buf, featureBuffer) }
 
             val glyphInfo = hb_buffer_get_glyph_infos(buf) ?: error("No glyph info")
             val glyphPosition = hb_buffer_get_glyph_positions(buf) ?: error("No glyph position")
@@ -120,6 +96,7 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         } finally {
             // Clean up resources
             hb_buffer_destroy(buf)
+            featureBuffer?.free()
             MemoryUtil.memFree(codePointsBuffer)
         }
     }
@@ -146,87 +123,81 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         return String(charArrayOf(c1.toChar(), c2.toChar(), c3.toChar(), c4.toChar()))
     }
 
-    override fun querySupportedScripts(face: Face): List<Script> {
-        face as FaceFreetype
-        val hbFont = hb_ft_font_create(face.ftFace.address(), null)
-        if (hbFont == 0L) return emptyList()
-
-        val hbFace = hb_font_get_face(hbFont)
-        if (hbFace == 0L) {
-            hb_font_destroy(hbFont)
-            return emptyList()
-        }
-
-        try {
-            val scriptTagsSet = mutableSetOf<Int>()
-
-            for (tableTag in intArrayOf(HB_OT_TAG_GSUB, HB_OT_TAG_GPOS)) {
-                val scriptCount = BufferUtils.createIntBuffer(1)
-                scriptCount.put(0, 32)
-                val scriptTags = BufferUtils.createIntBuffer(32)
-
-                hb_ot_layout_table_get_script_tags(hbFace, tableTag, 0, scriptCount, scriptTags)
-
-                for (i in 0 until scriptCount.get(0)) {
-                    scriptTagsSet.add(scriptTags.get(i))
-                }
+    /**
+     * Find the index of [script] in the script list of the given OpenType layout table
+     * @return the script index or null when the table has no entry for [script]
+     */
+    private fun findScriptIndex(hbFace: Long, tableTag: Int, script: Script): Int? {
+        MemoryStack.stackPush().use { stack ->
+            // A script can have multiple OpenType tags (for example 'dev2' and 'deva'), preferred tag first
+            val scriptTagCount = stack.ints(HB_OT_MAX_TAGS_PER_SCRIPT)
+            val scriptTags = stack.mallocInt(HB_OT_MAX_TAGS_PER_SCRIPT)
+            val languageTagCount = stack.ints(0)
+            val languageTags = stack.mallocInt(1)
+            hb_ot_tags_from_script_and_language(
+                script.hbScript(), hb_language_get_default(), scriptTagCount, scriptTags, languageTagCount, languageTags
+            )
+            scriptTags.limit(scriptTagCount.get(0))
+            if (!scriptTags.hasRemaining()) {
+                return null
             }
 
-            val scriptsByTag = Script.entries.associateBy { it.tag.lowercase() }
+            val scriptIndex = stack.mallocInt(1)
+            val chosenScript = stack.mallocInt(1)
+            // select_script falls back to the default script but only returns true for an exact match
+            return if (hb_ot_layout_table_select_script(hbFace, tableTag, scriptTags, scriptIndex, chosenScript)) {
+                scriptIndex.get(0)
+            } else {
+                null
+            }
+        }
+    }
 
-            return scriptTagsSet.mapNotNull { tag ->
-                val tagString = scriptTagToString(tag).lowercase().trim()
-                scriptsByTag[tagString]
-            }.distinct()
+    override fun querySupportedScripts(face: Face): List<Script> {
+        face as FaceFreetype
+        return face.shaping { hbFont ->
+            val hbFace = hb_font_get_face(hbFont)
+            if (hbFace == 0L) return@shaping emptyList()
 
-        } finally {
-            hb_font_destroy(hbFont)
+            Script.entries.filter { script ->
+                script != Script.COMMON && script != Script.INHERITED && script != Script.UNKNOWN &&
+                        (findScriptIndex(hbFace, HB_OT_TAG_GSUB, script) != null ||
+                                findScriptIndex(hbFace, HB_OT_TAG_GPOS, script) != null)
+            }
         }
     }
 
     fun queryOpenTypeFeatures(face: Face, script: Script, tableTag: Int): List<String> {
         face as FaceFreetype
-        val hbFont = hb_ft_font_create(face.ftFace.address(), null)
-        if (hbFont == 0L) return emptyList()
+        return face.shaping { hbFont ->
+            val hbFace = hb_font_get_face(hbFont)
+            if (hbFace == 0L) return@shaping emptyList()
 
-        val hbFace = hb_font_get_face(hbFont)
-        if (hbFace == 0L) {
-            hb_font_destroy(hbFont)
-            return emptyList()
-        }
-
-
-        try {
+            val scriptIndex = findScriptIndex(hbFace, tableTag, script) ?: return@shaping emptyList()
 
             val features = mutableListOf<String>()
-            val supportedScripts = querySupportedScripts(face)
-
-            val scriptIndex = supportedScripts.indexOf(script)
-
-            if (scriptIndex == -1) return emptyList()
-
-            val featureCount = BufferUtils.createIntBuffer(1)
-            val featureTags = BufferUtils.createIntBuffer(32)
-            featureCount.put(0, 32)
-
-
-            hb_ot_layout_language_get_feature_tags(
-                hbFace,
-                tableTag,
-                scriptIndex,
-                HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
-                0,
-                featureCount,
-                featureTags
-            )
-
-            for (j in 0 until featureCount.get(0)) {
-                features.add(scriptTagToString(featureTags.get(j)))
+            MemoryStack.stackPush().use { stack ->
+                val featureCount = stack.mallocInt(1)
+                val featureTags = stack.mallocInt(32)
+                var offset = 0
+                do {
+                    featureCount.put(0, featureTags.capacity())
+                    val total = hb_ot_layout_language_get_feature_tags(
+                        hbFace,
+                        tableTag,
+                        scriptIndex,
+                        HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+                        offset,
+                        featureCount,
+                        featureTags
+                    )
+                    for (j in 0 until featureCount.get(0)) {
+                        features.add(scriptTagToString(featureTags.get(j)))
+                    }
+                    offset += featureCount.get(0)
+                } while (featureCount.get(0) > 0 && offset < total)
             }
-            return features
-
-        } finally {
-            hb_font_destroy(hbFont)
+            features
         }
     }
 }

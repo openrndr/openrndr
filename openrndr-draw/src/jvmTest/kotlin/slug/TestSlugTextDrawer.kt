@@ -1,7 +1,6 @@
 package slug
 
 import AbstractApplicationTestFixture
-import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.draw.font.loadFace
@@ -10,7 +9,11 @@ import org.openrndr.draw.slug.TextStyle
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
-import kotlin.test.*
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TestSlugTextDrawer: AbstractApplicationTestFixture() {
 
@@ -23,7 +26,7 @@ class TestSlugTextDrawer: AbstractApplicationTestFixture() {
     @Test
     fun testBasicDraw() {
         val slugTextDrawer = SlugTextDrawer()
-        val face = loadFace("../data/fonts/default.otf", 16.0, 1.0)
+        val face = loadFace("../data/fonts/default.otf").withSize(16.0)
 
         slugTextDrawer.addText(face, "Hello world", Vector2.ZERO)
         slugTextDrawer.draw(program.drawer)
@@ -33,7 +36,7 @@ class TestSlugTextDrawer: AbstractApplicationTestFixture() {
     @Test
     fun testVerticalCenteringSingleLine() {
         val slugTextDrawer = SlugTextDrawer()
-        val face = loadFace("../data/fonts/default.otf", 16.0, 1.0)
+        val face = loadFace("../data/fonts/default.otf").withSize(16.0)
 
         val box = Rectangle(0.0, 0.0, 400.0, 400.0)
         slugTextDrawer.addText("Hello", box, TextStyle(face, verticalAlign = 0.5))
@@ -62,7 +65,7 @@ class TestSlugTextDrawer: AbstractApplicationTestFixture() {
     @Test
     fun testVerticalCenteringMultiLine() {
         val slugTextDrawer = SlugTextDrawer()
-        val face = loadFace("../data/fonts/default.otf", 16.0, 1.0)
+        val face = loadFace("../data/fonts/default.otf").withSize(16.0)
 
         val box = Rectangle(0.0, 0.0, 200.0, 400.0)
         val text = "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor"
@@ -100,7 +103,7 @@ class TestSlugTextDrawer: AbstractApplicationTestFixture() {
     @Test
     fun testBoxTextDoesNotExceedLineWidth() {
         val slugTextDrawer = SlugTextDrawer()
-        val face = loadFace("../data/fonts/default.otf", 16.0, 1.0)
+        val face = loadFace("../data/fonts/default.otf").withSize(16.0)
 
         val box = Rectangle(10.0, 360.0, 350.0, 720.0)
         val text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"

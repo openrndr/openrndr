@@ -1,24 +1,11 @@
 package org.openrndr.fontdriver.freetype
 
-import org.lwjgl.util.freetype.FT_Face
-import org.lwjgl.util.freetype.FT_Vector
-import org.lwjgl.util.freetype.FreeType.FT_Done_Face
-import org.lwjgl.util.freetype.FreeType.FT_Get_Char_Index
-import org.lwjgl.util.freetype.FreeType.FT_Get_Kerning
-import org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT
-import org.lwjgl.util.freetype.FreeType.FT_LOAD_DEFAULT
-import org.lwjgl.util.freetype.FreeType.FT_Load_Glyph
-import org.lwjgl.util.freetype.FreeType.FT_Get_First_Char
-import org.lwjgl.util.freetype.FreeType.FT_Get_Next_Char
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.util.freetype.FreeType.FT_FACE_FLAG_MULTIPLE_MASTERS
-import org.lwjgl.util.freetype.FreeType.FT_Set_Char_Size
-import org.lwjgl.util.freetype.FreeType.FT_Get_MM_Var
+import org.lwjgl.util.freetype.FT_Face
 import org.lwjgl.util.freetype.FT_MM_Var
-import org.lwjgl.util.freetype.FreeType.FT_Done_MM_Var
-import org.lwjgl.util.freetype.FreeType.FT_Get_Var_Design_Coordinates
-import org.lwjgl.util.freetype.FreeType.FT_Reference_Face
-import org.lwjgl.util.freetype.FreeType.FT_Set_Var_Design_Coordinates
+import org.lwjgl.util.freetype.FreeType.*
+import org.lwjgl.util.harfbuzz.HarfBuzz.*
+import org.lwjgl.util.harfbuzz.hb_feature_t
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
@@ -32,12 +19,12 @@ class FaceFreetype(
     val ftLibrary: Long,
     val ftFace: FT_Face,
     override val sizeInPoints: Double,
-    override val contentScale: Double,
     private val realMaster: FaceMaster
 ) : Face {
 
     internal fun makeActive() {
         if (activeFace != this) {
+            FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
             applyMaster()
             activeFace = this
         }
@@ -98,7 +85,12 @@ class FaceFreetype(
 
     override fun withMaster(master: FaceMaster): Face {
         FT_Reference_Face(ftFace)
-        return FaceFreetype(ftLibrary, ftFace, sizeInPoints, contentScale, master.copy())
+        return FaceFreetype(ftLibrary, ftFace, sizeInPoints, master.copy())
+    }
+
+    override fun withSize(sizeInPoints: Double): Face {
+        FT_Reference_Face(ftFace)
+        return FaceFreetype(ftLibrary, ftFace, sizeInPoints, realMaster.copy())
     }
 
     private var masterHash = realMaster.hashCode()
@@ -108,7 +100,6 @@ class FaceFreetype(
         var hash = 0
         hash = hash * 31 + ftFace.hashCode()
         hash = hash * 31 + sizeInPoints.hashCode()
-        hash = hash * 31 + contentScale.hashCode()
         hash
     }
 
@@ -150,10 +141,16 @@ class FaceFreetype(
     }
 
     val ppxem: Short
-        get() = ftFace.size()?.metrics()?.x_ppem() ?: 0
-    
+        get() {
+            makeActive()
+            return ftFace.size()?.metrics()?.x_ppem() ?: 0
+        }
+
     val ppyem : Short
-        get() = ftFace.size()?.metrics()?.y_ppem() ?: 0
+        get() {
+            makeActive()
+            return ftFace.size()?.metrics()?.y_ppem() ?: 0
+        }
 
     override val height: Double
         get()  {
@@ -202,15 +199,55 @@ class FaceFreetype(
 
         }
 
-    override fun kernAdvance(left: Char, right: Char): Double {
+    /**
+     * HarfBuzz font for this face, created while this face is active such that it uses this face's size and master
+     */
+    private val hbFontDelegate = lazy {
         makeActive()
-        val leftIndex = FT_Get_Char_Index(ftFace, left.code.toLong())
-        val rightIndex = FT_Get_Char_Index(ftFace, right.code.toLong())
-        val kerning = FT_Vector.malloc()
-        FT_Get_Kerning(ftFace, leftIndex, rightIndex, FT_KERNING_DEFAULT, kerning)
-        val result = kerning.x().toDouble()
-        kerning.free()
-        return result
+        hb_ft_font_create_referenced(ftFace.address()).also {
+            require(it != 0L) { "failed to create HarfBuzz font" }
+        }
+    }
+    private val hbFont by hbFontDelegate
+
+    private val hbBufferDelegate = lazy { hb_buffer_create() }
+    private val hbBuffer by hbBufferDelegate
+
+    /**
+     * Handles shaping with this face's HarfBuzz font.
+     *
+     * The face is made active before [shape] is executed, such that the HarfBuzz font reads glyph metrics at this
+     * face's size and master. The HarfBuzz font is owned by this face and should not be destroyed by the caller.
+     *
+     * @param shape The lambda function that performs the shaping, it receives the HarfBuzz font handle.
+     */
+    fun <T> shaping(shape: (hbFont: Long) -> T): T {
+        makeActive()
+        return shape(hbFont)
+    }
+
+    /**
+     * Calculates the kerning between two characters by shaping the pair with HarfBuzz. This uses GPOS pair
+     * positioning and falls back to the legacy 'kern' table for fonts without GPOS kerning.
+     */
+    override fun kernAdvance(left: Char, right: Char): Double = shaping { font ->
+        val buffer = hbBuffer
+        MemoryStack.stackPush().use { stack ->
+            hb_buffer_clear_contents(buffer)
+            hb_buffer_add_codepoints(buffer, stack.ints(left.code, right.code), 0, 2)
+            hb_buffer_set_direction(buffer, HB_DIRECTION_LTR)
+            hb_buffer_guess_segment_properties(buffer)
+            hb_shape(font, buffer, kerningFeatures)
+
+            val infos = hb_buffer_get_glyph_infos(buffer) ?: return@shaping 0.0
+            val positions = hb_buffer_get_glyph_positions(buffer) ?: return@shaping 0.0
+            if (infos.remaining() != 2) {
+                0.0
+            } else {
+                val nominalAdvance = hb_font_get_glyph_h_advance(font, infos[0].codepoint())
+                (positions[0].x_advance() - nominalAdvance) / 64.0
+            }
+        }
     }
 
     override fun glyphForCharacter(character: Char): GlyphFreetype {
@@ -241,16 +278,17 @@ class FaceFreetype(
      * The method adjusts the FreeType character size settings before and after
      * the rasterization block to accommodate high-resolution rendering and scaling.
      *
+     * @param contentScale The content scale at which to rasterize.
      * @param rasterize The lambda function that performs the actual rasterization logic.
      * It will be executed while specific FreeType character size settings are applied.
      */
-    fun rasterizing(rasterize: () -> Unit) {
+    fun <T> rasterizing(contentScale: Double, rasterize: () -> T): T {
         makeActive()
         FT_Set_Char_Size(
             ftFace, 0, (sizeInPoints * 64).toLong(), (72 * contentScale).toInt(),
             (72 * contentScale).toInt()
         )
-        try {
+        return try {
             rasterize()
         } finally {
             FT_Set_Char_Size(ftFace, 0, (sizeInPoints * 64).toLong(), 72, 72)
@@ -271,6 +309,15 @@ class FaceFreetype(
         }
 
     override fun close() {
+        if (activeFace == this) {
+            activeFace = null
+        }
+        if (hbFontDelegate.isInitialized()) {
+            hb_font_destroy(hbFont)
+        }
+        if (hbBufferDelegate.isInitialized()) {
+            hb_buffer_destroy(hbBuffer)
+        }
         FT_Done_Face(ftFace)
     }
 
@@ -280,6 +327,18 @@ class FaceFreetype(
         }
 
     companion object {
+        /**
+         * Features for kerning: kerning on, substitutions that could merge or replace the pair off
+         */
+        private val kerningFeatures: hb_feature_t.Buffer by lazy {
+            val tags = listOf("kern", "-liga", "-clig", "-dlig", "-calt", "-rlig")
+            val features = hb_feature_t.calloc(tags.size)
+            for ((index, tag) in tags.withIndex()) {
+                require(hb_feature_from_string(tag, features[index])) { "invalid feature '$tag'" }
+            }
+            features
+        }
+
 
         /**
          * Constructs a `FaceMaster` object containing axis mappings and their associated ranges

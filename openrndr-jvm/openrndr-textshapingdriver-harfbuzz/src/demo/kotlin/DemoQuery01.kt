@@ -1,13 +1,14 @@
 import org.openrndr.application
-import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 fun main() {
     application {
         program {
             val fontDriver = FontDriverFreetype()
             FontDriver.driver = fontDriver
-            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf", 64.0, RenderTarget.active.contentScale)
+            val face = fontDriver.loadFace("data/fonts/NotoSansKR-VariableFont_wght.ttf").withSize(64.0)
             val driver = TextShapingDriverHarfBuzz()
 
             val scripts = driver.querySupportedScripts(face)

@@ -23,7 +23,7 @@ fun main() {
             FontDriver.driver = FontDriverFreetype()
             TextShapingDriver.driver = TextShapingDriverHarfBuzz()
 
-            val pface = loadFace("data/fonts/default.otf", 16.0, 1.0)
+            val pface = loadFace("data/fonts/default.otf").withSize(16.0)
 
 
             val slugTextDrawer = SlugTextDrawer()

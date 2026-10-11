@@ -62,6 +62,7 @@ enum class Script(val tag: String) {
     KANNADA("Knda"),
     KATAKANA("Kana"),
     LAOTHIAN("Laoo"),
+    LATIN("Latn"),
     MALAYALAM("Mlym"),
     ORIYA("Orya"),
     TAMIL("Taml"),

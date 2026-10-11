@@ -3,20 +3,12 @@ package org.openrndr.fontdriver.freetype
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.freetype.FT_Glyph
+import org.lwjgl.util.freetype.FT_GlyphSlot
 import org.lwjgl.util.freetype.FT_OutlineGlyph
-import org.lwjgl.util.freetype.FT_Vector
-import org.lwjgl.util.freetype.FreeType.FT_Get_Glyph
-import org.lwjgl.util.freetype.FreeType.FT_LOAD_DEFAULT
-import org.lwjgl.util.freetype.FreeType.FT_Load_Glyph
-import org.lwjgl.util.freetype.FreeType.FT_Render_Glyph
-import org.lwjgl.util.freetype.FreeType.FT_RENDER_MODE_NORMAL
+import org.lwjgl.util.freetype.FreeType.*
 import org.openrndr.draw.font.Glyph
 import org.openrndr.math.Vector2
-import org.openrndr.shape.IntRectangle
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.Shape
-import org.openrndr.shape.ShapeContour
-import org.openrndr.shape.Segment2D
+import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 
 class GlyphFreetype(private val face: FaceFreetype, private val character: Char, override val index: Int, override val code: Int) : Glyph {
@@ -154,10 +146,14 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         return Shape(contours)
     }
 
+    /**
+     * The unhinted advance width, hinted advances are rounded to whole pixels which accumulates along a line
+     */
     override fun advanceWidth(): Double {
         face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
-        return (face.ftFace.glyph()?.advance()?.x() ?: 0L) / 64.0
+        // linearHoriAdvance is in 16.16 fixed point
+        return (face.ftFace.glyph()?.linearHoriAdvance() ?: 0L) / 65536.0
     }
 
     override fun leftSideBearing(): Double {
@@ -183,29 +179,34 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
         return Rectangle(x, y, width, height)
     }
 
-    override fun bitmapBounds(subpixel: Boolean): IntRectangle {
-        face.makeActive()
+    /**
+     * Load and render the glyph into the face's glyph slot, must be called inside [FaceFreetype.rasterizing]
+     */
+    private fun renderGlyph(): FT_GlyphSlot {
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
-        val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
-        val contentScale = face.contentScale
-        val x = ((metrics.horiBearingX() / 64.0) * contentScale).toInt()
-        val y = ((-metrics.horiBearingY() / 64.0) * contentScale).toInt()
-        val width = ((metrics.width() / 64.0) * contentScale).toInt()
-        val height = ((metrics.height() / 64.0) * contentScale).toInt()
-        return IntRectangle(x, y, width, height)
+        val slot = face.ftFace.glyph() ?: error("no glyph slot")
+        FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL)
+        return slot
     }
 
+    /**
+     * Compute the bounds of the bitmap produced by [rasterize], in up=-y space
+     */
+    override fun bitmapBounds(contentScale: Double, subpixel: Boolean): IntRectangle =
+        face.rasterizing(contentScale) {
+            val slot = renderGlyph()
+            val ftBitmap = slot.bitmap()
+            IntRectangle(slot.bitmap_left(), -slot.bitmap_top(), ftBitmap.width(), ftBitmap.rows())
+        }
+
     override fun rasterize(
+        contentScale: Double,
         bitmap: MPPBuffer,
         stride: Int,
         subpixel: Boolean
     ) {
-        face.makeActive()
-        face.rasterizing {
-            FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
-            val slot = face.ftFace.glyph() ?: error("no glyph slot")
-
-            FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL)
+        face.rasterizing(contentScale) {
+            val slot = renderGlyph()
             val ftBitmap = slot.bitmap()
             val width = ftBitmap.width()
             val height = ftBitmap.rows()
