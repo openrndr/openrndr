@@ -292,9 +292,9 @@ fun ColorBuffer.createEquivalent(
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-expect fun loadImage(
-    fileOrUrl: String,
-    formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(fileOrUrl.split(".").last()),
+expect suspend fun loadImage(
+    url: String,
+    formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(url.split(".").last()),
     allowSRGB: Boolean = true,
     loadMipmaps: Boolean = true,
     session: Session? = Session.active
@@ -327,10 +327,3 @@ fun dimensionsInPixels(width: Int, height: Int, contentScale: Double, level: Int
 fun ColorBuffer.dimensionsInPixels(level: Int = 0) : IntVector2 {
     return dimensionsInPixels(width, height, contentScale, level)
 }
-
-expect suspend fun loadImageSuspend(
-    fileOrUrl: String,
-    formatHint: ImageFileFormat? = null,
-    allowSRGB: Boolean = true,
-    session: Session? = Session.active
-): ColorBuffer

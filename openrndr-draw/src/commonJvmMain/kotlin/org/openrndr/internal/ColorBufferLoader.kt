@@ -1,6 +1,7 @@
 package org.openrndr.internal
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBufferProxy
 import org.openrndr.draw.loadImage
@@ -79,7 +80,7 @@ class ColorBufferLoader {
                             best
                         }
                         try {
-                            val cb = loadImage(proxy.url)//ColorBuffer.fromUrl(proxy.url)
+                            val cb = runBlocking { loadImage(proxy.url) }
                             proxy.colorBuffer = cb
                             proxy.state = ColorBufferProxy.State.LOADED
                             if (!proxy.persistent) {

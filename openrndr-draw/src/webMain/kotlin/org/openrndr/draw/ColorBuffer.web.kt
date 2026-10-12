@@ -1,13 +1,22 @@
 package org.openrndr.draw
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBufferLike
 import js.buffer.ArrayBufferView
+import kotlinx.coroutines.CancellationException
 import org.openrndr.color.ColorRGBa
-import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.TexImageSource
+import web.http.blob
+import web.http.fetch
+import web.images.*
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.js
+
+private val logger = KotlinLogging.logger {  }
 
 actual abstract class ColorBuffer : Texture, AutoCloseable {
     actual abstract val session: Session?
@@ -150,7 +159,11 @@ actual abstract class ColorBuffer : Texture, AutoCloseable {
 
 }
 
+@OptIn(ExperimentalWasmJsInterop::class)
+fun createImageBitmapOptions(): ImageBitmapOptions = js("({ })")
+
 /**
+ * load an image from a url encoded as [String], also accepts base64 encoded data urls
  * Load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  * Usage example:
  * ```
@@ -162,37 +175,47 @@ actual abstract class ColorBuffer : Texture, AutoCloseable {
  * }
  * ```
  */
-actual fun loadImage(
-    fileOrUrl: String,
+@OptIn(ExperimentalWasmJsInterop::class)
+actual suspend fun loadImage(
+    url: String,
     formatHint: ImageFileFormat?,
     allowSRGB: Boolean,
     loadMipmaps: Boolean,
     session: Session?
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB, null)
+    val fallback: () -> ColorBuffer = { colorBuffer(1, 1) }
+
+    val imageBitmap: ImageBitmap = try {
+        val resp = fetch(url)
+        if (!resp.ok) {
+            logger.error { "Failed to fetch '$url': HTTP ${resp.status}" }
+            return fallback()
+        }
+
+        val options = createImageBitmapOptions()
+        options.premultiplyAlpha = PremultiplyAlpha.none
+        options.imageOrientation = ImageOrientation.flipY
+
+        createImageBitmap(resp.blob(), options)
+    } catch (c: CancellationException) {
+        throw c
+    } catch (e: Exception) {
+        logger.error(e) { "Image loading failed for '$url': ${e.message}" }
+        return fallback()
+    }
+
     return try {
-        val cb = colorBuffer(
-            data.width,
-            data.height,
+        val colorType = if (allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
+        Driver.instance.createColorBufferFromImage(
+            imageBitmap,
             1.0,
-            data.format,
-            data.type,
+            ColorFormat.RGBa,
+            colorType,
             BufferMultisample.Disabled,
-            data.mipmapData.size + 1,
+            1,
             session
         )
-
-        cb
     } finally {
-        data.close()
+        runCatching { imageBitmap.close() }
     }
-}
-
-actual suspend fun loadImageSuspend(
-    fileOrUrl: String,
-    formatHint: ImageFileFormat?,
-    allowSRGB: Boolean,
-    session: Session?
-): ColorBuffer {
-    return loadImage(fileOrUrl, formatHint, allowSRGB, true, session)
 }
