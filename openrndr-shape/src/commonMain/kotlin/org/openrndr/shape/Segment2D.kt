@@ -5,6 +5,9 @@ import kotlinx.serialization.Transient
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
+import org.openrndr.shape.internal.arcLength
+import org.openrndr.shape.internal.flattenSegment
+import org.openrndr.shape.internal.flattenSegmentWithT
 import kotlin.math.*
 
 /**
@@ -156,7 +159,7 @@ interface BezierSegment<T : EuclideanVector<T>> {
      *
      * @param distanceTolerance The square of the maximal distance of each point from curve.
      */
-    open fun adaptivePositions(distanceTolerance: Double = 0.5): List<T> {
+    fun adaptivePositions(distanceTolerance: Double = 0.5): List<T> {
         return adaptivePositionsWithT(distanceTolerance).map { it.first }
     }
 
@@ -226,6 +229,13 @@ data class Segment2D(
         return if (hits > 0) t / hits else null
     }
 
+    override fun adaptivePositions(distanceTolerance: Double): List<Vector2> {
+        return flattenSegment(this, distanceTolerance)
+    }
+
+    override fun adaptivePositionsWithT(distanceTolerance: Double): List<Pair<Vector2, Double>> {
+        return flattenSegmentWithT(this, distanceTolerance)
+    }
 
     override fun tForLength(length: Double): Double {
         if (type == SegmentType.LINEAR) {
@@ -410,7 +420,14 @@ data class Segment2D(
     override val length by lazy {
         when (control.size) {
             0 -> (end - start).length
-            1, 2 -> sumDifferences(adaptivePositions())
+            1 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(end)) {
+                derivative(start, control[0], end, it).length
+            }
+
+            2 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(control[1]) + control[1].distanceTo(end)) {
+                derivative(start, control[0], control[1], end, it).length
+            }
+
             else -> throw RuntimeException("unsupported number of control points")
         }
     }
@@ -960,10 +977,6 @@ data class Segment2D(
         get() = ShapeContour(listOf(this), false)
 
 }
-
-private fun sumDifferences(points: List<Vector2>) =
-    (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
-
 
 /**
  * Linear segment constructor.

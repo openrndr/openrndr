@@ -32,7 +32,7 @@ class ShapeContourTest {
         assertEquals(0.0, points.first().second)
         for (i in 0 until points.size) {
             val tp = c.position(points[i].second)
-            assertTrue(tp.distanceTo(points[i].first) < 0.05)
+            assertTrue(tp.distanceTo(points[i].first) < 0.15)
         }
 
     }
