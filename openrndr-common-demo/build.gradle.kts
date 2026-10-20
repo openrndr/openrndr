@@ -29,7 +29,7 @@ abstract class TransformDemosTask : DefaultTask() {
                 val transformed = file.readText()
                     .replace(Regex("""fun\s+main\s*\("""), "fun entry_$name(")
                 out.resolve(file.name).writeText(transformed)
-                applications.add(ApplicationEntry(name, "$name"))
+                applications.add(ApplicationEntry(name, name))
             }
 
         val listItems = applications.joinToString("\n") { application ->
@@ -135,6 +135,10 @@ val transformDemos = tasks.register<TransformDemosTask>("transformDemos") {
 }
 
 kotlin {
+    // Applied explicitly because the custom `commonDemo` dependsOn edges below would otherwise
+    // prevent the implicit default hierarchy template from being applied.
+    applyDefaultHierarchyTemplate()
+
     js {
         browser {
             commonWebpackConfig {

@@ -4,6 +4,7 @@ plugins {
     `maven-publish` apply true
     id("maven-publish")
     id("org.openrndr.convention.dokka")
+    id("com.gradleup.nmcp")
     signing
     java
 }

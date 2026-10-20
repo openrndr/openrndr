@@ -3,9 +3,8 @@ package org.openrndr.convention
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 fun arch(arch: String = System.getProperty("os.arch")): String {
@@ -41,8 +40,7 @@ tasks {
     tasks.getByName("test", Test::class) {
         useJUnitPlatform()
         testLogging.exceptionFormat = TestExceptionFormat.FULL
-        allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
-        allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.debug=true"
+        jvmArgs("-Dorg.openrndr.gl3.skip_glfw_termination", "-Dorg.openrndr.gl3.debug=true")
     }
 
     withType<KotlinCompile> {
