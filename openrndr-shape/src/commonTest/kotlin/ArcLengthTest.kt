@@ -12,11 +12,21 @@ import kotlin.test.assertTrue
 
 class ArcLengthTest {
 
-    private fun referenceLength2(s: Segment2D, steps: Int = 100_000) =
+    private fun chordLength2(s: Segment2D, steps: Int) =
         (0 until steps).sumOf { s.position(it.toDouble() / steps).distanceTo(s.position((it + 1.0) / steps)) }
 
-    private fun referenceLength3(s: Segment3D, steps: Int = 100_000) =
+    private fun chordLength3(s: Segment3D, steps: Int) =
         (0 until steps).sumOf { s.position(it.toDouble() / steps).distanceTo(s.position((it + 1.0) / steps)) }
+
+    /**
+     * The chord length of a smooth curve converges with h², Richardson extrapolation of two chord lengths
+     * cancels that term. Keeps the reference cheap enough for the JS test timeouts.
+     */
+    private fun referenceLength2(s: Segment2D, steps: Int = 4000) =
+        (4.0 * chordLength2(s, 2 * steps) - chordLength2(s, steps)) / 3.0
+
+    private fun referenceLength3(s: Segment3D, steps: Int = 4000) =
+        (4.0 * chordLength3(s, 2 * steps) - chordLength3(s, steps)) / 3.0
 
     @Test
     fun circleLengthIsAccurateAtAnyScale() {
@@ -35,25 +45,25 @@ class ArcLengthTest {
         fun r2() = Vector2(random.nextDouble(-500.0, 500.0), random.nextDouble(-500.0, 500.0))
         fun r3() = Vector3(random.nextDouble(-500.0, 500.0), random.nextDouble(-500.0, 500.0), random.nextDouble(-500.0, 500.0))
         repeat(50) {
-            val c = Segment2D(r2(), r2(), r2(), r2())
-            assertEquals(referenceLength2(c), c.length, referenceLength2(c) * 1E-8)
-            val q = Segment2D(r2(), r2(), r2())
-            assertEquals(referenceLength2(q), q.length, referenceLength2(q) * 1E-8)
-            val c3 = Segment3D(r3(), r3(), r3(), r3())
-            assertEquals(referenceLength3(c3), c3.length, referenceLength3(c3) * 1E-8)
-            val q3 = Segment3D(r3(), r3(), r3())
-            assertEquals(referenceLength3(q3), q3.length, referenceLength3(q3) * 1E-8)
+            for (s in listOf(Segment2D(r2(), r2(), r2(), r2()), Segment2D(r2(), r2(), r2()))) {
+                val reference = referenceLength2(s)
+                assertEquals(reference, s.length, reference * 1E-8)
+            }
+            for (s in listOf(Segment3D(r3(), r3(), r3(), r3()), Segment3D(r3(), r3(), r3()))) {
+                val reference = referenceLength3(s)
+                assertEquals(reference, s.length, reference * 1E-8)
+            }
         }
     }
 
     @Test
     fun cuspAndBacktrackingLengths() {
         val cusp = Segment2D(Vector2(0.0, 0.0), Vector2(300.0, 300.0), Vector2(0.0, 300.0), Vector2(300.0, 0.0))
-        assertEquals(referenceLength2(cusp, 1_000_000), cusp.length, 1E-6)
+        assertEquals(chordLength2(cusp, 1_000_000), cusp.length, 1E-6)
 
         // runs from 0 to ~171.4, back to ~-28.6 and on to 300
         val backtrack = Segment2D(Vector2(0.0, 0.0), Vector2(400.0, 0.0), Vector2(-100.0, 0.0), Vector2(300.0, 0.0))
-        assertEquals(referenceLength2(backtrack, 1_000_000), backtrack.length, 1E-6)
+        assertEquals(chordLength2(backtrack, 1_000_000), backtrack.length, 1E-6)
         assertTrue(backtrack.length > 300.0)
 
         // x(t) = 800t - 500t², runs from 0 to 320 at t = 0.8 and back to 300

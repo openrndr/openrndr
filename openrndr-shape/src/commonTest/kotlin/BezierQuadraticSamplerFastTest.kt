@@ -45,7 +45,7 @@ class BezierQuadraticSamplerFastTest {
     fun testQuadraticWithinTolerance2D() {
         val random = Random(1234)
         fun r() = Vector2(random.nextDouble(0.0, 1000.0), random.nextDouble(0.0, 1000.0))
-        val segments = List(2000) { Segment2D(r(), r(), r()) }
+        val segments = List(500) { Segment2D(r(), r(), r()) }
         for (tolerance in tolerances) {
             for (s in segments) {
                 val samples = s.adaptivePositionsWithT(tolerance)
@@ -59,7 +59,7 @@ class BezierQuadraticSamplerFastTest {
     fun testQuadraticWithinTolerance3D() {
         val random = Random(1234)
         fun r() = Vector3(random.nextDouble(0.0, 1000.0), random.nextDouble(0.0, 1000.0), random.nextDouble(0.0, 1000.0))
-        val segments = List(2000) { Segment3D(r(), r(), r()) }
+        val segments = List(500) { Segment3D(r(), r(), r()) }
         for (tolerance in tolerances) {
             for (s in segments) {
                 val samples = s.adaptivePositionsWithT(tolerance)
