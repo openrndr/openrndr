@@ -5,6 +5,10 @@ plugins {
     signing
 }
 
+repositories {
+    mavenCentral()
+}
+
 catalog {
     versionCatalog {
         library("animatable", "org.openrndr:openrndr-animatable:$version")

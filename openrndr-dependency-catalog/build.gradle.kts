@@ -5,6 +5,10 @@ plugins {
     signing
 }
 
+repositories {
+    mavenCentral()
+}
+
 catalog {
     versionCatalog {
         from(files("$rootDir/gradle/libs.versions.toml"))
