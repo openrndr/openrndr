@@ -45,7 +45,7 @@ kotlin {
  *   `build/generated/openrndr/programs/jsMain/kotlin`, following the standard Gradle convention
  *   of keeping generated sources under the `build` directory.
  */
-val generateProgramIndex by tasks.registering {
+val generateProgramIndex = tasks.register("generateProgramIndex") {
     group = "openrndr"
     description = "Scans @Program annotated functions and generates the program index (index.html)"
 

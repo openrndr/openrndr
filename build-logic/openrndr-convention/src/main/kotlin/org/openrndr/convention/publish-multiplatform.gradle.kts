@@ -3,9 +3,9 @@ package org.openrndr.convention
 
 
 plugins {
-    `maven-publish` apply false
     id("maven-publish")
     id("org.openrndr.convention.dokka")
+    id("com.gradleup.nmcp")
     signing
 }
 

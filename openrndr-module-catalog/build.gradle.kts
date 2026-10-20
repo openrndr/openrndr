@@ -1,7 +1,12 @@
 plugins {
     `version-catalog`
     `maven-publish`
+    id("com.gradleup.nmcp")
     signing
+}
+
+repositories {
+    mavenCentral()
 }
 
 catalog {
