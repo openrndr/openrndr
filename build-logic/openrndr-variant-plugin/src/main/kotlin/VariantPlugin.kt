@@ -21,7 +21,6 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.named
-import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import javax.inject.Inject
 
@@ -63,11 +62,9 @@ abstract class VariantContainer @Inject constructor(
         sourceSet.resources.includes.add("**/*.*")
         tasks.named<Jar>(sourceSet.jarTaskName).configure {
             include("**/*.*")
-            dependsOn(tasks.named<ProcessResources>(sourceSet.processResourcesTaskName))
             manifest {
                 //this.attributes()
             }
-            this.from(sourceSet.resources.srcDirs)
         }
         runtimeElements.outgoing.artifact(tasks.named(sourceSet.jarTaskName))
         action.execute(Unit)
@@ -88,6 +85,10 @@ abstract class VariantExtension(
         val tasks = project.tasks
         tasks.register(platformMain.jarTaskName, Jar::class.java) {
             archiveClassifier.set("$os-$arch")
+            // Package the source set output (processed resources and classes), not the source directories.
+            // IntelliJ maps a dependency's jar to a source set only when the jar contains that source set's
+            // complete output; without that, IDE runs (profiler, coverage) miss the platform resources.
+            from(platformMain.output)
         }
 
         val configurations = project.configurations
