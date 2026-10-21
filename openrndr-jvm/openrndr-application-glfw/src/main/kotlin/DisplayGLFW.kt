@@ -11,7 +11,9 @@ class DisplayGLFW(
     override val height: Int?,
     override val heightInPixels: Int,
     override val widthInPixels: Int,
-    override val contentScale: Double
+    override val contentScale: Double,
+    /** GLFW does not expose HDR state, so this is unknown. */
+    override val hdr: Boolean? = null
 ) : Display() {
     override fun toString(): String {
         return "DisplayGLFWGL3(pointer=$pointer, name=$name, x=$x, y=$y, width=$width, height=$height, contentScale=$contentScale)"

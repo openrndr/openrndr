@@ -10,6 +10,8 @@ abstract class Display {
     /** The name of this display as reported by the current graphics backend. */
     abstract val name: String?
 
+
+    abstract val hdr: Boolean?
     /** The horizontal position of the top-left corner of this Display. */
     abstract val x: Int?
 

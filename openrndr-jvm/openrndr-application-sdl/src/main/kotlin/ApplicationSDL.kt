@@ -250,7 +250,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             display = configuration.display,
             relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE,
             unfocusBehaviour = configuration.unfocusBehaviour,
-            vsync = configuration.vsync
+            vsync = configuration.vsync,
+            hdr = configuration.hdr
         )
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
         Program.active = program

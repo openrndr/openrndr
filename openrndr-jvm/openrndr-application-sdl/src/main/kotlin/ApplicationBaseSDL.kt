@@ -1,27 +1,13 @@
 package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.sdl.SDLHints.SDL_HINT_MAC_SCROLL_MOMENTUM
-import org.lwjgl.sdl.SDLHints.SDL_HINT_OPENGL_ES_DRIVER
-import org.lwjgl.sdl.SDLHints.SDL_HINT_TRACKPAD_IS_TOUCH_ONLY
-import org.lwjgl.sdl.SDLHints.SDL_SetHint
-import org.lwjgl.sdl.SDLInit.SDL_INIT_VIDEO
-import org.lwjgl.sdl.SDLInit.SDL_Init
-import org.lwjgl.sdl.SDLInit.SDL_Quit
+import org.lwjgl.sdl.SDLHints.*
+import org.lwjgl.sdl.SDLInit.*
+import org.lwjgl.sdl.SDLProperties.SDL_GetBooleanProperty
 import org.lwjgl.sdl.SDLStdinc.SDL_free
-import org.lwjgl.sdl.SDLVideo.SDL_GetCurrentDisplayMode
-import org.lwjgl.sdl.SDLVideo.SDL_GetDesktopDisplayMode
-import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayBounds
-import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayContentScale
-import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayName
-import org.lwjgl.sdl.SDLVideo.SDL_GetDisplays
+import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Rect
-import org.openrndr.Application
-import org.openrndr.ApplicationBase
-import org.openrndr.ApplicationConfiguration
-import org.openrndr.Configuration
-import org.openrndr.Display
-import org.openrndr.Program
+import org.openrndr.*
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.fontdriver.stb.FontDriverStbTt
 import org.openrndr.internal.ImageDriver
@@ -71,6 +57,11 @@ class ApplicationBaseSDL : ApplicationBase() {
                 val rect = SDL_Rect.create()
                 SDL_GetDisplayBounds(displays[i], rect)
                 val name = SDL_GetDisplayName(displays[i])
+                val hdr = SDL_GetBooleanProperty(
+                    SDL_GetDisplayProperties(displays[i]),
+                    SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN,
+                    false
+                )
 
                 val dp = if (Platform.type == PlatformType.MAC) DisplaySDL(
                     displays[i].toLong(),
@@ -81,7 +72,8 @@ class ApplicationBaseSDL : ApplicationBase() {
                     mode.h(),
                     (mode.w() * pixelDensity).toInt(),
                     (mode.h() * pixelDensity).toInt(),
-                    pixelDensity
+                    pixelDensity,
+                    hdr
                 ) else {
                     DisplaySDL(
                         displays[i].toLong(),
@@ -92,7 +84,8 @@ class ApplicationBaseSDL : ApplicationBase() {
                         (mode.h() / pixelDensity).toInt(),
                         mode.w(),
                         mode.h(),
-                        pixelDensity
+                        pixelDensity,
+                        hdr
                     )
                 }
 

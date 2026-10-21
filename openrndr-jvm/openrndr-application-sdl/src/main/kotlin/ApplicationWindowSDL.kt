@@ -342,6 +342,20 @@ fun createApplicationWindowSDL(
 //    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
 
+    if (configuration.hdr) {
+        SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1)
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16)
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16)
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16)
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 16)
+    }
+    // the EGL surface may be created with the window or with the context, keep this until both exist
+    val scrgbCallback = if (configuration.hdr && DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+        installScrgbLinearEglSurface()
+    } else {
+        null
+    }
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, Driver.glVersion.minorVersion)
 
@@ -469,7 +483,20 @@ fun createApplicationWindowSDL(
     SDL_DestroyProperties(props)
 
     glContext = SDL_GL_CreateContext(window)
+    scrgbCallback?.let { uninstallScrgbLinearEglSurface(it) }
     require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
+
+    if (configuration.hdr) {
+        if (!isDefaultFramebufferFloat()) {
+            logger.warn { "HDR requested but the window framebuffer is not floating point, output is limited to SDR" }
+        } else if (Platform.type == PlatformType.MAC && DriverGL3Configuration.driverType == DriverTypeGL.GL
+            && !enableExtendedDynamicRangeMac(window)) {
+            // with OpenGL ES the (ANGLE) EGL surface enables extended dynamic range for the scRGB colorspace
+            logger.warn { "HDR requested but extended dynamic range could not be enabled, output is limited to SDR" }
+        } else {
+            logger.info { "Created HDR window, display HDR enabled: ${SDL_GetBooleanProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_HDR_ENABLED_BOOLEAN, false)}" }
+        }
+    }
 
     SDL_ShowWindow(window)
 

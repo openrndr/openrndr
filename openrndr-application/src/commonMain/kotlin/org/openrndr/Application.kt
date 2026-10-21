@@ -40,7 +40,8 @@ data class WindowConfiguration(
     val utilityWindow: Boolean = false,
     val display: Display? = null,
     val unfocusBehaviour: UnfocusBehaviour = UnfocusBehaviour.NORMAL,
-    val vsync: Boolean = true
+    val vsync: Boolean = true,
+    val hdr: Boolean = false
 )
 
 /**

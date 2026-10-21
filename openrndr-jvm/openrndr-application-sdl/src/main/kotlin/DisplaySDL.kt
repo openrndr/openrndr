@@ -11,9 +11,10 @@ class DisplaySDL internal constructor(
     override val height: Int?,
     override val widthInPixels: Int,
     override val heightInPixels: Int,
-    override val contentScale: Double
+    override val contentScale: Double,
+    override val hdr: Boolean
 ) : Display() {
     override fun toString(): String {
-        return "DisplaySDL(pointer=$pointer, name=$name, x=$x, y=$y, width=$width, height=$height, contentScale=$contentScale)"
+        return "DisplaySDL(pointer=$pointer, name=$name, x=$x, y=$y, width=$width, height=$height, contentScale=$contentScale, hdr=$hdr)"
     }
 }

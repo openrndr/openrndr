@@ -2,7 +2,6 @@ package org.openrndr
 
 import org.openrndr.draw.BufferMultisample
 import org.openrndr.math.IntVector2
-import kotlin.jvm.JvmRecord
 
 /**
  * Specifies the behavior applied when an application window loses focus.
@@ -182,6 +181,13 @@ class Configuration {
      * Should the window render target use multisampling?
      */
     var multisample: WindowMultisample = WindowMultisample.Disabled
+
+    /**
+     * Should the window use an HDR (floating point) framebuffer? Colors brighter than 1.0 are then shown
+     * brighter than SDR white on displays that have HDR enabled, see [Display.hdr].
+     * Only supported by the SDL application back-end.
+     */
+    var hdr: Boolean = false
 
     /**
      * Should the program wait for vertical retrace?

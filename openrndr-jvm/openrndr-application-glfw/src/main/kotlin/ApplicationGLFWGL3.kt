@@ -16,11 +16,7 @@ import org.openrndr.*
 import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
-import org.openrndr.draw.DrawThread
-import org.openrndr.draw.Drawer
-import org.openrndr.draw.RenderTarget
-import org.openrndr.draw.Session
-import org.openrndr.draw.tearDownFontImageMaps
+import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.ResourceThread
@@ -278,6 +274,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             is SampleCount -> glfwWindowHint(GLFW_SAMPLES, c.count)
             SystemDefault -> glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE)
             Disabled -> glfwWindowHint(GLFW_SAMPLES, 0)
+        }
+
+        if (configuration.hdr) {
+            logger.warn { "HDR is not supported by the GLFW application back-end, use the SDL back-end instead" }
         }
 
         glfwWindowHint(GLFW_RED_BITS, 8)
