@@ -97,6 +97,8 @@ class SlugDrawer {
         )
         // texture units 0 and 1 are reserved for built-in textures, shade style textures start at 2
         shader.textureBindings[0] = slugMap.curves
+        // bands is an integer texture, LINEAR filtering would make it incomplete
+        slugMap.bands.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
         shader.textureBindings[1] = slugMap.bands
         shader.begin()
         drawer.context.applyToShader(shader)

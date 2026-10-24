@@ -3,8 +3,6 @@ package slug
 import AbstractApplicationTestFixture
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
-import org.openrndr.draw.MagnifyingFilter
-import org.openrndr.draw.MinifyingFilter
 import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.slug.SlugMap
 import org.openrndr.shape.Circle
@@ -21,9 +19,7 @@ class TestSlugMap : AbstractApplicationTestFixture() {
         val slugMap = SlugMap(
             curves,
             bands
-        ).apply {
-            bands.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
-        }
+        )
 
         val circle = Circle(0.0, 0.0, 8.0).shape
         slugMap.addShape(circle)

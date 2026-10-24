@@ -1,6 +1,8 @@
 package org.openrndr.draw.slug
 
 import org.openrndr.draw.ColorBuffer
+import org.openrndr.draw.MagnifyingFilter
+import org.openrndr.draw.MinifyingFilter
 import org.openrndr.draw.font.Face
 import org.openrndr.math.IntVector2
 import org.openrndr.shape.Rectangle
@@ -12,8 +14,18 @@ import kotlin.math.ceil
 import kotlin.math.sqrt
 import kotlin.time.Clock
 
-
+/**
+ * GPU storage for slug curve and band data.
+ *
+ * [bands] is an integer texture and must use NEAREST filtering; integer textures with LINEAR filtering are
+ * incomplete and sample as zero, which makes slug rendering silently draw nothing. NEAREST is set on
+ * construction and re-applied by [SlugDrawer] before drawing.
+ */
 class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
+    init {
+        bands.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
+    }
+
     private var totalSegments = 0
     private var shapes = 0
 
