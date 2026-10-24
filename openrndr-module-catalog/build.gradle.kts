@@ -25,6 +25,7 @@ catalog {
         library("orextensions", "org.openrndr:openrndr-extensions:$version")
         library("ffmpeg", "org.openrndr:openrndr-ffmpeg:$version")
         library("filter", "org.openrndr:openrndr-filter:$version")
+        library("fontdriver-freetype", "org.openrndr:openrndr-fontdriver-freetype:$version")
         library("gl3", "org.openrndr:openrndr-gl3:$version")
         library("gl-common", "org.openrndr:openrndr-gl-common:$version")
         library("kartifex", "org.openrndr:openrndr-kartifex:$version")
@@ -32,6 +33,7 @@ catalog {
         library("math", "org.openrndr:openrndr-math:$version")
         library("openal", "org.openrndr:openrndr-openal:$version")
         library("shape", "org.openrndr:openrndr-shape:$version")
+        library("textshapingdriver-harfbuzz", "org.openrndr:openrndr-textshapingdriver-harfbuzz:$version")
         library("utils", "org.openrndr:openrndr-utils:$version")
 
         bundle("basic", listOf("application-core", "draw", "utils"))
