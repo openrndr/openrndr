@@ -42,7 +42,7 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
         language: String?
     ): List<ShapeResult> {
         face as FaceFreetype
-        val codePoints = IntArray(text.length) { text.codePointAt(it) }
+        val codePoints = text.codePoints().toArray()
 
         // Allocate a buffer for the code points plus a null terminator
         val codePointsBuffer = MemoryUtil.memCallocInt(codePoints.size + 4)
@@ -65,9 +65,8 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
                 hb_buffer_set_language(buf, hb_language_from_string(language));
             }
 
-            if (direction == null && script == null && language == null) {
-                hb_buffer_guess_segment_properties(buf)
-            }
+            // fills in only the properties that were not set above
+            hb_buffer_guess_segment_properties(buf)
 
             require(face.ftFace.address() != 0L) {
                 "FT_Face is not initialized"
