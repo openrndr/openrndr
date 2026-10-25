@@ -16,6 +16,7 @@ catalog {
         library("application-glfw", "org.openrndr:openrndr-application-glfw:$version")
         library("application-egl", "org.openrndr:openrndr-application-egl:$version")
         library("application-sdl", "org.openrndr:openrndr-application-sdl:$version")
+        library("bidi-text-driver", "org.openrndr:openrndr-bidi-text-driver:$version")
         library("binpack", "org.openrndr:openrndr-binpack:$version")
         library("color", "org.openrndr:openrndr-color:$version")
         library("dialogs", "org.openrndr:openrndr-dialogs:$version")

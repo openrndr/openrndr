@@ -5,11 +5,13 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.*
 import org.openrndr.*
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.draw.font.internal.BidiTextDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
+import org.openrndr.biditextdriver.BidiTextDriverUax9
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
 
 private val logger = KotlinLogging.logger { }
@@ -33,6 +35,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverFreetype()
         TextShapingDriver.driver = TextShapingDriverHarfBuzz()
+        BidiTextDriver.driver = BidiTextDriverUax9()
     }
 
     override val displays: List<DisplayGLFW> by lazy {

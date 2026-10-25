@@ -219,6 +219,9 @@ enum class Script(val tag: String) {
     SIDETIC("Sidt"),
     TAI_YO("Tayo"),
     TOLONG_SIKI("Tols"),
+    JURCHEN("Jurc"),
+    PROTO_CUNEIFORM("Pcun"),
+    SEAL("Seal"),
 }
 
 /**

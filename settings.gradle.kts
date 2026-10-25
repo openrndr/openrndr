@@ -23,6 +23,7 @@ include(
         "openrndr-shape",
         "openrndr-event",
         "openrndr-binpack",
+        "openrndr-bidi-text-driver",
         "openrndr-filter",
         "openrndr-platform",
 

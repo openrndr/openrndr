@@ -27,6 +27,7 @@ nmcpAggregation {
 dependencies {
     nmcpAggregation(project(":openrndr-animatable"))
     nmcpAggregation(project(":openrndr-application"))
+    nmcpAggregation(project(":openrndr-bidi-text-driver"))
     nmcpAggregation(project(":openrndr-binpack"))
     nmcpAggregation(project(":openrndr-color"))
     nmcpAggregation(project(":openrndr-dds"))
@@ -92,6 +93,7 @@ subprojects {
 dependencies {
     dokka(project(":openrndr-animatable:"))
     dokka(project(":openrndr-application:"))
+    dokka(project(":openrndr-bidi-text-driver:"))
     dokka(project(":openrndr-binpack:"))
     dokka(project(":openrndr-color:"))
     dokka(project(":openrndr-dds:"))

@@ -14,6 +14,7 @@ import org.openrndr.ApplicationConfiguration
 import org.openrndr.Configuration
 import org.openrndr.Display
 import org.openrndr.Program
+import org.openrndr.draw.font.internal.BidiTextDriver
 import org.openrndr.draw.font.internal.CachingTextShapingDriver
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
@@ -28,6 +29,7 @@ import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
+import org.openrndr.biditextdriver.BidiTextDriverUax9
 
 private val logger = KotlinLogging.logger { }
 
@@ -106,6 +108,7 @@ class ApplicationBaseSDL : ApplicationBase() {
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverFreetype()
         TextShapingDriver.driver = CachingTextShapingDriver(TextShapingDriverHarfBuzz())
+        BidiTextDriver.driver = BidiTextDriverUax9()
     }
 
      fun close() {
