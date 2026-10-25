@@ -12,16 +12,18 @@ import kotlin.jvm.JvmRecord
 @JvmRecord
 data class SlugCommand(val slugIndex: Int, val transform: Matrix44, val fill: ColorRGBa?, val stroke: ColorRGBa?, val strokeWeight: Double, val strokeMode : Int = 0)
 
+@JvmRecord
+data class SlugDrawCommand(val instances: VertexBuffer, val count: Int)
 
-class SlugDrawer {
+class SlugDrawer: AutoCloseable {
     val vb = vertexBuffer(vertexFormat {
         position(3)
         textureCoordinate(2)
     }, 6)
 
-    val b = Rectangle(0.0, 0.0, 1.0, 1.0)
-
     init {
+        val b = Rectangle(0.0, 0.0, 1.0, 1.0)
+
         vb.put {
             write(b.position(0.0, 0.0).xy0)
             write(Vector2(0.0, 0.0))
@@ -43,19 +45,10 @@ class SlugDrawer {
         }
     }
 
-    val instances = vertexBuffer(vertexFormat {
-        attribute("transform", VertexElementType.MATRIX44_FLOAT32)
-        attribute("slugBounds", VertexElementType.VECTOR4_FLOAT32)
-        attribute("fill", VertexElementType.VECTOR4_FLOAT32)
-        attribute("stroke", VertexElementType.VECTOR4_FLOAT32)
-        attribute("strokeWeight", VertexElementType.FLOAT32)
-        attribute("strokeMode", VertexElementType.INT32)
-        attribute("bandIndex", VertexElementType.VECTOR2_INT32)
-        attribute("bandCount", VertexElementType.INT32)
-    }, 10_000)
+    fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
-
-    var slugCount = 0
+    val instances = createInstanceBuffer(10_000)
+    internal var internalCommand = SlugDrawCommand(instances, 0)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "slug",
@@ -63,7 +56,7 @@ class SlugDrawer {
         fsGenerator = Driver.instance.shaderGenerators::slugFragmentShader
     )
 
-    fun prepare(slugMap: SlugMap, slugCommands: List<SlugCommand>) {
+    fun prepare(slugMap: SlugMap, slugCommands: List<SlugCommand>, instances: VertexBuffer = this.instances): SlugDrawCommand {
         instances.put {
             for (command in slugCommands) {
                 write(command.transform)
@@ -80,14 +73,19 @@ class SlugDrawer {
                 write(command.strokeMode)
                 write(slugMap.bandIndices[command.slugIndex])
                 write(slugMap.bandCounts[command.slugIndex])
-
             }
         }
-        slugCount = slugCommands.size
+        val drawCommand = SlugDrawCommand(instances, slugCommands.size)
+
+        if (instances === this.instances) {
+            internalCommand  = drawCommand
+        }
+
+        return drawCommand
     }
 
-    fun draw(drawer: Drawer, slugMap: SlugMap) {
-        if (slugCount == 0) return
+    fun draw(drawer: Drawer, slugMap: SlugMap, command: SlugDrawCommand = internalCommand) {
+        if (command.count == 0) return
 
         val drawStyle = drawer.drawStyle
         val shader = shaderManager.shader(
@@ -109,15 +107,33 @@ class SlugDrawer {
         Driver.instance.drawInstances(
             shader,
             listOf(vb),
-            listOf(instances) + (drawStyle.shadeStyle?.attributes.orEmpty()),
+            listOf(command.instances) + (drawStyle.shadeStyle?.attributes.orEmpty()),
             DrawPrimitive.TRIANGLES,
             0,
             vb.vertexCount,
             0,
-            slugCount,
+            command.count,
             verticesPerPatch = 0
         )
         shader.end()
     }
 
+    override fun close() {
+        vb.close()
+        instances.close()
+        internalCommand = SlugDrawCommand(instances, 0)
+    }
+
+    companion object {
+        val instanceFormat = vertexFormat {
+            attribute("transform", VertexElementType.MATRIX44_FLOAT32)
+            attribute("slugBounds", VertexElementType.VECTOR4_FLOAT32)
+            attribute("fill", VertexElementType.VECTOR4_FLOAT32)
+            attribute("stroke", VertexElementType.VECTOR4_FLOAT32)
+            attribute("strokeWeight", VertexElementType.FLOAT32)
+            attribute("strokeMode", VertexElementType.INT32)
+            attribute("bandIndex", VertexElementType.VECTOR2_INT32)
+            attribute("bandCount", VertexElementType.INT32)
+        }
+    }
 }

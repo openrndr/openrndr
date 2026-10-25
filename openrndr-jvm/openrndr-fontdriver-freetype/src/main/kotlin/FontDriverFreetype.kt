@@ -9,17 +9,11 @@ import org.lwjgl.util.freetype.FreeType
 import org.lwjgl.util.freetype.FreeType.FT_Init_FreeType
 import org.lwjgl.util.freetype.FreeType.FT_New_Memory_Face
 import org.openrndr.draw.font.internal.FontDriver
-import java.io.File
+import org.openrndr.draw.font.internal.fontBytesFromFileOrUrl
 
 
 private val logger = KotlinLogging.logger {  }
-fun bytesFromFileOrUrl(fileOrUrl: String): ByteArray {
-    return if (fileOrUrl.startsWith("http") || fileOrUrl.startsWith("file") || fileOrUrl.startsWith("jar")) {
-        java.net.URL(fileOrUrl).readBytes()
-    } else {
-        File(fileOrUrl).readBytes()
-    }
-}
+fun bytesFromFileOrUrl(fileOrUrl: String): ByteArray = fontBytesFromFileOrUrl(fileOrUrl)
 
 class FontDriverFreetype(val library: Long) : FontDriver {
     init {

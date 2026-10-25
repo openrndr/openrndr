@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.*
 import org.openrndr.*
+import org.openrndr.draw.font.internal.CachingFontDriver
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.BidiTextDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
@@ -33,7 +34,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
 
         KeyboardDriver.driver = KeyboardDriverGLFW()
         ImageDriver.driver = ImageDriverStbImage()
-        FontDriver.driver = FontDriverFreetype()
+        FontDriver.driver = CachingFontDriver(FontDriverFreetype())
         TextShapingDriver.driver = TextShapingDriverHarfBuzz()
         BidiTextDriver.driver = BidiTextDriverUax9()
     }

@@ -16,6 +16,7 @@ import org.openrndr.Display
 import org.openrndr.Program
 import org.openrndr.draw.font.internal.BidiTextDriver
 import org.openrndr.draw.font.internal.CachingTextShapingDriver
+import org.openrndr.draw.font.internal.CachingFontDriver
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
@@ -106,7 +107,7 @@ class ApplicationBaseSDL : ApplicationBase() {
         }
         KeyboardDriver.driver = KeyboardDriverSDL()
         ImageDriver.driver = ImageDriverStbImage()
-        FontDriver.driver = FontDriverFreetype()
+        FontDriver.driver = CachingFontDriver(FontDriverFreetype())
         TextShapingDriver.driver = CachingTextShapingDriver(TextShapingDriverHarfBuzz())
         BidiTextDriver.driver = BidiTextDriverUax9()
     }

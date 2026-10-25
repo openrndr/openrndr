@@ -9,9 +9,9 @@ import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.draw.font.internal.fontBytesFromFileOrUrl
 import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
-import org.openrndr.utils.url.resolveFileOrUrl
 import java.nio.ByteBuffer
 import kotlin.math.absoluteValue
 
@@ -337,8 +337,7 @@ class FontDriverStbTt : FontDriver {
     }
 
     override fun loadFace(fileOrUrl: String): Face {
-        val (file, url) = resolveFileOrUrl(fileOrUrl)
-        val byteArray = file?.readBytes() ?: url?.readBytes() ?: error("no content for file or url: '$fileOrUrl'")
+        val byteArray = fontBytesFromFileOrUrl(fileOrUrl)
         val fileSize = byteArray.size
 
         val bb = MemoryUtil.memAlloc(fileSize)
