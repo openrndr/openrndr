@@ -1,6 +1,8 @@
 package org.openrndr.draw.font
 
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.draw.font.internal.Script
+import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
@@ -235,6 +237,34 @@ interface Face: AutoCloseable {
      * @return a new [Face] instance at the given size
      */
     fun withSize(sizeInPoints: Double): Face
+
+    /**
+     * Queries the scripts supported by this face, delegates to [TextShapingDriver.querySupportedScripts].
+     *
+     * @return a list of supported [Script]s
+     */
+    fun supportedScripts(): List<Script> =
+        TextShapingDriver.instance.querySupportedScripts(this)
+
+    /**
+     * Queries the substitution (GSUB) features of this face for the given [script], delegates to
+     * [TextShapingDriver.querySubstitutionFeatures].
+     *
+     * @param script the script to query features for
+     * @return a list of feature tags
+     */
+    fun substitutionFeatures(script: Script): List<String> =
+        TextShapingDriver.instance.querySubstitutionFeatures(this, script)
+
+    /**
+     * Queries the positioning (GPOS) features of this face for the given [script], delegates to
+     * [TextShapingDriver.queryPositionFeatures].
+     *
+     * @param script the script to query features for
+     * @return a list of feature tags
+     */
+    fun positionFeatures(script: Script): List<String> =
+        TextShapingDriver.instance.queryPositionFeatures(this, script)
 }
 
 /**
