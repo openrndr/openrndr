@@ -26,7 +26,9 @@ data class ColorLSHUVa(
         fun fromLCHUVa(lcha: ColorLCHUVa): ColorLSHUVa {
 
             val maxC = ColorLCHUVa.findMaxChroma(lcha.l, lcha.h, lcha.ref)
-            return ColorLSHUVa(lcha.l, lcha.c / maxC, lcha.h, lcha.alpha, lcha.ref)
+            // the maximum chroma is 0 for black and white, neutrals have no saturation
+            val s = if (maxC > 0.0) lcha.c / maxC else 0.0
+            return ColorLSHUVa(lcha.l, s, lcha.h, lcha.alpha, lcha.ref)
         }
     }
 

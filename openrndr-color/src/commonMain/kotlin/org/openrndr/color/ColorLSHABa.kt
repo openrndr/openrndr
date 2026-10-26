@@ -23,7 +23,9 @@ data class ColorLSHABa(
     companion object {
         fun fromLCHABa(lcha: ColorLCHABa): ColorLSHABa {
             val maxC = ColorLCHABa.findMaxChroma(lcha.l, lcha.h, lcha.ref)
-            return ColorLSHABa(lcha.l, lcha.c / maxC, lcha.h, lcha.alpha, lcha.ref)
+            // the maximum chroma is 0 for black and white, neutrals have no saturation
+            val s = if (maxC > 0.0) lcha.c / maxC else 0.0
+            return ColorLSHABa(lcha.l, s, lcha.h, lcha.alpha, lcha.ref)
         }
     }
 
