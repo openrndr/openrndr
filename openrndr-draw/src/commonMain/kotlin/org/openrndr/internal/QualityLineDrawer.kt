@@ -2,7 +2,9 @@ package org.openrndr.internal
 
 import org.openrndr.draw.DrawContext
 import org.openrndr.draw.DrawStyle
+import org.openrndr.draw.StrokeAlignment
 import org.openrndr.math.Vector2
+import kotlin.math.abs
 
 /**
  * A utility class for rendering high-quality line drawings, supporting customizable
@@ -91,14 +93,26 @@ class QualityLineDrawer {
      * @param corners A list of boolean lists specifying the corner type at each corresponding vertex in the line loop.
      *                Use true for smooth corners and false for sharp corners.
      * @param fringeWidth The additional line fringe width added for anti-aliasing or rendering enhancement. Defaults to 1.0.
+     * @param asShape Are the loops the contours of a single shape? The outside of all loops is then determined by the
+     *                loop with the largest area, so that holes wound opposite to it are stroked into the shape.
+     *                Otherwise the outside of every loop is determined by the loop itself.
      */
     fun drawLineLoops(drawContext: DrawContext,
                       drawStyle: DrawStyle,
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
-                      fringeWidth: Double = 1.0) {
+                      fringeWidth: Double = 1.0,
+                      asShape: Boolean = false) {
         val effectiveFringeWidth = if (drawStyle.smooth) fringeWidth else 0.0
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0) {
+            if (!asShape && strips.size > 1 && drawStyle.strokeAlignment != StrokeAlignment.CENTER) {
+                // independent loops are clipped independently
+                for (index in strips.indices) {
+                    drawLineLoops(drawContext, drawStyle, listOf(strips[index]), listOf(corners[index]), fringeWidth, true)
+                }
+                return
+            }
+            val reference = if (asShape) strips.maxByOrNull { abs(Path.signedArea(it)) } else null
             val expansions = strips.mapIndexed { index, it ->
                 val path = Path.fromLineStrip(it, corners[index], true)
                 path.expandStroke(
@@ -106,13 +120,46 @@ class QualityLineDrawer {
                     drawStyle.strokeWeight / 2.0,
                     drawStyle.lineCap,
                     drawStyle.lineJoin,
-                    drawStyle.miterLimit
+                    drawStyle.miterLimit,
+                    drawStyle.strokeAlignment.outsideFraction,
+                    Path.signedArea(reference ?: it) > 0.0
                 )
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, effectiveFringeWidth)
+            expansionDrawer.renderStrokes(
+                drawContext, drawStyle, expansions, effectiveFringeWidth,
+                clip(drawStyle, strips, corners, effectiveFringeWidth)
+            )
         }
     }
 
+    /**
+     * Strokes that are not centered are clipped to the inside or the outside of the loops, so that they never cross
+     * the outline. The clip is hard, it lies half of the fringe away from the outline, the anti-aliased edge on the
+     * outline is drawn by a fringe in the stroke color. Strokes narrower than two fringes cannot cross the outline
+     * noticeably and are not clipped.
+     */
+    private fun clip(
+        drawStyle: DrawStyle,
+        strips: List<List<Vector2>>,
+        corners: List<List<Boolean>>,
+        fringeWidth: Double,
+        strokeWeight: Double = drawStyle.strokeWeight
+    ): StrokeClip? {
+        if (drawStyle.strokeAlignment == StrokeAlignment.CENTER || strokeWeight < 2.0 * fringeWidth) {
+            return null
+        }
+        val path = Path()
+        strips.forEachIndexed { index, strip ->
+            path.contours.addAll(Path.fromLineStrip(strip, corners[index], true).contours)
+        }
+        path.closed = true
+        val inside = drawStyle.strokeAlignment == StrokeAlignment.INSIDE
+        return StrokeClip(
+            path.expandClip(if (inside) -fringeWidth * 0.5 else fringeWidth * 0.5),
+            if (fringeWidth > 0.0) path.expandClipFringe(fringeWidth, inside) else emptyList(),
+            inside
+        )
+    }
     /**
      * Draws a series of closed line loops with the specified drawing context, style, and parameters.
      *
@@ -135,11 +182,21 @@ class QualityLineDrawer {
                       weights: List<Double>, fringeWidth: Double = 1.0) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
-            val expansions = strips.mapIndexed { index, it ->
-                val path = Path.fromLineStrip(it, corners[index], true)
-                path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+            // independent loops are clipped independently
+            val groups = if (drawStyle.strokeAlignment == StrokeAlignment.CENTER) listOf(strips.indices.toList()) else strips.indices.map { listOf(it) }
+            for (group in groups) {
+                val expansions = group.map { index ->
+                    val path = Path.fromLineStrip(strips[index], corners[index], true)
+                    path.expandStroke(
+                        fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit,
+                        drawStyle.strokeAlignment.outsideFraction, Path.signedArea(strips[index]) > 0.0
+                    )
+                }
+                expansionDrawer.renderStrokes(
+                    drawContext, drawStyle, expansions, fw,
+                    clip(drawStyle, group.map { strips[it] }, group.map { corners[it] }, fw, group.minOf { weights[it] })
+                )
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
         }
     }
 }

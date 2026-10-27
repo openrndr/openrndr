@@ -348,16 +348,24 @@ ${shadeStructure.fragmentPreamble ?: ""}
 
 flat in int v_instance;
 in vec3 v_boundsSize;
+in vec2 v_local;
+// the fraction of the stroke that lies outside of the outline: 0.0 inside, 0.5 centered, 1.0 outside
+uniform float u_strokeAlignment;
+// 1.0 for anti-aliased edges, 0.0 for hard edges
+uniform float u_smooth;
 ${
         fragmentMainConstants(
             boundsPosition = "vec3(va_texCoord0, 0.0)", boundsSize = "v_boundsSize"
         )
     }
 
+// coverage of the region with signed distance [d] (negative inside) for a pixel of size [f]
+float edgeCoverage(float d, float f) {
+    return u_smooth != 0.0 ? clamp(0.5 - d / f, 0.0, 1.0) : (d <= 1E-3 * f ? 1.0 : 0.0);
+}
+
 
 void main(void) {
-    float smoothFactor = 3.0;
-
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     float x_strokeWeight = vi_strokeWeight;
@@ -365,20 +373,28 @@ void main(void) {
     {
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
-    float wd = fwidth(length(va_texCoord0 - vec2(0.0)));
-    float d = length(va_texCoord0 - vec2(0.5)) * 2.0;
+    // distances are in object units, a centered stroke is as in CSS/SVG
+    float d = length(v_local);
+    // the size of a pixel across the edge, fwidth() would overestimate it for edges that are not axis aligned
+    float f = max(length(vec2(dFdx(d), dFdy(d))), 1E-6);
+    float r = vi_radius.x;
+    float outer = r + x_strokeWeight * u_strokeAlignment;
+    float inner = r - x_strokeWeight * (1.0 - u_strokeAlignment);
 
-    float or = smoothstep(0.0, wd * smoothFactor, 1.0 - d);
-    float b = x_strokeWeight / vi_radius.x;
-    float ir = smoothstep(0.0, wd * smoothFactor, 1.0 - b - d);
+    float fillCoverage = edgeCoverage(d - r, f);
+    float outerCoverage = edgeCoverage(d - outer, f);
+    float innerCoverage = inner > 0.0 ? edgeCoverage(d - inner, f) : 0.0;
+    float strokeCoverage = max(outerCoverage - innerCoverage, 0.0);
+    if (u_smooth == 0.0 && fillCoverage == 0.0 && strokeCoverage == 0.0) {
+        discard;
+    }
 
+    // the stroke is painted over the fill
+    float sa = strokeCoverage * x_stroke.a;
+    float fa = fillCoverage * x_fill.a;
     vec4 final = vec4(0.0);
-    final.rgb =  x_stroke.rgb;
-    final.a = or * (1.0 - ir) * x_stroke.a;
-    final.rgb *= final.a;
-
-    final.rgb += x_fill.rgb * ir * x_fill.a;
-    final.a += ir * x_fill.a;
+    final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
+    final.a = sa + fa * (1.0 - sa);
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
 """
@@ -399,14 +415,21 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+out vec2 v_local;
+uniform float u_strokeAlignment;
+uniform float u_smooth;
 void main() {
     v_instance = gl_InstanceID;
 
     ${shadeStructure.varyingBridge ?: ""}
 
-    vec2 effectiveRadius = i_radius.xy + vec2(1.25 / u_contentScale) / (u_modelViewScalingFactor);
+    // the quad covers the part of the stroke outside of the circle plus a margin for anti-aliasing
+    vec2 effectiveRadius = i_radius.xy + vec2(i_strokeWeight * u_strokeAlignment) + u_smooth * vec2(1.25 / u_contentScale) / (u_modelViewScalingFactor);
+    // texture coordinates span the bounds of the circle, not those of the quad
+    va_texCoord0 = vec2(0.5) + (a_texCoord0 - vec2(0.5)) * effectiveRadius / max(i_radius.xy, vec2(1E-6));
+    v_local = a_position.xy * effectiveRadius;
 
-    v_boundsSize = vec3(effectiveRadius.xy, 0.0);
+    v_boundsSize = vec3(i_radius.xy, 0.0);
     ${preVertexTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = vec3(a_position.xy * effectiveRadius, 0.0) + i_offset;
@@ -513,6 +536,13 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
+in vec2 v_local;
+// the fraction of the stroke that lies outside of the outline: 0.0 inside, 0.5 centered, 1.0 outside
+uniform float u_strokeAlignment;
+// the join of the outer stroke corners: 0 miter, 1 bevel, 2 round
+uniform int u_lineJoin;
+// 1.0 for anti-aliased edges, 0.0 for hard edges
+uniform float u_smooth;
 
 ${
         fragmentMainConstants(
@@ -521,26 +551,70 @@ ${
         )
     }
 
+// box filtered coverage of the interval [-halfExtent, halfExtent] for a pixel of size f centered at x
+float intervalCoverage(float halfExtent, float x, float f) {
+    return clamp(min(x + 0.5 * f, halfExtent) - max(x - 0.5 * f, -halfExtent), 0.0, f) / f;
+}
+
+float boxCoverage(vec2 halfExtents, vec2 p, vec2 f) {
+    if (u_smooth != 0.0) {
+        return intervalCoverage(halfExtents.x, p.x, f.x) * intervalCoverage(halfExtents.y, p.y, f.y);
+    }
+    // hard edges: a pixel is covered when its center is
+    vec2 q = abs(p) - halfExtents;
+    return (q.x <= 1E-3 * f.x && q.y <= 1E-3 * f.y) ? 1.0 : 0.0;
+}
+
+// coverage of the region with signed distance [d] (negative inside) for a pixel of size [f]
+float edgeCoverage(float d, float f) {
+    return u_smooth != 0.0 ? clamp(0.5 - d / f, 0.0, 1.0) : (d <= 1E-3 * f ? 1.0 : 0.0);
+}
+
+// coverage of the rectangle with half extents [halfSize] grown by [o], with its corners joined by [lineJoin]
+float outsetCoverage(vec2 halfSize, float o, vec2 p, vec2 f, int lineJoin) {
+    float box = boxCoverage(halfSize + vec2(o), p, f);
+    if (lineJoin == 0 || o <= 0.0) {
+        return box;
+    }
+    // position relative to the nearest corner of the rectangle
+    vec2 c = abs(p) - halfSize;
+    float pf = length(f) * 0.70710678;
+    if (lineJoin == 2) {
+        float d = length(max(c, vec2(0.0))) + min(max(c.x, c.y), 0.0) - o;
+        return min(box, edgeCoverage(d, pf));
+    } else {
+        float d = (c.x + c.y - o) * 0.70710678;
+        return min(box, edgeCoverage(d, pf));
+    }
+}
+
 void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
+    float x_strokeWeight = vi_strokeWeight;
     {
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
-    vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
-    vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2.0);
+    // distances are in object units, a centered stroke is as in CSS/SVG, with mitered corners
+    // the size of a pixel across the edges, fwidth() would overestimate it for rotated rectangles
+    vec2 f = max(vec2(length(vec2(dFdx(v_local.x), dFdy(v_local.x))), length(vec2(dFdx(v_local.y), dFdy(v_local.y)))), vec2(1E-6));
+    vec2 halfSize = abs(vi_dimensions) * 0.5;
 
-    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - vi_strokeWeight * 2.0 / vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - vi_strokeWeight * 2.0 / vi_dimensions.y);
-    float ir = irx*iry;
+    float fillCoverage = boxCoverage(halfSize, v_local, f);
+    float outerCoverage = outsetCoverage(halfSize, x_strokeWeight * u_strokeAlignment, v_local, f, u_lineJoin);
+    vec2 innerHalfSize = halfSize - vec2(x_strokeWeight * (1.0 - u_strokeAlignment));
+    float innerCoverage = (innerHalfSize.x > 0.0 && innerHalfSize.y > 0.0) ? boxCoverage(innerHalfSize, v_local, f) : 0.0;
+    float strokeCoverage = max(outerCoverage - innerCoverage, 0.0);
+    if (u_smooth == 0.0 && fillCoverage == 0.0 && strokeCoverage == 0.0) {
+        discard;
+    }
 
-    vec4 final = vec4(1.0);
-    final.rgb = x_fill.rgb * x_fill.a;
-    final.a = x_fill.a;
-
-    float sa = (1.0-ir) * x_stroke.a;
-    final.rgb = final.rgb * (1.0-sa) + x_stroke.rgb * sa;
-    final.a = final.a * (1.0-sa) + sa;
+    // the stroke is painted over the fill
+    float sa = strokeCoverage * x_stroke.a;
+    float fa = fillCoverage * x_fill.a;
+    vec4 final = vec4(0.0);
+    final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
+    final.a = sa + fa * (1.0 - sa);
 
     ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -565,6 +639,9 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+out vec2 v_local;
+uniform float u_strokeAlignment;
+uniform float u_smooth;
 ${rotate2}
 
 void main() {
@@ -572,7 +649,13 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * i_dimensions) + vec2(0.5) * i_dimensions;
+    // the quad covers the part of the stroke outside of the rectangle plus a margin for anti-aliasing
+    vec2 margin = vec2(i_strokeWeight * u_strokeAlignment) + u_smooth * vec2(1.25 / u_contentScale) / (u_modelViewScalingFactor);
+    vec2 quadSize = i_dimensions + sign(i_dimensions) * margin * 2.0;
+    v_local = (a_position.xy - vec2(0.5)) * quadSize;
+    // texture coordinates span the bounds of the rectangle, not those of the quad
+    va_texCoord0 = vec2(0.5) + (a_texCoord0 - vec2(0.5)) * abs(quadSize) / max(abs(i_dimensions), vec2(1E-6));
+    vec2 rotatedPosition = rotate2(i_rotation) * v_local + vec2(0.5) * i_dimensions;
 
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);

@@ -3,6 +3,12 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
 
+/**
+ * Clips strokes to the inside ([inside] is true) or the outside of [polygons], [fringes] draw the anti-aliased edge
+ * of the stroke on the outline.
+ */
+internal class StrokeClip(val polygons: List<Expansion>, val fringes: List<Expansion>, val inside: Boolean)
+
 internal data class ExpansionCommand(
     val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
     val minX: Double, val minY: Double, val maxX: Double, val maxY: Double
@@ -22,6 +28,11 @@ internal data class ExpansionCommand(
  * @property quadCounter Tracks the number of handled quads for rendering.
  */
 internal class ExpansionDrawer {
+
+    private companion object {
+        /** the stencil bit used to clip strokes, the lower bits count the stroke coverage */
+        const val CLIP_BIT = 0x80
+    }
 
     private val shaderManager = ShadeStyleManager.fromGenerators(
         "expansion",
@@ -117,11 +128,20 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
+    /**
+     * @param clipCommands polygons that clip the strokes, rendered with even-odd parity into [CLIP_BIT] of the stencil
+     * buffer
+     * @param fringeCommands the anti-aliased edge of the clipped strokes, drawn on the other side of the clip
+     * @param clipInside draw the strokes inside of the clip polygons when true, outside of them when false
+     */
     private fun renderStrokeCommandsInterleaved(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
         commands: List<ExpansionCommand>,
-        fringeScale: Double
+        fringeScale: Double,
+        clipCommands: List<ExpansionCommand> = emptyList(),
+        fringeCommands: List<ExpansionCommand> = emptyList(),
+        clipInside: Boolean = true
     ) {
         if (commands.isNotEmpty()) {
             val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
@@ -137,10 +157,31 @@ internal class ExpansionDrawer {
             shader.uniform("strokeFillFactor", 0.0)
 
             shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
+
+            // -- clip, mark the clip polygons in the stencil buffer
+            val clipped = clipCommands.isNotEmpty()
+            if (clipped) {
+                localStyle.channelWriteMask = ChannelMask.NONE
+                localStyle.stencil.stencilWriteMask = CLIP_BIT
+                localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x00, 0xff)
+                localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INVERT)
+                Driver.instance.setState(localStyle)
+                for (clip in clipCommands) {
+                    Driver.instance.drawVertexBuffer(
+                        shader, listOf(clip.vertexBuffer), DrawPrimitive.TRIANGLES,
+                        clip.vertexOffset, clip.vertexCount, verticesPerPatch = 0
+                    )
+                }
+                localStyle.stencil.stencilWriteMask = 0xff
+            }
+            // strokes are drawn where the stencil buffer holds this value, drawn pixels are increased to prevent
+            // blending twice
+            val reference = if (clipped && clipInside) CLIP_BIT else 0x00
+
             localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
-            localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
+            localStyle.stencil.stencilFunc(StencilTest.EQUAL, reference, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
@@ -154,7 +195,7 @@ internal class ExpansionDrawer {
 
             // -- anti-aliased
             shader.uniform("strokeThr", 0.0f)
-            localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
+            localStyle.stencil.stencilFunc(StencilTest.EQUAL, reference, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.KEEP)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
@@ -165,6 +206,21 @@ internal class ExpansionDrawer {
                 vertexCount,
                 verticesPerPatch = 0
             )
+
+            // -- the anti-aliased edge of clipped strokes, outside of the region the strokes are clipped to
+            if (fringeCommands.isNotEmpty()) {
+                shader.uniform("strokeThr", -1.0f)
+                shader.uniform("strokeMult", 1.0)
+                localStyle.stencil.stencilFunc(StencilTest.EQUAL, if (clipInside) 0x00 else CLIP_BIT, 0xff)
+                localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
+                Driver.instance.setState(localStyle)
+                for (fringe in fringeCommands) {
+                    Driver.instance.drawVertexBuffer(
+                        shader, listOf(fringe.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP,
+                        fringe.vertexOffset, fringe.vertexCount, verticesPerPatch = 0
+                    )
+                }
+            }
 
             // -- reset stencil
             localStyle.channelWriteMask = ChannelMask(red = false, green = false, blue = false, alpha = false)
@@ -179,6 +235,19 @@ internal class ExpansionDrawer {
                 vertexCount,
                 verticesPerPatch = 0
             )
+            // the clip bit is also set outside of the strokes and fringes
+            for (fringe in fringeCommands) {
+                Driver.instance.drawVertexBuffer(
+                    shader, listOf(fringe.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP,
+                    fringe.vertexOffset, fringe.vertexCount, verticesPerPatch = 0
+                )
+            }
+            for (clip in clipCommands) {
+                Driver.instance.drawVertexBuffer(
+                    shader, listOf(clip.vertexBuffer), DrawPrimitive.TRIANGLES,
+                    clip.vertexOffset, clip.vertexCount, verticesPerPatch = 0
+                )
+            }
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
             localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
@@ -478,14 +547,23 @@ internal class ExpansionDrawer {
         drawContext: DrawContext,
         drawStyle: DrawStyle,
         expansions: List<Expansion>,
-        fringeScale: Double
+        fringeScale: Double,
+        clip: StrokeClip? = null
     ) {
-        val vertexCount = expansions.sumOf { it.vertexCount + 2 }
+        val clipExpansions = clip?.let { it.polygons + it.fringes } ?: emptyList()
+        val vertexCount = expansions.sumOf { it.vertexCount + 2 } + clipExpansions.sumOf {
+            if (it.type == ExpansionType.FILL) (it.vertexCount - 2).coerceAtLeast(0) * 3 else it.vertexCount + 2
+        }
+        // the strokes come first in the vertex buffer, they are drawn with a single draw call
+        val commands = toCommands(vertices(vertexCount), expansions + clipExpansions)
         renderStrokeCommandsInterleaved(
             drawContext,
             drawStyle,
-            toCommands(vertices(vertexCount), expansions),
-            fringeScale
+            commands.filter { it.type == ExpansionType.STROKE },
+            fringeScale,
+            commands.filter { it.type == ExpansionType.FILL },
+            commands.filter { it.type == ExpansionType.FRINGE },
+            clip?.inside ?: true
         )
     }
 

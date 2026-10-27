@@ -509,6 +509,18 @@ class Drawer(val driver: Driver) {
         get() = drawStyle.strokeWeight
 
     /**
+     * The position of the stroke relative to the outline of closed geometry: circles, rectangles and closed contours
+     * and shapes. Open geometry is always stroked centered.
+     * @see strokeWeight
+     * @see stroke
+     */
+    var strokeAlignment: StrokeAlignment
+        set(value) {
+            drawStyle.strokeAlignment = value
+        }
+        get() = drawStyle.strokeAlignment
+
+    /**
      * The active line cap method
      * @see strokeWeight
      * @see stroke
@@ -594,6 +606,77 @@ class Drawer(val driver: Driver) {
      */
     fun rectangle(corner: Vector2, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
+    }
+
+    /**
+     * The draw style for raw rectangles: fill only, hard edges
+     */
+    private fun rawRectangleStyle() = drawStyle.copy(stroke = null, smooth = false)
+
+    /**
+     * Draws a raw rectangle: a quad that covers exactly the pixels whose centers lie inside the rectangle, without
+     * anti-aliasing and without a stroke. Use raw rectangles to run shade styles over a region of pixels, for
+     * computation or blitting, where [rectangle] would anti-alias the edges and draw outside of the rectangle.
+     *
+     * Shade styles see the same inputs as for [rectangle], `c_boundsPosition` spans `[0, 1]` over the rectangle.
+     *
+     * @param rectangle the rectangle to draw
+     */
+    fun rawRectangle(rectangle: Rectangle) {
+        rectangleDrawer.drawRectangle(context, rawRectangleStyle(), rectangle.x, rectangle.y, rectangle.width, rectangle.height)
+    }
+
+    /**
+     * Draws a raw rectangle, see [rawRectangle]
+     *
+     * @param x The x-coordinate of the top-left corner of the rectangle.
+     * @param y The y-coordinate of the top-left corner of the rectangle.
+     * @param width The width of the rectangle.
+     * @param height The height of the rectangle. Defaults to the value of width if not specified.
+     */
+    fun rawRectangle(x: Double, y: Double, width: Double, height: Double = width) {
+        rectangleDrawer.drawRectangle(context, rawRectangleStyle(), x, y, width, height)
+    }
+
+    /**
+     * Draws a raw rectangle, see [rawRectangle]
+     *
+     * @param corner The top-left corner of the rectangle.
+     * @param width The width of the rectangle.
+     * @param height The height of the rectangle. Defaults to the value of width if not specified.
+     */
+    fun rawRectangle(corner: Vector2, width: Double, height: Double = width) {
+        rectangleDrawer.drawRectangle(context, rawRectangleStyle(), corner.x, corner.y, width, height)
+    }
+
+    /**
+     * Draws raw rectangles, see [rawRectangle]
+     *
+     * @param rectangles the rectangles to draw
+     */
+    fun rawRectangles(rectangles: List<Rectangle>) {
+        rectangleDrawer.drawRectangles(context, rawRectangleStyle(), rectangles)
+    }
+
+    /**
+     * Draws raw rectangles, see [rawRectangle]
+     *
+     * @param positions the top-left corners of the rectangles
+     * @param width The width of each rectangle.
+     * @param height The height of each rectangle. Defaults to the value of the width parameter.
+     */
+    fun rawRectangles(positions: List<Vector2>, width: Double, height: Double = width) {
+        rectangleDrawer.drawRectangles(context, rawRectangleStyle(), positions, width, height)
+    }
+
+    /**
+     * Draws raw rectangles, see [rawRectangle]
+     *
+     * @param positions the top-left corners of the rectangles
+     * @param dimensions the dimensions of the rectangles
+     */
+    fun rawRectangles(positions: List<Vector2>, dimensions: List<Vector2>) {
+        rectangleDrawer.drawRectangles(context, rawRectangleStyle(), positions, dimensions)
     }
 
     /**
@@ -829,7 +912,7 @@ class Drawer(val driver: Driver) {
                         context, drawStyle,
                         closedP, closedC, fringeWidth
                     )
-                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth)
+                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true)
                 }
 
                 ShapeTopology.OPEN -> {
@@ -990,7 +1073,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineSegments(segments: List<Vector2>) {
-        val fringeWidth = 0.5 / modelViewScaling
+        val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1016,7 +1099,7 @@ class Drawer(val driver: Driver) {
      * @param weights  A list of `Double` values representing the weights (thickness) of each line segment.
      */
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
-        val fringeWidth = 0.5 / modelViewScaling
+        val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }

@@ -5,6 +5,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
+import kotlin.math.sqrt
 
 /**
  * Line join enumeration
@@ -22,6 +23,24 @@ enum class LineCap {
     ROUND,
     BUTT,
     SQUARE
+}
+
+/**
+ * Stroke alignment enumeration, the position of the stroke relative to the outline of closed geometry. Open geometry,
+ * like line segments and open contours, is always stroked centered.
+ */
+enum class StrokeAlignment(
+    /** the fraction of the stroke weight that lies outside of the outline */
+    val outsideFraction: Double
+) {
+    /** the stroke lies inside of the outline */
+    INSIDE(0.0),
+
+    /** the stroke is centered on the outline, as in CSS and SVG */
+    CENTER(0.5),
+
+    /** the stroke lies outside of the outline */
+    OUTSIDE(1.0)
 }
 
 
@@ -436,6 +455,8 @@ data class DrawStyle(
     var lineJoin: LineJoin = LineJoin.MITER,
 
     var strokeWeight: Double = 1.0,
+
+    /** Draw anti-aliased edges, set to false for hard edges: a pixel is covered when its center is */
     var smooth: Boolean = true,
     var miterLimit: Double = 4.0,
 
@@ -459,10 +480,24 @@ data class DrawStyle(
     var frontStencil: StencilStyle = stencil,
     var backStencil: StencilStyle = stencil,
 
-    var colorMatrix: Matrix55 = Matrix55.IDENTITY
+    var colorMatrix: Matrix55 = Matrix55.IDENTITY,
+
+    /** The position of the stroke relative to the outline of closed geometry */
+    var strokeAlignment: StrokeAlignment = StrokeAlignment.CENTER
 ) {
 
     fun applyToShader(shader: Shader) {
+        if (shader.hasUniform("u_strokeAlignment")) {
+            shader.uniform("u_strokeAlignment", strokeAlignment.outsideFraction)
+        }
+        if (shader.hasUniform("u_smooth")) {
+            shader.uniform("u_smooth", if (smooth) 1.0 else 0.0)
+        }
+        if (shader.hasUniform("u_lineJoin")) {
+            // the right angled corners of rectangles have a miter ratio of sqrt(2)
+            val join = if (lineJoin == LineJoin.MITER && miterLimit < sqrt(2.0)) LineJoin.BEVEL else lineJoin
+            shader.uniform("u_lineJoin", join.ordinal)
+        }
         if (!useStyleBlock) {
             if (shader.hasUniform("u_fill")) {
                 shader.uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)

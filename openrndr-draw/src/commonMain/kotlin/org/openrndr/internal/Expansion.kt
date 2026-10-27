@@ -99,7 +99,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         p0: PathPoint, p1: PathPoint,
         lw: Double, rw: Double, lu: Double, ru: Double,
         offset: Double,
-        aa: Double = 0.0
+        aa: Double = 0.0,
+        mu: Double = 0.5
     ) {
         val dlx0 = p0.dy
         val dly0 = -p0.dx
@@ -132,13 +133,13 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
                 val rx0 = p1.x - p1.dmx * rw
                 val ry0 = p1.y - p1.dmy * rw
 
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
                 addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
                 addVertex(rx0, ry0, ru, 1.0, offset)
                 addVertex(rx0, ry0, ru, 1.0, offset)
 
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
                 addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
             }
 
@@ -170,13 +171,13 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
                 val ly0 = p1.y + p1.dmy * lw
 
                 addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
 
                 addVertex(lx0, ly0, lu, 1.0, offset)
                 addVertex(lx0, ly0, lu, 1.0, offset)
 
                 addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
             }
 
             addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
@@ -186,7 +187,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 
     fun roundJoin(
         p0: PathPoint, p1: PathPoint,
-        lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, offset: Double
+        lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, offset: Double,
+        mu: Double = 0.5
     ) {
 
         val dlx0 = p0.dy
@@ -220,7 +222,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
                 val a = a0 + u * (a1 - a0)
                 val rx = p1.x + cos(a) * rw
                 val ry = p1.y + sin(a) * rw
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
                 addVertex(rx, ry, ru, 1.0, offset)
             }
 
@@ -239,7 +241,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             if (a1 < a0) {
                 a1 += PI * 2
             }
-            addVertex(p1.x + dlx0 * rw, p1.y + dly0 * rw, lu, 1.0, offset)
+            addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
             val n = ncap.coerceAtMost(ceil((a1 - a0) / PI * ncap).toInt()).coerceAtLeast(2)
@@ -247,9 +249,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             for (i in 0 until n) {
                 val a = a0 + i.toDouble() / (n - 1.0) * (a1 - a0)
                 addVertex(p1.x + cos(a) * lw, p1.y + sin(a) * lw, lu, 1.0, offset)
-                addVertex(p1.x, p1.y, 0.5, 1.0, offset)
+                addVertex(p1.x, p1.y, mu, 1.0, offset)
             }
-            addVertex(p1.x + dlx1 * rw, p1.y + dly1 * rw, lu, 1.0, offset)
+            addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
             addVertex(rx1, ry1, ru, 1.0, offset)
         }
     }
@@ -358,6 +360,20 @@ internal class Path {
     val contours = mutableListOf<List<PathPoint>>()
 
     companion object {
+        /**
+         * Signed area of a closed [loop], the left side (positive cross product turns) of a loop is its outside when
+         * the signed area is positive
+         */
+        fun signedArea(loop: List<Vector2>): Double {
+            var area = 0.0
+            for (i in loop.indices) {
+                val a = loop[i]
+                val b = loop[(i + 1) % loop.size]
+                area += a.x * b.y - b.x * a.y
+            }
+            return area * 0.5
+        }
+
         fun fromLineStrip(
             segments: List<Vector2>,
             corners: List<Boolean>,
@@ -485,6 +501,31 @@ internal class Path {
         convex = sameSignedTurns && windsOnce
     }
 
+    /**
+     * The fill inset and the fringe are offset along the join normals, which point into the filled region only when
+     * it lies on the side of left (positive cross product) turns. Reverses all contours when the outer contour, the
+     * one with the largest area, winds the other way. Reversing all contours keeps holes wound opposite to the outer
+     * contour.
+     */
+    private fun orientForFill() {
+        fun signedArea(points: List<PathPoint>): Double {
+            var area = 0.0
+            for (i in points.indices) {
+                val a = points[i]
+                val b = points[(i + 1) % points.size]
+                area += a.x * b.y - b.x * a.y
+            }
+            return area * 0.5
+        }
+
+        val outerArea = contours.maxByOrNull { abs(signedArea(it)) }?.let { signedArea(it) } ?: return
+        if (outerArea > 0.0) {
+            for (i in contours.indices) {
+                contours[i] = contours[i].reversed()
+            }
+        }
+    }
+
     fun prepare(points: List<PathPoint>) {
         if (points.isEmpty()) {
             return
@@ -519,24 +560,49 @@ internal class Path {
         }
     }
 
+    /**
+     * @param strokeWeight half of the stroke weight
+     * @param outsideFraction the fraction of the stroke that lies outside of a closed path, 0.5 centers the stroke
+     * on the path, open paths are always centered
+     * @param leftIsOutside is the left side (positive cross product turns) of a closed path its outside,
+     * see [leftIsOutside]
+     */
     fun expandStroke(
         fringeWidth: Double,
         strokeWeight: Double,
         lineCap: LineCap,
         lineJoin: LineJoin,
-        miterLimit: Double
+        miterLimit: Double,
+        outsideFraction: Double = 0.5,
+        leftIsOutside: Boolean = true
     ): Expansion {
-        val weight = strokeWeight + fringeWidth * 1.0
+        // the fringe is centered on the stroke edge, half of it lies outside of the stroke weight
+        val weight = strokeWeight + fringeWidth * 0.5
+
+        // widths of the stroke to the left and right of the path, including half of the fringe
+        val lw: Double
+        val rw: Double
+        if (closed && outsideFraction != 0.5) {
+            val outside = 2.0 * strokeWeight * outsideFraction
+            val inside = 2.0 * strokeWeight - outside
+            lw = (if (leftIsOutside) outside else inside) + fringeWidth * 0.5
+            rw = (if (leftIsOutside) inside else outside) + fringeWidth * 0.5
+        } else {
+            lw = weight
+            rw = weight
+        }
+        // the across-stroke coordinate of the path itself
+        val mu = lw / (lw + rw)
 
         if (contours.isNotEmpty() && contours[0].renderable) {
             val points = contours[0]
 
             val tessTol = 0.1 * fringeWidth
-            val capSteps = curveDivs(weight, PI, tessTol)
+            val capSteps = curveDivs(max(lw, rw), PI, tessTol)
 
             prepare(points)
 
-            calculateJoins(points, weight, lineJoin, miterLimit)
+            calculateJoins(points, max(lw, rw), lineJoin, miterLimit)
 
             var cverts = 0
             cverts += if (lineJoin == LineJoin.ROUND) {
@@ -577,7 +643,7 @@ internal class Path {
 
                 when (lineCap) {
                     LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa * 1.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
                     LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, offset)
                 }
             }
@@ -588,13 +654,13 @@ internal class Path {
                 offset += p0.length
                 if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
                     if (lineJoin === LineJoin.ROUND) {
-                        expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, offset)
+                        expansion.roundJoin(p0, p1, lw, rw, 0.0, 1.0, capSteps, offset, mu)
                     } else {
-                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, offset, aa)
+                        expansion.bevelJoin(p0, p1, lw, rw, 0.0, 1.0, offset, aa, mu)
                     }
                 } else {
-                    expansion.addVertex(p1.x + p1.dmx * weight, p1.y + p1.dmy * weight, 0.0, 1.0, offset)
-                    expansion.addVertex(p1.x - p1.dmx * weight, p1.y - p1.dmy * weight, 1.0, 1.0, offset)
+                    expansion.addVertex(p1.x + p1.dmx * lw, p1.y + p1.dmy * lw, 0.0, 1.0, offset)
+                    expansion.addVertex(p1.x - p1.dmx * rw, p1.y - p1.dmy * rw, 1.0, 1.0, offset)
                 }
                 p0 = p1
                 p1ptr += 1
@@ -630,7 +696,7 @@ internal class Path {
                 }
                 when (lineCap) {
                     LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, -weight + aa * 1.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, -weight + aa, aa, offset)
                     LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, offset)
                 }
             }
@@ -638,6 +704,62 @@ internal class Path {
         } else {
             return Expansion(ExpansionType.SKIP, FloatArray(0), 0)
         }
+    }
+
+    /**
+     * Expands the closed contours into polygons offset from the outline by [offset] (positive grows the filled
+     * region, negative shrinks it), to be rendered with even-odd parity into the stencil buffer to clip strokes.
+     */
+    fun expandClip(offset: Double): List<Expansion> {
+        if (contours.isEmpty()) {
+            return emptyList()
+        }
+        orientForFill()
+        return contours.filter { it.size >= 3 }.map { points ->
+            prepare(points)
+            calculateJoins(points, abs(offset), LineJoin.MITER, Double.POSITIVE_INFINITY)
+            val clip = Expansion(ExpansionType.FILL, FloatArray(points.size * 5), 0)
+            for (point in points) {
+                val (dx, dy) = limitedMiter(point)
+                clip.addVertex(point.x - dx * offset, point.y - dy * offset, 0.5, 1.0, 0.0)
+            }
+            clip
+        }
+    }
+
+    /**
+     * Expands the closed contours into anti-aliasing fringes of width [fringeWidth] centered on the outline. The
+     * fringes fade out towards the outside of the filled region when [fadeOutwards] is true, towards the inside
+     * otherwise. Rendered with `strokeMult = 1.0`.
+     */
+    fun expandClipFringe(fringeWidth: Double, fadeOutwards: Boolean): List<Expansion> {
+        if (contours.isEmpty()) {
+            return emptyList()
+        }
+        orientForFill()
+        val h = fringeWidth * 0.5
+        // u = 0.5 is opaque, u = 0.0 is transparent
+        val uInside = if (fadeOutwards) 0.5 else 0.0
+        val uOutside = if (fadeOutwards) 0.0 else 0.5
+        return contours.filter { it.size >= 3 }.map { points ->
+            prepare(points)
+            calculateJoins(points, h, LineJoin.MITER, Double.POSITIVE_INFINITY)
+            val fringe = Expansion(ExpansionType.FRINGE, FloatArray((points.size + 1) * 2 * 5), 0)
+            for (i in 0..points.size) {
+                val point = points[i % points.size]
+                val (dx, dy) = limitedMiter(point)
+                fringe.addVertex(point.x + dx * h, point.y + dy * h, uInside, 1.0, 0.0)
+                fringe.addVertex(point.x - dx * h, point.y - dy * h, uOutside, 1.0, 0.0)
+            }
+            fringe
+        }
+    }
+
+    /** the miter vector of [point], pointing into the filled region after [orientForFill], limited to length 4 */
+    private fun limitedMiter(point: PathPoint): Pair<Double, Double> {
+        val length = sqrt(point.dmx * point.dmx + point.dmy * point.dmy)
+        val scale = if (length > 4.0) 4.0 / length else 1.0
+        return Pair(point.dmx * scale, point.dmy * scale)
     }
 
     fun expandFill(
@@ -649,6 +771,7 @@ internal class Path {
         if (contours.isNotEmpty()) {
             val result = mutableListOf<Expansion>()
 
+            orientForFill()
             contours.forEach { prepare(it) }
             contours.forEach { calculateJoins(it, weight, lineJoin, miterLimit) }
 
