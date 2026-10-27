@@ -339,7 +339,9 @@ fun createApplicationWindowSDL(
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-//    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
+    // windows are created while the primary context is current, sharing with it puts all window contexts in one
+    // share group so a Drawer and resources can be used in all windows, VAOs are kept per context by the driver
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
 
     if (configuration.hdr) {
