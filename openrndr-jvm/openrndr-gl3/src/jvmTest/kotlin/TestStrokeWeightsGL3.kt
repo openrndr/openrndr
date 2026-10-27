@@ -246,6 +246,62 @@ class TestStrokeWeightsGL3 : AbstractApplicationTestFixture() {
         assertTrue(failures.isEmpty(), failures.joinToString("\n"))
     }
 
+    /**
+     * Fills of contours and shapes are anti-aliased like those of circles, also when the stroke is set but too thin
+     * to cover the edge of the fill (https://github.com/openrndr/openrndr/issues/281).
+     */
+    @Test
+    fun fillsAreAntiAliasedForAnyStroke() {
+        val failures = mutableListOf<String>()
+        for ((name, stroke, weight) in listOf<Triple<String, ColorRGBa?, Double>>(
+            Triple("stroke = null", null, 1.0),
+            Triple("strokeWeight = 0", ColorRGBa.WHITE, 0.0),
+            Triple("strokeWeight = 0.2", ColorRGBa.WHITE, 0.2),
+            Triple("strokeWeight = 1", ColorRGBa.WHITE, 1.0),
+        )) {
+            val partial = mutableMapOf<String, Int>()
+            for ((primitive, draw) in listOf<Pair<String, Drawer.() -> Unit>>(
+                "circle" to { circle(center, center, radius) },
+                "contour" to { contour(Circle(center, center, radius).contour) },
+                "shape" to { shape(Circle(center, center, radius).shape) },
+            )) {
+                val rt = renderTarget(size, size, contentScale = 1.0) {
+                    colorBuffer(type = ColorType.FLOAT32)
+                    depthBuffer(DepthFormat.DEPTH24_STENCIL8)
+                }
+                val drawer = program.drawer
+                drawer.isolatedWithTarget(rt) {
+                    drawer.ortho(rt)
+                    drawer.clear(ColorRGBa.TRANSPARENT)
+                    drawer.fill = ColorRGBa.WHITE
+                    drawer.stroke = stroke
+                    drawer.strokeWeight = weight
+                    drawer.draw()
+                }
+                val shadow = rt.colorBuffer(0).shadow
+                shadow.download()
+                var count = 0
+                for (y in 0 until size) for (x in 0 until size) {
+                    val a = shadow[x, y].alpha
+                    if (a > 0.02 && a < 0.98) count++
+                }
+                rt.colorBuffer(0).destroy()
+                rt.depthBuffer?.destroy()
+                rt.destroy()
+                partial[primitive] = count
+            }
+            // an anti-aliased edge of a circle of this radius has a few hundred partially covered pixels, an aliased
+            // edge has none
+            val reference = partial.getValue("circle")
+            for (primitive in listOf("contour", "shape")) {
+                if (partial.getValue(primitive) < reference * 0.75) {
+                    failures += "$name: $primitive has ${partial[primitive]} partially covered pixels, circle has $reference"
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
+    }
+
     @Test
     fun fillsCoverTheInside() {
         val fills = primitives.filter { !it.first.startsWith("line") } + listOf<Pair<String, Drawer.() -> Unit>>(
