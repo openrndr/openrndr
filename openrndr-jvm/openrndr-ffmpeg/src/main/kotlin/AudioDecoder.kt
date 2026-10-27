@@ -6,6 +6,7 @@ import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVChannelLayout
+import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
@@ -77,6 +78,12 @@ internal class AudioDecoder(
         swr_init(resampleContext).checkAVError()
     }
 
+    private fun configureResampler(output: AVFrame, input: AVFrame) {
+        swr_close(resampleContext)
+        swr_config_frame(resampleContext, output, input).checkAVError()
+        swr_init(resampleContext).checkAVError()
+    }
+
     private fun setResampleOpt(name: String, value: Long) =
         av_opt_set_int(resampleContext, name, value, 0)
 
@@ -132,53 +139,81 @@ internal class AudioDecoder(
         avcodec.avcodec_flush_buffers(audioCodecContext)
     }
 
-    var first = 0
     fun decodeAudioPacket(stream: AVStream, packet: AVPacket, seekPosition: Double) {
-        var ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
+        val ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
         if (ret < 0) {
-            logger.error { "error in avcodec_send_packet: $ret" }
             if (ret == AVERROR_EAGAIN()) {
                 logger.debug { "again" }
+            } else if (ret != AVERROR_EOF) {
+                logger.error { "error in avcodec_send_packet: $ret" }
             }
-
-            if (ret != AVERROR_EOF)
-                logger.debug { "error in avcodec_send_packet: $ret" }
             return
         }
 
-        val decodedFrame = av_frame_alloc()
-        ret = avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame)
-        val ptss = (decodedFrame.pts() - stream.start_time()).toDouble() * av_q2d(stream.time_base())
+        // streams without a known start time, like WAV files, start at 0
+        val startTime = stream.start_time().let { if (it == AV_NOPTS_VALUE) 0L else it }
 
-        if (ret == 0 && ptss > seekPosition) {
-            val resampledAudioFrame = av_frame_alloc()
-
-            resampledAudioFrame.sample_rate(output.sampleRate)
-            resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
-            resampledAudioFrame.ch_layout(output.channelLayout)
-
-            if (firstSwr) {
-                swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
-                firstSwr = false
+        // a packet can decode to any number of frames
+        while (true) {
+            val decodedFrame = av_frame_alloc()
+            if (avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame) != 0) {
+                av_frame_free(decodedFrame)
+                break
             }
-            val result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
-            if (result == 0) {
-                val audioFrameSize = resampledAudioFrame.ch_layout().nb_channels() * resampledAudioFrame.nb_samples() * av_get_bytes_per_sample(resampledAudioFrame.format())
+            // frames of some formats, like WAV, have a channel layout without channel order. The resampler replaces
+            // it with the default layout for the channel count and would then consider every frame changed.
+            if (decodedFrame.ch_layout().order() == AV_CHANNEL_ORDER_UNSPEC) {
+                val channels = decodedFrame.ch_layout().nb_channels()
+                av_channel_layout_uninit(decodedFrame.ch_layout())
+                av_channel_layout_default(decodedFrame.ch_layout(), channels)
+            }
+            val pts = decodedFrame.best_effort_timestamp().let { if (it == AV_NOPTS_VALUE) decodedFrame.pts() else it }
+            // the time stamp in seconds, frames without a time stamp are never skipped
+            val timeStamp = if (pts == AV_NOPTS_VALUE) Double.NaN else (pts - startTime).toDouble() * av_q2d(stream.time_base())
 
-                val buffer = av_buffer_alloc(audioFrameSize.toLong())
-                val ts = (resampledAudioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
-                memcpy(buffer.data(), resampledAudioFrame.data()[0], audioFrameSize.toLong())
-                av_frame_free(resampledAudioFrame)
-                synchronized(audioQueue) {
-                    logger.trace { "queuing audio frame" }
-                    audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+            // frames that end before the seek position are skipped, the frame that contains it is played
+            val frameDuration = decodedFrame.nb_samples().toDouble() / decodedFrame.sample_rate().coerceAtLeast(1)
+            if (timeStamp.isNaN() || timeStamp + frameDuration > seekPosition) {
+                val resampledAudioFrame = av_frame_alloc()
+
+                resampledAudioFrame.sample_rate(output.sampleRate)
+                resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
+                resampledAudioFrame.ch_layout(output.channelLayout)
+
+                // the resampler is configured from the frames, their layout and format can differ from the codec
+                // context, for example the channel order of WAV files
+                if (firstSwr) {
+                    configureResampler(resampledAudioFrame, decodedFrame)
+                    firstSwr = false
                 }
+                var result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
+                if (result == AVERROR_INPUT_CHANGED) {
+                    logger.debug { "audio input changed, reconfiguring resampler" }
+                    configureResampler(resampledAudioFrame, decodedFrame)
+                    result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
+                }
+                if (result == 0) {
+                    val audioFrameSize = resampledAudioFrame.ch_layout().nb_channels() * resampledAudioFrame.nb_samples() * av_get_bytes_per_sample(resampledAudioFrame.format())
 
-            } else {
-                logger.error { "there was an error: $result" }
+                    val buffer = av_buffer_alloc(audioFrameSize.toLong())
+                    memcpy(buffer.data(), resampledAudioFrame.data()[0], audioFrameSize.toLong())
+                    synchronized(audioQueue) {
+                        // the queue holds maxSize - 1 frames
+                        if (audioQueue.size() < audioQueue.maxSize - 1) {
+                            logger.trace { "queuing audio frame" }
+                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, timeStamp))
+                        } else {
+                            logger.debug { "audio queue full, dropping audio frame" }
+                            av_buffer_unref(buffer)
+                        }
+                    }
+                } else {
+                    logger.error { "there was an error: $result" }
+                }
+                av_frame_free(resampledAudioFrame)
+                result.checkAVError()
             }
-            result.checkAVError()
+            av_frame_free(decodedFrame)
         }
-        av_frame_free(decodedFrame)
     }
 }

@@ -73,7 +73,10 @@ internal class Decoder(
             val audioStreamIndex =
                 av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
 
-            val videoStream = context.streamAt(videoStreamIndex)
+            // attached pictures, like the cover art of audio files, are not video
+            val videoStream = if (useVideo) {
+                context.streamAt(videoStreamIndex)?.takeIf { it.disposition() and AV_DISPOSITION_ATTACHED_PIC == 0 }
+            } else null
             val audioStream = if (useAudio) context.streamAt(audioStreamIndex) else null
 
             val videoContext = videoStream?.openCodec()

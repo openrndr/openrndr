@@ -530,7 +530,8 @@ class VideoPlayerFFMPEG private constructor(
     val newFrame = Event<FrameEvent>("videoplayer-new-frame")
 
     /**
-     * Listenable event, emitted when video ended
+     * Listenable event, emitted when video ended. The event is emitted from [draw], also call [draw] for audio only
+     * playback.
      */
     val ended = Event<VideoEvent>("videoplayer-ended")
 
@@ -543,6 +544,23 @@ class VideoPlayerFFMPEG private constructor(
 
     private var timeOffset = 0.0
     private var audioOffset = 0.0
+
+    /** the sample rate of the audio output */
+    private val audioSampleRate = 48000
+
+    /** is only audio played, there is no video stream or video is not used? */
+    private var audioOnly = false
+
+    /**
+     * The time stamp of the first audio frame queued after starting or seeking in audio only playback, the played
+     * audio is counted from there
+     */
+    @Volatile
+    private var audioSeekPosition = 0.0
+
+    /** take [audioSeekPosition] from the next queued audio frame */
+    @Volatile
+    private var audioSeekPositionFromNextFrame = true
 
     /**
      * Start playing the stream
@@ -576,10 +594,11 @@ class VideoPlayerFFMPEG private constructor(
             logger.debug { "starting sound with ${configuration.audioChannels}" }
 
             val useAudio = mode.useAudio && info.audio != null && audioDevice != null
+            audioOnly = info.video == null && useAudio
 
             val audioOutput =
                 if (useAudio)
-                    AudioOutput(48000, configuration.audioChannels, SampleFormat.S16)
+                    AudioOutput(audioSampleRate, configuration.audioChannels, SampleFormat.S16)
                 else
                     null
 
@@ -594,8 +613,14 @@ class VideoPlayerFFMPEG private constructor(
                         if (decoder.audioQueue() != null) {
                             synchronized(decoder.audioQueue() ?: error("no queue")) {
                                 logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
-                                if (decoder.audioQueueSize() >= 3) {
-                                    val frames = (0 until 3).map { decoder.nextAudioFrame()!! }
+                                val available = decoder.audioQueueSize()
+                                // at the end of the file the last frames are played too
+                                if (available >= 3 || (endOfFileReached && available > 0)) {
+                                    val frames = (0 until min(3, available)).map { decoder.nextAudioFrame()!! }
+                                    if (audioSeekPositionFromNextFrame && frames.first().timeStamp.isFinite()) {
+                                        audioSeekPosition = frames.first().timeStamp
+                                        audioSeekPositionFromNextFrame = false
+                                    }
                                     val totalSize = frames.sumOf { it.size }
 
                                     val bb = ByteBuffer.allocateDirect(totalSize)
@@ -652,7 +677,27 @@ class VideoPlayerFFMPEG private constructor(
                 endOfFileReached = true
             }
 
-            if (mode.useVideo) {
+            if (audioOnly) {
+                // handles seeks for audio only playback, the display thread does this for video
+                displayThread = thread(isDaemon = true) {
+                    Thread.currentThread().name += "(audio control)"
+                    while (!disposed) {
+                        if (state == State.PLAYING && seekPositions.isNotEmpty()) {
+                            val seekPosition = synchronized(seekPositions) {
+                                val seekPosition = seekPositions.last()
+                                seekPositions.clear()
+                                seekPosition
+                            }
+                            logger.debug { "performing audio seek to $seekPosition" }
+                            decoder.seek(seekPosition)
+                            audioOut?.flush()
+                            audioSeekPosition = seekPosition
+                            audioSeekPositionFromNextFrame = true
+                        }
+                        Thread.sleep(3)
+                    }
+                }
+            } else if (mode.useVideo) {
                 displayThread = thread(isDaemon = true) {
                     Thread.currentThread().name += "(display)"
                     while (!disposed) {
@@ -753,8 +798,16 @@ class VideoPlayerFFMPEG private constructor(
     private var seekCompleted = false
     private val seekPositions = mutableListOf<Double>()
 
-    var position: Double = 0.0
-        private set
+    private var videoPosition = 0.0
+
+    /**
+     * The play position in seconds. For audio only playback the position follows the played audio.
+     */
+    val position: Double
+        get() = if (audioOnly) audioPosition() else videoPosition
+
+    private fun audioPosition(): Double =
+        audioSeekPosition + (audioOut?.sampleOffset ?: 0L) / audioSampleRate.toDouble()
 
     /**
      * Seek in the video
@@ -783,6 +836,17 @@ class VideoPlayerFFMPEG private constructor(
 
     @OptIn(InternalCoroutinesApi::class)
     private fun update(blockUntilFinished: Boolean) {
+        if (audioOnly) {
+            // playback ended when all decoded audio has been played
+            if (state == State.PLAYING && endOfFileReached && seekPositions.isEmpty() &&
+                decoder?.audioQueueSize() == 0 && audioOut?.isIdle != false
+            ) {
+                logger.debug { "stopping audio playback" }
+                state = State.STOPPED
+                ended.trigger(VideoEvent())
+            }
+            return
+        }
         waitForFrame@ do {
             if (state == State.STOPPED || state == State.PAUSED) {
                 break@waitForFrame
@@ -805,7 +869,7 @@ class VideoPlayerFFMPEG private constructor(
                             )
                             waitTimeInMs = 1
                             colorBuffer?.let { lc ->
-                                position = frame.timeStamp
+                                videoPosition = frame.timeStamp
                                 newFrame.trigger(FrameEvent(lc, frame.timeStamp))
                             }
                         } else {
@@ -832,8 +896,7 @@ class VideoPlayerFFMPEG private constructor(
 
                         if (audioOut != null && info != null) {
                             val playPosition = clock() - timeOffset
-                            val mult = if (audioDevice?.pan == 0.0) 2 else 1
-                            val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult) - audioOffset
+                            val audioPosition = audioOut?.sampleOffset!! / audioSampleRate.toDouble() - audioOffset
                             val rate = (info!!.video?.fps ?: 1.0)
                             val duration = 1.0 / rate
 
@@ -865,8 +928,7 @@ class VideoPlayerFFMPEG private constructor(
                                 logger.debug { "Seek completed. ${frame!!.timeStamp}" }
                                 timeOffset = clock() - frame.timeStamp
                                 if (audioOut != null) {
-                                    val mult = if (audioDevice?.pan == 0.0) 2 else 1
-                                    val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult)
+                                    val audioPosition = audioOut?.sampleOffset!! / audioSampleRate.toDouble()
                                     audioOffset = audioPosition - frame.timeStamp
                                 }
                                 logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
@@ -900,7 +962,7 @@ class VideoPlayerFFMPEG private constructor(
                                         frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
                                     )
                                     colorBuffer?.let { lc ->
-                                        position = frame.timeStamp
+                                        videoPosition = frame.timeStamp
                                         newFrame.trigger(FrameEvent(lc, frame.timeStamp))
                                     }
                                 } else {

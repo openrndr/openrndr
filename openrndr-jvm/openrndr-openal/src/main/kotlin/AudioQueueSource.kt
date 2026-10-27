@@ -22,15 +22,25 @@ class AudioQueueSource(
 
     private val disposed = AtomicBoolean(false)
 
+    // the input queue is used by the play thread and by the threads that queue and flush, it is guarded by itself
     fun queue(data: AudioData) {
-        inputQueue.push(data)
+        synchronized(inputQueue) { inputQueue.push(data) }
     }
 
     val outputQueueFull: Boolean get() = outputQueue.size >= queueSize - 1
 
+    /**
+     * Has all queued audio been played?
+     */
+    val isIdle: Boolean
+        get() = synchronized(inputQueue) { inputQueue.isEmpty() } && synchronized(outputQueue) { outputQueue.isEmpty() }
+
     var bufferOffset = 0L
         private set
 
+    /**
+     * The number of sample frames played since the source started playing or was flushed
+     */
     val sampleOffset: Long
         get() {
             context.makeCurrent()
@@ -64,10 +74,10 @@ class AudioQueueSource(
                 if (disposed.get()) {
                     break
                 }
-                if (inputQueue.size() < inputQueue.maxSize - 1) {
+                if (synchronized(inputQueue) { inputQueue.size() < inputQueue.maxSize - 1 }) {
                     val data = pullFunction?.invoke()
                     if (data != null) {
-                        inputQueue.push(data)
+                        synchronized(inputQueue) { inputQueue.push(data) }
                     }
                 }
 
@@ -104,9 +114,9 @@ class AudioQueueSource(
                     }
                 }
 
-                while (queued < bufferCount && !inputQueue.isEmpty()) {
+                while (queued < bufferCount) {
                     context.makeCurrent()
-                    val data = inputQueue.pop()
+                    val data = synchronized(inputQueue) { if (inputQueue.isEmpty()) null else inputQueue.pop() } ?: break
                     val buffer = buffers[bufferIndex.mod(buffers.size)]
                     bufferIndex++
                     data.writeToBuffer(buffer)
@@ -114,7 +124,8 @@ class AudioQueueSource(
 
                     synchronized(outputQueue) {
                         if (disposed.get() == false) {
-                            outputQueue.add(Pair(buffer, data.buffer.capacity() / 4))
+                            // the number of sample frames in the buffer
+                            outputQueue.add(Pair(buffer, data.buffer.capacity() / data.format.bytesPerFrame))
                             AL11.alSourceQueueBuffers(source, buffer)
                             checkALError()
                             queued++
@@ -157,10 +168,16 @@ class AudioQueueSource(
         context.makeCurrent()
         logger.debug { "Flushing" }
         checkALError("pre-existing error", exception = false)
-        while (!inputQueue.isEmpty()) inputQueue.pop()
+        synchronized(inputQueue) {
+            while (!inputQueue.isEmpty()) inputQueue.pop()
+        }
         AL11.alSourceStop(source)
         checkALError("alSourceStop")
 
+        // the stopped buffers are unqueued by the play thread, they must not count as played samples
+        synchronized(outputQueue) {
+            outputQueue.clear()
+        }
         bufferOffset = 0L
         queued = 0
     }
