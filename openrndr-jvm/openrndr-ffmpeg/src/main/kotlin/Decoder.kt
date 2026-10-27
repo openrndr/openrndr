@@ -157,6 +157,10 @@ internal class Decoder(
     var seekCompleted: () -> Unit = { }
     var reachedEndOfFile: () -> Unit = { }
     private var atEndOfFile = false
+
+    /** are the frames the decoders delay received at the end of the file? */
+    private var videoDraining = false
+    private var audioDraining = false
     var lastPacketReceived = 0L
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
@@ -284,6 +288,8 @@ internal class Decoder(
         if (seekRequested) {
             logger.debug { "seek requested" }
             atEndOfFile = false
+            videoDraining = false
+            audioDraining = false
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
             packetReader?.flushQueue()
@@ -317,6 +323,27 @@ internal class Decoder(
             audioDecoder?.flushBuffers()
         }
 
+        if (videoDraining || audioDraining) {
+            // the decoders delay frames, for example one per decoding thread, they are received before the end of the
+            // file is reported
+            var received = false
+            if (videoDraining && videoDecoder?.isQueueAlmostFull() == false) {
+                videoDraining = videoDecoder?.drainFrame(videoStream!!, seekPosition) == true
+                received = true
+            }
+            if (audioDraining && audioDecoder?.isQueueAlmostFull() == false) {
+                audioDraining = audioDecoder?.drainFrame(audioStream!!, seekPosition) == true
+                received = true
+            }
+            if (!videoDraining && !audioDraining) {
+                logger.debug { "decoders drained" }
+                reachedEndOfFile()
+            } else if (!received) {
+                Thread.sleep(1)
+            }
+            return
+        }
+
         var packetsReceived = 0
         while (!seekRequested && needMoreFrames() && !disposed) {
             if (videoDecoder?.isQueueAlmostFull() == true) {
@@ -338,9 +365,15 @@ internal class Decoder(
 
             if (packetResult == AVERROR_EOF) {
                 if (!atEndOfFile) {
-                    logger.debug { "decoder reached end of file" }
-                    reachedEndOfFile()
+                    logger.debug { "decoder reached end of file, draining decoders" }
                     atEndOfFile = true
+                    videoDecoder?.startDraining()
+                    audioDecoder?.startDraining()
+                    videoDraining = videoDecoder != null
+                    audioDraining = audioDecoder != null
+                    if (!videoDraining && !audioDraining) {
+                        reachedEndOfFile()
+                    }
                 } else {
                     //logger.info { "already at end of file" }
                 }

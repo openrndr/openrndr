@@ -110,7 +110,7 @@ internal class VideoDecoder(
 
     fun decodeVideoPacket(stream: AVStream, packet: AVPacket, seekPosition: Double) {
         val start = System.currentTimeMillis()
-        var ret = avcodec_send_packet(videoCodecContext, packet)
+        val ret = avcodec_send_packet(videoCodecContext, packet)
 
         statistics.videoBytesReceived += packet.size()
 
@@ -119,64 +119,82 @@ internal class VideoDecoder(
                 logger.debug { "error in avcodec_send_packet: $ret" }
             return
         }
-
-        while (true) {
-            val decodedFrame = av_frame_alloc()
-            ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
-
-            val ptss = (decodedFrame.pts() - stream.start_time()).toDouble() * av_q2d(stream.time_base())
-            logger.trace { "decoded frame pts: ${ptss}s" }
-
-            if (ret == AVERROR_EAGAIN()) {
-                logger.trace { "try again" }
-                av_frame_free(decodedFrame)
-                break
-            }
-
-            if (ret == 0) {
-                val transferredFrame = av_frame_alloc()
-                if (ptss >= seekPosition) {
-                    val resultFrame: AVFrame
-                    if (decodedFrame.format() == hwPixFmt) {
-                        ret = av_hwframe_transfer_data(transferredFrame, decodedFrame, 0)
-                        ret.checkAVError()
-                        resultFrame = transferredFrame
-                    } else {
-                        resultFrame = decodedFrame
-                    }
-                    if (softwareScalingContext == null) {
-                        softwareScalingContext = swscale.sws_getCachedContext(
-                            null,
-                            videoSize.w, videoSize.h,
-                            resultFrame.format(),
-                            windowSize.w, windowSize.h, avPixelFormat,
-                            swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?
-                        )
-                    }
-
-                    swscale.sws_scale(
-                        softwareScalingContext, resultFrame.data(),
-                        resultFrame.linesize(), 0, resultFrame.height(),
-                        scaledVideoFrame.data(), scaledVideoFrame.linesize()
-                    )
-
-                    val buffer = av_buffer_alloc(scaledFrameSize.toLong())
-                    Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
-                    synchronized(videoQueue) {
-                        videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], ptss, scaledFrameSize))
-                    }
-                    av_frame_free(transferredFrame)
-                    statistics.videoQueueSize = videoQueue.size()
-                    statistics.videoFramesDecoded += 1
-                } else {
-                    logger.trace { "skipping video frame: $ptss < $seekPosition" }
-                    statistics.videoFrameErrors += 1
-                }
-            }
-            av_frame_free(decodedFrame)
-            break
-        }
+        receiveFrame(stream, seekPosition)
         val end = System.currentTimeMillis()
         statistics.videoDecodeDuration += (end - start)
+    }
+
+    /**
+     * Signals the end of the stream to the decoder, the frames it delays are then received with [drainFrame]
+     */
+    fun startDraining() {
+        avcodec_send_packet(videoCodecContext, null as AVPacket?)
+    }
+
+    /**
+     * Receives one of the frames the decoder delays at the end of the stream
+     * @return true when there may be more frames, false when the decoder is drained
+     */
+    fun drainFrame(stream: AVStream, seekPosition: Double): Boolean = receiveFrame(stream, seekPosition) == 0
+
+    /**
+     * Receives a decoded frame and queues it when it is not before [seekPosition]
+     * @return the result of avcodec_receive_frame
+     */
+    private fun receiveFrame(stream: AVStream, seekPosition: Double): Int {
+        val decodedFrame = av_frame_alloc()
+        var ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
+
+        if (ret == AVERROR_EAGAIN()) {
+            logger.trace { "try again" }
+        } else if (ret == 0) {
+            // streams without a known start time start at 0
+            val startTime = stream.start_time().let { if (it == AV_NOPTS_VALUE) 0L else it }
+            val pts = decodedFrame.best_effort_timestamp().let { if (it == AV_NOPTS_VALUE) decodedFrame.pts() else it }
+            val ptss = if (pts == AV_NOPTS_VALUE) seekPosition else (pts - startTime).toDouble() * av_q2d(stream.time_base())
+            logger.trace { "decoded frame pts: ${ptss}s" }
+
+            val transferredFrame = av_frame_alloc()
+            if (ptss >= seekPosition) {
+                val resultFrame: AVFrame
+                if (decodedFrame.format() == hwPixFmt) {
+                    ret = av_hwframe_transfer_data(transferredFrame, decodedFrame, 0)
+                    ret.checkAVError()
+                    resultFrame = transferredFrame
+                } else {
+                    resultFrame = decodedFrame
+                }
+                if (softwareScalingContext == null) {
+                    softwareScalingContext = swscale.sws_getCachedContext(
+                        null,
+                        videoSize.w, videoSize.h,
+                        resultFrame.format(),
+                        windowSize.w, windowSize.h, avPixelFormat,
+                        swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?
+                    )
+                }
+
+                swscale.sws_scale(
+                    softwareScalingContext, resultFrame.data(),
+                    resultFrame.linesize(), 0, resultFrame.height(),
+                    scaledVideoFrame.data(), scaledVideoFrame.linesize()
+                )
+
+                val buffer = av_buffer_alloc(scaledFrameSize.toLong())
+                Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
+                synchronized(videoQueue) {
+                    videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], ptss, scaledFrameSize))
+                }
+                statistics.videoQueueSize = videoQueue.size()
+                statistics.videoFramesDecoded += 1
+            } else {
+                logger.trace { "skipping video frame: $ptss < $seekPosition" }
+                statistics.videoFrameErrors += 1
+            }
+            av_frame_free(transferredFrame)
+            ret = 0
+        }
+        av_frame_free(decodedFrame)
+        return ret
     }
 }

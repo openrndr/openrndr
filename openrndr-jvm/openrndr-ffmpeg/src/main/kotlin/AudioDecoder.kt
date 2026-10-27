@@ -150,15 +150,39 @@ internal class AudioDecoder(
             return
         }
 
+        // a packet can decode to any number of frames
+        while (receiveFrame(stream, seekPosition) == 0) {
+            // all frames are received
+        }
+    }
+
+    /**
+     * Signals the end of the stream to the decoder, the frames it delays are then received with [drainFrame]
+     */
+    fun startDraining() {
+        avcodec.avcodec_send_packet(audioCodecContext, null as AVPacket?)
+    }
+
+    /**
+     * Receives one of the frames the decoder delays at the end of the stream
+     * @return true when there may be more frames, false when the decoder is drained
+     */
+    fun drainFrame(stream: AVStream, seekPosition: Double): Boolean = receiveFrame(stream, seekPosition) == 0
+
+    /**
+     * Receives a decoded frame, resamples it and queues it when it does not end before [seekPosition]
+     * @return the result of avcodec_receive_frame
+     */
+    private fun receiveFrame(stream: AVStream, seekPosition: Double): Int {
         // streams without a known start time, like WAV files, start at 0
         val startTime = stream.start_time().let { if (it == AV_NOPTS_VALUE) 0L else it }
 
-        // a packet can decode to any number of frames
-        while (true) {
+        run {
             val decodedFrame = av_frame_alloc()
-            if (avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame) != 0) {
+            val received = avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame)
+            if (received != 0) {
                 av_frame_free(decodedFrame)
-                break
+                return received
             }
             // frames of some formats, like WAV, have a channel layout without channel order. The resampler replaces
             // it with the default layout for the channel count and would then consider every frame changed.
@@ -215,5 +239,6 @@ internal class AudioDecoder(
             }
             av_frame_free(decodedFrame)
         }
+        return 0
     }
 }
