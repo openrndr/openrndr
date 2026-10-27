@@ -182,6 +182,11 @@ expect abstract class ColorBuffer : Texture, AutoCloseable {
 //    )
 
     // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
+    /**
+     * Copies [sourceRectangle] of level [fromLevel] to [targetRectangle] of level [toLevel] of [target]. The
+     * rectangles are in pixels, with the origin in the top-left corner. The copy is scaled with [filter] when the
+     * rectangles differ in size, unscaled copies are clipped to both color buffers.
+     */
     abstract fun copyTo(
         target: ColorBuffer,
         fromLevel: Int = 0,
@@ -191,6 +196,10 @@ expect abstract class ColorBuffer : Texture, AutoCloseable {
         filter: MagnifyingFilter = MagnifyingFilter.NEAREST
     )
 
+    /**
+     * Copies level [fromLevel] to level [toLevel] of [target] without scaling. When the levels differ in size the
+     * overlapping region is copied, anchored at the texture origin: the bottom-left corner.
+     */
     abstract fun copyTo(
         target: ColorBuffer,
         fromLevel: Int = 0,

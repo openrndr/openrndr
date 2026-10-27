@@ -35,7 +35,9 @@ class TestColorBufferCopyGL3 : AbstractApplicationTestFixture() {
         val sourceRectangle: IntRectangle? = null,
         val targetRectangle: IntRectangle? = null,
         val fromLevel: Int = 0,
-        val toLevel: Int = 0
+        val toLevel: Int = 0,
+        /** use copyTo without rectangles, it copies the overlapping region anchored at the bottom-left corner */
+        val defaultOverload: Boolean = false
     )
 
     private val background = ColorRGBa(0.0, 0.0, 1.0, 1.0, Linearity.LINEAR)
@@ -94,9 +96,20 @@ class TestColorBufferCopyGL3 : AbstractApplicationTestFixture() {
         try {
             target.fill(background)
             val sourceLevel = IntRectangle(0, 0, case.source.width shr case.fromLevel, case.source.height shr case.fromLevel)
-            val sourceRectangle = case.sourceRectangle ?: sourceLevel
-            val targetRectangle = case.targetRectangle ?: IntRectangle(0, 0, sourceRectangle.width, sourceRectangle.height)
-            source.copyTo(target, case.fromLevel, case.toLevel, sourceRectangle, targetRectangle)
+            val targetLevel = IntRectangle(0, 0, case.target.width shr case.toLevel, case.target.height shr case.toLevel)
+            val sourceRectangle: IntRectangle
+            val targetRectangle: IntRectangle
+            if (case.defaultOverload) {
+                val w = minOf(sourceLevel.width, targetLevel.width)
+                val h = minOf(sourceLevel.height, targetLevel.height)
+                sourceRectangle = IntRectangle(0, sourceLevel.height - h, w, h)
+                targetRectangle = IntRectangle(0, targetLevel.height - h, w, h)
+                source.copyTo(target, case.fromLevel, case.toLevel)
+            } else {
+                sourceRectangle = case.sourceRectangle ?: sourceLevel
+                targetRectangle = case.targetRectangle ?: IntRectangle(0, 0, sourceRectangle.width, sourceRectangle.height)
+                source.copyTo(target, case.fromLevel, case.toLevel, sourceRectangle, targetRectangle)
+            }
 
             // the copied level is read through a buffer of its size
             val targetLevelSpec = case.target.copy(
@@ -156,6 +169,10 @@ class TestColorBufferCopyGL3 : AbstractApplicationTestFixture() {
         Case("multisampled into multisampled", small.copy(multisample = BufferMultisample.SampleCount(4)), small.copy(multisample = BufferMultisample.SampleCount(4))),
         Case("level 1 into level 0", large.copy(levels = 2), small, fromLevel = 1),
         Case("level 0 into level 1", small, large.copy(levels = 2), toLevel = 1),
+        Case("default copy into a smaller target", large, small, defaultOverload = true),
+        Case("default copy into a larger target", small, large, defaultOverload = true),
+        Case("default copy into a smaller float target", large.copy(type = ColorType.FLOAT32), small.copy(type = ColorType.FLOAT32), defaultOverload = true),
+        Case("target rectangle exceeding the target is clipped", small, large, targetRectangle = IntRectangle(48, 40, 32, 24)),
     )
 
     @Test

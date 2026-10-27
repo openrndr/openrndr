@@ -18,6 +18,7 @@ import java.io.File
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.min
 import kotlin.math.pow
 
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
@@ -351,19 +352,51 @@ class ColorBufferGL3(
     }
 
     override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
-        val sourceRectangle = IntRectangle(
-            0,
-            0,
-            this.effectiveWidth / (1 shl fromLevel),
-            this.effectiveHeight / (1 shl fromLevel)
+        val sourceWidth = effectiveWidth / (1 shl fromLevel)
+        val sourceHeight = effectiveHeight / (1 shl fromLevel)
+        val targetWidth = target.effectiveWidth / (1 shl toLevel)
+        val targetHeight = target.effectiveHeight / (1 shl toLevel)
+
+        // the overlapping region, anchored at the texture origin (the bottom-left corner) as copies always were
+        val width = min(sourceWidth, targetWidth)
+        val height = min(sourceHeight, targetHeight)
+        copyTo(
+            target, fromLevel, toLevel,
+            IntRectangle(0, sourceHeight - height, width, height),
+            IntRectangle(0, targetHeight - height, width, height),
+            filter
         )
-        val targetRectangle = IntRectangle(
-            0,
-            0,
-            sourceRectangle.width,
-            sourceRectangle.height
-        )
-        copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
+    }
+
+    /**
+     * Clips the rectangles of an unscaled copy to the levels of the source and target
+     * @return the clipped source and target rectangles, or null when nothing is left to copy
+     */
+    private fun clipCopyRectangles(
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle,
+        sourceLevel: IntRectangle,
+        targetLevel: IntRectangle
+    ): Pair<IntRectangle, IntRectangle>? {
+        if (sourceRectangle.width < 0 || sourceRectangle.height < 0) {
+            return Pair(sourceRectangle, targetRectangle)
+        }
+        var sx = sourceRectangle.x
+        var sy = sourceRectangle.y
+        var tx = targetRectangle.x
+        var ty = targetRectangle.y
+        var width = sourceRectangle.width
+        var height = sourceRectangle.height
+
+        val left = maxOf(0, -sx, -tx)
+        sx += left; tx += left; width -= left
+        val top = maxOf(0, -sy, -ty)
+        sy += top; ty += top; height -= top
+        width = minOf(width, sourceLevel.width - sx, targetLevel.width - tx)
+        height = minOf(height, sourceLevel.height - sy, targetLevel.height - ty)
+
+        return if (width <= 0 || height <= 0) null else
+            Pair(IntRectangle(sx, sy, width, height), IntRectangle(tx, ty, width, height))
     }
 
     override fun copyTo(
@@ -396,6 +429,14 @@ class ColorBufferGL3(
 
         val scaled = sourceRectangle.width != targetRectangle.width || sourceRectangle.height != targetRectangle.height
         val sameFormat = type == target.type && format == target.format
+
+        if (!scaled) {
+            val (clippedSource, clippedTarget) =
+                clipCopyRectangles(sourceRectangle, targetRectangle, sourceLevel, targetLevel) ?: return
+            if (clippedSource != sourceRectangle || clippedTarget != targetRectangle) {
+                return copyTo(target, fromLevel, toLevel, clippedSource, clippedTarget, filter)
+            }
+        }
 
         when {
             !scaled && sameFormat && multisample == Disabled && target.multisample == Disabled ->
@@ -469,7 +510,7 @@ class ColorBufferGL3(
             )
             debugGLErrors {
                 when (it) {
-                    GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+                    GL_INVALID_VALUE -> "invalid copy from $sourceRectangle of level $fromLevel to $targetRectangle of level $toLevel"
                     else -> null
                 }
             }
