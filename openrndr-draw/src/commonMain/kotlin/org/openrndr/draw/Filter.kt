@@ -6,7 +6,13 @@ import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
 import org.openrndr.shape.Rectangle
 
+/**
+ * The quad that filters draw. GL objects belong to the contexts of one application, the quad is recreated when the
+ * driver changes. It is not tracked by a session: ending the session it was created in, for example by closing a
+ * child window, must not destroy it.
+ */
 private var filterQuad: VertexBuffer? = null
+private var filterQuadDriver: Driver? = null
 private var filterQuadFormat = vertexFormat {
     position(2)
     textureCoordinate(2)
@@ -140,8 +146,8 @@ void main() {
         filterDrawStyle.clip = clip
         target.bind()
 
-        if (filterQuad == null) {
-            val fq = VertexBuffer.createDynamic(filterQuadFormat, 6, Session.root)
+        if (filterQuad == null || filterQuadDriver !== Driver.instance) {
+            val fq = VertexBuffer.createDynamic(filterQuadFormat, 6, null)
 
             fq.shadow.writer().apply {
                 write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
@@ -155,6 +161,7 @@ void main() {
             fq.shadow.upload()
             fq.shadow.destroy()
             filterQuad = fq
+            filterQuadDriver = Driver.instance
         }
 
         shader.begin()

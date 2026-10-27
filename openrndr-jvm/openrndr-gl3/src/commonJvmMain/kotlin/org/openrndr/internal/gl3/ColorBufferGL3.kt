@@ -10,6 +10,8 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageData
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.ImageSaveConfiguration
+import org.openrndr.math.Vector2
+import org.openrndr.math.Vector4
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
@@ -125,6 +127,32 @@ class ColorBufferGL3(
     }
 
     companion object {
+        /** the filter that draws copies, recreated when the driver, and with it the application, changes */
+        private var copyRectangleFilter: Filter? = null
+        private var copyRectangleFilterDriver: Driver? = null
+
+        private val copyRectangleShader = """
+            |in vec2 v_texCoord0;
+            |uniform sampler2D tex0;
+            |// rectangles in pixels with the origin in the top-left corner: x, y, width, height
+            |uniform vec4 sourceRectangle;
+            |uniform vec4 targetRectangle;
+            |uniform vec2 sourceLevelSize;
+            |uniform vec2 targetLevelSize;
+            |uniform float sourceLevel;
+            |out vec4 o_color;
+            |
+            |void main() {
+            |    vec2 p = vec2(v_texCoord0.x, 1.0 - v_texCoord0.y) * targetLevelSize;
+            |    vec2 r = (p - targetRectangle.xy) / targetRectangle.zw;
+            |    if (r.x < 0.0 || r.y < 0.0 || r.x >= 1.0 || r.y >= 1.0) {
+            |        discard;
+            |    }
+            |    vec2 s = sourceRectangle.xy + r * sourceRectangle.zw;
+            |    o_color = textureLod(tex0, vec2(s.x / sourceLevelSize.x, 1.0 - s.y / sourceLevelSize.y), sourceLevel);
+            |}
+        """.trimMargin()
+
         fun create(
             width: Int,
             height: Int,
@@ -347,6 +375,7 @@ class ColorBufferGL3(
         filter: MagnifyingFilter
     ) {
         checkDestroyed()
+        target as ColorBufferGL3
 
         if (Driver.glType == DriverTypeGL.GLES) {
             require(target.format.componentCount != 3) {
@@ -354,165 +383,234 @@ class ColorBufferGL3(
             }
         }
 
-        val fromDiv = 1 shl fromLevel
-        val toDiv = 1 shl toLevel
-        val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
+        val sourceLevel = IntRectangle(0, 0, effectiveWidth / (1 shl fromLevel), effectiveHeight / (1 shl fromLevel))
+        val targetLevel = IntRectangle(0, 0, target.effectiveWidth / (1 shl toLevel), target.effectiveHeight / (1 shl toLevel))
 
-        val useTexSubImage =
-            target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
-
-        val useCopyFilter =
-            (this.type.isSRGB != target.type.isSRGB) ||
-                    (Driver.glType == DriverTypeGL.GLES && (
-                            (this.multisample is Disabled && target.multisample is SampleCount) ||
-                                    (type.isFloat != target.type.isFloat) ||
-                                    (format.componentCount == 3)
-                            ))
-
-        if (useCopyFilter) {
-            require(
-                this.effectiveWidth == target.effectiveWidth && this.effectiveHeight == target.effectiveHeight &&
-                        sourceRectangle.x == 0 && sourceRectangle.y == 0 && sourceRectangle == targetRectangle && sourceRectangle.width == effectiveWidth && sourceRectangle.height == effectiveHeight
-            ) {
-                "can't copy to target with different dimensions or different source/target rectangle"
+        if (target.type.compressed) {
+            require(sourceRectangle == sourceLevel && targetRectangle == sourceLevel && sourceLevel == targetLevel) {
+                "only complete copies into compressed color buffers are supported: $this -> $target"
             }
-
-            copy.apply(this, target)
+            copyTexSubImage(target, fromLevel, toLevel, sourceRectangle, targetRectangle)
             return
         }
 
+        val scaled = sourceRectangle.width != targetRectangle.width || sourceRectangle.height != targetRectangle.height
+        val sameFormat = type == target.type && format == target.format
 
-        if (!useTexSubImage) {
-            val readTarget = renderTarget(
-                width / fromDiv,
-                height / fromDiv,
-                contentScale,
-                multisample = multisample
-            ) {
-                colorBuffer(this@ColorBufferGL3, fromLevel)
-            } as RenderTargetGL3
+        when {
+            !scaled && sameFormat && multisample == Disabled && target.multisample == Disabled ->
+                copyTexSubImage(target, fromLevel, toLevel, sourceRectangle, targetRectangle)
 
-            val writeTarget = renderTarget(
-                target.width / toDiv,
-                target.height / toDiv,
-                target.contentScale,
-                multisample = target.multisample
-            ) {
-                colorBuffer(target, toLevel)
-            } as RenderTargetGL3
+            !scaled && canBlit(target, sourceRectangle, targetRectangle) ->
+                blit(target, fromLevel, toLevel, sourceRectangle, targetRectangle)
 
-            writeTarget.bind()
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-            debugGLErrors()
+            // scaled copies are drawn, glBlitFramebuffer does not honor GL_NEAREST for all drivers
+            else -> drawCopy(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
+        }
+    }
 
-            val ssx = sourceRectangle.x
-            val ssy = sourceRectangle.y
-            val sex = sourceRectangle.width + ssx
-            val sey = sourceRectangle.height + ssy
+    /**
+     * Can glBlitFramebuffer copy from [sourceRectangle] of this color buffer to [targetRectangle] of [target], without
+     * scaling?
+     */
+    private fun canBlit(target: ColorBufferGL3, sourceRectangle: IntRectangle, targetRectangle: IntRectangle): Boolean {
+        val sourceMultisampled = multisample != Disabled
+        val targetMultisampled = target.multisample != Disabled
 
-            val tsx = targetRectangle.x
-            val tsy = targetRectangle.y
-            val tex = targetRectangle.width + tsx
-            val tey = targetRectangle.height + tsy
+        // sRGB encoding is not converted consistently by blits
+        if (type.isSRGB != target.type.isSRGB) return false
+        if (type.colorSampling != target.type.colorSampling) return false
+        if (sourceMultisampled && targetMultisampled && multisample != target.multisample) return false
 
-            @Suppress("SpellCheckingInspection")
-            fun sflip(y: Int): Int {
-                return this.effectiveHeight / fromDiv - y
-            }
+        if (Driver.glType == DriverTypeGL.GLES) {
+            // GLES 3 blits do not convert between fixed and floating point formats, can not write to multisampled
+            // buffers and only resolve between identical formats and rectangles
+            if (type.isFloat != target.type.isFloat || format.componentCount == 3) return false
+            if (targetMultisampled) return false
+            if (sourceMultisampled && (type != target.type || format != target.format || sourceRectangle != targetRectangle)) return false
+        }
+        return true
+    }
 
-            @Suppress("SpellCheckingInspection")
-            fun tflip(y: Int): Int {
-                return target.effectiveHeight / toDiv - y
-            }
+    /**
+     * Copies without scaling between single sampled color buffers of the same format and type using
+     * glCopyTexSubImage2D
+     */
+    private fun copyTexSubImage(
+        target: ColorBufferGL3,
+        fromLevel: Int,
+        toLevel: Int,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle
+    ) {
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+            colorBuffer(this@ColorBufferGL3, fromLevel)
+        } as RenderTargetGL3
 
-            glBlitFramebuffer(
-                ssx,
-                sflip(ssy),
-                sex,
-                sflip(sey),
-                tsx,
-                tflip(tsy),
-                tex,
-                tflip(tey),
-                GL_COLOR_BUFFER_BIT,
-                if (Driver.glType == DriverTypeGL.GLES) GL_NEAREST else filter.toGLFilter()
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        debugGLErrors()
+
+        // color buffers are stored bottom-up, the rectangles are top-down
+        val sourceHeight = effectiveHeight / fromDiv
+        val targetHeight = target.effectiveHeight / toDiv
+        target.bound {
+            glCopyTexSubImage2D(
+                target.target,
+                toLevel,
+                targetRectangle.x,
+                targetHeight - targetRectangle.y - targetRectangle.height,
+                sourceRectangle.x,
+                sourceHeight - sourceRectangle.y - sourceRectangle.height,
+                sourceRectangle.width,
+                sourceRectangle.height
             )
             debugGLErrors {
-                logger.error {
-                    """failed to copy ${this@ColorBufferGL3} to $target, source rect: $sourceRectangle, target rect: $targetRectangle"""
+                when (it) {
+                    GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+                    else -> null
                 }
-                null
-            }
-            writeTarget.unbind()
-
-            writeTarget.detachColorAttachments()
-            writeTarget.destroy()
-
-            readTarget.detachColorAttachments()
-            readTarget.destroy()
-        } else {
-            require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
-                "cropped or scaled copyTo is not allowed with the selected color buffers: $this -> $target"
-            }
-
-            val useFrameBufferCopy =
-                true // Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
-
-            if (useFrameBufferCopy) {
-                checkDestroyed()
-                val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
-                    colorBuffer(this@ColorBufferGL3, fromLevel)
-                } as RenderTargetGL3
-
-                target as ColorBufferGL3
-                readTarget.bind()
-                glReadBuffer(GL_COLOR_ATTACHMENT0)
-                debugGLErrors()
-                target.bound {
-                    glCopyTexSubImage2D(
-                        target.target,
-                        toLevel,
-                        0,
-                        0,
-                        0,
-                        0,
-                        target.effectiveWidth / toDiv,
-                        target.effectiveHeight / toDiv
-                    )
-                    debugGLErrors {
-                        when (it) {
-                            GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
-
-                            else -> null
-                        }
-                    }
-                }
-                readTarget.unbind()
-
-                readTarget.detachColorAttachments()
-                readTarget.destroy()
-            } else {
-                target as ColorBufferGL3
-                glCopyImageSubData(
-                    texture,
-                    this.target,
-                    fromLevel,
-                    0,
-                    0,
-                    0,
-                    target.texture,
-                    target.target,
-                    toLevel,
-                    0,
-                    0,
-                    0,
-                    effectiveWidth,
-                    effectiveHeight,
-                    1
-                )
-                debugGLErrors()
             }
         }
+        readTarget.unbind()
+
+        readTarget.detachColorAttachments()
+        readTarget.destroy()
+    }
+
+    /**
+     * Copies without scaling using glBlitFramebuffer, which converts between formats and resolves multisampled
+     * color buffers
+     */
+    private fun blit(
+        target: ColorBufferGL3,
+        fromLevel: Int,
+        toLevel: Int,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle
+    ) {
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale, multisample = multisample) {
+            colorBuffer(this@ColorBufferGL3, fromLevel)
+        } as RenderTargetGL3
+
+        val writeTarget = renderTarget(
+            target.width / toDiv,
+            target.height / toDiv,
+            target.contentScale,
+            multisample = target.multisample
+        ) {
+            colorBuffer(target, toLevel)
+        } as RenderTargetGL3
+
+        writeTarget.bind()
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+        debugGLErrors()
+
+        // color buffers are stored bottom-up, the rectangles are top-down
+        val sourceHeight = effectiveHeight / fromDiv
+        val targetHeight = target.effectiveHeight / toDiv
+        glBlitFramebuffer(
+            sourceRectangle.x,
+            sourceHeight - sourceRectangle.y,
+            sourceRectangle.x + sourceRectangle.width,
+            sourceHeight - sourceRectangle.y - sourceRectangle.height,
+            targetRectangle.x,
+            targetHeight - targetRectangle.y,
+            targetRectangle.x + targetRectangle.width,
+            targetHeight - targetRectangle.y - targetRectangle.height,
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST
+        )
+        debugGLErrors {
+            logger.error {
+                """failed to copy ${this@ColorBufferGL3} to $target, source rect: $sourceRectangle, target rect: $targetRectangle"""
+            }
+            null
+        }
+        writeTarget.unbind()
+
+        writeTarget.detachColorAttachments()
+        writeTarget.destroy()
+
+        readTarget.detachColorAttachments()
+        readTarget.destroy()
+    }
+
+    /**
+     * Copies by drawing the source rectangle into the target rectangle, which handles scaling with [filter],
+     * conversions between sRGB and linear, fixed and floating point formats, and multisampled targets
+     */
+    private fun drawCopy(
+        target: ColorBufferGL3,
+        fromLevel: Int,
+        toLevel: Int,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle,
+        filter: MagnifyingFilter
+    ) {
+        require(type.colorSampling == ColorSampling.NORMALIZED && target.type.colorSampling == ColorSampling.NORMALIZED) {
+            "integer color buffers can only be copied to color buffers of the same format and type, without scaling: $this -> $target"
+        }
+
+        if (multisample != Disabled) {
+            // multisampled color buffers can not be sampled, resolve them first
+            val resolved = colorBuffer(width, height, contentScale, format, type, Disabled, 1) as ColorBufferGL3
+            copyTo(resolved)
+            resolved.drawCopy(target, 0, toLevel, sourceRectangle, targetRectangle, filter)
+            resolved.destroy()
+            return
+        }
+
+        val toDiv = 1 shl toLevel
+        val writeTarget = renderTarget(
+            target.width / toDiv,
+            target.height / toDiv,
+            target.contentScale,
+            multisample = target.multisample
+        ) {
+            colorBuffer(target, toLevel)
+        }
+        writeTarget.setBlendMode(0, BlendMode.REPLACE)
+
+        val previousMin = filterMin
+        val previousMag = filterMag
+        this.filter(
+            when (filter) {
+                MagnifyingFilter.NEAREST -> if (levels > 1) MinifyingFilter.NEAREST_MIPMAP_NEAREST else MinifyingFilter.NEAREST
+                MagnifyingFilter.LINEAR -> if (levels > 1) MinifyingFilter.LINEAR_MIPMAP_NEAREST else MinifyingFilter.LINEAR
+            },
+            filter
+        )
+
+        val copy = copyRectangleFilter.takeIf { copyRectangleFilterDriver === Driver.instance }
+            ?: Filter(filterShaderFromCode(copyRectangleShader, "copy-rectangle")).apply {
+                untrack()
+                copyRectangleFilter = this
+                copyRectangleFilterDriver = Driver.instance
+            }
+        val fromDiv = 1 shl fromLevel
+        copy.parameters["sourceRectangle"] = Vector4(
+            sourceRectangle.x.toDouble(), sourceRectangle.y.toDouble(),
+            sourceRectangle.width.toDouble(), sourceRectangle.height.toDouble()
+        )
+        copy.parameters["targetRectangle"] = Vector4(
+            targetRectangle.x.toDouble(), targetRectangle.y.toDouble(),
+            targetRectangle.width.toDouble(), targetRectangle.height.toDouble()
+        )
+        copy.parameters["sourceLevelSize"] =
+            Vector2((effectiveWidth / fromDiv).toDouble(), (effectiveHeight / fromDiv).toDouble())
+        copy.parameters["targetLevelSize"] =
+            Vector2((target.effectiveWidth / toDiv).toDouble(), (target.effectiveHeight / toDiv).toDouble())
+        copy.parameters["sourceLevel"] = fromLevel.toDouble()
+        copy.apply(arrayOf(this), writeTarget)
+
+        this.filter(previousMin, previousMag)
+        writeTarget.detachColorAttachments()
+        writeTarget.destroy()
     }
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
@@ -678,7 +776,10 @@ class ColorBufferGL3(
         }
 
     override var filterMin: MinifyingFilter
-        get() = TODO("not implemented")
+        get() = bound {
+            val filter = glGetTexParameteri(target, GL_TEXTURE_MIN_FILTER)
+            MinifyingFilter.entries.first { it.toGLFilter() == filter }
+        }
         set(value) {
             bound {
                 glTexParameteri(target, GL_TEXTURE_MIN_FILTER, value.toGLFilter())
@@ -686,7 +787,10 @@ class ColorBufferGL3(
         }
 
     override var filterMag: MagnifyingFilter
-        get() = TODO("not implemented")
+        get() = bound {
+            val filter = glGetTexParameteri(target, GL_TEXTURE_MAG_FILTER)
+            MagnifyingFilter.entries.first { it.toGLFilter() == filter }
+        }
         set(value) {
             bound {
                 glTexParameteri(target, GL_TEXTURE_MAG_FILTER, value.toGLFilter())
