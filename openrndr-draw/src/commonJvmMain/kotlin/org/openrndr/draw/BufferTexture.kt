@@ -32,7 +32,14 @@ actual abstract class BufferTexture: Texture, AutoCloseable {
         return count
     }
 
+    /**
+     * Reads [elementReadCount] elements, starting at element [offset], into [target]
+     */
     abstract fun read(target: ByteBuffer, offset: Int = 0, elementReadCount: Int = this.elementCount)
+
+    /**
+     * Writes [elementWriteCount] elements from [source] into the buffer texture, starting at element [offset]
+     */
     abstract fun write(source: ByteBuffer, offset: Int = 0, elementWriteCount: Int = this.elementCount)
 
     fun saveToFile(file: File, @Suppress("UNUSED_PARAMETER") fileFormat: BufferTextureFileFormat = BufferTextureFileFormat.ORB) {

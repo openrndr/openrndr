@@ -19,7 +19,7 @@ class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStora
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
         (buffer as Buffer).limit(offset + size)
-        shaderStorageBuffer.write(buffer)
+        shaderStorageBuffer.write(buffer, offset)
         (buffer as Buffer).limit(buffer.capacity())
     }
 

@@ -27,7 +27,7 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offsetInBytes)
         (buffer as Buffer).limit(offsetInBytes + sizeInBytes)
-        vertexBuffer.write(buffer)
+        vertexBuffer.write(buffer, offsetInBytes)
         (buffer as Buffer).limit(buffer.capacity())
     }
 

@@ -145,7 +145,7 @@ data class ShaderStorageBufferGL43(
         if (position.mod(format.size) != 0) {
             throw RuntimeException("incomplete members written (position: ${position}, size: ${format.size}). likely violating the specified shaders storage format $format")
         }
-        val count = position / format.size
+        val count = position / format.size - elementOffset
         shadow.uploadElements(elementOffset, count)
         return count
     }

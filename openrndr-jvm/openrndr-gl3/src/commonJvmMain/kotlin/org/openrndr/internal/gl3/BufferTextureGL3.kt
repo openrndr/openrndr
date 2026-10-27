@@ -18,8 +18,9 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
         logger.trace { "uploading shadow to buffer texture" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
-        (buffer as Buffer).limit(sizeInBytes)
-        bufferTexture.write(buffer)
+        (buffer as Buffer).limit(offset + sizeInBytes)
+        val elementSize = bufferTexture.format.componentCount * bufferTexture.type.componentSize
+        bufferTexture.write(buffer, offset / elementSize, sizeInBytes / elementSize)
         (buffer as Buffer).limit(buffer.capacity())
     }
 
@@ -79,19 +80,21 @@ class BufferTextureGL3(val resourceId: Long, val texture: Int, val buffer: Int, 
 
     override fun read(target: ByteBuffer, offset: Int, elementReadCount: Int) {
         val oldLimit = target.limit()
-        target.limit(target.position() + elementReadCount * format.componentCount * type.componentSize)
+        val elementSize = format.componentCount * type.componentSize
+        target.limit(target.position() + elementReadCount * elementSize)
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
-        glGetBufferSubData(GL_TEXTURE_BUFFER, 0, target)
+        glGetBufferSubData(GL_TEXTURE_BUFFER, offset.toLong() * elementSize, target)
         target.limit(oldLimit)
     }
 
     override fun write(source: ByteBuffer, offset: Int, elementWriteCount: Int) {
         require(source.isDirect)
         val oldLimit = source.limit()
-        source.limit(source.position() + elementWriteCount * format.componentCount * type.componentSize)
+        val elementSize = format.componentCount * type.componentSize
+        source.limit(source.position() + elementWriteCount * elementSize)
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
         debugGLErrors()
-        glBufferSubData(GL_TEXTURE_BUFFER, 0L, source)
+        glBufferSubData(GL_TEXTURE_BUFFER, offset.toLong() * elementSize, source)
         debugGLErrors()
         source.limit(oldLimit)
     }
