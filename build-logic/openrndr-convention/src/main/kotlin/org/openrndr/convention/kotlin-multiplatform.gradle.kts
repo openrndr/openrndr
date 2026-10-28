@@ -63,6 +63,15 @@ tasks.withType<KotlinJvmCompile>().configureEach {
     }
 }
 
+// compact object headers (JEP 519) reduce the heap size of small objects like vectors and colors
+tasks.withType<Test>().configureEach {
+    jvmArgs("-XX:+UseCompactObjectHeaders")
+}
+// ZGC keeps garbage collection pauses well below a frame, which avoids dropped frames in programs that allocate a lot
+tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach {
+    jvmArgs("-XX:+UseCompactObjectHeaders", "-XX:+UseZGC")
+}
+
 kotlin {
     if (property("openrndr.platform.android")=="true") {
         androidLibrary {

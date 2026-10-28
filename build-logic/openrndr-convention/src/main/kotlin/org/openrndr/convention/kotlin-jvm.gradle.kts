@@ -43,6 +43,11 @@ tasks {
         jvmArgs("-Dorg.openrndr.gl3.skip_glfw_termination", "-Dorg.openrndr.gl3.debug=true")
     }
 
+    // compact object headers (JEP 519) reduce the heap size of small objects like vectors and colors
+    withType<Test>().configureEach {
+        jvmArgs("-XX:+UseCompactObjectHeaders")
+    }
+
     withType<KotlinCompile> {
         compilerOptions {
             jvmTarget.set(JvmTarget.valueOf("JVM_${libs.findVersion("jvmTarget").get().displayName}"))
