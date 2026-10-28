@@ -266,7 +266,8 @@ data class Segment2D(
                 if (summedLength >= length) {
                     val localT = index.toDouble() / partitionCount
                     val overshoot = summedLength - length
-                    return localT + (overshoot / partitionLength) * dt
+                    // overshoot is the distance past [length], so the target lies that far before the partition end
+                    return localT + (1.0 - overshoot / partitionLength) * dt
                 }
             }
         }
