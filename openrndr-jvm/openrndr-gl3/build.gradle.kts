@@ -47,6 +47,7 @@ kotlin {
                 implementation(libs.lwjgl.jemalloc)
                 implementation(libs.lwjgl.opengl)
                 implementation(libs.lwjgl.opengles)
+                implementation(libs.lwjgl.egl)
                 implementation(project(":openrndr-jvm:openrndr-gl3-support"))
             }
         }

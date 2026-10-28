@@ -21,8 +21,13 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.Filter
+import org.openrndr.draw.IOSurfaceImporter
+import org.openrndr.draw.IOSurfaceImporterFactory
 import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.filterShaderFromCode
 import org.openrndr.events.Event
+import org.openrndr.internal.Driver
 import org.openrndr.openal.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -191,6 +196,12 @@ class VideoPlayerConfiguration {
     var realtimeBufferSize = -1L
     var allowFrameSkipping = true
     var allowSRGB = true
+
+    /**
+     * Keep hardware decoded frames on the GPU when the driver can import them, this is the case on macOS with
+     * ANGLE. The frames are then copied to [VideoPlayerFFMPEG.colorBuffer] on the GPU.
+     */
+    var useZeroCopyFrames = true
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
     var allowArbitrarySeek = false
@@ -261,6 +272,10 @@ class VideoPlayerFFMPEG private constructor(
 ) {
 
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
+
+    /** imports frames that are kept on the GPU, null when frames are converted on the CPU */
+    private var ioSurfaceImporter: IOSurfaceImporter? = null
+    private var frameCopy: Filter? = null
 
     private var audioThread: Thread? = null
     private var decoderThread: Thread? = null
@@ -576,8 +591,15 @@ class VideoPlayerFFMPEG private constructor(
             logger.debug { "start play" }
             file.dumpFormat()
 
+            if (configuration.useHardwareDecoding && configuration.useZeroCopyFrames && mode.useVideo) {
+                ioSurfaceImporter = (Driver.instance as? IOSurfaceImporterFactory)?.createIOSurfaceImporter()
+            }
+
             val (decoder, info) =
-                Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
+                Decoder.fromContext(
+                    statistics, configuration, file.context, mode.useVideo, mode.useAudio,
+                    outputHardwareFrames = ioSurfaceImporter != null
+                )
 
             this.decoder = decoder
             this.info = info
@@ -731,7 +753,7 @@ class VideoPlayerFFMPEG private constructor(
                                 logger.trace { "time stamp: ${frame.timeStamp}" }
 
                                 synchronized(displayQueue) {
-                                    if (!frame.buffer.isNull) {
+                                    if (frame.buffer?.isNull == false || frame.hardwareFrame != null) {
                                         displayQueue.push(frame)
                                     } else {
                                         logger.error { "encountered frame with null buffer in play()" }
@@ -834,8 +856,56 @@ class VideoPlayerFFMPEG private constructor(
     var first = true
     private var waitTimeInMs = 1
 
+    /**
+     * Shows [frame] in [colorBuffer] and releases the frame
+     */
+    private fun showFrame(frame: VideoFrame) {
+        val target = colorBuffer
+        val hardwareFrame = frame.hardwareFrame
+        val buffer = frame.buffer
+        if (target == null) {
+            frame.unref()
+            return
+        }
+        if (hardwareFrame != null) {
+            val importer = ioSurfaceImporter ?: error("no importer for hardware frames")
+            val ioSurface = CoreVideo.ioSurface(hardwareFrame)
+            val source = if (ioSurface != 0L) importer.import(ioSurface) else null
+            if (source == null) {
+                logger.error { "failed to import hardware frame" }
+                frame.unref()
+                return
+            }
+            copyFrame(source, target)
+            // the decoder may reuse the frame's IOSurface once the copy has finished
+            importer.runWhenGpuFinished { frame.unref() }
+        } else if (buffer != null && !buffer.isNull) {
+            target.writeBuffer(buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+            frame.unref()
+        } else {
+            logger.error { "encountered frame with null buffer" }
+            frame.unref()
+            return
+        }
+        videoPosition = frame.timeStamp
+        newFrame.trigger(FrameEvent(target, frame.timeStamp))
+    }
+
+    /**
+     * Copies an imported frame to [target], the IOSurface that holds the frame may be larger than [target]
+     */
+    private fun copyFrame(source: ColorBuffer, target: ColorBuffer) {
+        val filter = frameCopy ?: Filter(filterShaderFromCode(frameCopyShader, "video-frame-copy")).also {
+            frameCopy = it
+        }
+        // sRGB targets encode what is written, decode the frame so its values are stored unchanged
+        filter.parameters["decodeSRGB"] = target.type == ColorType.UINT8_SRGB
+        filter.apply(source, target)
+    }
+
     @OptIn(InternalCoroutinesApi::class)
     private fun update(blockUntilFinished: Boolean) {
+        ioSurfaceImporter?.update()
         if (audioOnly) {
             // playback ended when all decoded audio has been played
             if (state == State.PLAYING && endOfFileReached && seekPositions.isEmpty() &&
@@ -863,21 +933,8 @@ class VideoPlayerFFMPEG private constructor(
                         f
                     }
                     if (frame != null) {
-                        if (!frame.buffer.isNull) {
-                            colorBuffer?.writeBuffer(
-                                frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer(),
-                            )
-                            waitTimeInMs = 1
-                            colorBuffer?.let { lc ->
-                                videoPosition = frame.timeStamp
-                                newFrame.trigger(FrameEvent(lc, frame.timeStamp))
-                            }
-                        } else {
-                            logger.error {
-                                "encountered frame with null buffer"
-                            }
-                        }
-                        frame.unref()
+                        waitTimeInMs = 1
+                        showFrame(frame)
                         break@waitForFrame
                     } else if (blockUntilFinished) {
                         if (decoder?.videoQueueSize() == 0 && displayQueue.size() == 0 && endOfFileReached) {
@@ -957,20 +1014,7 @@ class VideoPlayerFFMPEG private constructor(
                                     continue
                                 }
 
-                                if (!frame.buffer.isNull) {
-                                    colorBuffer?.writeBuffer(
-                                        frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer(),
-                                    )
-                                    colorBuffer?.let { lc ->
-                                        videoPosition = frame.timeStamp
-                                        newFrame.trigger(FrameEvent(lc, frame.timeStamp))
-                                    }
-                                } else {
-                                    logger.error {
-                                        "encountered frame with null buffer"
-                                    }
-                                }
-                                frame.unref()
+                                showFrame(frame)
                                 break@processFrame
                             } else {
                                 break@processFrame
@@ -1081,12 +1125,33 @@ class VideoPlayerFFMPEG private constructor(
             val buffer = displayQueue.pop()
             buffer.unref()
         }
+        ioSurfaceImporter?.close()
+        frameCopy?.destroy()
 
         colorBuffer?.destroy()
         file.dispose()
         state = State.DISPOSED
     }
 }
+
+private val frameCopyShader = """
+    |in vec2 v_texCoord0;
+    |uniform sampler2D tex0;
+    |uniform vec2 textureSize0;
+    |uniform vec2 targetSize;
+    |uniform bool decodeSRGB;
+    |out vec4 o_color;
+    |
+    |vec3 decode(vec3 c) {
+    |    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
+    |}
+    |
+    |void main() {
+    |    // the frame can be smaller than the IOSurface that holds it
+    |    vec3 color = texture(tex0, v_texCoord0 * targetSize / textureSize0).rgb;
+    |    o_color = vec4(decodeSRGB ? decode(color) : color, 1.0);
+    |}
+""".trimMargin()
 
 internal fun AVFormatContext.streamAt(index: Int): AVStream? =
     if (index < 0) null
@@ -1095,7 +1160,11 @@ internal fun AVFormatContext.streamAt(index: Int): AVStream? =
 internal val AVFormatContext.codecs: List<AVCodecParameters?>
     get() = List(nb_streams()) { streams(it).codecpar() }
 
-internal fun AVStream.openCodec(): AVCodecContext {
+/**
+ * Opens a decoder for the stream
+ * @param configure configures the codec context before it is opened
+ */
+internal fun AVStream.openCodec(configure: (AVCodecContext) -> Unit = {}): AVCodecContext {
     val codecPar = this.codecpar()
     val codec = avcodec_find_decoder(codecPar.codec_id())
     if (codec.isNull)
@@ -1107,6 +1176,7 @@ internal fun AVStream.openCodec(): AVCodecContext {
 
     val codecContext = avcodec_alloc_context3(codec)
     avcodec_parameters_to_context(codecContext, codecPar)
+    configure(codecContext)
     if (avcodec_open2(codecContext, codec, dictionary) < 0)
         throw Error("Couldn't open codec with id ${codecPar.codec_id()}")
 

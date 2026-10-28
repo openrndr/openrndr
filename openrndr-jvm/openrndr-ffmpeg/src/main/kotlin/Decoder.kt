@@ -57,7 +57,10 @@ internal class Decoder(
     private val videoStream: AVStream?,
     private val audioStream: AVStream?,
     private val hwType: Int,
-    private val hwDeviceContext: AVBufferRef?
+    private val hwDeviceContext: AVBufferRef?,
+    private val outputHardwareFrames: Boolean,
+    /** referenced to keep the callback alive while the codec context uses it */
+    @Suppress("unused") private val getFormat: VideoToolboxBGRAFormat?
 ) {
     companion object {
         fun fromContext(
@@ -65,7 +68,8 @@ internal class Decoder(
             configuration: VideoPlayerConfiguration,
             context: AVFormatContext,
             useVideo: Boolean,
-            useAudio: Boolean
+            useAudio: Boolean,
+            outputHardwareFrames: Boolean = false
         ): Pair<Decoder, CodecInfo> {
             val videoStreamIndex =
                 av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
@@ -79,11 +83,9 @@ internal class Decoder(
             } else null
             val audioStream = if (useAudio) context.streamAt(audioStreamIndex) else null
 
-            val videoContext = videoStream?.openCodec()
-            val audioContext = audioStream?.openCodec()
             var hwType = AV_HWDEVICE_TYPE_NONE
             var hwDeviceContext: AVBufferRef? = null
-            if (configuration.useHardwareDecoding && videoContext != null) {
+            if (configuration.useHardwareDecoding && videoStream != null) {
                 val preferredHW = when (Platform.type) {
                     PlatformType.WINDOWS -> arrayListOf(
                         AV_HWDEVICE_TYPE_D3D11VA,
@@ -117,9 +119,20 @@ internal class Decoder(
                     av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
                     val hwContext = AVHWDeviceContext(hwContextPtr[0])
                     hwDeviceContext = AVBufferRef(hwContext)
-                    videoContext.hw_device_ctx(av_buffer_ref(hwDeviceContext))
                 }
             }
+
+            // frames stay on the GPU only when they can be imported, which needs BGRA VideoToolbox frames
+            val getFormat = if (outputHardwareFrames && hwType == AV_HWDEVICE_TYPE_VIDEOTOOLBOX) {
+                VideoToolboxBGRAFormat()
+            } else null
+
+            // the hardware device and format selection have to be set before the codec is opened
+            val videoContext = videoStream?.openCodec { context ->
+                hwDeviceContext?.let { context.hw_device_ctx(av_buffer_ref(it)) }
+                getFormat?.let { context.get_format(it) }
+            }
+            val audioContext = audioStream?.openCodec()
 
             // Extract video info.
             val video = videoContext?.run {
@@ -142,6 +155,8 @@ internal class Decoder(
                     audioStream,
                     hwType,
                     hwDeviceContext,
+                    getFormat != null,
+                    getFormat,
                 ), CodecInfo(video, audio)
             )
         }
@@ -165,7 +180,7 @@ internal class Decoder(
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
-            videoOutput?.let { VideoDecoder(statistics, configuration, ctx, it, hwType) }
+            videoOutput?.let { VideoDecoder(statistics, configuration, ctx, it, hwType, outputHardwareFrames) }
         }
 
         audioDecoder = audioCodecContext?.let { ctx ->
