@@ -23,6 +23,17 @@ private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
 abstract class VideoWriterProfile {
     abstract fun arguments(): Array<String>
     abstract val fileExtension: String
+
+    /**
+     * Arguments for the frames that are fed to the encoder, these are passed before the input
+     */
+    open fun inputArguments(): Array<String> = emptyArray()
+
+    /**
+     * The transfer function of HDR video, null for SDR video. HDR profiles take frames with linear colors in which
+     * 1.0 is SDR white, the reference white of HDR video (203 nits), like the frames of HDR windows.
+     */
+    open val hdrTransfer: HDRTransfer? get() = null
 }
 
 val File.fileWithoutExtension: File
@@ -124,6 +135,9 @@ class VideoWriter(
 
     private var profile: VideoWriterProfile = H264Profile()
 
+    /** encodes the frames of HDR profiles */
+    private var hdrEncoder: HDRFrameEncoder? = null
+
     var inputFormat = "rgba"
 
     fun profile(profile: VideoWriterProfile) {
@@ -203,16 +217,21 @@ class VideoWriter(
             throw RuntimeException("invalid height or height not set $height")
         }
 
+        // HDR frames are encoded as Y'CbCr with 16 bits per component
+        if (profile.hdrTransfer != null) {
+            inputFormat = "ayuv64le"
+        }
+
         frameBuffer = when (inputFormat) {
             "rgba" -> BufferUtils.createByteBuffer(width * height * 4)
-            "rgba64le" -> BufferUtils.createByteBuffer(width * height * 8)
+            "rgba64le", "ayuv64le" -> BufferUtils.createByteBuffer(width * height * 8)
             else -> throw RuntimeException("unsupported format $inputFormat")
         }
 
         val preamble = arrayOf(
             "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
-            "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate, "-i", "-"
-        )
+            "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate
+        ) + profile.inputArguments() + arrayOf("-i", "-")
 
         var profileArguments = profile.arguments()
 
@@ -272,24 +291,36 @@ class VideoWriter(
      * Feed a frame to the video encoder
      *
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.
+     * For HDR profiles, see [VideoWriterProfile.hdrTransfer], the ColorBuffer holds linear colors in which 1.0 is SDR
+     * white, typically a floating point ColorBuffer.
      */
     fun frame(frame: ColorBuffer) {
         if (!stopped) {
-            val frameBytes =
-                frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
-            require(frameBytes == frameBuffer.capacity()) {
-                "frame size/format/type mismatch. ($width x $height) vs ({${frame.effectiveWidth} x ${frame.effectiveHeight})"
-            }
-            (frameBuffer as Buffer).rewind()
-            frame.read(frameBuffer)
-            (frameBuffer as Buffer).rewind()
-            try {
-                channel.write(frameBuffer)
-            } catch (e: IOException) {
-                throw RuntimeException("failed to write frame", e)
+            val transfer = profile.hdrTransfer
+            if (transfer != null) {
+                val encoder = hdrEncoder ?: HDRFrameEncoder(width, height, transfer).also { hdrEncoder = it }
+                writeFrame(encoder.encode(frame))
+            } else {
+                writeFrame(frame)
             }
         } else {
             logger.warn { "ignoring frame after VideoWriter stop" }
+        }
+    }
+
+    private fun writeFrame(frame: ColorBuffer) {
+        val frameBytes =
+            frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
+        require(frameBytes == frameBuffer.capacity()) {
+            "frame size/format/type mismatch. ($width x $height) vs ({${frame.effectiveWidth} x ${frame.effectiveHeight})"
+        }
+        (frameBuffer as Buffer).rewind()
+        frame.read(frameBuffer)
+        (frameBuffer as Buffer).rewind()
+        try {
+            channel.write(frameBuffer)
+        } catch (e: IOException) {
+            throw RuntimeException("failed to write frame", e)
         }
     }
 
@@ -299,6 +330,8 @@ class VideoWriter(
     fun stop() {
         if (!stopped) {
             stopped = true
+            hdrEncoder?.close()
+            hdrEncoder = null
             try {
                 movieStream!!.close()
                 try {

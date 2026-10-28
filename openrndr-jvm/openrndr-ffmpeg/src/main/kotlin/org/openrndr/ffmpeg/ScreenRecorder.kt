@@ -58,7 +58,10 @@ class ScreenRecorder : Extension {
      */
     var outputToVideo: Boolean = true
 
-    /** the profile to use for the output video */
+    /**
+     * the profile to use for the output video. With an HDR profile, see [VideoWriterProfile.hdrTransfer], the
+     * program is drawn in a floating point color buffer that holds linear colors in which 1.0 is SDR white
+     */
     var profile: VideoWriterProfile = H264Profile()
 
     /**
@@ -109,14 +112,17 @@ class ScreenRecorder : Extension {
         }
 
 
+        // HDR video is drawn with linear colors that can be brighter than SDR white
+        val colorType = if (profile.hdrTransfer != null) ColorType.FLOAT16 else ColorType.UINT8_SRGB
+
         frame =
             renderTarget(requestedWidth, requestedHeight, multisample = multisample!!, contentScale = contentScale!!) {
-                colorBuffer()
+                colorBuffer(type = colorType)
                 depthBuffer()
             }
 
         if (multisample != BufferMultisample.Disabled) {
-            resolved = colorBuffer(requestedWidth, requestedHeight, contentScale = contentScale!!)
+            resolved = colorBuffer(requestedWidth, requestedHeight, contentScale = contentScale!!, type = colorType)
         }
 
         val filename = if (!outputFile.isNullOrBlank()) outputFile!! else {
@@ -133,7 +139,7 @@ class ScreenRecorder : Extension {
         val (advisedWidth, advisedHeight) = videoWriter.advisedSize(frame.pixelWidth, frame.pixelHeight)
         if (advisedWidth != frame.pixelWidth || advisedHeight != frame.pixelHeight) {
             logger.warn { "cropping video from ${frame.pixelWidth}x${frame.pixelHeight} to ${advisedWidth}x${advisedHeight}" }
-            crop = colorBuffer(advisedWidth, advisedHeight)
+            crop = colorBuffer(advisedWidth, advisedHeight, type = colorType)
         }
 
         videoWriter.profile(profile)
