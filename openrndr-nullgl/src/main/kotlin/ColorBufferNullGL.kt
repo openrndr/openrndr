@@ -39,7 +39,16 @@ class ColorBufferNullGL(
 
     }
 
-    override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+    override fun writeBuffer(
+        sourceBuffer: ByteBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        level: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
 
     }
 

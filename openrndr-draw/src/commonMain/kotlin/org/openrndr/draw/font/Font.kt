@@ -1,6 +1,8 @@
 package org.openrndr.draw.font
 
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.draw.font.internal.Script
+import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
@@ -11,42 +13,101 @@ import org.openrndr.utils.buffer.MPPBuffer
  * @since 0.4.3
  */
 interface Glyph {
+
+    val index: Int
+
+    val code: Int
+
     /**
      * Generate a [Shape] for this glyph
      * @param scale the scale at which to generate the shape
      * @since 0.4.3
      */
-    fun shape(scale: Double): Shape
+    fun shape(): Shape
 
-    fun advanceWidth(scale: Double): Double
+    fun advanceWidth(): Double
 
-    fun leftSideBearing(scale: Double): Double
+    fun leftSideBearing(): Double
 
-    fun topSideBearing(scale: Double): Double
+    fun topSideBearing(): Double
 
     /**
      * Compute the glyph bounds in up=+y space
      */
-    fun bounds(scale: Double): Rectangle
+    fun bounds(): Rectangle
 
     /**
      * Compute the bitmap bounds of the glyph
-     * @param scale the size for which the bounds should be found
+     * @param contentScale the content scale for which the bounds should be found
+     * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
-    fun bitmapBounds(scale: Double, subpixel:Boolean = true): IntRectangle
+    fun bitmapBounds(contentScale: Double, subpixel: Boolean = true): IntRectangle
 
     /**
-     * Rasterize the glyph at the given size
+     * Rasterize the glyph at the face's size
+     * @param contentScale the content scale at which to rasterize
      * @param bitmap a MPPBuffer positioned at the top left corner of the glyph
      * @param stride the stride (width) of the bitmap buffer
      * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
-    fun rasterize(scale: Double,
-                  bitmap: MPPBuffer,
-                  stride: Int,
-                  subpixel: Boolean)
+    fun rasterize(
+        contentScale: Double,
+        bitmap: MPPBuffer,
+        stride: Int,
+        subpixel: Boolean
+    )
+
+}
+
+/**
+ * Represents the master configuration for a font face, allowing manipulation of axis values
+ * within specified ranges for variable font adjustments.
+ *
+ * This class acts as a wrapper around a mutable map of axes, providing functionality to enforce
+ * valid axis ranges and copy the current instance.
+ *
+ * @property axes A map of axis names to their current values. This map is mutable and represents
+ *                the active state of the font's variable axis configurations.
+ * @property ranges A map of axis names to their valid floating-point ranges.
+ */
+
+data class FaceMaster(val axes: MutableMap<String, Double>, val ranges: Map<String, ClosedFloatingPointRange<Double>>) : MutableMap<String, Double> by axes {
+    override fun hashCode(): Int {
+        return axes.hashCode()
+    }
+
+    override fun put(key: String, value: Double): Double? {
+        require(key in axes.keys) {
+            "axis $key is not defined for this font"
+        }
+
+        return axes.put(key, value.coerceIn(ranges[key]!!))
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as FaceMaster
+
+        if (axes != other.axes) return false
+        return true
+    }
+
+    /**
+     * Creates and returns a copy of the current `FaceMaster` instance.
+     *
+     * The copied instance has a new mutable map for the axes that is initialized
+     * with the current axes' key-value pairs, and retains the same ranges map
+     * as the original instance.
+     *
+     * @return A new `FaceMaster` instance with the same data as the original.
+     */
+    fun copy(): FaceMaster {
+        return FaceMaster(axes.toMutableMap(), ranges)
+    }
 
 }
 
@@ -54,6 +115,9 @@ interface Glyph {
  * A face (font) representation
  */
 interface Face: AutoCloseable {
+
+    val sizeInPoints: Double
+
 
     /**
      * Retrieves a sequence of all code points supported by the font face.
@@ -70,28 +134,143 @@ interface Face: AutoCloseable {
 
     fun unitsPerEm() : Int
 
-    fun ascent(scale: Double): Double = ascentMetrics() * scale
 
-    fun descent(scale: Double): Double = descentMetrics() * scale
+    val emWidth: Double
 
-    fun lineGap(scale: Double): Double = lineGapMetrics() * scale
+    val xHeight: Double
 
-    fun lineSpace(scale: Double): Double = ascent(scale) - descent(scale) + lineGap(scale)
+    val capHeight: Double
 
-    fun kernAdvance(scale: Double, left: Char, right: Char): Double
+    val height: Double
+
+    val ascent: Double
+
+    val descent: Double
+
+    val lineGap: Double
+
+    /**
+     * Calculates the horizontal kerning adjustment between two characters.
+     *
+     * The kerning adjustment is the additional or reduced horizontal spacing
+     * that should be applied when rendering the two characters next to each other
+     * to improve the visual balance and appearance of the text.
+     *
+     * @param left the first character in the pair.
+     * @param right the second character in the pair.
+     * @return the horizontal kerning adjustment in font units. A positive value increases spacing,
+     *         while a negative value decreases spacing.
+     */
+    fun kernAdvance(left: Char, right: Char): Double
 
     /**
      * Return the glyph for a given character
      */
     fun glyphForCharacter(character: Char): Glyph
 
+
+    /**
+     * Retrieves the glyph associated with the specified Unicode code point.
+     *
+     * @param codePoint the Unicode code point for which the glyph is to be retrieved.
+     * @return the corresponding [Glyph] object for the given code point.
+     */
     fun glyphForCodePoint(codePoint: Int): Glyph
 
-    fun bounds(scale: Double): Rectangle
+
+    /**
+     * Retrieves the glyph corresponding to the specified glyph index.
+     * 
+     * Note: Glyph indices are face-specific and may differ between fonts, even for the same character.
+     * They represent the internal indexing scheme used by the particular font face and should not be
+     * assumed to be portable across different font files.
+     * 
+     * @param glyphIndex the index of the glyph to retrieve.
+     * @return the [Glyph] object associated with the given glyph index.
+     */
+    fun glyphForIndex(glyphIndex: Int): Glyph
+
+    val bounds: Rectangle
+
+    /**
+     * Indicates whether the font face is a variable font.
+     *
+     * A variable font allows for interpolation between multiple font styles or weights,
+     * providing extended flexibility in typography. When set to `true`, the font face
+     * is capable of such dynamic variations. Otherwise, it represents a static font.
+     */
+    val isVariable: Boolean
+
+    /**
+     * Represents the master configuration of a font face.
+     *
+     * This property encapsulates customizable variations of the font face,
+     * defined by its axes and ranges, which determine the adjustable properties of the font.
+     * It provides access to these variations in order to manipulate or query specific font characteristics.
+     *
+     * Note: This property returns a mutable copy of this Face's master configuration. Changing the values
+     * in the returned master does not affect this Face instance. To create a new Face with modified master
+     * settings, use the returned master in combination with [withMaster].
+     */
+    val master: FaceMaster
+
+
+    /**
+     * Creates a new instance of the font face by applying the provided master parameters.
+     *
+     * The `master` parameter specifies a set of axis values that override the current
+     * variation settings of the font face, allowing customization based on the specified
+     * axis values.
+     *
+     * @param master an instance of [FaceMaster] containing axis values and their ranges
+     *               to adjust the font variation settings.
+     * @return a new [Face] instance with the adjustments from the provided [FaceMaster].
+     */
+    fun withMaster(master: FaceMaster): Face
+
+    /**
+     * Creates a new instance of the font face at the given size.
+     *
+     * The returned face shares the font data with this face.
+     *
+     * @param sizeInPoints the size of the face in points
+     * @return a new [Face] instance at the given size
+     */
+    fun withSize(sizeInPoints: Double): Face
+
+    /**
+     * Queries the scripts supported by this face, delegates to [TextShapingDriver.querySupportedScripts].
+     *
+     * @return a list of supported [Script]s
+     */
+    fun supportedScripts(): List<Script> =
+        TextShapingDriver.instance.querySupportedScripts(this)
+
+    /**
+     * Queries the substitution (GSUB) features of this face for the given [script], delegates to
+     * [TextShapingDriver.querySubstitutionFeatures].
+     *
+     * @param script the script to query features for
+     * @return a list of feature tags
+     */
+    fun substitutionFeatures(script: Script): List<String> =
+        TextShapingDriver.instance.querySubstitutionFeatures(this, script)
+
+    /**
+     * Queries the positioning (GPOS) features of this face for the given [script], delegates to
+     * [TextShapingDriver.queryPositionFeatures].
+     *
+     * @param script the script to query features for
+     * @return a list of feature tags
+     */
+    fun positionFeatures(script: Script): List<String> =
+        TextShapingDriver.instance.queryPositionFeatures(this, script)
 }
 
 /**
  * Load a face
+ *
+ * The face is loaded at [FontDriver.DEFAULT_SIZE_IN_POINTS], use [Face.withSize] to obtain the face at other sizes.
  * @param fileOrUrl a file or url to load the face from
  * @since 0.4.3
  */
@@ -99,14 +278,3 @@ fun loadFace(fileOrUrl: String): Face {
     return FontDriver.instance.loadFace(fileOrUrl)
 }
 
-/**
- * Scale font based on ascender + descender height
- * @since 0.4.5
- */
-fun fontHeightScaler(font: Face) : Double = 1.0 / (font.ascentMetrics() - font.descentMetrics())
-
-/**
- * Scale font based on units per em
- * @since 0.4.5
- */
-fun fontEmScaler(font: Face) = 1.0 / font.unitsPerEm()

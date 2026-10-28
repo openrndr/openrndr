@@ -120,6 +120,7 @@ actual class ShadeStyleGLSL {
             #define d_mesh_line 7
             #define d_point 8
             #define d_custom 9
+            #define d_slug 10
             #define d_primitive $type
             // </primitive-types>
             """.trimIndent()

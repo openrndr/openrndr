@@ -304,6 +304,7 @@ fun union(from: ShapeContour, add: ShapeContour): Shape {
     }
 }
 
+
 /**
  * Applies a boolean org.openrndr.shape.union operation between a [Shape] and a [ShapeContour].
  */

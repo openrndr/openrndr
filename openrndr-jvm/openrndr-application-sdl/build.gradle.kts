@@ -54,7 +54,9 @@ variants {
 
 dependencies {
     implementation(project(":openrndr-application"))
-    implementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
+    implementation(project(":openrndr-jvm:openrndr-textshapingdriver-harfbuzz"))
+    implementation(project(":openrndr-bidi-text-driver"))
+    implementation(project(":openrndr-jvm:openrndr-fontdriver-freetype"))
     implementation(project(":openrndr-jvm:openrndr-imagedriver-stb"))
     implementation(project(":openrndr-jvm:openrndr-gl3"))
 

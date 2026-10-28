@@ -996,5 +996,110 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 
     """.trimMargin()
 
+    override fun slugVertexShader(shadeStructure: ShadeStructure): String = """
+// -- slug vertex shader
+${primitiveTypes("d_slug")}
+${shadeStructure.structDefinitions ?: ""}
+${shadeStructure.buffers ?: ""}
+${drawerUniforms()}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${transformVaryingOut}
+${slugDilate}
+${shadeStructure.vertexPreamble ?: ""}
+
+flat out int v_instance;
+out vec2 v_dilatedTexCoord;
+
+void main() {
+    v_instance = gl_InstanceID;
+${vertexMainConstants()}
+${shadeStructure.varyingBridge ?: ""}
+    ${preVertexTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    vec3 x_position;
+    {
+        // dilate the glyph quad by half a pixel (plus stroke) in viewport space
+        vec2 dims = i_slugBounds.zw - i_slugBounds.xy;
+        vec3 boundsPosition = vec3(mix(i_slugBounds.xy, i_slugBounds.zw, a_texCoord0.xy), 0.0);
+        vec2 quadNormal = (a_texCoord0.xy - vec2(0.5)) * 2.0;
+        vec4 pos = vec4(boundsPosition.xy, quadNormal);
+
+        // maps the object-space dilation vector to normalized texture coordinates
+        vec4 jac = vec4(1.0 / dims.x, 0.0, 0.0, 1.0 / dims.y);
+
+        mat4 mvpt = transpose(u_projectionMatrix * u_viewMatrix * u_modelMatrix * i_transform);
+        vec2 viewportPixels = u_viewDimensions * u_contentScale;
+
+        vec2 dilatedPosition;
+        v_dilatedTexCoord = SlugDilate(pos, a_texCoord0, jac, mvpt[0], mvpt[1], mvpt[3], viewportPixels, dilatedPosition);
+        x_position = (i_transform * vec4(dilatedPosition, 0.0, 1.0)).xyz;
+    }
+    {
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
+    }
+    ${postVertexTransform}
+    gl_Position = v_clipPosition;
+}
+"""
+
+    override fun slugFragmentShader(shadeStructure: ShadeStructure): String = """
+// -- slug fragment shader
+${primitiveTypes("d_slug")}
+${shadeStructure.structDefinitions ?: ""}
+${shadeStructure.buffers ?: ""}
+${shadeStructure.uniforms ?: ""}
+
+uniform sampler2D u_slugCurves;
+uniform usampler2D u_slugBands;
+
+${drawerUniforms()}
+${shadeStructure.varyingIn ?: ""}
+${shadeStructure.outputs ?: ""}
+${transformVaryingIn}
+
+#ifndef OUTPUT_color
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
+
+flat in int v_instance;
+in vec2 v_dilatedTexCoord;
+
+${slugBezierDistance}
+${slugCoverageFunctions}
+${slugFetch}
+
+${
+        fragmentMainConstants(
+            instance = "v_instance",
+            boundsPosition = "vec3(v_dilatedTexCoord, 0.0)",
+            boundsSize = "vec3(vi_slugBounds.zw - vi_slugBounds.xy, 0.0)"
+        )
+    }
+${shadeStructure.fragmentPreamble ?: ""}
+
+void main(void) {
+    // -- slug coverage, defines slugCoverage and slugStrokeCoverage
+${slugCoverage.prependIndent("    ")}
+
+    vec4 x_fill = vi_fill;
+    vec4 x_stroke = vi_stroke;
+    {
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
+    }
+    vec4 final = x_fill;
+    final.a *= slugCoverage;
+    final *= (1.0 - slugStrokeCoverage);
+    final += x_stroke * slugStrokeCoverage;
+    ${
+        if (!shadeStructure.suppressDefaultOutput) """
+    o_color = final;
+    o_color.rgb *= o_color.a;
+    """ else ""
+    }
+}
+"""
+
 
 }

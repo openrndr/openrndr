@@ -499,9 +499,9 @@ data class Segment2D(
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
     /** Returns the bounding box. */
-    val bounds: Rectangle
-        get() = (listOf(start, end) + extremaPoints()).bounds
-
+    val bounds by lazy {
+        (listOf(start, end) + extremaPoints()).bounds
+    }
 
     private fun dPoints(): List<List<Vector2>> {
         val points = listOf(start) + control + listOf(end)
@@ -1008,3 +1008,103 @@ fun Segment2D(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true)
  */
 fun Segment2D(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) =
     Segment2D(start, listOf(c0, c1), end, corner)
+
+fun Segment2D.toQuadratics(tolerance: Double): List<Segment2D> {
+    val count = this.numQuadratics(tolerance)
+
+    if (count == 1) {
+        return listOf(this.quadratic)
+    } else {
+
+        val result = ArrayList<Segment2D>(count)
+        for (i in 0 until count) {
+            val t0 = i.toDouble() / count
+            val t1 = (i + 1.0) / count
+            result.add(sub(t0, t1).quadratic)
+        }
+        return result
+    }
+}
+
+fun Segment2D.findIntersectionsX(x: Double): List<Double> {
+    return when (control.size) {
+        0 -> solveLinear(end.x - start.x, start.x - x).filter { it in 0.0..1.0 }
+        1 -> {
+            val a = start.x - 2.0 * control[0].x + end.x
+            val b = 2.0 * (control[0].x - start.x)
+            val c = start.x - x
+            solveQuadratic(a, b, c).filter { it in 0.0..1.0 }.distinct()
+        }
+        2 -> {
+            val a = -start.x + 3.0 * control[0].x - 3.0 * control[1].x + end.x
+            val b = 3.0 * start.x - 6.0 * control[0].x + 3.0 * control[1].x
+            val c = -3.0 * start.x + 3.0 * control[0].x
+            val d = start.x - x
+            solveCubic(a, b, c, d).filter { it in 0.0..1.0 }.distinct()
+        }
+        else -> emptyList()
+    }
+}
+
+fun Segment2D.findIntersectionsY(y: Double): List<Double> {
+    return when (control.size) {
+        0 -> solveLinear(end.y - start.y, start.y - y).filter { it in 0.0..1.0 }
+        1 -> {
+            val a = start.y - 2.0 * control[0].y + end.y
+            val b = 2.0 * (control[0].y - start.y)
+            val c = start.y - y
+            solveQuadratic(a, b, c).filter { it in 0.0..1.0 }.distinct()
+        }
+        2 -> {
+            val a = -start.y + 3.0 * control[0].y - 3.0 * control[1].y + end.y
+            val b = 3.0 * start.y - 6.0 * control[0].y + 3.0 * control[1].y
+            val c = -3.0 * start.y + 3.0 * control[0].y
+            val d = start.y - y
+            solveCubic(a, b, c, d).filter { it in 0.0..1.0 }.distinct()
+        }
+        else -> emptyList()
+    }
+}
+
+fun Segment2D.clip(mask: Rectangle): List<Segment2D> {
+    val ts = mutableSetOf(0.0, 1.0)
+    ts.addAll(findIntersectionsX(mask.corner.x))
+    ts.addAll(findIntersectionsX(mask.corner.x + mask.width))
+    ts.addAll(findIntersectionsY(mask.corner.y))
+    ts.addAll(findIntersectionsY(mask.corner.y + mask.height))
+
+    val sortedTs = ts.filter { it in 0.0..1.0 }.sorted()
+    val result = mutableListOf<Segment2D>()
+    for (i in 0 until sortedTs.size - 1) {
+        val t0 = sortedTs[i]
+        val t1 = sortedTs[i + 1]
+        if (t1 - t0 > 1E-9) {
+            val mid = position((t0 + t1) / 2.0)
+            if (mask.contains(mid)) {
+                result.add(sub(t0, t1))
+            }
+        }
+    }
+    return result
+}
+
+
+internal fun Segment2D.cubicError(): Double {
+    val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
+    val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
+    return x * x + y * y
+}
+
+
+
+internal fun Segment2D.numQuadratics(tolerance: Double): Int {
+    return if (this.control.size == 2) {
+        val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
+        val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
+        val err = cubicError()
+        val result = err / (432.0 * tolerance * tolerance)
+        ceil(result.pow(1.0 / 6.0)).coerceAtLeast(1.0).toInt()
+    } else {
+        1
+    }
+}

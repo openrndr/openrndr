@@ -1,6 +1,7 @@
 package org.openrndr.internal.glcommon
 
 import org.openrndr.draw.*
+import org.openrndr.utils.collections.LRUCache
 
 private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>()
 

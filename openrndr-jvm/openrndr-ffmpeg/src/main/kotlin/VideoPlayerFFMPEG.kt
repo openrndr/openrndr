@@ -864,8 +864,8 @@ class VideoPlayerFFMPEG private constructor(
                     }
                     if (frame != null) {
                         if (!frame.buffer.isNull) {
-                            colorBuffer?.write(
-                                frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
+                            colorBuffer?.writeBuffer(
+                                frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer(),
                             )
                             waitTimeInMs = 1
                             colorBuffer?.let { lc ->
@@ -958,8 +958,8 @@ class VideoPlayerFFMPEG private constructor(
                                 }
 
                                 if (!frame.buffer.isNull) {
-                                    colorBuffer?.write(
-                                        frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
+                                    colorBuffer?.writeBuffer(
+                                        frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer(),
                                     )
                                     colorBuffer?.let { lc ->
                                         videoPosition = frame.timeStamp

@@ -8,8 +8,18 @@ import org.lwjgl.sdl.SDLStdinc.SDL_free
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Rect
 import org.openrndr.*
+import org.openrndr.Application
+import org.openrndr.ApplicationBase
+import org.openrndr.ApplicationConfiguration
+import org.openrndr.Configuration
+import org.openrndr.Display
+import org.openrndr.Program
+import org.openrndr.draw.font.internal.BidiTextDriver
+import org.openrndr.draw.font.internal.CachingTextShapingDriver
+import org.openrndr.draw.font.internal.CachingFontDriver
 import org.openrndr.draw.font.internal.FontDriver
-import org.openrndr.fontdriver.stb.FontDriverStbTt
+import org.openrndr.draw.font.internal.TextShapingDriver
+import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.gl3.DriverGL3Configuration
@@ -19,6 +29,8 @@ import org.openrndr.internal.gl3.ImageDriverStbImage
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
+import org.openrndr.biditextdriver.BidiTextDriverUax9
 
 private val logger = KotlinLogging.logger { }
 
@@ -95,7 +107,9 @@ class ApplicationBaseSDL : ApplicationBase() {
         }
         KeyboardDriver.driver = KeyboardDriverSDL()
         ImageDriver.driver = ImageDriverStbImage()
-        FontDriver.driver = FontDriverStbTt()
+        FontDriver.driver = CachingFontDriver(FontDriverFreetype())
+        TextShapingDriver.driver = CachingTextShapingDriver(TextShapingDriverHarfBuzz())
+        BidiTextDriver.driver = BidiTextDriverUax9()
     }
 
      fun close() {

@@ -5,6 +5,7 @@ package org.openrndr.draw
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.slug.SlugDrawer
 import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
@@ -71,7 +72,9 @@ class Drawer(val driver: Driver) {
     private val meshLineDrawer by lazy { MeshLineDrawer() }
     private var qualityLineDrawer = QualityLineDrawer()
     private var qualityPolygonDrawer = QualityPolygonDrawer()
+
     val fontImageMapDrawer = FontImageMapDrawer()
+    val slugDrawer by lazy { SlugDrawer() }
 
     private val modelStack = ArrayDeque<Matrix44>()
     private val viewStack = ArrayDeque<Matrix44>()

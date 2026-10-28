@@ -5,6 +5,7 @@ import org.openrndr.draw.LineCap
 fun main() = application {
     configure {
         height = 640
+//        Rectangle
     }
     program {
         extend {

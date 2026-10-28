@@ -32,7 +32,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     }
 
     override fun upload() {
-        colorBuffer.write(buffer)
+        colorBuffer.writeBuffer(buffer, level = 0)
     }
 
     override fun destroy() {

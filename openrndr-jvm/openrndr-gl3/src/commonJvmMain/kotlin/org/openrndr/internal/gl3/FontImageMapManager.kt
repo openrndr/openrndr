@@ -16,17 +16,17 @@ private val logger = KotlinLogging.logger {}
 class FontImageMapManager : FontMapManager() {
     override fun fontMapFromUrl(
         url: String,
-        size: Double,
+        sizeInPoints: Double,
         characterSet: Set<Char>,
         contentScale: Double
     ): FontImageMap {
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
-        val face = loadFace(url)
+        val face = loadFace(url).withSize(sizeInPoints)
 
         val glyphDimensions = characterSet.associateWith { c ->
-            val bounds = face.glyphForCharacter(c).bitmapBounds(size * contentScale)
+            val bounds = face.glyphForCharacter(c).bitmapBounds(contentScale)
             IntVector2(bounds.width, bounds.height)
         }
         val sanding = 3
@@ -73,42 +73,40 @@ class FontImageMapManager : FontMapManager() {
 
                 val glyph = face.glyphForCharacter(it.key)
 
-                val bitmapBounds = glyph.bitmapBounds(size * contentScale)
+                val bitmapBounds = glyph.bitmapBounds(contentScale)
 
                 glyphMetrics[it.key] = GlyphMetrics(
-                    advanceWidth = glyph.advanceWidth(size),
-                    leftSideBearing = glyph.leftSideBearing(size),
+                    advanceWidth = glyph.advanceWidth(),
+                    leftSideBearing = glyph.leftSideBearing(),
                     xBitmapShift = bitmapBounds.x.toDouble(),
                     yBitmapShift = bitmapBounds.y.toDouble()
                 )
                 (bitmap as Buffer).rewind()
                 (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)
-                glyph.rasterize(size * contentScale, MPPBuffer(bitmap), packSize, true)
+                glyph.rasterize(contentScale, MPPBuffer(bitmap), packSize, true)
             }
         }
         logger.debug { "uploading bitmap to color buffer" }
         (bitmap as Buffer).rewind()
-        image.write(bitmap)
+        image.writeBuffer( bitmap, level = 0)
         MemoryUtil.memFree(bitmap)
 
-        val ascent = face.ascent(size * contentScale)
-        val descent = face.descent(size * contentScale)
-        val leading = face.lineSpace(size * contentScale)
+        val leading = face.lineGap
         return FontImageMap(
             image,
             map,
             glyphMetrics,
-            size,
+            sizeInPoints,
             contentScale,
-            ascent / contentScale,
-            descent / contentScale,
-            (ascent + descent) / contentScale,
-            leading / contentScale,
+            face.ascent,
+            face.descent,
+            face.height,
+            leading,
             url
         ).apply {
             for (outer in characterSet) {
                 for (inner in characterSet) {
-                    kerningTable[CharacterPair(outer, inner)] = face.kernAdvance(size, outer, inner)
+                    kerningTable[CharacterPair(outer, inner)] = face.kernAdvance(outer, inner)
                 }
             }
         }
