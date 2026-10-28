@@ -128,7 +128,8 @@ internal class Decoder(
 
             // Extract video info.
             val video = videoContext?.run {
-                VideoInfo(Dimensions(width(), height()), av_q2d((videoStream.r_frame_rate())))
+                // r_frame_rate can be a multiple of the frame rate of variable frame rate video, guess the rate instead
+                VideoInfo(Dimensions(width(), height()), av_q2d(av_guess_frame_rate(context, videoStream, null)))
             }
             // Extract audio info.
             val audio = audioContext?.run {
@@ -168,6 +169,34 @@ internal class Decoder(
     /** are the frames the decoders delay received at the end of the file? */
     private var videoDraining = false
     private var audioDraining = false
+    private var audioDrainingStarted = false
+
+    /**
+     * Audio packets that are read while the audio queue is full. A video decoder only outputs a frame after it
+     * received the packets of a number of later frames, in variable frame rate video those can be seconds later.
+     * Reading on past a full audio queue makes sure those packets are reached.
+     */
+    private val pendingAudioPackets = ArrayDeque<AVPacket>()
+    private val maxPendingAudioPackets = 4096
+
+    private fun canReadAhead() = pendingAudioPackets.size < maxPendingAudioPackets
+
+    /**
+     * Decodes the pending audio packets for which the audio queue has room
+     */
+    private fun decodePendingAudioPackets() {
+        while (pendingAudioPackets.isNotEmpty() && audioDecoder?.isQueueAlmostFull() == false) {
+            val packet = pendingAudioPackets.removeFirst()
+            audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)
+            av_packet_free(packet)
+        }
+    }
+
+    private fun clearPendingAudioPackets() {
+        while (pendingAudioPackets.isNotEmpty()) {
+            av_packet_free(pendingAudioPackets.removeFirst())
+        }
+    }
     var lastPacketReceived = 0L
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
@@ -238,11 +267,17 @@ internal class Decoder(
         videoDecoder?.dispose()
         audioDecoder?.dispose()
         packetReader?.dispose()
+        clearPendingAudioPackets()
         if (hwDeviceContext != null) {
             av_buffer_unref(hwDeviceContext)
             av_buffer_unref(hwDeviceContext)
         }
     }
+
+    /**
+     * Should packets be read while the audio queue is full? This is the case when the video queue runs empty.
+     */
+    private fun readAheadForVideo() = (videoDecoder?.queueCount() ?: 1000) < 2 && canReadAhead()
 
     private var underOverflowWait = 1L
     private fun needMoreFrames(): Boolean {
@@ -254,7 +289,7 @@ internal class Decoder(
             return false
         }
 
-        if ((videoDecoder?.queueCount() ?: 1000) < 2 && audioDecoder?.isQueueAlmostFull() == true) {
+        if ((videoDecoder?.queueCount() ?: 1000) < 2 && audioDecoder?.isQueueAlmostFull() == true && !canReadAhead()) {
             if (underOverflowWait < 64) {
                 logger.debug {
                     "video queue underflow, audio queue overflow"
@@ -282,7 +317,7 @@ internal class Decoder(
         if (videoDecoder?.isQueueAlmostFull() == true) {
             return false
         }
-        if (audioDecoder?.isQueueAlmostFull() == true) {
+        if (audioDecoder?.isQueueAlmostFull() == true && !readAheadForVideo()) {
             return false
         }
 
@@ -300,6 +335,7 @@ internal class Decoder(
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
             packetReader?.flushQueue()
+            clearPendingAudioPackets()
 
             logger.debug { "seeking to $seekPosition" }
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
@@ -330,6 +366,8 @@ internal class Decoder(
             audioDecoder?.flushBuffers()
         }
 
+        decodePendingAudioPackets()
+
         if (videoDraining || audioDraining) {
             // the decoders delay frames, for example one per decoding thread, they are received before the end of the
             // file is reported
@@ -338,7 +376,12 @@ internal class Decoder(
                 videoDraining = videoDecoder?.drainFrame(videoStream!!, seekPosition) == true
                 received = true
             }
-            if (audioDraining && audioDecoder?.isQueueAlmostFull() == false) {
+            // the pending audio packets are decoded before the audio decoder is drained
+            if (audioDraining && audioDecoder?.isQueueAlmostFull() == false && pendingAudioPackets.isEmpty()) {
+                if (!audioDrainingStarted) {
+                    audioDecoder?.startDraining()
+                    audioDrainingStarted = true
+                }
                 audioDraining = audioDecoder?.drainFrame(audioStream!!, seekPosition) == true
                 received = true
             }
@@ -359,7 +402,7 @@ internal class Decoder(
                 return
             }
 
-            if (audioDecoder?.isQueueAlmostFull() == true) {
+            if (audioDecoder?.isQueueAlmostFull() == true && !readAheadForVideo()) {
                 logger.warn { "audio queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
                 Thread.sleep(5)
                 return
@@ -367,7 +410,6 @@ internal class Decoder(
 
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             require(videoDecoder?.isQueueAlmostFull() != true)
-            require(audioDecoder?.isQueueAlmostFull() != true)
             val packetResult = av_read_frame(formatContext, packet)
 
             if (packetResult == AVERROR_EOF) {
@@ -375,9 +417,9 @@ internal class Decoder(
                     logger.debug { "decoder reached end of file, draining decoders" }
                     atEndOfFile = true
                     videoDecoder?.startDraining()
-                    audioDecoder?.startDraining()
                     videoDraining = videoDecoder != null
                     audioDraining = audioDecoder != null
+                    audioDrainingStarted = false
                     if (!videoDraining && !audioDraining) {
                         reachedEndOfFile()
                     }
@@ -416,8 +458,11 @@ internal class Decoder(
                     }
 
                     audioStreamIndex -> {
-                        require(audioDecoder?.isQueueAlmostFull() != true)
-                        audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)
+                        if (audioDecoder?.isQueueAlmostFull() == true || pendingAudioPackets.isNotEmpty()) {
+                            av_packet_clone(packet)?.let { pendingAudioPackets.addLast(it) }
+                        } else {
+                            audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)
+                        }
                     }
                 }
                 av_packet_unref(packet)

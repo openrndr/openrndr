@@ -150,6 +150,7 @@ internal class VideoDecoder(
         }
         rgbConversion.dispose()
         rgb16Conversion?.dispose()
+        frameBeforeSeek?.let { av_frame_free(it) }
     }
 
     fun queueCount() = videoQueue.size()
@@ -171,6 +172,8 @@ internal class VideoDecoder(
 
     fun flushBuffers() {
         avcodec_flush_buffers(videoCodecContext)
+        frameBeforeSeek?.let { av_frame_free(it) }
+        frameBeforeSeek = null
     }
 
     fun decodeVideoPacket(stream: AVStream, packet: AVPacket, seekPosition: Double) {
@@ -203,12 +206,18 @@ internal class VideoDecoder(
     fun drainFrame(stream: AVStream, seekPosition: Double): Boolean = receiveFrame(stream, seekPosition) == 0
 
     /**
+     * The last frame before the seek position. Frames can last long in variable frame rate video, this frame is shown
+     * at the seek position when the first frame after the seek position starts after it.
+     */
+    private var frameBeforeSeek: AVFrame? = null
+
+    /**
      * Receives a decoded frame and queues it when it is not before [seekPosition]
      * @return the result of avcodec_receive_frame
      */
     private fun receiveFrame(stream: AVStream, seekPosition: Double): Int {
         val decodedFrame = av_frame_alloc()
-        var ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
+        val ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
 
         if (ret == AVERROR_EAGAIN()) {
             logger.trace { "try again" }
@@ -219,55 +228,71 @@ internal class VideoDecoder(
             val ptss = if (pts == AV_NOPTS_VALUE) seekPosition else (pts - startTime).toDouble() * av_q2d(stream.time_base())
             logger.trace { "decoded frame pts: ${ptss}s" }
 
-            if (ptss >= seekPosition && outputHardwareFrames && decodedFrame.format() == AV_PIX_FMT_VIDEOTOOLBOX &&
-                CoreVideo.planarFormat(decodedFrame) != null
-            ) {
-                // the clone references the frame's CVPixelBuffer, which returns to the decoder's pool when freed
-                val hardwareFrame = av_frame_clone(decodedFrame)
-                synchronized(videoQueue) {
-                    videoQueue.push(VideoFrame(null, 0, ptss, 0, ColorDescription.of(decodedFrame), hardwareFrame))
-                }
-                statistics.videoQueueSize = videoQueue.size()
-                statistics.videoFramesDecoded += 1
-                av_frame_free(decodedFrame)
-                return 0
-            }
-
-            val transferredFrame = av_frame_alloc()
-            if (ptss >= seekPosition) {
-                val resultFrame: AVFrame
-                if (decodedFrame.format() == hwPixFmt) {
-                    ret = av_hwframe_transfer_data(transferredFrame, decodedFrame, 0)
-                    ret.checkAVError()
-                    resultFrame = transferredFrame
-                } else {
-                    resultFrame = decodedFrame
-                }
-                val color = ColorDescription.of(decodedFrame)
-                val conversion = if (color.isHdr) {
-                    rgb16Conversion ?: RGBConversion(AV_PIX_FMT_RGBA64LE).also { rgb16Conversion = it }
-                } else {
-                    rgbConversion
-                }
-                val buffer = conversion.convert(resultFrame, decodedFrame)
-                synchronized(videoQueue) {
-                    videoQueue.push(
-                        VideoFrame(
-                            buffer, conversion.lineSize, ptss, conversion.frameSize, color,
-                            rgb16 = conversion !== rgbConversion
-                        )
-                    )
-                }
-                statistics.videoQueueSize = videoQueue.size()
-                statistics.videoFramesDecoded += 1
-            } else {
+            if (ptss < seekPosition) {
                 logger.trace { "skipping video frame: $ptss < $seekPosition" }
                 statistics.videoFrameErrors += 1
+                frameBeforeSeek?.let { av_frame_free(it) }
+                frameBeforeSeek = av_frame_clone(decodedFrame)
+            } else {
+                frameBeforeSeek?.let {
+                    if (ptss > seekPosition) {
+                        queueFrame(it, seekPosition)
+                    }
+                    av_frame_free(it)
+                    frameBeforeSeek = null
+                }
+                queueFrame(decodedFrame, ptss)
             }
-            av_frame_free(transferredFrame)
-            ret = 0
+        } else if (ret == AVERROR_EOF) {
+            // the seek position is after the start of the last frame
+            frameBeforeSeek?.let {
+                queueFrame(it, seekPosition)
+                av_frame_free(it)
+                frameBeforeSeek = null
+            }
         }
         av_frame_free(decodedFrame)
         return ret
+    }
+
+    /**
+     * Queues [decodedFrame] to be shown at [timeStamp]
+     */
+    private fun queueFrame(decodedFrame: AVFrame, timeStamp: Double) {
+        if (outputHardwareFrames && decodedFrame.format() == AV_PIX_FMT_VIDEOTOOLBOX &&
+            CoreVideo.planarFormat(decodedFrame) != null
+        ) {
+            // the clone references the frame's CVPixelBuffer, which returns to the decoder's pool when freed
+            val hardwareFrame = av_frame_clone(decodedFrame)
+            synchronized(videoQueue) {
+                videoQueue.push(VideoFrame(null, 0, timeStamp, 0, ColorDescription.of(decodedFrame), hardwareFrame))
+            }
+        } else {
+            val transferredFrame = av_frame_alloc()
+            val resultFrame = if (decodedFrame.format() == hwPixFmt) {
+                av_hwframe_transfer_data(transferredFrame, decodedFrame, 0).checkAVError()
+                transferredFrame
+            } else {
+                decodedFrame
+            }
+            val color = ColorDescription.of(decodedFrame)
+            val conversion = if (color.isHdr) {
+                rgb16Conversion ?: RGBConversion(AV_PIX_FMT_RGBA64LE).also { rgb16Conversion = it }
+            } else {
+                rgbConversion
+            }
+            val buffer = conversion.convert(resultFrame, decodedFrame)
+            av_frame_free(transferredFrame)
+            synchronized(videoQueue) {
+                videoQueue.push(
+                    VideoFrame(
+                        buffer, conversion.lineSize, timeStamp, conversion.frameSize, color,
+                        rgb16 = conversion !== rgbConversion
+                    )
+                )
+            }
+        }
+        statistics.videoQueueSize = videoQueue.size()
+        statistics.videoFramesDecoded += 1
     }
 }
