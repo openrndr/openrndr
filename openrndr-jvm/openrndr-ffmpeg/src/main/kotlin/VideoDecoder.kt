@@ -60,7 +60,7 @@ internal class VideoDecoder(
     private val videoCodecContext: AVCodecContext,
     output: VideoDecoderOutput,
     hwType: Int,
-    /** queue VideoToolbox frames as they are, instead of converting them to BGR32 */
+    /** queue NV12 and P010 VideoToolbox frames as they are, instead of converting them to BGR32 */
     private val outputHardwareFrames: Boolean = false
 ) {
     private val windowSize = output.size
@@ -168,7 +168,9 @@ internal class VideoDecoder(
             val ptss = if (pts == AV_NOPTS_VALUE) seekPosition else (pts - startTime).toDouble() * av_q2d(stream.time_base())
             logger.trace { "decoded frame pts: ${ptss}s" }
 
-            if (ptss >= seekPosition && outputHardwareFrames && decodedFrame.format() == AV_PIX_FMT_VIDEOTOOLBOX) {
+            if (ptss >= seekPosition && outputHardwareFrames && decodedFrame.format() == AV_PIX_FMT_VIDEOTOOLBOX &&
+                CoreVideo.planarFormat(decodedFrame) != null
+            ) {
                 // the clone references the frame's CVPixelBuffer, which returns to the decoder's pool when freed
                 val hardwareFrame = av_frame_clone(decodedFrame)
                 synchronized(videoQueue) {

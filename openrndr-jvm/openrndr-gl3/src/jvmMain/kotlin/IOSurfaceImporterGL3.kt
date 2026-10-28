@@ -44,6 +44,32 @@ private const val EGL_FEATURE_COUNT_ANGLE = 0x3465
 /** kCVPixelFormatType_32BGRA */
 private const val PIXEL_FORMAT_BGRA = 0x42475241
 
+/** kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange and FullRange, NV12 */
+private const val PIXEL_FORMAT_420V = 0x34323076
+private const val PIXEL_FORMAT_420F = 0x34323066
+
+/** kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange and FullRange, P010 */
+private const val PIXEL_FORMAT_X420 = 0x78343230
+private const val PIXEL_FORMAT_XF20 = 0x78663230
+
+/**
+ * The formats of an IOSurface plane, as EGL_ANGLE_iosurface_client_buffer and openrndr see them
+ */
+private class PlaneFormat(val internalFormat: Int, val type: Int, val format: ColorFormat, val colorType: ColorType)
+
+private val BGRA8 = PlaneFormat(GL_BGRA, GL_UNSIGNED_BYTE, ColorFormat.BGRa, ColorType.UINT8)
+private val R8 = PlaneFormat(GL_RED, GL_UNSIGNED_BYTE, ColorFormat.R, ColorType.UINT8)
+private val RG8 = PlaneFormat(GL_RG, GL_UNSIGNED_BYTE, ColorFormat.RG, ColorType.UINT8)
+private val R16 = PlaneFormat(GL_RED, GL_UNSIGNED_SHORT, ColorFormat.R, ColorType.UINT16)
+private val RG16 = PlaneFormat(GL_RG, GL_UNSIGNED_SHORT, ColorFormat.RG, ColorType.UINT16)
+
+private fun planeFormat(pixelFormat: Int, plane: Int): PlaneFormat? = when (pixelFormat) {
+    PIXEL_FORMAT_BGRA -> if (plane == 0) BGRA8 else null
+    PIXEL_FORMAT_420V, PIXEL_FORMAT_420F -> listOf(R8, RG8).getOrNull(plane)
+    PIXEL_FORMAT_X420, PIXEL_FORMAT_XF20 -> listOf(R16, RG16).getOrNull(plane)
+    else -> null
+}
+
 /** The ANGLE feature that makes IOSurface pbuffers sample the IOSurface instead of a copy */
 private const val ZERO_COPY_FEATURE = "supportsMetalObjects"
 
@@ -52,19 +78,17 @@ private const val ZERO_COPY_FEATURE = "supportsMetalObjects"
  */
 private object IOSurfaceFunctions {
     private val library = MacOSXLibrary.getWithIdentifier("com.apple.IOSurface")
-    private val getWidth = library.getFunctionAddress("IOSurfaceGetWidth")
-    private val getHeight = library.getFunctionAddress("IOSurfaceGetHeight")
+    private val getWidthOfPlane = library.getFunctionAddress("IOSurfaceGetWidthOfPlane")
+    private val getHeightOfPlane = library.getFunctionAddress("IOSurfaceGetHeightOfPlane")
     private val getPixelFormat = library.getFunctionAddress("IOSurfaceGetPixelFormat")
-    private val getPlaneCount = library.getFunctionAddress("IOSurfaceGetPlaneCount")
 
-    fun width(ioSurface: Long) = JNI.invokePP(ioSurface, getWidth).toInt()
-    fun height(ioSurface: Long) = JNI.invokePP(ioSurface, getHeight).toInt()
+    fun width(ioSurface: Long, plane: Int) = JNI.invokePPP(ioSurface, plane.toLong(), getWidthOfPlane).toInt()
+    fun height(ioSurface: Long, plane: Int) = JNI.invokePPP(ioSurface, plane.toLong(), getHeightOfPlane).toInt()
     fun pixelFormat(ioSurface: Long) = JNI.invokePI(ioSurface, getPixelFormat)
-    fun planeCount(ioSurface: Long) = JNI.invokePP(ioSurface, getPlaneCount)
 }
 
 /**
- * Imports BGRA IOSurfaces through ANGLE's EGL_ANGLE_iosurface_client_buffer, for ANGLE builds that sample the
+ * Imports IOSurface planes through ANGLE's EGL_ANGLE_iosurface_client_buffer, for ANGLE builds that sample the
  * IOSurface itself
  */
 internal class IOSurfaceImporterGL3 private constructor(
@@ -75,8 +99,10 @@ internal class IOSurfaceImporterGL3 private constructor(
 
     private class Import(val pbuffer: Long, val colorBuffer: ColorBufferGL3)
 
-    /** imports by IOSurfaceRef, in least recently used order */
-    private val imports = LinkedHashMap<Long, Import>(16, 0.75f, true)
+    private data class PlaneKey(val ioSurface: Long, val plane: Int)
+
+    /** imports by IOSurface plane, in least recently used order */
+    private val imports = LinkedHashMap<PlaneKey, Import>(16, 0.75f, true)
 
     private class PendingAction(val sync: Long, val action: () -> Unit)
 
@@ -84,28 +110,30 @@ internal class IOSurfaceImporterGL3 private constructor(
 
     private var unsupportedFormatLogged = false
 
-    override fun import(ioSurface: Long): ColorBuffer? {
-        imports[ioSurface]?.let { return it.colorBuffer }
+    override fun import(ioSurface: Long, plane: Int): ColorBuffer? {
+        val key = PlaneKey(ioSurface, plane)
+        imports[key]?.let { return it.colorBuffer }
 
         val pixelFormat = IOSurfaceFunctions.pixelFormat(ioSurface)
-        if (pixelFormat != PIXEL_FORMAT_BGRA || IOSurfaceFunctions.planeCount(ioSurface) != 0L) {
+        val planeFormat = planeFormat(pixelFormat, plane)
+        if (planeFormat == null) {
             if (!unsupportedFormatLogged) {
-                logger.warn { "can not import IOSurface with pixel format 0x${pixelFormat.toString(16)}, only BGRA is supported" }
+                logger.warn { "can not import plane $plane of IOSurface with pixel format 0x${pixelFormat.toString(16)}" }
                 unsupportedFormatLogged = true
             }
             return null
         }
-        val width = IOSurfaceFunctions.width(ioSurface)
-        val height = IOSurfaceFunctions.height(ioSurface)
+        val width = IOSurfaceFunctions.width(ioSurface, plane)
+        val height = IOSurfaceFunctions.height(ioSurface, plane)
 
         val attributes = intArrayOf(
             EGL_WIDTH, width,
             EGL_HEIGHT, height,
-            EGL_IOSURFACE_PLANE_ANGLE, 0,
+            EGL_IOSURFACE_PLANE_ANGLE, plane,
             EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
-            EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA,
+            EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, planeFormat.internalFormat,
             EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGBA,
-            EGL_TEXTURE_TYPE_ANGLE, GL_UNSIGNED_BYTE,
+            EGL_TEXTURE_TYPE_ANGLE, planeFormat.type,
             EGL_NONE
         )
         val pbuffer = eglCreatePbufferFromClientBuffer(display, EGL_IOSURFACE_ANGLE, ioSurface, config, attributes)
@@ -134,9 +162,9 @@ internal class IOSurfaceImporterGL3 private constructor(
 
         val colorBuffer = ColorBufferGL3(
             DriverGL3.generateResourceId(), GL_TEXTURE_2D, texture, width, height, 1.0,
-            ColorFormat.BGRa, ColorType.UINT8, 1, BufferMultisample.Disabled, null
+            planeFormat.format, planeFormat.colorType, 1, BufferMultisample.Disabled, null
         )
-        imports[ioSurface] = Import(pbuffer, colorBuffer)
+        imports[key] = Import(pbuffer, colorBuffer)
 
         if (imports.size > maxImports) {
             val (leastRecentlyUsed, import) = imports.entries.first()

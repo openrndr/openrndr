@@ -9,13 +9,16 @@ package org.openrndr.draw
  */
 interface IOSurfaceImporter : AutoCloseable {
     /**
-     * Returns a color buffer that samples [ioSurface], an `IOSurfaceRef`.
+     * Returns a color buffer that samples [plane] of [ioSurface], an `IOSurfaceRef`.
      *
-     * The importer owns the color buffer and returns the same color buffer for the same IOSurface. The contents of
-     * the color buffer are the current contents of the IOSurface.
-     * @return the color buffer, or null when the IOSurface can not be imported
+     * Supported are BGRA IOSurfaces, and the luma (plane 0) and chroma (plane 1) planes of NV12 and P010 IOSurfaces.
+     * Luma planes are imported with [ColorFormat.R], chroma planes with [ColorFormat.RG].
+     *
+     * The importer owns the color buffer and returns the same color buffer for the same plane. The contents of
+     * the color buffer are the current contents of the plane.
+     * @return the color buffer, or null when the plane can not be imported
      */
-    fun import(ioSurface: Long): ColorBuffer?
+    fun import(ioSurface: Long, plane: Int = 0): ColorBuffer?
 
     /**
      * Runs [action] once the GPU has finished the commands issued so far, use it to release an IOSurface only
