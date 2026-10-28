@@ -47,6 +47,26 @@ val File.fileWithoutExtension: File
         }
     }
 
+/**
+ * Rotations of the frames of a video, for example to store a portrait video in landscape for a screen that is mounted
+ * on its side
+ */
+enum class VideoRotation(
+    /** the FFmpeg filters that rotate upright frames */
+    val filters: List<String>
+) {
+    NONE(emptyList()),
+
+    /** rotate 90 degrees clockwise, the top of the frame is on the right side of the video */
+    CLOCKWISE_90(listOf("transpose=clock")),
+
+    /** rotate 90 degrees counterclockwise, the top of the frame is on the left side of the video */
+    COUNTERCLOCKWISE_90(listOf("transpose=cclock")),
+
+    /** rotate 180 degrees, the frame is upside down */
+    ROTATE_180(listOf("hflip", "vflip"))
+}
+
 @Deprecated("Use H264Profile", replaceWith = ReplaceWith("H264Profile"))
 typealias MP4Profile = H264Profile
 
@@ -108,6 +128,12 @@ class H264Profile : VideoWriterProfile() {
 
     var userArguments = emptyArray<String>()
 
+    /**
+     * Rotates the frames, a 90 degree rotation swaps the width and height of the video. The pixels are rotated, the
+     * video is not tagged with a rotation that players apply.
+     */
+    var rotation = VideoRotation.NONE
+
     val filters = mutableListOf("vflip")
 
     override fun arguments(): Array<String> {
@@ -137,7 +163,8 @@ class H264Profile : VideoWriterProfile() {
         }
 
         // the filters are not changed, the arguments can be requested more than once
-        val filters = if (highPrecisionChroma) filters + "colorspace=bt709:iall=bt601-6-625:fast=1" else filters
+        val filters = filters + rotation.filters +
+                (if (highPrecisionChroma) listOf("colorspace=bt709:iall=bt601-6-625:fast=1") else emptyList())
 
         @Suppress("DEPRECATION")
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()

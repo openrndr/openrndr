@@ -1,4 +1,5 @@
 import org.openrndr.ffmpeg.H264Profile
+import org.openrndr.ffmpeg.VideoRotation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -24,5 +25,11 @@ class TestH264Profile {
         val arguments = profile.arguments()
         assertEquals("libx264", arguments.valueOf("-vcodec"))
         assertEquals("yuv444p", arguments.valueOf("-pix_fmt"))
+    }
+
+    @Test
+    fun `rotation is applied after flipping`() {
+        val profile = H264Profile().apply { rotation = VideoRotation.CLOCKWISE_90 }
+        assertEquals("vflip,transpose=clock,colorspace=bt709:iall=bt601-6-625:fast=1", profile.arguments().valueOf("-vf"))
     }
 }
