@@ -21,6 +21,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.min
+import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {}
 
@@ -511,6 +512,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
     }
 
+    @JvmRecord
     data class Capabilities(
         val programUniform: Boolean,
         val textureStorage: Boolean,
@@ -1064,6 +1066,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         glBindVertexArray(defaultVAO)
     }
 
+    @JvmRecord
     data class ShaderVertexDescription(
         val context: Long,
         val shader: Int,

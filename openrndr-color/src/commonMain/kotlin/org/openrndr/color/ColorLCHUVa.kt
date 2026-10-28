@@ -6,6 +6,7 @@ import org.openrndr.math.asDegrees
 import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
 import kotlin.math.*
+import kotlin.jvm.JvmRecord
 
 /**
  * The [CIELChUV color space](https://en.wikipedia.org/wiki/CIELUV#Cylindrical_representation_(CIELCh))
@@ -20,6 +21,7 @@ import kotlin.math.*
  * @see ColorLUVa
  */
 @Serializable
+@JvmRecord
 data class ColorLCHUVa(
     val l: Double,
     val c: Double,

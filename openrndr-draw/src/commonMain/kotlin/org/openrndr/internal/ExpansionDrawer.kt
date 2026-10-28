@@ -2,6 +2,7 @@ package org.openrndr.internal
 
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
+import kotlin.jvm.JvmRecord
 
 /**
  * Clips strokes to the inside ([inside] is true) or the outside of [polygons], [fringes] draw the anti-aliased edge
@@ -9,6 +10,7 @@ import org.openrndr.math.Vector4
  */
 internal class StrokeClip(val polygons: List<Expansion>, val fringes: List<Expansion>, val inside: Boolean)
 
+@JvmRecord
 internal data class ExpansionCommand(
     val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
     val minX: Double, val minY: Double, val maxX: Double, val maxY: Double

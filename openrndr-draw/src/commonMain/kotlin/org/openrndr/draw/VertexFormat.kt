@@ -4,6 +4,7 @@ import org.openrndr.draw.VertexElementType.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.jvm.JvmRecord
 
 /**
  * An enumeration representing the memory alignment strategies for buffers.
@@ -24,6 +25,7 @@ enum class BufferAlignment {
  * @property type The data type of this vertex element, represented by [VertexElementType].
  * @property arraySize The number of elements in this vertex attribute array; typically 1 for non-array attributes.
  */
+@JvmRecord
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 /**

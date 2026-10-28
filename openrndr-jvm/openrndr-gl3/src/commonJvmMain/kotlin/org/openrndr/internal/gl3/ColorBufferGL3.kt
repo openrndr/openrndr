@@ -21,7 +21,9 @@ import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
 
 private val logger = KotlinLogging.logger {}

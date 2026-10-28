@@ -3,6 +3,7 @@ package org.openrndr.ffmpeg
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.lwjgl.system.JNI
 import org.lwjgl.system.macosx.MacOSXLibrary
+import kotlin.jvm.JvmRecord
 
 /** kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange and FullRange, NV12 */
 private const val PIXEL_FORMAT_420V = 0x34323076
@@ -53,6 +54,7 @@ internal object CoreVideo {
  * The layout of a biplanar 4:2:0 frame: a luma plane and an interleaved chroma plane, with [bits] per sample stored
  * in the most significant bits of 8 or 16 bit samples
  */
+@JvmRecord
 internal data class PlanarFormat(val bits: Int, val fullRange: Boolean) {
     /** scales normalized samples to code values */
     val codeScale: Double get() = if (bits == 8) 255.0 else 65535.0 / (1 shl (16 - bits))

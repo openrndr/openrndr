@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
+import kotlin.jvm.JvmRecord
 import kotlin.math.pow
 
 @Serializable
@@ -55,6 +56,7 @@ enum class Linearity(val certainty: Int) {
  * @property linearity Indicates whether the color is defined in linear or sRGB space. Defaults to [Linearity.LINEAR].
  */
 @Serializable
+@JvmRecord
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
 data class ColorRGBa(
     val r: Double,
@@ -186,8 +188,6 @@ data class ColorRGBa(
         }
     }
 
-    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
-    val a = alpha
 
     /**
      * Creates a copy of color with adjusted opacity

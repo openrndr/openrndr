@@ -12,9 +12,11 @@ import org.bytedeco.ffmpeg.swscale.SwsContext
 import org.bytedeco.ffmpeg.swscale.SwsFilter
 import org.bytedeco.javacpp.*
 import java.nio.DoubleBuffer
+import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {}
 
+@JvmRecord
 internal data class VideoOutput(val size: Dimensions, val pixelFormat: Int)
 
 internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput {
@@ -25,6 +27,7 @@ internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput {
 /**
  * A decoded frame, either converted to BGR32 in [buffer] or kept on the GPU in [hardwareFrame]
  */
+@JvmRecord
 internal data class VideoFrame(
     val buffer: AVBufferRef?,
     val lineSize: Int,
@@ -41,6 +44,7 @@ internal data class VideoFrame(
     }
 }
 
+@JvmRecord
 internal data class VideoInfo(val size: Dimensions, val fps: Double)
 
 private fun Int.pixFmtForHWType(): Int {
@@ -73,6 +77,7 @@ private fun setColorspace(context: SwsContext, frame: AVFrame) {
     )
 }
 
+@JvmRecord
 internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: Int)
 
 internal class VideoDecoder(

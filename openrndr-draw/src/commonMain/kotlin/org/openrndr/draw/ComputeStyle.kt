@@ -7,7 +7,9 @@ import org.openrndr.math.IntVector3
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 data class ComputeStructure(
     val structDefinitions: String? = null,
     val uniforms: String? = null,

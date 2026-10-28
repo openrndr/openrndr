@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.internal.Driver
+import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {  }
 
@@ -10,6 +11,7 @@ private val sessionStack = mutableMapOf<Long, ArrayDeque<Session>>()
 /**
  * Session statistics
  */
+@JvmRecord
 data class SessionStatistics(
     val renderTargets: Int = 0,
     val colorBuffers: Int = 0,

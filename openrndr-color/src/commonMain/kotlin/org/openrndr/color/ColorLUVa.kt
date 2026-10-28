@@ -3,6 +3,7 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.math.pow
+import kotlin.jvm.JvmRecord
 
 /**
  * The [CIELUV color space](https://en.wikipedia.org/wiki/CIELUV)
@@ -14,6 +15,7 @@ import kotlin.math.pow
  */
 @Suppress("unused", "UNUSED_PARAMETER")
 @Serializable
+@JvmRecord
 data class ColorLUVa(
     val l: Double,
     val u: Double,

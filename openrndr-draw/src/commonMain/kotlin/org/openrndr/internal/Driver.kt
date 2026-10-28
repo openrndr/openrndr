@@ -5,6 +5,7 @@ package org.openrndr.internal
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmRecord
 
 
 sealed class ShaderLanguage
@@ -18,6 +19,7 @@ class WebGLSL(val version: String) : ShaderLanguage()
  * @property maxTextureSamples The maximum number of samples supported for textures.
  * @property maxTextureSize The maximum size (in pixels) supported for textures, typically referring to the largest dimension.
  */
+@JvmRecord
 data class DriverProperties(
     val maxRenderTargetSamples: Int,
     val maxTextureSamples: Int,

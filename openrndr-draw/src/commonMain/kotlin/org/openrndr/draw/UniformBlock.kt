@@ -2,7 +2,9 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.*
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 data class UniformBlockLayout(val sizeInBytes: Int, val entries: Map<String, UniformDescription>)
 
 enum class UniformType(val sizeInBytes: Int) {
@@ -20,6 +22,7 @@ enum class UniformType(val sizeInBytes: Int) {
     COLOR_BUFFER_SAMPLER(4),
 }
 
+@JvmRecord
 data class UniformDescription(val name: String, val type: UniformType, val size: Int, val offset: Int, val stride:Int)
 
 interface UniformBlock {

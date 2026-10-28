@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 import kotlin.math.max
+import kotlin.jvm.JvmRecord
 
 /**
  * Represents a shader storage buffer, which is an interface for managing
@@ -91,6 +92,7 @@ enum class BufferPrimitiveType(val componentCount: Int, val sizeInBytes: Int, va
  * @property arraySize The number of elements in the array, default value is 1.
  * @property offset The memory offset of this primitive in the buffer.
  */
+@JvmRecord
 data class ShaderStoragePrimitive(
     override val name: String,
     val type: BufferPrimitiveType,
@@ -111,6 +113,7 @@ data class ShaderStoragePrimitive(
  * @property elements A list of elements contained within the structure.
  * @property arraySize The size of the structure when represented as an array. Defaults to 1.
  */
+@JvmRecord
 data class ShaderStorageStruct(
     val structName: String,
     override val name: String,

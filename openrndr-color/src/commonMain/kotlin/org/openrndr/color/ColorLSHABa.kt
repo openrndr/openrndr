@@ -3,6 +3,7 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
+import kotlin.jvm.JvmRecord
 
 /**
  * Based on [ColorLCHABa], but
@@ -11,6 +12,7 @@ import org.openrndr.math.mixAngle
  * @see ColorLCHABa
  */
 @Serializable
+@JvmRecord
 data class ColorLSHABa(
     val l: Double,
     val s: Double,

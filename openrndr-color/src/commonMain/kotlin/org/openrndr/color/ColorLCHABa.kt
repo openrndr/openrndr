@@ -6,6 +6,7 @@ import org.openrndr.math.asDegrees
 import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
 import kotlin.math.*
+import kotlin.jvm.JvmRecord
 
 /**
  * The [CIELChAB color space](https://en.wikipedia.org/wiki/CIELAB_color_space#Cylindrical_model)
@@ -20,6 +21,7 @@ import kotlin.math.*
  * @see ColorLABa
  */
 @Serializable
+@JvmRecord
 data class ColorLCHABa(
     val l: Double,
     val c: Double,

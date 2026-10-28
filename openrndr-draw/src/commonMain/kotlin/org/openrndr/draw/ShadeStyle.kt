@@ -7,6 +7,7 @@ import org.openrndr.math.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.jvm.JvmRecord
 
 inline fun <reified F> shadeStyleTypeOrNull(): String? {
     return when (F::class) {
@@ -88,6 +89,7 @@ fun shadeStyleTypeToGLSL(type: String): String {
  * @property type The color type of the output, which specifies the data type or encoding used for handling the colors.
  * Defaults to `ColorType.FLOAT32`.
  */
+@JvmRecord
 data class ShadeStyleOutput(
     val attachment: Int,
     val format: ColorFormat = ColorFormat.RGBa,

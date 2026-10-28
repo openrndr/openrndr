@@ -2,6 +2,7 @@ package org.openrndr.draw.font.internal
 
 import org.openrndr.draw.font.Face
 import org.openrndr.utils.collections.LRUCache
+import kotlin.jvm.JvmRecord
 
 /**
  * A caching implementation of [TextShapingDriver] that wraps another driver to optimize text shaping performance.
@@ -14,6 +15,7 @@ import org.openrndr.utils.collections.LRUCache
  */
 class CachingTextShapingDriver(val driver: TextShapingDriver) : TextShapingDriver {
 
+    @JvmRecord
     data class CacheKey(val faceHash: Long, val text: String, val features: List<ShapeFeature>, val direction: Direction?, val script: Script?, val language: String?)
 
     val lru = LRUCache<CacheKey, List<ShapeResult>>()

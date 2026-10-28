@@ -3,7 +3,9 @@ package org.openrndr.openal
 import org.lwjgl.openal.ALC11.ALC_ALL_DEVICES_SPECIFIER
 import org.lwjgl.openal.ALUtil
 import org.lwjgl.system.MemoryUtil
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 data class AudioDeviceDescription(val name: String, val pan: Double = 0.0)
 
 class AudioDeviceService(val deviceAliases: Map<String, AudioDeviceDescription>): AutoCloseable {

@@ -7,6 +7,7 @@ import org.openrndr.shape.IntRectangle
 import kotlin.comparisons.compareBy
 import kotlin.math.max
 import kotlin.random.Random
+import kotlin.jvm.JvmRecord
 
 interface Clipper {
     fun inside(node: IntRectangle, rectangle: IntRectangle, data: Any?): Boolean
@@ -35,6 +36,7 @@ class RandomOrderer : Orderer {
 }
 
 class CenterOrderer(private val enclosement: IntRectangle, private val reverse: Boolean = false) : Orderer {
+    @JvmRecord
     data class SortOption(val index: Int, val distance: Double)
 
     override fun order(node: PackNode, rectangle: IntRectangle): List<Int> {
@@ -53,6 +55,7 @@ class CenterOrderer(private val enclosement: IntRectangle, private val reverse: 
 
 class OptimizingOrderer(private val reverse: Boolean = false) : Orderer {
 
+    @JvmRecord
     data class SortOption(val index: Int, val area: Int)
 
     override fun order(node: PackNode, rectangle: IntRectangle): List<Int> {

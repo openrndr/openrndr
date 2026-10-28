@@ -13,6 +13,7 @@ import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.ffmpeg.swresample.SwrContext
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer.memcpy
+import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,6 +22,7 @@ internal enum class SampleFormat {
     S16
 }
 
+@JvmRecord
 internal data class AudioOutput(val sampleRate: Int, val channels: Int, val sampleFormat: SampleFormat)
 
 internal fun AudioOutput.toAudioDecoderOutput(): AudioDecoderOutput? {
@@ -35,12 +37,14 @@ private fun SampleFormat.toAVSampleFormat() = when (this) {
     SampleFormat.INVALID -> null
 }
 
+@JvmRecord
 internal data class AudioInfo(val sampleRate: Int, val channels: Int)
 
 internal class AudioFrame(val buffer: AVBufferRef, var position: Int, val size: Int, val timeStamp: Double) {
     fun unref() = av_buffer_unref(buffer)
 }
 
+@JvmRecord
 internal data class AudioDecoderOutput(
     val sampleRate: Int,
     val channels: Int,

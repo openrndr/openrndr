@@ -14,7 +14,9 @@ import org.bytedeco.ffmpeg.global.avutil.AVMEDIA_TYPE_VIDEO
 import org.bytedeco.ffmpeg.global.avutil.av_q2d
 import org.bytedeco.javacpp.PointerPointer
 import java.io.File
+import kotlin.jvm.JvmRecord
 
+@JvmRecord
 data class VideoDetails(val width: Int, val height: Int, val framerate: Double, val duration: Double)
 
 /**

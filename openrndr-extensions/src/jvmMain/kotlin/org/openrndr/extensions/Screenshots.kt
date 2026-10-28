@@ -10,6 +10,7 @@ import org.openrndr.draw.*
 import org.openrndr.events.Event
 import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
+import kotlin.jvm.JvmRecord
 
 
 internal sealed class CreateScreenshot {
@@ -39,6 +40,7 @@ class SingleScreenshot : Screenshots() {
     }
 }
 
+@JvmRecord
 data class ScreenshotEvent(val basename: String)
 
 /**

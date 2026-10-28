@@ -10,6 +10,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
+import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,6 +27,7 @@ private val builtInFfprobeBinary by lazy { Loader.load(ffprobe::class.java) }
  */
 
 @Serializable
+@JvmRecord
 data class MetadataStream(
     val width: Int? = null,
     val height: Int? = null,
@@ -39,6 +41,7 @@ data class MetadataStream(
 )
 
 @Serializable
+@JvmRecord
 data class MetadataFormat(
     val filename: String? = null,
     val size: Int? = null,
@@ -49,6 +52,7 @@ data class MetadataFormat(
 )
 
 @Serializable
+@JvmRecord
 data class MetadataContainer(
     val streams: List<MetadataStream>,
     val format: MetadataFormat
