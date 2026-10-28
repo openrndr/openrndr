@@ -98,11 +98,27 @@ class H264Profile : VideoWriterProfile() {
 
 
     var pixelFormat = "yuv420p" as String?
+
+    /**
+     * Encode colors at full resolution (4:4:4, the yuv444p pixel format) instead of at half resolution (4:2:0). This
+     * keeps the colors of thin lines and edges, but the video does not play in web browsers. The VideoToolbox encoder
+     * does not encode 4:4:4, with full chroma the software encoder is used instead.
+     */
+    var fullChroma = false
+
     var userArguments = emptyArray<String>()
 
     val filters = mutableListOf("vflip")
 
     override fun arguments(): Array<String> {
+        val videoCodec = if (fullChroma && videoCodec == CODEC_H264_VIDEOTOOLBOX) {
+            logger.warn { "$CODEC_H264_VIDEOTOOLBOX does not encode full chroma, using $CODEC_LIBX264" }
+            CODEC_LIBX264
+        } else {
+            videoCodec
+        }
+        val pixelFormat = if (fullChroma) "yuv444p" else pixelFormat
+
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf(
                 "-sws_flags",
