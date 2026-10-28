@@ -7,6 +7,7 @@ import org.lwjgl.BufferUtils
 import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -52,7 +53,7 @@ typealias MP4Profile = H264Profile
 class H264Profile : VideoWriterProfile() {
 
     /**
-     * constant rate factor (default is 23)
+     * constant rate factor of the software encoder (default is 23)
      */
     var constantRateFactor = null as Int?
 
@@ -67,10 +68,33 @@ class H264Profile : VideoWriterProfile() {
 
     val CODEC_LIBX264 = "libx264"
     val CODEC_H264_NVENC = "h264_nvenc"
+    val CODEC_H264_VIDEOTOOLBOX = "h264_videotoolbox"
 
     var videoCodec = CODEC_LIBX264 as String?
+
+    @Deprecated("-hwaccel selects a decoder, it does not accelerate encoding, use hardwareAcceleration()")
     var hwaccel = null as String?
+
+    /**
+     * the preset of the software encoder
+     */
     var preset = null as String?
+
+    /**
+     * constant quality of the VideoToolbox encoder, from 1 to 100 where higher is better, or null for its default
+     * bitrate. The default of 60 is comparable to the default constant rate factor of the software encoder.
+     */
+    var quality = 60 as Int?
+
+    /**
+     * Encode with the VideoToolbox encoder on macOS, which uses a fraction of the CPU time of the software encoder.
+     * On other platforms the encoder is not changed.
+     */
+    fun hardwareAcceleration() {
+        if (Platform.type == PlatformType.MAC) {
+            videoCodec = CODEC_H264_VIDEOTOOLBOX
+        }
+    }
 
 
     var pixelFormat = "yuv420p" as String?
@@ -100,15 +124,23 @@ class H264Profile : VideoWriterProfile() {
             filters.add("colorspace=bt709:iall=bt601-6-625:fast=1")
         }
 
+        @Suppress("DEPRECATION")
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
         val pixelFormatArguments = pixelFormat?.let { arrayOf("-pix_fmt", it) } ?: emptyArray()
-        val constantRateArguments = constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()
-        val presetArguments = preset?.let { arrayOf("-preset", it) } ?: emptyArray()
         val videoCodecArguments = videoCodec?.let { arrayOf("-vcodec", it) } ?: emptyArray()
         val filterArguments = arrayOf("-vf", filters.joinToString(","))
 
+        // VideoToolbox has no constant rate factor and presets, it encodes with a constant quality, and falls back
+        // to its software encoder on Macs without a hardware encoder
+        val encoderArguments = if (videoCodec?.endsWith("_videotoolbox") == true) {
+            arrayOf("-allow_sw", "1") + (quality?.let { arrayOf("-q:v", it.toString()) } ?: emptyArray())
+        } else {
+            (constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()) +
+                    (preset?.let { arrayOf("-preset", it) } ?: emptyArray())
+        }
+
         val arguments =
-            hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
+            hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + encoderArguments + userArguments
 
         return arguments
     }
