@@ -67,8 +67,9 @@ class SlugDrawer: AutoCloseable {
                     write(minmax)
                 }
 
-                write(command.fill ?: ColorRGBa.TRANSPARENT)
-                write(command.stroke ?: ColorRGBa.TRANSPARENT)
+                // colors are drawn in linear light, like the fill and stroke of the drawer
+                write(command.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+                write(command.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
                 write(command.strokeWeight.toFloat())
                 write(command.strokeMode)
                 write(slugMap.bandIndices[command.slugIndex])
