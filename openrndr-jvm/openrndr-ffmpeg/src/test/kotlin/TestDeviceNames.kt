@@ -1,6 +1,8 @@
+import org.openrndr.ffmpeg.parseAVFoundationScreens
 import org.openrndr.ffmpeg.parseAVFoundationVideoDevices
 import org.openrndr.ffmpeg.parseDshowVideoDevices
 import org.openrndr.ffmpeg.sortVideoDeviceFiles
+import org.openrndr.ffmpeg.sortX11Displays
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -53,5 +55,24 @@ class TestDeviceNames {
     fun `video device files`() {
         val names = listOf("video10", "null", "video2", "/dev/video0", "video", "videoX", "media0")
         assertEquals(listOf("/dev/video0", "/dev/video2", "/dev/video10"), sortVideoDeviceFiles(names))
+    }
+
+    @Test
+    fun `avfoundation screens`() {
+        val lines = """
+            AVFoundation video devices:
+            [0] FaceTime HD Camera
+            [1] iPhone Camera
+            [2] Capture screen 0
+            [3] Capture screen 1
+            AVFoundation audio devices:
+            [0] MacBook Pro Microphone
+        """.trimIndent().lines()
+        assertEquals(listOf("Capture screen 0", "Capture screen 1"), parseAVFoundationScreens(lines))
+    }
+
+    @Test
+    fun `x11 displays`() {
+        assertEquals(listOf(":0", ":1", ":10"), sortX11Displays(listOf("X10", "X0", ".X1-lock", "X1", "Xa")))
     }
 }

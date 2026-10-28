@@ -50,6 +50,28 @@ internal fun listVideoDeviceNames(): List<String> {
 }
 
 /**
+ * Lists the names of the screens that can be captured. FFmpeg's screen capture formats do not implement its device
+ * list API, the screens are read from avfoundation's log output on macOS and from the X11 sockets on Linux. On Windows
+ * gdigrab captures the desktop.
+ */
+internal fun listScreenNames(): List<String> = when (Platform.type) {
+    PlatformType.WINDOWS -> listOf("desktop")
+    PlatformType.MAC -> {
+        avdevice_register_all()
+        val format = av_find_input_format("avfoundation")
+        if (format == null || format.isNull) {
+            logger.warn { "input format avfoundation is not available" }
+            emptyList()
+        } else {
+            parseAVFoundationScreens(logLines { logDevices(format, "") })
+        }
+    }
+
+    PlatformType.GENERIC -> sortX11Displays(File("/tmp/.X11-unix").list()?.toList() ?: emptyList())
+    else -> emptyList()
+}
+
+/**
  * Lists the video devices with avdevice_list_input_sources
  * @return the device names, or null when [format] does not list devices
  */
@@ -180,4 +202,22 @@ internal fun sortVideoDeviceFiles(names: List<String>): List<String> {
     return names.mapNotNull { name -> pattern.matchEntire(name)?.groupValues?.get(1)?.toIntOrNull() }
         .sorted()
         .map { "/dev/video$it" }
+}
+
+/**
+ * Returns the screens that avfoundation logs, its video devices named `Capture screen <N>`
+ */
+internal fun parseAVFoundationScreens(lines: List<String>): List<String> {
+    val screenPattern = Regex("""^Capture screen \d+$""")
+    return parseAVFoundationVideoDevices(lines).filter { screenPattern.matches(it) }
+}
+
+/**
+ * Returns the X11 displays of the sockets in [names], `X<N>`, as `:<N>` sorted by number
+ */
+internal fun sortX11Displays(names: List<String>): List<String> {
+    val pattern = Regex("""^X(\d+)$""")
+    return names.mapNotNull { name -> pattern.matchEntire(name)?.groupValues?.get(1)?.toIntOrNull() }
+        .sorted()
+        .map { ":$it" }
 }

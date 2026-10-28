@@ -314,6 +314,16 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         /**
+         * Lists the names of the screens that can be captured, the names can be passed to [fromScreen]. On macOS these
+         * are `Capture screen <N>`, on Linux X11 displays like `:0`, on Windows the desktop.
+         */
+        @Suppress("unused")
+        fun listScreenDevices(): List<String> {
+            logger.debug { "listing screen devices" }
+            return listScreenNames()
+        }
+
+        /**
          * Opens a video from file or url
          * @return a ready-to-play video player on success
          */
@@ -418,13 +428,14 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         /**
-         * Returns machine-specific default device
+         * Returns machine-specific default screen device
          */
         fun defaultScreenDevice(): String {
             return when (Platform.type) {
                 PlatformType.WINDOWS -> "desktop"
-                PlatformType.MAC -> "1:0"
-                PlatformType.GENERIC -> ":1"
+                // the index of the first screen depends on the number of cameras, the name does not
+                PlatformType.MAC -> listScreenDevices().firstOrNull() ?: "Capture screen 0"
+                PlatformType.GENERIC -> System.getenv("DISPLAY") ?: listScreenDevices().firstOrNull() ?: ":1"
                 else -> error("unsupported platform ${Platform.type}")
             }
         }
