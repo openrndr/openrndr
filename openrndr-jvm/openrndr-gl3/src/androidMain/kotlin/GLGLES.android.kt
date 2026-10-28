@@ -59,6 +59,12 @@ actual inline fun glGetInteger(pname: Int): Int {
     return result[0]
 }
 
+actual inline fun glGetFramebufferAttachmentParameteri(target: Int, attachment: Int, pname: Int): Int {
+    val result = IntArray(1)
+    GLES.glGetFramebufferAttachmentParameteriv(target, attachment, pname, result, 0)
+    return result[0]
+}
+
 actual inline fun glGetString(pname: Int): String? {
     return GLES.glGetString(pname)
 }

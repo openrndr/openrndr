@@ -12,4 +12,11 @@ interface ProgramRenderTarget : RenderTarget {
     val program: Program
     override val width get() = program.width
     override val height get() = program.height
+
+    /**
+     * The type of the window's color buffer. HDR windows have a floating point color buffer, [ColorType.FLOAT16] or
+     * [ColorType.FLOAT32], that holds linear colors in which 1.0 is SDR white. Other windows have a
+     * [ColorType.UINT8_SRGB] color buffer.
+     */
+    val colorType: ColorType get() = ColorType.UINT8_SRGB
 }

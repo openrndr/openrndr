@@ -20,6 +20,8 @@ expect inline fun glBufferData(target: Int, data: IntArray, usage: Int)
 expect inline fun glGetIntegerv(pname: Int, params: IntArray)
 
 expect inline fun glGetInteger(pname: Int): Int
+
+expect inline fun glGetFramebufferAttachmentParameteri(target: Int, attachment: Int, pname: Int): Int
 expect inline fun glGetString(pname: Int): String?
 expect inline fun glBufferSubData(target: Int, offset: Long, data: ByteBuffer)
 expect inline fun glBindFramebuffer(target: Int, framebuffer: Int)

@@ -22,6 +22,31 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val blendModes: MutableList<BlendMode> = mutableListOf(BlendMode.OVER)
 
+    override val colorType: ColorType = queryColorType()
+
+    /**
+     * Queries the type of the window's color buffer, the framebuffer is bound while the target is created
+     */
+    private fun queryColorType(): ColorType {
+        val attachment = when {
+            framebuffer != 0 -> GL_COLOR_ATTACHMENT0
+            Driver.glType == DriverTypeGL.GLES -> GL_BACK
+            else -> GL_BACK_LEFT
+        }
+        val componentType = glGetFramebufferAttachmentParameteri(
+            GL_DRAW_FRAMEBUFFER, attachment, GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE
+        )
+        val redSize = glGetFramebufferAttachmentParameteri(
+            GL_DRAW_FRAMEBUFFER, attachment, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE
+        )
+        checkGLErrors { "failed to query the window's color buffer" }
+        return when {
+            componentType == GL_FLOAT && redSize > 16 -> ColorType.FLOAT32
+            componentType == GL_FLOAT -> ColorType.FLOAT16
+            else -> ColorType.UINT8_SRGB
+        }
+    }
+
 
     override val width: Int
         get() = cachedSize.x.toInt()

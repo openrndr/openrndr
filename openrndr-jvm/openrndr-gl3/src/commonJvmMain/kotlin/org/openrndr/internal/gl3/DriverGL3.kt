@@ -762,7 +762,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     }
 
     override fun clear(color: ColorRGBa) {
-        if (RenderTarget.active.colorAttachments.firstOrNull()?.type?.isSRGB == true || RenderTarget.active is ProgramRenderTargetGL3) {
+        val active = RenderTarget.active
+        if (active is ProgramRenderTargetGL3 && active.colorType.isFloat) {
+            // HDR windows hold linear colors, nothing encodes them
+            clearImpl(color.toLinear())
+        } else if (active.colorAttachments.firstOrNull()?.type?.isSRGB == true || active is ProgramRenderTargetGL3) {
             if (quirks.clearIgnoresSRGB) {
                 clearImpl(color.toSRGB())
             } else {

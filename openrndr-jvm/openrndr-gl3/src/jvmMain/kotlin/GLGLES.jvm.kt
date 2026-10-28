@@ -76,6 +76,13 @@ actual inline fun glGetInteger(pname: Int): Int {
     }
 }
 
+actual inline fun glGetFramebufferAttachmentParameteri(target: Int, attachment: Int, pname: Int): Int {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glGetFramebufferAttachmentParameteri(target, attachment, pname)
+        DriverTypeGL.GLES -> GLES.glGetFramebufferAttachmentParameteri(target, attachment, pname)
+    }
+}
+
 actual inline fun glGetString(pname: Int): String? {
     return when (driverType) {
         DriverTypeGL.GL -> GL.glGetString(pname)
