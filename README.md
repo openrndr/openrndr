@@ -40,7 +40,7 @@ OPENRNDR's Javascript/WebGL is still experimental and under development. However
 
 ## Building OPENRNDR
 
-After cloning the repository, make sure you have Java 11 or newer installed and run the following command:
+After cloning the repository, make sure you have Java 25 or newer installed and run the following command:
 
 ```sh
 ./gradlew build
