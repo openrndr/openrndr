@@ -186,6 +186,18 @@ class VideoStatistics {
 }
 
 class VideoPlayerConfiguration {
+    companion object {
+        /**
+         * Returns a configuration for live sources, like cameras: frames are shown as they arrive, with small queues
+         */
+        fun live() = VideoPlayerConfiguration().apply {
+            liveSource = true
+            synchronizeToClock = false
+            videoFrameQueueSize = 2
+            displayQueueSize = 2
+        }
+    }
+
     var videoFrameQueueSize = 90
     var packetQueueSize = 2500
     var displayQueueSize = 5
@@ -206,6 +218,12 @@ class VideoPlayerConfiguration {
      * to SDR, use [VideoDynamicRange.HDR] to show HDR video in HDR windows.
      */
     var dynamicRange = VideoDynamicRange.SDR
+
+    /**
+     * Is the source live, like a camera or a screen? Frames of live sources are shown as soon as possible: queued
+     * frames are skipped in favor of the newest frame.
+     */
+    var liveSource = false
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
     var allowArbitrarySeek = false
@@ -250,7 +268,7 @@ fun loadVideoDevice(
     width: Int? = null,
     height: Int? = null,
     frameRate: Double? = null,
-    configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()
+    configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
 ): VideoPlayerFFMPEG {
     logger.info { """loading video device $deviceName (mode: $mode)""" }
     return VideoPlayerFFMPEG.fromDevice(
@@ -301,6 +319,7 @@ class VideoPlayerFFMPEG private constructor(
                 it.packetQueueSize = 1250
                 it.displayQueueSize = 2
                 it.synchronizeToClock = false
+                it.liveSource = true
             }
         }
 
@@ -362,7 +381,7 @@ class VideoPlayerFFMPEG private constructor(
             frameRate: Double? = null,
             imageWidth: Int? = null,
             imageHeight: Int? = null,
-            configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()
+            configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
         )
                 : VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
@@ -665,11 +684,11 @@ class VideoPlayerFFMPEG private constructor(
                         }
 
                         if (displayQueue.size() < displayQueue.maxSize - 1) {
-                            val frame = decoder.nextVideoFrame()
-                            if (frame != null) {
-                                logger.trace { "time stamp: ${frame.timeStamp}" }
-
-                                synchronized(displayQueue) {
+                            // taking and queuing the frame is atomic, newestFrame() takes frames from both queues
+                            synchronized(displayQueue) {
+                                val frame = decoder.nextVideoFrame()
+                                if (frame != null) {
+                                    logger.trace { "time stamp: ${frame.timeStamp}" }
                                     if (frame.buffer?.isNull == false || frame.hardwareFrame != null) {
                                         displayQueue.push(frame)
                                     } else {
@@ -774,6 +793,20 @@ class VideoPlayerFFMPEG private constructor(
     private var waitTimeInMs = 1
 
     /**
+     * Takes the newest frame from the display and decoder queues and releases the older frames, must be called while
+     * holding the display queue
+     */
+    private fun newestFrame(): VideoFrame? {
+        var newest = displayQueue.popOrNull()
+        while (true) {
+            val newer = displayQueue.popOrNull() ?: decoder?.nextVideoFrame() ?: break
+            newest?.unref()
+            newest = newer
+        }
+        return newest
+    }
+
+    /**
      * Shows [frame] in [colorBuffer] and releases the frame
      */
     private fun showFrame(frame: VideoFrame) {
@@ -838,11 +871,7 @@ class VideoPlayerFFMPEG private constructor(
                 //synchronized(displayQueue) {
                 if (!configuration.synchronizeToClock) {
                     val frame = synchronized(displayQueue) {
-                        val f = displayQueue.peek()
-                        if (f != null) {
-                            displayQueue.pop()
-                        }
-                        f
+                        if (configuration.liveSource) newestFrame() else displayQueue.popOrNull()
                     }
                     if (frame != null) {
                         waitTimeInMs = 1
@@ -909,6 +938,12 @@ class VideoPlayerFFMPEG private constructor(
                                 logger.debug { "resetting video time" }
                                 timeOffset = clock() - frame.timeStamp
                                 resetVideoTime = false
+                            }
+
+                            if (first && configuration.liveSource) {
+                                // start from the newest frame, the time it took to start would otherwise remain as latency
+                                frame = newestFrame() ?: break@processFrame
+                                displayQueue.push(frame)
                             }
 
                             if (first || frame.timeStamp <= playPosition) {
@@ -1003,7 +1038,7 @@ class VideoPlayerFFMPEG private constructor(
     fun draw(
         blind: Boolean = false,
         update: Boolean = true,
-        blockUntilFinished: Boolean = true,
+        blockUntilFinished: Boolean = false,
         drawFunction: (ColorBuffer) -> Unit
     ) {
         require(!disposed)
