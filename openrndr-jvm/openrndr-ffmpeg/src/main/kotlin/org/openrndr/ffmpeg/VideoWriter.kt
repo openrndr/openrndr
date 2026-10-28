@@ -136,9 +136,8 @@ class H264Profile : VideoWriterProfile() {
             emptyArray()
         }
 
-        if (highPrecisionChroma) {
-            filters.add("colorspace=bt709:iall=bt601-6-625:fast=1")
-        }
+        // the filters are not changed, the arguments can be requested more than once
+        val filters = if (highPrecisionChroma) filters + "colorspace=bt709:iall=bt601-6-625:fast=1" else filters
 
         @Suppress("DEPRECATION")
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
