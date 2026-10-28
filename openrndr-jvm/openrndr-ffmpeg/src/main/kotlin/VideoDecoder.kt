@@ -30,7 +30,10 @@ internal data class VideoFrame(
     val lineSize: Int,
     val timeStamp: Double,
     val frameSize: Int,
-    val hardwareFrame: AVFrame? = null
+    val color: ColorDescription,
+    val hardwareFrame: AVFrame? = null,
+    /** does [buffer] hold 16 bit RGBA instead of 8 bit RGBA */
+    val rgb16: Boolean = false
 ) {
     fun unref() {
         buffer?.let { av_buffer_unref(it) }
@@ -52,6 +55,24 @@ private fun Int.pixFmtForHWType(): Int {
     }
 }
 
+/**
+ * Makes [context] convert with the matrix and range of [frame]
+ */
+private fun setColorspace(context: SwsContext, frame: AVFrame) {
+    val colorspace = when (yCbCrMatrix(frame)) {
+        YCbCrMatrix.BT601 -> swscale.SWS_CS_ITU601
+        YCbCrMatrix.BT709 -> swscale.SWS_CS_ITU709
+        YCbCrMatrix.BT2020 -> swscale.SWS_CS_BT2020
+    }
+    val fullRange = if (frame.color_range() == AVCOL_RANGE_JPEG) 1 else 0
+    swscale.sws_setColorspaceDetails(
+        context,
+        swscale.sws_getCoefficients(colorspace), fullRange,
+        swscale.sws_getCoefficients(swscale.SWS_CS_DEFAULT), 1,
+        0, 1 shl 16, 1 shl 16
+    )
+}
+
 internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: Int)
 
 internal class VideoDecoder(
@@ -67,38 +88,68 @@ internal class VideoDecoder(
     private val avPixelFormat = output.avPixelFormat
     private val videoSize = Dimensions(videoCodecContext.width(), videoCodecContext.height())
 
-    private val scaledVideoFrame = av_frame_alloc()
     private val hwPixFmt = hwType.pixFmtForHWType()
-    private var softwareScalingContext: SwsContext? = null
 
-    private val scaledFrameSize = av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
-    private val imagePointer =
-        arrayOf(BytePointer(av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
+    /**
+     * Converts decoded frames to packed RGB in [pixelFormat] on the CPU
+     */
+    private inner class RGBConversion(private val pixelFormat: Int) {
+        private val frame = av_frame_alloc()
+        val frameSize = av_image_get_buffer_size(pixelFormat, windowSize.w, windowSize.h, 1)
+        private val image = BytePointer(av_malloc(frameSize.toLong())).capacity(frameSize.toLong())
+        private var context: SwsContext? = null
+
+        init {
+            av_image_fill_arrays(
+                PointerPointer<AVFrame>(frame), frame.linesize(), image, pixelFormat, windowSize.w, windowSize.h, 1
+            )
+        }
+
+        val lineSize: Int get() = frame.linesize()[0]
+
+        /**
+         * Converts [source] using the matrix and range of [decodedFrame]
+         * @return a buffer that holds the converted frame
+         */
+        fun convert(source: AVFrame, decodedFrame: AVFrame): AVBufferRef {
+            val context = context ?: swscale.sws_getCachedContext(
+                null,
+                videoSize.w, videoSize.h,
+                source.format(),
+                windowSize.w, windowSize.h, pixelFormat,
+                swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?
+            ).also {
+                setColorspace(it, decodedFrame)
+                context = it
+            }
+            swscale.sws_scale(context, source.data(), source.linesize(), 0, source.height(), frame.data(), frame.linesize())
+            val buffer = av_buffer_alloc(frameSize.toLong())
+            Pointer.memcpy(buffer.data(), frame.data()[0], frameSize.toLong())
+            return buffer
+        }
+
+        fun dispose() {
+            av_frame_free(frame)
+            av_free(image)
+            swscale.sws_freeContext(context)
+        }
+    }
+
+    private val rgbConversion = RGBConversion(avPixelFormat)
+
+    /** keeps the precision of HDR video, created for the first HDR frame */
+    private var rgb16Conversion: RGBConversion? = null
+
     private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize)
     private val minVideoFrames = configuration.videoFrameQueueSize
-
-    init {
-        av_image_fill_arrays(
-            PointerPointer<AVFrame>(scaledVideoFrame),
-            scaledVideoFrame.linesize(),
-            imagePointer[0],
-            avPixelFormat,
-            windowSize.w,
-            windowSize.h,
-            1
-        )
-    }
 
     fun dispose() {
         logger.debug { "disposing video decoder" }
         synchronized(videoQueue) {
             while (!videoQueue.isEmpty()) videoQueue.pop().unref()
         }
-        av_frame_free(scaledVideoFrame)
-        imagePointer.forEach {
-            av_free(it)
-        }
-        swscale.sws_freeContext(softwareScalingContext)
+        rgbConversion.dispose()
+        rgb16Conversion?.dispose()
     }
 
     fun queueCount() = videoQueue.size()
@@ -174,7 +225,7 @@ internal class VideoDecoder(
                 // the clone references the frame's CVPixelBuffer, which returns to the decoder's pool when freed
                 val hardwareFrame = av_frame_clone(decodedFrame)
                 synchronized(videoQueue) {
-                    videoQueue.push(VideoFrame(null, 0, ptss, 0, hardwareFrame))
+                    videoQueue.push(VideoFrame(null, 0, ptss, 0, ColorDescription.of(decodedFrame), hardwareFrame))
                 }
                 statistics.videoQueueSize = videoQueue.size()
                 statistics.videoFramesDecoded += 1
@@ -192,26 +243,20 @@ internal class VideoDecoder(
                 } else {
                     resultFrame = decodedFrame
                 }
-                if (softwareScalingContext == null) {
-                    softwareScalingContext = swscale.sws_getCachedContext(
-                        null,
-                        videoSize.w, videoSize.h,
-                        resultFrame.format(),
-                        windowSize.w, windowSize.h, avPixelFormat,
-                        swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?
-                    )
+                val color = ColorDescription.of(decodedFrame)
+                val conversion = if (color.isHdr) {
+                    rgb16Conversion ?: RGBConversion(AV_PIX_FMT_RGBA64LE).also { rgb16Conversion = it }
+                } else {
+                    rgbConversion
                 }
-
-                swscale.sws_scale(
-                    softwareScalingContext, resultFrame.data(),
-                    resultFrame.linesize(), 0, resultFrame.height(),
-                    scaledVideoFrame.data(), scaledVideoFrame.linesize()
-                )
-
-                val buffer = av_buffer_alloc(scaledFrameSize.toLong())
-                Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
+                val buffer = conversion.convert(resultFrame, decodedFrame)
                 synchronized(videoQueue) {
-                    videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], ptss, scaledFrameSize))
+                    videoQueue.push(
+                        VideoFrame(
+                            buffer, conversion.lineSize, ptss, conversion.frameSize, color,
+                            rgb16 = conversion !== rgbConversion
+                        )
+                    )
                 }
                 statistics.videoQueueSize = videoQueue.size()
                 statistics.videoFramesDecoded += 1

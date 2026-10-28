@@ -1,7 +1,6 @@
 package org.openrndr.ffmpeg
 
 import org.bytedeco.ffmpeg.avutil.AVFrame
-import org.bytedeco.ffmpeg.global.avutil.*
 import org.lwjgl.system.JNI
 import org.lwjgl.system.macosx.MacOSXLibrary
 
@@ -65,15 +64,4 @@ internal data class PlanarFormat(val bits: Int, val fullRange: Boolean) {
     val lumaRange: Double get() = if (fullRange) maxCode else 219.0 * scale
     val chromaOffset: Double get() = 128.0 * scale
     val chromaRange: Double get() = if (fullRange) maxCode else 224.0 * scale
-}
-
-/**
- * Returns the luma coefficients (Kr, Kb) of the matrix that converts [frame] from YCbCr to RGB. Frames without a
- * matrix are assumed to use BT.709 when they are HD and BT.601 otherwise.
- */
-internal fun lumaCoefficients(frame: AVFrame): Pair<Double, Double> = when (frame.colorspace()) {
-    AVCOL_SPC_BT709 -> Pair(0.2126, 0.0722)
-    AVCOL_SPC_BT470BG, AVCOL_SPC_SMPTE170M -> Pair(0.299, 0.114)
-    AVCOL_SPC_BT2020_NCL, AVCOL_SPC_BT2020_CL -> Pair(0.2627, 0.0593)
-    else -> if (frame.height() >= 720) Pair(0.2126, 0.0722) else Pair(0.299, 0.114)
 }

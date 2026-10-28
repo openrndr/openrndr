@@ -7,7 +7,6 @@ import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
-import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer
 import org.bytedeco.ffmpeg.global.avcodec.*
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all
@@ -22,15 +21,11 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.Drawer
-import org.openrndr.draw.Filter
 import org.openrndr.draw.IOSurfaceImporter
 import org.openrndr.draw.IOSurfaceImporterFactory
 import org.openrndr.draw.colorBuffer
-import org.openrndr.draw.filterShaderFromCode
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector4
 import org.openrndr.openal.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -205,6 +200,12 @@ class VideoPlayerConfiguration {
      * ANGLE. The frames are then copied to [VideoPlayerFFMPEG.colorBuffer] on the GPU.
      */
     var useZeroCopyFrames = true
+
+    /**
+     * The dynamic range of [VideoPlayerFFMPEG.colorBuffer]. With [VideoDynamicRange.SDR] HDR video is tone mapped
+     * to SDR, use [VideoDynamicRange.HDR] to show HDR video in HDR windows.
+     */
+    var dynamicRange = VideoDynamicRange.SDR
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
     var allowArbitrarySeek = false
@@ -278,7 +279,7 @@ class VideoPlayerFFMPEG private constructor(
 
     /** imports frames that are kept on the GPU, null when frames are converted on the CPU */
     private var ioSurfaceImporter: IOSurfaceImporter? = null
-    private var frameConversion: Filter? = null
+    private val frameConverter = FrameConverter()
 
     private var audioThread: Thread? = null
     private var decoderThread: Thread? = null
@@ -608,7 +609,11 @@ class VideoPlayerFFMPEG private constructor(
             this.info = info
 
             this.info?.video?.let {
-                val type = if (configuration.allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
+                val type = when {
+                    configuration.dynamicRange == VideoDynamicRange.HDR -> ColorType.FLOAT16
+                    configuration.allowSRGB -> ColorType.UINT8_SRGB
+                    else -> ColorType.UINT8
+                }
                 colorBuffer = colorBuffer(it.size.w, it.size.h, type = type).apply {
                     flipV = true
                     fill(ColorRGBa.TRANSPARENT, 0)
@@ -691,7 +696,8 @@ class VideoPlayerFFMPEG private constructor(
 
             decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize - 1 }
 
-            thread(isDaemon = true) {
+            // dispose() joins the thread before it frees what the decoder uses
+            decoderThread = thread(isDaemon = true) {
                 Thread.currentThread().name += "(decoder)"
                 decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput?.toAudioDecoderOutput())
             }
@@ -881,11 +887,16 @@ class VideoPlayerFFMPEG private constructor(
                 frame.unref()
                 return
             }
-            convertFrame(hardwareFrame, format, luma, chroma, target)
+            frameConverter.convertPlanes(frame.color, format, luma, chroma, target)
             // the decoder may reuse the frame's IOSurface once the copy has finished
             importer.runWhenGpuFinished { frame.unref() }
         } else if (buffer != null && !buffer.isNull) {
-            target.writeBuffer(buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+            val data = buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
+            if (frameConverter.isDirect(frame.color, target)) {
+                target.writeBuffer(data)
+            } else {
+                frameConverter.convertRGB(frame.color, data, frame.rgb16, target)
+            }
             frame.unref()
         } else {
             logger.error { "encountered frame with null buffer" }
@@ -894,30 +905,6 @@ class VideoPlayerFFMPEG private constructor(
         }
         videoPosition = frame.timeStamp
         newFrame.trigger(FrameEvent(target, frame.timeStamp))
-    }
-
-    /**
-     * Converts the imported [luma] and [chroma] planes of [frame] to RGB in [target], the IOSurface that holds the
-     * frame may be larger than [target]
-     */
-    private fun convertFrame(
-        frame: AVFrame,
-        format: PlanarFormat,
-        luma: ColorBuffer,
-        chroma: ColorBuffer,
-        target: ColorBuffer
-    ) {
-        val filter = frameConversion ?: Filter(filterShaderFromCode(frameConversionShader, "video-frame-conversion")).also {
-            frameConversion = it
-        }
-        val (kr, kb) = lumaCoefficients(frame)
-        filter.parameters["lumaCoefficients"] = Vector2(kr, kb)
-        filter.parameters["codeScale"] = format.codeScale
-        filter.parameters["codeRange"] =
-            Vector4(format.lumaOffset, format.lumaRange, format.chromaOffset, format.chromaRange)
-        // sRGB targets encode what is written, decode the frame so its values are stored unchanged
-        filter.parameters["decodeSRGB"] = target.type == ColorType.UINT8_SRGB
-        filter.apply(arrayOf(luma, chroma), target)
     }
 
     @OptIn(InternalCoroutinesApi::class)
@@ -1143,51 +1130,13 @@ class VideoPlayerFFMPEG private constructor(
             buffer.unref()
         }
         ioSurfaceImporter?.close()
-        frameConversion?.destroy()
+        frameConverter.close()
 
         colorBuffer?.destroy()
         file.dispose()
         state = State.DISPOSED
     }
 }
-
-/**
- * Converts the luma (tex0) and chroma (tex1) planes of a YCbCr frame to RGB
- */
-private val frameConversionShader = """
-    |in vec2 v_texCoord0;
-    |uniform sampler2D tex0;
-    |uniform sampler2D tex1;
-    |uniform vec2 textureSize0;
-    |uniform vec2 textureSize1;
-    |uniform vec2 targetSize;
-    |// Kr and Kb of the YCbCr to RGB matrix
-    |uniform vec2 lumaCoefficients;
-    |// scales samples to code values
-    |uniform float codeScale;
-    |// offset and range of the luma and chroma code values
-    |uniform vec4 codeRange;
-    |uniform bool decodeSRGB;
-    |out vec4 o_color;
-    |
-    |vec3 decode(vec3 c) {
-    |    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
-    |}
-    |
-    |void main() {
-    |    // the frame can be smaller than the planes that hold it, chroma has half the resolution of luma
-    |    vec2 position = v_texCoord0 * targetSize;
-    |    float y = (texture(tex0, position / textureSize0).r * codeScale - codeRange.x) / codeRange.y;
-    |    vec2 cbcr = (texture(tex1, 0.5 * position / textureSize1).rg * codeScale - codeRange.z) / codeRange.w;
-    |    float kr = lumaCoefficients.x;
-    |    float kb = lumaCoefficients.y;
-    |    float r = y + 2.0 * (1.0 - kr) * cbcr.y;
-    |    float b = y + 2.0 * (1.0 - kb) * cbcr.x;
-    |    float g = (y - kr * r - kb * b) / (1.0 - kr - kb);
-    |    vec3 color = clamp(vec3(r, g, b), 0.0, 1.0);
-    |    o_color = vec4(decodeSRGB ? decode(color) : color, 1.0);
-    |}
-""".trimMargin()
 
 internal fun AVFormatContext.streamAt(index: Int): AVStream? =
     if (index < 0) null
