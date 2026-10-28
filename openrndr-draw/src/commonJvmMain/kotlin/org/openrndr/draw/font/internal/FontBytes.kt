@@ -3,6 +3,7 @@ package org.openrndr.draw.font.internal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URI
+import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
@@ -39,7 +40,8 @@ fun fontBytesFromFileOrUrl(fileOrUrl: String, cacheDirectory: File = fontCacheDi
     val isHttp = fileOrUrl.startsWith("http://") || fileOrUrl.startsWith("https://")
     if (!isHttp) {
         return if (fileOrUrl.startsWith("file:") || fileOrUrl.startsWith("jar:")) {
-            URI(fileOrUrl).toURL().readBytes()
+            @Suppress("DEPRECATION")
+            URL(fileOrUrl).readBytes()
         } else {
             File(fileOrUrl).readBytes()
         }
