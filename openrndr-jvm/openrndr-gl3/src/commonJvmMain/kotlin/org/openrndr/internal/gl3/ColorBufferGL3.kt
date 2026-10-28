@@ -18,6 +18,7 @@ import java.io.File
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -1034,17 +1035,40 @@ class ColorBufferGL3(
                 glReadBuffer(GL_COLOR_ATTACHMENT0)
                 debugGLErrors()
 
-                val internalType = internalFormat(targetFormat, targetType).second
+                val levelWidth = max(1, effectiveWidth shr level)
+                val levelHeight = max(1, effectiveHeight shr level)
+                val readFormat = internalFormat(targetFormat, targetType).second
+                val readType = targetType.glType()
 
-                glReadPixels(
-                    0,
-                    0,
-                    effectiveWidth,
-                    effectiveHeight,
-                    internalType,
-                    type.glType(),
-                    targetBuffer
+                // GLES only reads RGBA in one type for each kind of color buffer, and in one format and type that
+                // the implementation chooses
+                val guaranteed = when (type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> Pair(GL_RGBA_INTEGER, GL_UNSIGNED_INT)
+                    ColorSampling.SIGNED_INTEGER -> Pair(GL_RGBA_INTEGER, GL_INT)
+                    else -> if (type.isFloat) Pair(GL_RGBA, GL_FLOAT) else Pair(GL_RGBA, GL_UNSIGNED_BYTE)
+                }
+                val implementation = Pair(
+                    glGetInteger(GL_IMPLEMENTATION_COLOR_READ_FORMAT),
+                    glGetInteger(GL_IMPLEMENTATION_COLOR_READ_TYPE)
                 )
+                val requested = Pair(readFormat, readType)
+
+                targetBuffer.order(ByteOrder.nativeOrder())
+                if (requested == guaranteed || requested == implementation) {
+                    glReadPixels(0, 0, levelWidth, levelHeight, readFormat, readType, targetBuffer)
+                } else {
+                    require(type.colorSampling == ColorSampling.NORMALIZED) {
+                        "reading $format/$type color buffers as $targetFormat/$targetType is not supported in GLES"
+                    }
+                    // read RGBA in the guaranteed type and convert it to the target format and type
+                    val sourceType = if (type.isFloat) ColorType.FLOAT32 else ColorType.UINT8
+                    val pixels = levelWidth * levelHeight
+                    val source = ByteBuffer.allocateDirect(pixels * 4 * sourceType.componentSize)
+                        .order(ByteOrder.nativeOrder())
+                    glReadPixels(0, 0, levelWidth, levelHeight, guaranteed.first, guaranteed.second, source)
+                    convertRGBAPixels(source, sourceType, targetBuffer, targetFormat, targetType, pixels)
+                }
+                (targetBuffer as Buffer).rewind()
                 debugGLErrors()
                 glDeleteFramebuffers(fb)
                 debugGLErrors()
