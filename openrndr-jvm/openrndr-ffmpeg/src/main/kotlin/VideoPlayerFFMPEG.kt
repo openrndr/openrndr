@@ -213,7 +213,7 @@ class VideoPlayerConfiguration {
     var audioChannels = 2
 }
 
-private object DefaultLogger : Callback_Pointer_int_String_Pointer() {
+internal object DefaultLogger : Callback_Pointer_int_String_Pointer() {
     override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
         av_log_default_callback(source, level, formatStr, params)
     }
@@ -305,115 +305,12 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         /**
-         * Lists the available machine-specific device names
+         * Lists the names of the available video devices, the names can be passed to [fromDevice]
          */
         @Suppress("unused")
         fun listDeviceNames(): List<String> {
-            logger.debug { """listing device names""" }
-            val result = mutableListOf<String>()
-
-            /*
-            FFMPEG 4.1 still does not have any working interface to query devices.
-            This mess is necessary because we need to parse the devices from the log output.
-             */
-            val texts = mutableListOf<String>()
-            val callback = object : Callback_Pointer_int_String_Pointer() {
-                override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
-                    val bp = BytePointer(1024)
-                    val ip = IntPointer(1)
-
-                    val length = av_log_format_line2(source, level, formatStr, params, bp, 1024, ip)
-                    val text = bp.string.substring(0, length).trimEnd()
-                    texts.add(text)
-                }
-            }
-            avdevice_register_all()
-            av_log_set_callback(callback)
-            val context = avformat_alloc_context()
-
-            if (Platform.type == PlatformType.WINDOWS) {
-                val options = AVDictionary()
-                av_dict_set(options, "list_devices", "true", 0)
-                val format = av_find_input_format("dshow")
-                avformat_open_input(context, "video=dummy", format, options)
-                var lineIndex = 0
-                all@ while (true) {
-                    if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
-                        break@all
-                    }
-                    val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
-                    val deviceTypePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+[ ]+\\((.*)")
-
-                    val nameText = texts.getOrNull(lineIndex)
-                    val typeText = texts.getOrNull(lineIndex + 1)
-                    if (typeText != null) {
-                        val match = deviceTypePattern.matchEntire(typeText)
-                        val group = match?.groupValues?.getOrNull(1)
-                        if (group == "video") {
-                            if (nameText != null) {
-                                val match = deviceNamePattern.matchEntire(nameText)
-                                val group = match?.groupValues?.getOrNull(1)
-                                if (group != null) {
-                                    result.add(group)
-                                }
-                            }
-                        }
-                    }
-                    lineIndex += 5
-
-                }
-                av_dict_free(options)
-                avformat_close_input(context)
-            }
-
-            if (Platform.type == PlatformType.MAC) {
-                val options = AVDictionary()
-                av_dict_set(options, "list_devices", "true", 0)
-                val format = av_find_input_format("avfoundation")
-                avformat_open_input(context, "", format, options)
-                var lineIndex = 0
-                all@ while (true) {
-                    if (texts[lineIndex].contains("AVFoundation video devices")) {
-                        lineIndex++
-                        while (true) {
-                            if (lineIndex >= texts.size || texts[lineIndex].contains("AVFoundation audio devices")) {
-                                break@all
-                            }
-                            val devicePattern = Regex("\\[AVFoundation .*] \\[[0-9]*] (?<name>.*)")
-                            val matchResult = devicePattern.matchEntire(texts[lineIndex])
-                            if (matchResult != null) {
-                                val (name) = matchResult.destructured
-                                result.add(name)
-                            }
-                            lineIndex += 1
-                        }
-                    }
-                }
-                av_dict_free(options)
-                avformat_close_input(context)
-            }
-
-            /**
-             * On linux this is even more of a mess, the advice is to use v4l2-ctl for enumeration, but guess what,
-             * that software is likely not installed by the User. Best we can do is scan for /dev/video<N> files.
-             */
-            if (Platform.type == PlatformType.GENERIC) {
-                var index = 0
-                while (true) {
-                    val f = File("/dev/video$index")
-                    if (f.exists()) {
-                        result.add("/dev/video$index")
-                        index++
-                    } else {
-                        break
-                    }
-                }
-            }
-            avformat_free_context(context)
-
-            // -- switch back to the default logger
-            DefaultLogger.install()
-            return result
+            logger.debug { "listing device names" }
+            return listVideoDeviceNames()
         }
 
         /**
@@ -475,7 +372,7 @@ class VideoPlayerFFMPEG private constructor(
          */
         fun defaultDevice(): String {
             return when (Platform.type) {
-                PlatformType.WINDOWS -> listDeviceNames()[0]
+                PlatformType.WINDOWS -> listDeviceNames().firstOrNull() ?: error("no video devices found")
                 PlatformType.MAC -> "0"
                 PlatformType.GENERIC -> "/dev/video0"
                 else -> error("unsupported platform ${Platform.type}")
