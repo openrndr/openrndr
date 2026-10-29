@@ -74,10 +74,12 @@ class AudioQueueSource(
                 if (disposed.get()) {
                     break
                 }
+                var didWork = false
                 if (synchronized(inputQueue) { inputQueue.size() < inputQueue.maxSize - 1 }) {
                     val data = pullFunction?.invoke()
                     if (data != null) {
                         synchronized(inputQueue) { inputQueue.push(data) }
+                        didWork = true
                     }
                 }
 
@@ -99,6 +101,9 @@ class AudioQueueSource(
                 checkALError("alGetSourcei ${source} ${AL_BUFFERS_PROCESSED}")
                 queued -= buffersProcessed
                 queued = queued.coerceAtLeast(0)
+                if (buffersProcessed > 0) {
+                    didWork = true
+                }
                 for (i in 0 until buffersProcessed) {
                     val unqueue = AL11.alSourceUnqueueBuffers(source)
                     checkALError("alSourceUnqueueBuffers", exception = false)
@@ -129,6 +134,7 @@ class AudioQueueSource(
                             AL11.alSourceQueueBuffers(source, buffer)
                             checkALError()
                             queued++
+                            didWork = true
                         }
                     }
                 }
@@ -140,7 +146,10 @@ class AudioQueueSource(
                     checkALError("alSourcePlay")
 
                 }
-                Thread.sleep(0)
+                if (!didWork) {
+                    // the queued buffers hold far more than the sleep, they are refilled long before they run out
+                    Thread.sleep(1)
+                }
             }
             logger.debug { "Stopped play" }
             context.removeCurrent()
