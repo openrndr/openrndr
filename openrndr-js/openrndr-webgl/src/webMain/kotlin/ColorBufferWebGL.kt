@@ -150,7 +150,8 @@ class ColorBufferWebGL(
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(TEXTURE0)
             context.bindTexture(TEXTURE_2D, texture)
-            context.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, image)
+            // browsers decode images to sRGB colors, stored as sRGB they are decoded to linear when sampled
+            context.texImage2D(TEXTURE_2D, 0, SRGB8_ALPHA8, RGBA, UNSIGNED_BYTE, image)
             if (log2(image.width.toDouble()) % 1.0 == 0.0 && log2(image.height.toDouble()) % 1.0 == 0.0) {
                 context.generateMipmap(TEXTURE_2D)
             }

@@ -14,8 +14,20 @@ import web.gl.WebGL2RenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
 
-class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget,
+/**
+ * The render target of the canvas
+ * @param srgbFallback the offscreen sRGB target that is drawn into when the canvas can not have an sRGB drawing buffer
+ */
+class ProgramRenderTargetWebGL internal constructor(
+    context: GL,
+    override val program: Program,
+    internal val srgbFallback: SrgbCanvasFallbackWebGL?
+) : ProgramRenderTarget,
     RenderTargetWebGL(context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
+
+    override val framebuffer: WebGLFramebuffer?
+        get() = srgbFallback?.framebuffer
+
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -34,7 +46,7 @@ class ProgramRenderTargetWebGL(context: GL, override val program: Program) : Pro
 
 open class RenderTargetWebGL(
     val context: GL,
-    val framebuffer: WebGLFramebuffer?,
+    open val framebuffer: WebGLFramebuffer?,
     override val width: Int,
     override val height: Int,
     override val contentScale: Double,
@@ -207,7 +219,9 @@ open class RenderTargetWebGL(
 
     override fun clearColor(index: Int, color: ColorRGBa) {
         bound {
-            val values = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+            // the color is linear, sRGB attachments encode it
+            val linear = color.toLinear()
+            val values = floatArrayOf(linear.r.toFloat(), linear.g.toFloat(), linear.b.toFloat(), linear.alpha.toFloat())
 
             val v2 = Float32Array.of(
                 values[0].toJsFloat(),

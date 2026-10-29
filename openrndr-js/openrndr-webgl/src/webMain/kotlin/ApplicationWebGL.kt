@@ -80,6 +80,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     var canvas: HTMLCanvasElement? = null
     var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
+    private var srgbFallback: SrgbCanvasFallbackWebGL? = null
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun setup() {
         logger.debug { "in setup()" }
@@ -87,8 +88,13 @@ class ApplicationWebGL(override var program: Program, override var configuration
             ?: error("failed to get canvas #${configuration.canvasId}")
 
         logger.debug { "creating context" }
+        // the window holds sRGB colors like on the JVM: the drawing buffer is made sRGB, or the window is drawn into an
+        // offscreen sRGB target that has its own depth, stencil and multisampling
+        val srgbDrawingBuffer = canvasSupportsSrgbDrawingBuffer()
         val attrs = JsObject.create(null).unsafeCast<WebGLContextAttributes>()
-        attrs.stencil = true
+        attrs.antialias = srgbDrawingBuffer
+        attrs.depth = srgbDrawingBuffer
+        attrs.stencil = srgbDrawingBuffer
         attrs.preserveDrawingBuffer = true
 
         context = canvas?.getContext(WebGL2RenderingContext.ID, attrs)
@@ -108,6 +114,15 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
         canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
         canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
+
+        // the drawing buffer can be smaller than the canvas, browsers limit its size
+        val gl = context ?: error("no context")
+        srgbFallback = if (srgbDrawingBuffer && useSrgbDrawingBuffer(gl, gl.drawingBufferWidth, gl.drawingBufferHeight)) {
+            null
+        } else {
+            logger.info { "the canvas can not have an sRGB drawing buffer, drawing into an offscreen sRGB target" }
+            SrgbCanvasFallbackWebGL(gl).apply { resize(gl.drawingBufferWidth, gl.drawingBufferHeight) }
+        }
 
         windowTitle = configuration.title
 
@@ -299,7 +314,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
 //        })
 
 
-        defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
+        defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program, srgbFallback)
         defaultRenderTarget?.bind()
 
 
@@ -387,8 +402,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
             program.drawer.reset()
             program.drawer.ortho()
 
+            context?.let { srgbFallback?.resize(it.drawingBufferWidth, it.drawingBufferHeight) }
             defaultRenderTarget?.bindTarget()
             program.drawImpl()
+            srgbFallback?.present()
 
             (Driver.instance as DriverWebGL).context = storedContext
         }

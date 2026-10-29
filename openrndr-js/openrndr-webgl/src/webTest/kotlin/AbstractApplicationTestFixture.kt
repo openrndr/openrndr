@@ -32,6 +32,8 @@ abstract class AbstractApplicationTestFixture {
         if (canvas == null) {
             canvas = document.createElement("canvas") as HTMLCanvasElement
             canvas.id = ElementId(configuration.canvasId)
+            // without a size in CSS the size of the canvas follows its pixel size, which the setup scales up
+            canvas.setAttribute("style", "width: 640px; height: 480px")
             document.body.appendChild(canvas)
         }
         // the tests do not use fonts, without a font driver the setup would suspend to load harfbuzzjs

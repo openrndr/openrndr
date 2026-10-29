@@ -225,7 +225,9 @@ class DriverWebGL(var context: GL) : Driver {
 
     override fun clear(color: ColorRGBa) {
         context.checkErrors("pre-existing errors")
-        context.clearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+        // the color is linear, sRGB targets and the sRGB drawing buffer encode it
+        val linear = color.toLinear()
+        context.clearColor(linear.r.toFloat(), linear.g.toFloat(), linear.b.toFloat(), linear.alpha.toFloat())
         context.checkErrors("clearColor")
         context.clearDepth(1.0f)
         context.checkErrors("clearDepth")

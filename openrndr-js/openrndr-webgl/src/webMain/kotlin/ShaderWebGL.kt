@@ -150,7 +150,8 @@ class ShaderWebGL(
     override fun uniform(name: String, value: ColorRGBa) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform4fv(index, value.toFloat32Array(), 0.0, 0.toJsUInt())
+            // shaders work with linear colors, like the GL3 back-end
+            context.uniform4fv(index, value.toLinear().toFloat32Array(), 0.0, 0.toJsUInt())
             context.checkErrors("$name $value")
         }
     }
