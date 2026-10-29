@@ -123,7 +123,9 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             val configs = it.mallocPointer(configCount[0])
             eglChooseConfig(display, attributes, configs, configCount)
 
-            val surface = eglCreatePbufferSurface(display, configs[0], attributes)
+            // a pbuffer surface takes its size, not the attributes of the config
+            val surfaceAttributes = it.ints(EGL_WIDTH, configuration.width, EGL_HEIGHT, configuration.height, EGL_NONE)
+            val surface = eglCreatePbufferSurface(display, configs[0], surfaceAttributes)
 
             eglBindAPI(EGL_OPENGL_API)
             val EGL_CONTEXT_FLAGS = 0x30FC
