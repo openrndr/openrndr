@@ -1,0 +1,316 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>SlugMap</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.1-dev.47+37a9211
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-draw/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-draw/commonMain" data-filter=":openrndr-draw/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw.slug/SlugMap///PointingToDeclaration//1036293014">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw.slug</a><span class="delimiter">/</span><span class="current">SlugMap</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Slug</span><wbr><span><span>Map</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">SlugMap</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>curves<span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>bands<span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a></span></span><span class="token punctuation">)</span> : <a href="../../org.openrndr.draw.boundary/-boundary-map/index.html">BoundaryMap</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/slug/SlugMap.kt#L26">source</a>)</span></span></div><p class="paragraph">GPU storage for slug curve and band data.</p><p class="paragraph"><a href="../../../openrndr-draw/org.openrndr.draw.slug/-slug-map/--root--.html">bands</a> is an integer texture and must use NEAREST filtering; integer textures with LINEAR filtering are incomplete and sample as zero, which makes slug rendering silently draw nothing. NEAREST is set on construction and re-applied by <a href="../-slug-drawer/index.html">SlugDrawer</a> before drawing.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="1784903167%2FConstructors%2F1036293014" anchor-label="SlugMap" id="1784903167%2FConstructors%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-slug-map.html"><span>Slug</span><wbr><span><span>Map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1784903167%2FConstructors%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">curves<span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">bands<span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1515025664%2FProperties%2F1036293014" anchor-label="bandBuffer" id="-1515025664%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="band-buffer.html"><span>band</span><wbr><span><span>Buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1515025664%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="band-buffer.html">bandBuffer</a><span class="token operator">: </span><a href="../../../openrndr-utils/org.openrndr.utils.buffer/-m-p-p-buffer/index.html">MPPBuffer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="106904188%2FProperties%2F1036293014" anchor-label="bandCounts" id="106904188%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="band-counts.html"><span>band</span><wbr><span><span>Counts</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="106904188%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="band-counts.html">bandCounts</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1153740499%2FProperties%2F1036293014" anchor-label="bandIndices" id="1153740499%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="band-indices.html"><span>band</span><wbr><span><span>Indices</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1153740499%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="band-indices.html">bandIndices</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="../../../openrndr-math/org.openrndr.math/-int-vector2/index.html">IntVector2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1475885785%2FProperties%2F1036293014" anchor-label="bands" id="-1475885785%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bands.html"><span><span>bands</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1475885785%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="bands.html">bands</a><span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-313067744%2FProperties%2F1036293014" anchor-label="bounds" id="-313067744%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bounds.html"><span><span>bounds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-313067744%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="bounds.html">bounds</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="../../../openrndr-shape/org.openrndr.shape/-rectangle/index.html">Rectangle</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="916724725%2FProperties%2F1036293014" anchor-label="buffer" id="916724725%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="buffer.html"><span><span>buffer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="916724725%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="buffer.html">buffer</a><span class="token operator">: </span><a href="../../../openrndr-utils/org.openrndr.utils.buffer/-m-p-p-buffer/index.html">MPPBuffer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1245012817%2FProperties%2F1036293014" anchor-label="curves" id="1245012817%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="curves.html"><span><span>curves</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1245012817%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="curves.html">curves</a><span class="token operator">: </span><a href="../../org.openrndr.draw/-color-buffer/index.html">ColorBuffer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="907284881%2FProperties%2F1036293014" anchor-label="fillRules" id="907284881%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="fill-rules.html"><span>fill</span><wbr><span><span>Rules</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="907284881%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="fill-rules.html">fillRules</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="../../../openrndr-shape/org.openrndr.shape/-fill-rule/index.html">FillRule</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1731567779%2FFunctions%2F1036293014" anchor-label="addShape" id="-1731567779%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="add-shape.html"><span>add</span><wbr><span><span>Shape</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1731567779%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="add-shape.html"><span class="token function">addShape</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shape<span class="token operator">: </span><a href="../../../openrndr-shape/org.openrndr.shape/-shape/index.html">Shape</a><span class="token punctuation">, </span></span><span class="parameter ">fillRule<span class="token operator">: </span><a href="../../../openrndr-shape/org.openrndr.shape/-fill-rule/index.html">FillRule</a><span class="token operator"> = </span>FillRule.NON_ZERO<span class="token punctuation">, </span></span><span class="parameter ">quadraticTolerance<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Adds the boundary of <a href="../../org.openrndr.draw.boundary/-boundary-map/add-shape.html">shape</a> and returns its index</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-628593674%2FFunctions%2F1036293014" anchor-label="endBatch" id="-628593674%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="end-batch.html"><span>end</span><wbr><span><span>Batch</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-628593674%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="end-batch.html"><span class="token function">endBatch</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-588102851%2FFunctions%2F1036293014" anchor-label="startBatch" id="-588102851%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start-batch.html"><span>start</span><wbr><span><span>Batch</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-588102851%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="start-batch.html"><span class="token function">startBatch</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Begins a new batching operation for the SlugMap.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

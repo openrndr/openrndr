@@ -1,0 +1,271 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>SlugGlyphMap</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.1-dev.47+37a9211
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-draw/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-draw/commonMain" data-filter=":openrndr-draw/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw.slug/SlugGlyphMap///PointingToDeclaration//1036293014">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw.slug</a><span class="delimiter">/</span><span class="current">SlugGlyphMap</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Slug</span><wbr><span>Glyph</span><wbr><span><span>Map</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">SlugGlyphMap</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>slugMap<span class="token operator">: </span><a href="../-slug-map/index.html">SlugMap</a><span class="token punctuation">, </span></span><span class="parameter ">glyphs<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-map/index.html">MutableMap</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span><span class="token operator"> = </span>mutableMapOf()</span></span><span class="token punctuation">)</span> : <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/index.html">BoundaryGlyphMap</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/slug/SlugGlyphMap.kt#L11">source</a>)</span></span></div><p class="paragraph">Caches the slugs of glyphs in a <a href="../-slug-map/index.html">SlugMap</a>, each glyph of a face is added to <a href="../../../openrndr-draw/org.openrndr.draw.slug/-slug-glyph-map/--root--.html">slugMap</a> once.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="495761023%2FConstructors%2F1036293014" anchor-label="SlugGlyphMap" id="495761023%2FConstructors%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-slug-glyph-map.html"><span>Slug</span><wbr><span>Glyph</span><wbr><span><span>Map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="495761023%2FConstructors%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">slugMap<span class="token operator">: </span><a href="../-slug-map/index.html">SlugMap</a><span class="token punctuation">, </span></span><span class="parameter ">glyphs<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-map/index.html">MutableMap</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span><span class="token operator"> = </span>mutableMapOf()</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1284196332%2FProperties%2F1036293014" anchor-label="glyphs" id="1284196332%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/glyphs.html"><span><span>glyphs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1284196332%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/glyphs.html">glyphs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-map/index.html">MutableMap</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">the boundary indices of glyphs, by a hash of their face and glyph index</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1495399051%2FProperties%2F1036293014" anchor-label="map" id="1495399051%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/map.html"><span><span>map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1495399051%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/map.html">map</a><span class="token operator">: </span><a href="../../org.openrndr.draw.boundary/-boundary-map/index.html">BoundaryMap</a></div><div class="brief "><p class="paragraph">the map the boundaries of glyphs are added to</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2063642442%2FProperties%2F1036293014" anchor-label="slugMap" id="-2063642442%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="slug-map.html"><span>slug</span><wbr><span><span>Map</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2063642442%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="slug-map.html">slugMap</a><span class="token operator">: </span><a href="../-slug-map/index.html">SlugMap</a></div><div class="brief "><p class="paragraph">the <code class="lang-kotlin">SlugMap</code> instance used to manage and store slugs.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1728693012%2FFunctions%2F1036293014" anchor-label="endBatch" id="1728693012%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/end-batch.html"><span>end</span><wbr><span><span>Batch</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1728693012%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/end-batch.html"><span class="token function">endBatch</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Ends the batch started by <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/start-batch.html">startBatch</a> and uploads the added glyphs</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1198287553%2FFunctions%2F1036293014" anchor-label="getBoundaryForGlyphIndex" id="1198287553%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-boundary-for-glyph-index.html"><span>get</span><wbr><span>Boundary</span><wbr><span>For</span><wbr><span>Glyph</span><wbr><span><span>Index</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1198287553%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-boundary-for-glyph-index.html"><span class="token function">getBoundaryForGlyphIndex</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">face<span class="token operator">: </span><a href="../../org.openrndr.draw.font/-face/index.html">Face</a><span class="token punctuation">, </span></span><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the boundary index of the glyph at <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-boundary-for-glyph-index.html">index</a> in <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-boundary-for-glyph-index.html">face</a>, adding the glyph to <a href="../../../openrndr-draw/org.openrndr.draw.boundary/-boundary-glyph-map/--root--.html">map</a> when it is not in it yet</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-906908445%2FFunctions%2F1036293014" anchor-label="getGlyph" id="-906908445%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-glyph.html"><span>get</span><wbr><span><span>Glyph</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-906908445%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-glyph.html"><span class="token function">getGlyph</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">face<span class="token operator">: </span><a href="../../org.openrndr.draw.font/-face/index.html">Face</a><span class="token punctuation">, </span></span><span class="parameter ">char<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-char/index.html">Char</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the boundary index of the glyph for <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-glyph.html">char</a> in <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/get-glyph.html">face</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2071229726%2FFunctions%2F1036293014" anchor-label="getSlugForGlyphIndex" id="-2071229726%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-slug-for-glyph-index.html"><span>get</span><wbr><span>Slug</span><wbr><span>For</span><wbr><span>Glyph</span><wbr><span><span>Index</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2071229726%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-slug-for-glyph-index.html"><span class="token function">getSlugForGlyphIndex</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">face<span class="token operator">: </span><a href="../../org.openrndr.draw.font/-face/index.html">Face</a><span class="token punctuation">, </span></span><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Returns the slug of the glyph at <a href="get-slug-for-glyph-index.html">index</a> in <a href="get-slug-for-glyph-index.html">face</a>, adding the glyph to <a href="../../../openrndr-draw/org.openrndr.draw.slug/-slug-glyph-map/--root--.html">slugMap</a> when it is not in it yet</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1316637403%2FFunctions%2F1036293014" anchor-label="startBatch" id="1316637403%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/start-batch.html"><span>start</span><wbr><span><span>Batch</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1316637403%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/start-batch.html"><span class="token function">startBatch</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Starts a batch in <a href="../../../openrndr-draw/org.openrndr.draw.boundary/-boundary-glyph-map/--root--.html">map</a>, glyphs added until <a href="../../org.openrndr.draw.boundary/-boundary-glyph-map/end-batch.html">endBatch</a> is called are uploaded to the GPU at once</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

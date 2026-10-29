@@ -1,0 +1,556 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>BidiClass</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.1-dev.47+37a9211
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-draw/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-draw/commonMain" data-filter=":openrndr-draw/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw.font.internal/BidiClass///PointingToDeclaration//1036293014">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw.font.internal</a><span class="delimiter">/</span><span class="current">BidiClass</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Bidi</span><wbr><span><span>Class</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="index.html">BidiClass</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="index.html">BidiClass</a><span class="token operator">&gt; </span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/font/internal/BidiTextDriver.kt#L8">source</a>)</span></span></div><p class="paragraph">Bidirectional character types as defined in Unicode Standard Annex #9.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="ENTRY">Entries</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="ENTRY">
+        <h2 class="tableheader">Entries</h2>
+        <div class="table"><a data-name="1204896305%2FClasslikes%2F1036293014" anchor-label="L" id="1204896305%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-l/index.html">L</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1204896305%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-l/index.html">L</a></div></div><div class="brief "><p class="paragraph">Left-to-right</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-98620489%2FClasslikes%2F1036293014" anchor-label="R" id="-98620489%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r/index.html">R</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-98620489%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-r/index.html">R</a></div></div><div class="brief "><p class="paragraph">Right-to-left</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1945530702%2FClasslikes%2F1036293014" anchor-label="AL" id="1945530702%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-a-l/index.html">AL</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1945530702%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-a-l/index.html">AL</a></div></div><div class="brief "><p class="paragraph">Right-to-left Arabic</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="341481804%2FClasslikes%2F1036293014" anchor-label="EN" id="341481804%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-e-n/index.html">EN</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="341481804%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-e-n/index.html">EN</a></div></div><div class="brief "><p class="paragraph">European number</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1402701457%2FClasslikes%2F1036293014" anchor-label="ES" id="1402701457%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-e-s/index.html">ES</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1402701457%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-e-s/index.html">ES</a></div></div><div class="brief "><p class="paragraph">European number separator</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-962034990%2FClasslikes%2F1036293014" anchor-label="ET" id="-962034990%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-e-t/index.html">ET</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-962034990%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-e-t/index.html">ET</a></div></div><div class="brief "><p class="paragraph">European number terminator</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1511025104%2FClasslikes%2F1036293014" anchor-label="AN" id="1511025104%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-a-n/index.html">AN</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1511025104%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-a-n/index.html">AN</a></div></div><div class="brief "><p class="paragraph">Arabic number</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1987473107%2FClasslikes%2F1036293014" anchor-label="CS" id="1987473107%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-c-s/index.html">CS</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1987473107%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-c-s/index.html">CS</a></div></div><div class="brief "><p class="paragraph">Common number separator</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1769723955%2FClasslikes%2F1036293014" anchor-label="NSM" id="-1769723955%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-n-s-m/index.html">NSM</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1769723955%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-n-s-m/index.html">NSM</a></div></div><div class="brief "><p class="paragraph">Nonspacing mark</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1218639279%2FClasslikes%2F1036293014" anchor-label="BN" id="1218639279%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-b-n/index.html">BN</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1218639279%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-b-n/index.html">BN</a></div></div><div class="brief "><p class="paragraph">Boundary neutral</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-917543001%2FClasslikes%2F1036293014" anchor-label="B" id="-917543001%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-b/index.html">B</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-917543001%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-b/index.html">B</a></div></div><div class="brief "><p class="paragraph">Paragraph separator</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1831610360%2FClasslikes%2F1036293014" anchor-label="S" id="1831610360%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-s/index.html">S</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1831610360%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-s/index.html">S</a></div></div><div class="brief "><p class="paragraph">Segment separator</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="434723903%2FClasslikes%2F1036293014" anchor-label="WS" id="434723903%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-w-s/index.html">WS</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="434723903%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-w-s/index.html">WS</a></div></div><div class="brief "><p class="paragraph">Whitespace</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1712590850%2FClasslikes%2F1036293014" anchor-label="ON" id="1712590850%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-o-n/index.html">ON</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1712590850%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-o-n/index.html">ON</a></div></div><div class="brief "><p class="paragraph">Other neutrals</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1208736228%2FClasslikes%2F1036293014" anchor-label="LRE" id="1208736228%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-l-r-e/index.html">LRE</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1208736228%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-l-r-e/index.html">LRE</a></div></div><div class="brief "><p class="paragraph">Left-to-right embedding</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-963791762%2FClasslikes%2F1036293014" anchor-label="LRO" id="-963791762%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-l-r-o/index.html">LRO</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-963791762%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-l-r-o/index.html">LRO</a></div></div><div class="brief "><p class="paragraph">Left-to-right override</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="118895280%2FClasslikes%2F1036293014" anchor-label="RLE" id="118895280%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r-l-e/index.html">RLE</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="118895280%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-r-l-e/index.html">RLE</a></div></div><div class="brief "><p class="paragraph">Right-to-left embedding</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2053632710%2FClasslikes%2F1036293014" anchor-label="RLO" id="-2053632710%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r-l-o/index.html">RLO</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2053632710%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-r-l-o/index.html">RLO</a></div></div><div class="brief "><p class="paragraph">Right-to-left override</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1041297399%2FClasslikes%2F1036293014" anchor-label="PDF" id="1041297399%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-p-d-f/index.html">PDF</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1041297399%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-p-d-f/index.html">PDF</a></div></div><div class="brief "><p class="paragraph">Pop directional format</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="339725032%2FClasslikes%2F1036293014" anchor-label="LRI" id="339725032%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-l-r-i/index.html">LRI</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="339725032%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-l-r-i/index.html">LRI</a></div></div><div class="brief "><p class="paragraph">Left-to-right isolate</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-750115916%2FClasslikes%2F1036293014" anchor-label="RLI" id="-750115916%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r-l-i/index.html">RLI</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-750115916%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-r-l-i/index.html">RLI</a></div></div><div class="brief "><p class="paragraph">Right-to-left isolate</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1403472191%2FClasslikes%2F1036293014" anchor-label="FSI" id="-1403472191%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-f-s-i/index.html">FSI</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1403472191%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-f-s-i/index.html">FSI</a></div></div><div class="brief "><p class="paragraph">First strong isolate</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1757944646%2FClasslikes%2F1036293014" anchor-label="PDI" id="-1757944646%2FClasslikes%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-p-d-i/index.html">PDI</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1757944646%2FClasslikes%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><div class="block"><a href="-p-d-i/index.html">PDI</a></div></div><div class="brief "><p class="paragraph">Pop directional isolate</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1958290435%2FProperties%2F1036293014" anchor-label="entries" id="-1958290435%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="entries.html"><span><span>entries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1958290435%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="entries.html">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.enums/-enum-entries/index.html">EnumEntries</a><span class="token operator">&lt;</span><a href="index.html">BidiClass</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a representation of an immutable list of all enum entries, in the order they're declared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-372974862%2FProperties%2F1036293014" anchor-label="name" id="-372974862%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.font/-buffer-access/-w-r-i-t-e/index.html#-372974862%2FProperties%2F1036293014"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-372974862%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="../../org.openrndr.draw.font/-buffer-access/-w-r-i-t-e/index.html#-372974862%2FProperties%2F1036293014">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-739389684%2FProperties%2F1036293014" anchor-label="ordinal" id="-739389684%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../org.openrndr.draw.font/-buffer-access/-w-r-i-t-e/index.html#-739389684%2FProperties%2F1036293014"><span><span>ordinal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-739389684%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">val </span><a href="../../org.openrndr.draw.font/-buffer-access/-w-r-i-t-e/index.html#-739389684%2FProperties%2F1036293014">ordinal</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1743856831%2FFunctions%2F1036293014" anchor-label="valueOf" id="1743856831%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="value-of.html"><span>value</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1743856831%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="value-of.html"><span class="token function">valueOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">BidiClass</a></div><div class="brief "><p class="paragraph">Returns the enum constant of this type with the specified name. The string must match exactly an identifier used to declare an enum constant in this type. (Extraneous whitespace characters are not permitted.)</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1662032907%2FFunctions%2F1036293014" anchor-label="values" id="1662032907%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="values.html"><span><span>values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1662032907%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="values.html"><span class="token function">values</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="index.html">BidiClass</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns an array containing the constants of this enum type, in the order they're declared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

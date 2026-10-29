@@ -1,0 +1,267 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>BidiText</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.1-dev.47+37a9211
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-draw/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-draw/commonMain" data-filter=":openrndr-draw/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw.font.internal/BidiText///PointingToDeclaration//1036293014">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw.font.internal</a><span class="delimiter">/</span><span class="current">BidiText</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Bidi</span><wbr><span><span>Text</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">BidiText</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/font/internal/BidiTextDriver.kt#L101">source</a>)</span></span></div><p class="paragraph">The result of the bidirectional analysis of a text.</p><p class="paragraph">The analysis resolves embedding levels for whole paragraphs, reordering happens per line. A typical use is:</p><ol><li><p class="paragraph">shape every run returned by <a href="runs.html">runs</a> using its direction and script</p></li><li><p class="paragraph">break lines on the shaped runs (in logical order)</p></li><li><p class="paragraph">call <a href="visual-runs.html">visualRuns</a> for every line to find the order in which the line's runs are displayed</p></li></ol><p class="paragraph">All indices are UTF-16 indices into <a href="text.html">text</a>, line ranges are half-open (<code class="lang-kotlin">lineEnd</code> is exclusive).</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1642825637%2FProperties%2F1036293014" anchor-label="levels" id="1642825637%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="levels.html"><span><span>levels</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1642825637%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="levels.html">levels</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a></div><div class="brief "><p class="paragraph">The resolved embedding levels per UTF-16 unit, before applying the line based rule L1. Both units of a surrogate pair have the same level. The array must not be modified.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-237325937%2FProperties%2F1036293014" anchor-label="paragraphs" id="-237325937%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="paragraphs.html"><span><span>paragraphs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-237325937%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="paragraphs.html">paragraphs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-bidi-paragraph/index.html">BidiParagraph</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The paragraphs in <a href="text.html">text</a>, in logical order</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="363649895%2FProperties%2F1036293014" anchor-label="text" id="363649895%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="text.html"><span><span>text</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="363649895%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="text.html">text</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">The analyzed text</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="2013211662%2FFunctions%2F1036293014" anchor-label="lineLevels" id="2013211662%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="line-levels.html"><span>line</span><wbr><span><span>Levels</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2013211662%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="line-levels.html"><span class="token function">lineLevels</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">lineStart<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">lineEnd<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a></div><div class="brief "><p class="paragraph">Returns the embedding levels for the line <code class="lang-kotlin">[lineStart, lineEnd)</code> after applying rule L1: segment separators, paragraph separators and trailing whitespace are reset to the paragraph level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="369134563%2FFunctions%2F1036293014" anchor-label="paragraphAt" id="369134563%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="paragraph-at.html"><span>paragraph</span><wbr><span><span>At</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="369134563%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="paragraph-at.html"><span class="token function">paragraphAt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-bidi-paragraph/index.html">BidiParagraph</a></div><div class="brief "><p class="paragraph">Returns the paragraph containing the UTF-16 <a href="paragraph-at.html">index</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="125766355%2FFunctions%2F1036293014" anchor-label="runs" id="125766355%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="runs.html"><span><span>runs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="125766355%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="runs.html"><span class="token function">runs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">start<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">end<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>text.length</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-bidi-run/index.html">BidiRun</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the runs of uniform embedding level and script in <code class="lang-kotlin">[start, end)</code> in logical order. Runs never cross paragraph boundaries.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-343242252%2FFunctions%2F1036293014" anchor-label="scriptAt" id="-343242252%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="script-at.html"><span>script</span><wbr><span><span>At</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-343242252%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="script-at.html"><span class="token function">scriptAt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-script/index.html">Script</a></div><div class="brief "><p class="paragraph">Returns the resolved script of the character at UTF-16 <a href="script-at.html">index</a>. Characters of the Common and Inherited scripts are resolved to the script of the surrounding text, they are only reported as <a href="../-script/-c-o-m-m-o-n/index.html">Script.COMMON</a> or <a href="../-script/-i-n-h-e-r-i-t-e-d/index.html">Script.INHERITED</a> when the paragraph has no other script.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-326281081%2FFunctions%2F1036293014" anchor-label="visualOrder" id="-326281081%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="visual-order.html"><span>visual</span><wbr><span><span>Order</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-326281081%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="visual-order.html"><span class="token function">visualOrder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">lineStart<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">lineEnd<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int-array/index.html">IntArray</a></div><div class="brief "><p class="paragraph">Returns the visual order of the line <code class="lang-kotlin">[lineStart, lineEnd)</code> (rules L1 and L2): element <code class="lang-kotlin">i</code> is the UTF-16 index of the unit displayed at visual position <code class="lang-kotlin">i</code>, from left to right. Surrogate pairs are kept in logical order. Characters are not mirrored, see <a href="../-bidi-text-driver/mirrored-code-point.html">BidiTextDriver.mirroredCodePoint</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-432473229%2FFunctions%2F1036293014" anchor-label="visualRuns" id="-432473229%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="visual-runs.html"><span>visual</span><wbr><span><span>Runs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-432473229%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="visual-runs.html"><span class="token function">visualRuns</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">lineStart<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">lineEnd<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-bidi-run/index.html">BidiRun</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the runs of the line <code class="lang-kotlin">[lineStart, lineEnd)</code> in visual order, from left to right, with levels after rule L1. The characters of a run with a right-to-left <a href="../-bidi-run/direction.html">BidiRun.direction</a> are displayed right to left; shaping such a run with <a href="../-direction/-r-i-g-h-t_-t-o_-l-e-f-t/index.html">Direction.RIGHT_TO_LEFT</a> produces glyphs in visual order.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
