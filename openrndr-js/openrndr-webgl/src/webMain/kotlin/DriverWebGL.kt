@@ -261,6 +261,17 @@ class DriverWebGL(var context: GL) : Driver {
             VertexElementType.VECTOR3_FLOAT32,
             VertexElementType.VECTOR4_FLOAT32
         )
+        // 32-bit integer attributes, written as 4-byte values by BufferWriterWebGL
+        val integerTypes = setOf(
+            VertexElementType.INT32,
+            VertexElementType.VECTOR2_INT32,
+            VertexElementType.VECTOR3_INT32,
+            VertexElementType.VECTOR4_INT32,
+            VertexElementType.UINT32,
+            VertexElementType.VECTOR2_UINT32,
+            VertexElementType.VECTOR3_UINT32,
+            VertexElementType.VECTOR4_UINT32
+        )
 
         var attribute0Used = false
 
@@ -298,7 +309,23 @@ class DriverWebGL(var context: GL) : Driver {
                                 } else {
                                     error("integer attributes are not supported by WebGL")
                                 }
-                                context.vertexAttribDivisor(attributeIndex.toJsUInt(), divisor.toJsUInt())
+                                context.vertexAttribDivisor((attributeIndex + i).toJsUInt(), divisor.toJsUInt())
+                                context.checkErrors()
+                                attributeBindings++
+                            }
+                        }
+
+                        in integerTypes -> {
+                            for (i in 0 until item.arraySize) {
+                                context.enableVertexAttribArray((attributeIndex + i).toJsUInt())
+                                context.checkErrors("enableVertexAttribArray")
+                                context.vertexAttribIPointer(
+                                    (attributeIndex + i).toJsUInt(),
+                                    item.type.componentCount,
+                                    item.type.glType(), format.size, item.offset + i * item.type.sizeInBytes
+                                )
+                                context.checkErrors("vertexAttribIPointer")
+                                context.vertexAttribDivisor((attributeIndex + i).toJsUInt(), divisor.toJsUInt())
                                 context.checkErrors()
                                 attributeBindings++
                             }
@@ -378,6 +405,23 @@ class DriverWebGL(var context: GL) : Driver {
         error("not supported")
     }
 
+    /**
+     * Binds the textures of [bindings] to their texture units
+     */
+    private fun applyTextureBindings(bindings: TextureBindings) {
+        for ((unit, texture) in bindings.binding) {
+            when (texture) {
+                is ColorBufferWebGL -> {
+                    context.activeTexture(glTextureEnum(unit))
+                    context.bindTexture(texture.target, texture.texture)
+                    context.checkErrors("bind texture to unit $unit")
+                }
+
+                else -> logger.warn { "binding ${texture::class.simpleName} textures is not supported by WebGL" }
+            }
+        }
+    }
+
     override fun drawVertexBuffer(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -387,6 +431,7 @@ class DriverWebGL(var context: GL) : Driver {
         verticesPerPatch: Int
     ) {
         shader as ShaderWebGL
+        applyTextureBindings(shader.textureBindings)
 
         val shaderVertexDescription = ShaderVertexDescription(
             context,
@@ -441,6 +486,7 @@ class DriverWebGL(var context: GL) : Driver {
         verticesPerPatch: Int
     ) {
         shader as ShaderWebGL
+        applyTextureBindings(shader.textureBindings)
         setupFormat(vertexBuffers, instanceAttributes, shader)
         require(instanceOffset == 0) {
             "instance offsets are not supported"
@@ -787,6 +833,9 @@ class DriverWebGL(var context: GL) : Driver {
         return """
             #version 300 es
             precision highp float;
+            precision highp int;
+            precision highp usampler2D;
+            precision highp isampler2D;
             #define OR_WEBGL2
             #define OR_IN_OUT
         """.trimIndent()

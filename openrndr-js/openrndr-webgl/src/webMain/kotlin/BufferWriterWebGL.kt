@@ -2,7 +2,9 @@ package org.openrndr.webgl
 
 import js.buffer.ArrayBuffer
 import js.numbers.JsNumbers.toJsFloat
+import js.numbers.JsNumbers.toJsInt
 import js.typedarrays.Float32Array
+import js.typedarrays.Int32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.BufferWriter
 import org.openrndr.math.*
@@ -11,6 +13,9 @@ class BufferWriterWebGL(val buffer: Float32Array<ArrayBuffer>, val elementSize: 
     init {
         require(elementSize % 4 == 0) { "elementSize $elementSize must be a multiple of 4" }
     }
+
+    // integers are written to the same memory as the floats, their bits are uploaded unchanged
+    private val integers = Int32Array(buffer.buffer, buffer.byteOffset, buffer.length)
 
     override var position: Int = 0
 
@@ -50,31 +55,44 @@ class BufferWriterWebGL(val buffer: Float32Array<ArrayBuffer>, val elementSize: 
     }
 
     override fun write(v: Int) {
-        error("only float types")
+        integers[position] = v.toJsInt()
+        position++
     }
 
     override fun write(v: UInt) {
-        error("only float types")
+        write(v.toInt())
     }
 
     override fun write(v: IntVector2) {
-        error("only float types")
+        write(v.x)
+        write(v.y)
     }
 
     override fun write(v: IntVector3) {
-        error("only float types")
+        write(v.x)
+        write(v.y)
+        write(v.z)
     }
 
     override fun write(v: IntVector4) {
-        error("only float types")
+        write(v.x)
+        write(v.y)
+        write(v.z)
+        write(v.w)
     }
 
+    // matrices are written in column-major order
     override fun write(v: Matrix33) {
-        TODO("Not yet implemented")
+        write(v.c0r0.toFloat(), v.c0r1.toFloat(), v.c0r2.toFloat())
+        write(v.c1r0.toFloat(), v.c1r1.toFloat(), v.c1r2.toFloat())
+        write(v.c2r0.toFloat(), v.c2r1.toFloat(), v.c2r2.toFloat())
     }
 
     override fun write(v: Matrix44) {
-        TODO("Not yet implemented")
+        write(v.c0r0.toFloat(), v.c0r1.toFloat(), v.c0r2.toFloat(), v.c0r3.toFloat())
+        write(v.c1r0.toFloat(), v.c1r1.toFloat(), v.c1r2.toFloat(), v.c1r3.toFloat())
+        write(v.c2r0.toFloat(), v.c2r1.toFloat(), v.c2r2.toFloat(), v.c2r3.toFloat())
+        write(v.c3r0.toFloat(), v.c3r1.toFloat(), v.c3r2.toFloat(), v.c3r3.toFloat())
     }
 
     override fun write(v: Float) {

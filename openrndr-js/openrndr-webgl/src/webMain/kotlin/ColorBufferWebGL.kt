@@ -5,7 +5,11 @@ import js.buffer.ArrayBufferLike
 import js.buffer.ArrayBufferView
 import js.typedarrays.Float16Array
 import js.typedarrays.Float32Array
+import js.typedarrays.Int16Array
+import js.typedarrays.Int32Array
+import js.typedarrays.Int8Array
 import js.typedarrays.Uint16Array
+import js.typedarrays.Uint32Array
 import js.typedarrays.Uint8Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -393,11 +397,16 @@ class ColorBufferWebGL(
             }
         }
 
+        // typed arrays are created with their length in elements
         val sourceArray = when (sourceType) {
-            ColorType.UINT8_SRGB, ColorType.UINT8 -> Uint8Array(source.buffer, source.byteOffset, source.byteLength)
-            ColorType.FLOAT16 -> Float16Array(source.buffer, source.byteOffset, source.byteLength)
-            ColorType.FLOAT32 -> Float32Array(source.buffer, source.byteOffset, source.byteLength)
-            ColorType.UINT16 -> Uint16Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.UINT8_SRGB, ColorType.UINT8, ColorType.UINT8_INT -> Uint8Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.SINT8_INT -> Int8Array(source.buffer, source.byteOffset, source.byteLength)
+            ColorType.FLOAT16 -> Float16Array(source.buffer, source.byteOffset, source.byteLength / 2)
+            ColorType.FLOAT32 -> Float32Array(source.buffer, source.byteOffset, source.byteLength / 4)
+            ColorType.UINT16, ColorType.UINT16_INT -> Uint16Array(source.buffer, source.byteOffset, source.byteLength / 2)
+            ColorType.SINT16_INT -> Int16Array(source.buffer, source.byteOffset, source.byteLength / 2)
+            ColorType.UINT32_INT -> Uint32Array(source.buffer, source.byteOffset, source.byteLength / 4)
+            ColorType.SINT32_INT -> Int32Array(source.buffer, source.byteOffset, source.byteLength / 4)
             else -> error("Unsupported color type $sourceType")
         }
 
@@ -409,7 +418,8 @@ class ColorBufferWebGL(
                 y,
                 width,
                 height,
-                sourceFormat.glFormat(),
+                // the pixel format of the table, integer data uses the *_INTEGER formats
+                internalFormat(sourceFormat, sourceType).second,
                 sourceType.glType(),
                 sourceArray
             )
