@@ -378,7 +378,9 @@ class ColorBufferWebGL(
         level: Int
     ) {
         bind(0)
-        context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
+        // raw data is written row by row as given, with rows of any length, like the GL3 back-end
+        context.pixelStorei(UNPACK_FLIP_Y_WEBGL, 0)
+        context.pixelStorei(UNPACK_ALIGNMENT, 1)
         context.checkErrors("pixelStorei")
 
         
