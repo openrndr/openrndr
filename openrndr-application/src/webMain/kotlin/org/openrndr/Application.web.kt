@@ -14,6 +14,8 @@ fun launch(block: suspend () -> Unit) {
     block.startCoroutine(object : Continuation<Unit> {
         override val context: CoroutineContext get() = EmptyCoroutineContext
         override fun resumeWith(result: Result<Unit>) {
+            // without this, exceptions thrown while setting up or running the program are lost
+            result.onFailure { logger.error(it) { "application failed: ${it.stackTraceToString()}" } }
         }
     })
 }
