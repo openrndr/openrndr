@@ -24,6 +24,7 @@ kotlin {
             resources.srcDir(generatedResourcesDir)
             // the fonts of the repository are served with the demos
             resources.srcDir(rootProject.file("data/fonts"))
+            resources.srcDir(rootProject.file("data/images"))
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))
@@ -183,6 +184,6 @@ tasks.named("jsProcessResources") {
     dependsOn(generateProgramIndex)
 }
 tasks.named<ProcessResources>("jsProcessResources") {
-    // the large Korean font is not used by the demos
-    exclude("NotoSansKR*")
+    // the large Korean font and the 16-bit images are not used by the demos
+    exclude("NotoSansKR*", "*16*.png")
 }
