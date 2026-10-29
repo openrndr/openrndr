@@ -1053,6 +1053,7 @@ ${shadeStructure.uniforms ?: ""}
 
 uniform sampler2D u_slugCurves;
 uniform usampler2D u_slugBands;
+uniform float u_slugContrast;
 
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
@@ -1068,6 +1069,7 @@ in vec2 v_dilatedTexCoord;
 
 ${slugBezierDistance}
 ${slugCoverageFunctions}
+${slugContrastFunctions}
 ${slugFetch}
 
 ${
@@ -1088,10 +1090,12 @@ ${slugCoverage.prependIndent("    ")}
     {
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
+    float fillCoverage = slugContrastCoverage(slugCoverage, x_fill.rgb, u_slugContrast);
+    float strokeCoverage = slugContrastCoverage(slugStrokeCoverage, x_stroke.rgb, u_slugContrast);
     vec4 final = x_fill;
-    final.a *= slugCoverage;
-    final *= (1.0 - slugStrokeCoverage);
-    final += x_stroke * slugStrokeCoverage;
+    final.a *= fillCoverage;
+    final *= (1.0 - strokeCoverage);
+    final += x_stroke * strokeCoverage;
     ${
         if (!shadeStructure.suppressDefaultOutput) """
     o_color = final;

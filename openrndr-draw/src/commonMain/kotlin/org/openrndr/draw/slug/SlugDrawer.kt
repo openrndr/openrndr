@@ -45,6 +45,18 @@ class SlugDrawer: AutoCloseable {
         }
     }
 
+    /**
+     * How much the coverage of edges in dark colors is increased. At 1.0 the edges of dark colors look as heavy as when
+     * they are blended in sRGB, at 0.0 coverage is blended in linear light uncorrected, values above 1.0 increase the
+     * coverage further. The correction makes small type and thin lines in dark colors look closer to how browsers and
+     * other text renderers draw them. It fades out between dark and light colors, light colors are not corrected.
+     *
+     * The default of 1.5 matches the weight of small dark type in browsers. It also makes strokes in dark colors look
+     * about 0.2 pixels heavier than SVG strokes in browsers, at 1.0 their widths match. Strokes drawn with the drawer are
+     * not corrected and look lighter at any setting.
+     */
+    var contrast = 1.5
+
     fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
     val instances = createInstanceBuffer(10_000)
@@ -104,6 +116,7 @@ class SlugDrawer: AutoCloseable {
         drawStyle.applyToShader(shader)
         shader.uniform("u_slugCurves", 0)
         shader.uniform("u_slugBands", 1)
+        shader.uniform("u_slugContrast", contrast)
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
             shader,

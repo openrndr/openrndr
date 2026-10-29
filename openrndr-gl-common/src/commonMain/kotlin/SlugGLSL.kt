@@ -500,3 +500,32 @@ if (hasStroke) {
     }
 }
 """.trimIndent()
+
+/**
+ * Coverage correction for blending in linear light. Coverage blended in linear light makes anti-aliased edges and thin
+ * stems look lighter than coverage blended in sRGB, which is most noticeable in small type.
+ */
+internal val slugContrastFunctions = """
+float slugLinearToSRGB(float x) {
+    return x <= 0.0031308 ? x * 12.92 : 1.055 * pow(x, 1.0 / 2.4) - 0.055;
+}
+
+float slugSRGBToLinear(float x) {
+    return x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);
+}
+
+// Returns [coverage] increased for dark colors. The increase is the difference between the coverage that blends
+// [color] over white in linear light like [coverage] blends it in sRGB, and [coverage], times [contrast]. The increase
+// fades out between dark and light colors; light colors are not corrected, since blending them in sRGB would make light
+// text on dark backgrounds thinner than other text renderers draw it.
+float slugContrastCoverage(float coverage, vec3 color, float contrast) {
+    float foreground = clamp(dot(color, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
+    float darkness = 1.0 - smoothstep(0.35, 0.65, slugLinearToSRGB(foreground));
+    if (contrast <= 0.0 || darkness <= 0.0 || foreground > 1.0 - 1.0 / 256.0) {
+        return coverage;
+    }
+    float blended = slugSRGBToLinear(mix(1.0, slugLinearToSRGB(foreground), coverage));
+    float corrected = (1.0 - blended) / (1.0 - foreground);
+    return clamp(coverage + max(corrected - coverage, 0.0) * contrast * darkness, 0.0, 1.0);
+}
+""".trimIndent()
