@@ -499,7 +499,9 @@ open class RenderTargetGL3(
     override fun clearColor(index: Int, color: ColorRGBa) {
         require(!destroyed)
         val type = (colorAttachments[index] as ColorBufferAttachment).colorBuffer.type
-        val targetColor = color.toLinearity(if (type.isSRGB) Linearity.SRGB else Linearity.LINEAR)
+        // sRGB attachments encode the cleared color, unless the driver skips that
+        val encodes = type.isSRGB && !(Driver.instance as DriverGL3).quirks.clearBufferIgnoresSRGB
+        val targetColor = color.toLinearity(if (type.isSRGB && !encodes) Linearity.SRGB else Linearity.LINEAR)
 
         bufferBound {
             val ca = floatArrayOf(

@@ -558,6 +558,27 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             rt.destroy()
             quirky
         }
+
+        /**
+         * Some drivers do not encode the colors that glClearBuffer writes into sRGB attachments
+         */
+        val clearBufferIgnoresSRGB: Boolean by lazy {
+            val rt = renderTarget(1, 1, 1.0) {
+                colorBuffer(type = ColorType.UINT8_SRGB)
+            }
+            rt.bind()
+            glClearBufferfv(GL_COLOR, 0, floatArrayOf(0.5f, 0.5f, 0.5f, 1.0f))
+            rt.unbind()
+            val buffer = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder())
+            rt.colorBuffer(0).read(buffer)
+            // 0.5 is encoded as 188, unencoded it is 128
+            val quirky = (buffer.get(0).toInt() and 0xff) < 160
+            if (quirky) {
+                logger.warn { "quirk: clearBuffer ignores sRGB setting" }
+            }
+            rt.destroy()
+            quirky
+        }
     }
 
     val quirks = Quirks()
