@@ -10,6 +10,8 @@ kotlin {
                 api(project(":openrndr-application"))
                 api(project(":openrndr-draw"))
                 implementation(project(":openrndr-gl-common"))
+                implementation(project(":openrndr-js:openrndr-fontdriver-harfbuzzjs"))
+                implementation(project(":openrndr-js:openrndr-textshapingdriver-harfbuzzjs"))
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)

@@ -4,6 +4,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import js.numbers.JsNumbers.toKotlinDouble
 import org.openrndr.*
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.font.internal.CachingFontDriver
+import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.draw.font.internal.TextShapingDriver
+import org.openrndr.fontdriver.harfbuzzjs.FontDriverHarfBuzzJs
+import org.openrndr.textshapingdriver.harfbuzzjs.TextShapingDriverHarfBuzzJs
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import web.animations.requestAnimationFrame
@@ -297,6 +302,15 @@ class ApplicationWebGL(override var program: Program, override var configuration
         val dims = windowSize
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
+
+        // fonts and text shaping are backed by harfbuzzjs, which loads its WebAssembly module asynchronously. The
+        // drivers are set up after the graphics, so the application is complete when this suspends.
+        if (FontDriver.driver == null) {
+            FontDriver.driver = CachingFontDriver(FontDriverHarfBuzzJs.create())
+        }
+        if (TextShapingDriver.driver == null) {
+            TextShapingDriver.driver = TextShapingDriverHarfBuzzJs()
+        }
 
         program.setup()
     }

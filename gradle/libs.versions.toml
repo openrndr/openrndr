@@ -6,6 +6,7 @@ kotlinApi = "2.4"
 kotlinLanguage = "2.4"
 kotlin = "2.4.20"
 kotlin-wrap = "2026.9.1"
+harfbuzzjs = "1.6.4"
 jvmTarget = "25"
 kotlinxCoroutines = "1.11.0"
 kotlinLogging = "8.0.4"
@@ -29,6 +30,7 @@ jspecify =  { group = "org.jspecify", name = "jspecify", version.ref = "jspecify
 
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerialization" }
 kotlin-serialization-hocon = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-hocon", version.ref = "kotlinxSerialization" }

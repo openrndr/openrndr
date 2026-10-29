@@ -49,6 +49,8 @@ include(
         "openrndr-js:openrndr-webgl-js-demo",
         "openrndr-js:openrndr-webgl-wasmjs-demo",
         "openrndr-js:openrndr-image-driver-browser",
+        "openrndr-js:openrndr-fontdriver-harfbuzzjs",
+        "openrndr-js:openrndr-textshapingdriver-harfbuzzjs",
         "openrndr-extensions",
         "openrndr-nullgl",
         "openrndr-utils",

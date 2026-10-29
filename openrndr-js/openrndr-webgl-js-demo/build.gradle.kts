@@ -22,6 +22,8 @@ kotlin {
         getByName("jsMain") {
             kotlin.srcDir(generatedProgramsDir)
             resources.srcDir(generatedResourcesDir)
+            // the fonts of the repository are served with the demos
+            resources.srcDir(rootProject.file("data/fonts"))
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))
@@ -179,4 +181,8 @@ tasks.named("compileKotlinJs") {
 
 tasks.named("jsProcessResources") {
     dependsOn(generateProgramIndex)
+}
+tasks.named<ProcessResources>("jsProcessResources") {
+    // the large Korean font is not used by the demos
+    exclude("NotoSansKR*")
 }
