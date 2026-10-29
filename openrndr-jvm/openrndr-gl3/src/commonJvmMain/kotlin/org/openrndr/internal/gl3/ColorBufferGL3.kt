@@ -980,6 +980,15 @@ class ColorBufferGL3(
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
         require(multisample == Disabled) { "can not read from multi-sampled color buffers" }
+        if (!targetType.compressed) {
+            // pixels are written from the start of the buffer, a buffer that is too small would be overrun
+            val levelWidth = max(1, effectiveWidth shr level)
+            val levelHeight = max(1, effectiveHeight shr level)
+            val requiredBytes = levelWidth * levelHeight * targetFormat.componentCount * targetType.componentSize
+            require(targetBuffer.capacity() >= requiredBytes) {
+                "buffer of ${targetBuffer.capacity()} bytes is too small for level $level of the color buffer, reading ${levelWidth}x${levelHeight} pixels as $targetFormat/$targetType needs $requiredBytes bytes"
+            }
+        }
         when (Driver.glType) {
             DriverTypeGL.GL -> {
 
@@ -1056,6 +1065,7 @@ class ColorBufferGL3(
                 val requested = Pair(readFormat, readType)
 
                 targetBuffer.order(ByteOrder.nativeOrder())
+                (targetBuffer as Buffer).rewind()
                 if (requested == guaranteed || requested == implementation) {
                     glReadPixels(0, 0, levelWidth, levelHeight, readFormat, readType, targetBuffer)
                 } else {

@@ -7,6 +7,7 @@ import java.nio.ByteOrder
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class TestColorBufferReadGL3 : AbstractApplicationTestFixture() {
 
@@ -99,6 +100,30 @@ class TestColorBufferReadGL3 : AbstractApplicationTestFixture() {
         val target = buffer(2 * 2 * 4 * 4)
         colorBuffer.read(target, ColorFormat.RGBa, ColorType.FLOAT32, level = 1)
         assertEquals((0 until 16).map { it.toFloat() }, List(16) { target.getFloat(it * 4) })
+        colorBuffer.destroy()
+    }
+
+    @Test
+    fun `read fills the buffer from its start`() {
+        val colorBuffer = colorBuffer(16, 16, format = ColorFormat.R, type = ColorType.UINT32_INT)
+        val source = buffer(16 * 16 * 4)
+        (0 until 16 * 16).forEach { source.putInt(it * 4, it) }
+        colorBuffer.writeBuffer(source)
+
+        // a buffer that was just written or read through has its position at its end
+        val target = buffer(16 * 16 * 4)
+        target.position(target.capacity())
+        colorBuffer.read(target)
+        assertEquals((0 until 16 * 16).toList(), List(16 * 16) { target.getInt(it * 4) })
+        colorBuffer.destroy()
+    }
+
+    @Test
+    fun `read into a buffer that is too small fails`() {
+        val colorBuffer = colorBuffer(16, 16, format = ColorFormat.RGBa, type = ColorType.UINT8)
+        assertFailsWith<IllegalArgumentException> {
+            colorBuffer.read(buffer(16 * 16 * 4 - 1), ColorFormat.RGBa, ColorType.UINT8)
+        }
         colorBuffer.destroy()
     }
 }

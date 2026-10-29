@@ -83,7 +83,13 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
         for (i in 0 until 256 * 256) {
             assertEquals(i, buffer.getInt())
         }
-        c.read(buffer)
+        // read into a separate buffer, so the values come from the color buffer
+        val read = ByteBuffer.allocateDirect(256 * 256 * 4).order(ByteOrder.nativeOrder())
+        c.read(read)
+        for (i in 0 until 256 * 256) {
+            assertEquals(i, read.getInt(i * 4))
+        }
+        c.destroy()
     }
 
     @Test
@@ -100,7 +106,13 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
         for (i in 0 until 256 * 256) {
             assertEquals(i.toUShort(), buffer.getShort().toUShort())
         }
-        c.read(buffer)
+        // read into a separate buffer, so the values come from the color buffer
+        val read = ByteBuffer.allocateDirect(256 * 256 * 2).order(ByteOrder.nativeOrder())
+        c.read(read)
+        for (i in 0 until 256 * 256) {
+            assertEquals(i.toUShort(), read.getShort(i * 2).toUShort())
+        }
+        c.destroy()
     }
 
     @Test
@@ -116,7 +128,13 @@ class TestColorBufferGL3 : AbstractApplicationTestFixture() {
         for (i in 0 until 256 * 256) {
             assertEquals(i, buffer.byteBuffer.getInt())
         }
-        c.read(buffer.byteBuffer)
+        // read into a separate buffer, so the values come from the color buffer
+        val read = MPPBuffer.allocate(256 * 256 * 4)
+        c.read(read.byteBuffer)
+        for (i in 0 until 256 * 256) {
+            assertEquals(i, read.byteBuffer.getInt(i * 4))
+        }
+        c.destroy()
     }
 
 
