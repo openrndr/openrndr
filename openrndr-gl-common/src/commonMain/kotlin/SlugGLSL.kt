@@ -342,6 +342,34 @@ void readBandCurveIndex(int curveId, out ivec2 ascendingIndex, out ivec2 descend
     ascendingIndex = ivec2(int(data.r), int(data.g));
     descendingIndex = ivec2(int(data.b), int(data.a));
 }
+
+// The coverage of the pixel footprint centered at [position] of size [footprint], from the ink profiles of the
+// horizontal bands. The ink of a band is spread evenly over the x range that holds it.
+float slugProfileCoverage(vec2 position, vec2 footprint) {
+    vec2 lo = position - 0.5 * footprint;
+    vec2 hi = position + 0.5 * footprint;
+    vec2 size = vi_slugBounds.zw - vi_slugBounds.xy;
+    float bandHeight = size.y / float(vi_bandCount);
+
+    int first = clamp(int(floor((lo.y - vi_slugBounds.y) / bandHeight)), 0, vi_bandCount - 1);
+    int last = clamp(int(floor((hi.y - vi_slugBounds.y) / bandHeight)), 0, vi_bandCount - 1);
+
+    float ink = 0.0;
+    for (int band = first; band <= last; ++band) {
+        uvec4 header = flatFetch(u_slugBands, vi_bandIndex.y * 4096 + vi_bandIndex.x + band);
+        float density = float(header.b) / 65535.0;
+        if (density <= 0.0) {
+            continue;
+        }
+        float y0 = vi_slugBounds.y + float(band) * bandHeight;
+        float overlapY = max(0.0, min(hi.y, y0 + bandHeight) - max(lo.y, y0));
+        float x0 = vi_slugBounds.x + float(header.a & 255U) / 255.0 * size.x;
+        float x1 = vi_slugBounds.x + float(header.a >> 8U) / 255.0 * size.x;
+        float overlapX = max(0.0, min(hi.x, x1) - max(lo.x, x0));
+        ink += density * overlapX * overlapY;
+    }
+    return clamp(ink / (footprint.x * footprint.y), 0.0, 1.0);
+}
 """.trimIndent()
 
 /**
@@ -361,144 +389,161 @@ bandIndex = clamp(bandIndex, ivec2(0), ivec2(vi_bandCount - 1));
 bool hasStroke = vi_stroke.a > 0.0 && vi_strokeWeight > 0.0;
 bool needsCoverage = vi_fill.a > 0.0 || (vi_strokeMode & 3) != 0;
 
-float minDist = 1E10;
+// shapes that are at most u_slugMinification pixels in size on both axes are drawn from the ink profiles of their
+// horizontal bands, without evaluating their curves. Up to 1.5 times that size the profile coverage is blended with the
+// coverage of the curves, so coverage changes smoothly when shapes are scaled.
+vec2 slugSizePixels = (vi_slugBounds.zw - vi_slugBounds.xy) * pixelsPerEm;
+float slugCurveWeight = u_slugMinification > 0.0 && !hasStroke
+    ? smoothstep(u_slugMinification, u_slugMinification * 1.5, max(slugSizePixels.x, slugSizePixels.y))
+    : 1.0;
 
-// -- horizontal band, rays along x
-int hCurveCount = 0;
-int hCurveIndex = 0;
-int hBand = 0;
-readBandHeader(vi_bandIndex, bandIndex.y, hCurveCount, hCurveIndex, hBand);
-
-float xcov = 0.0;
-float xwgt = 0.0;
-float xcovs[FILTER_SAMPLES];
-float xwgts[FILTER_SAMPLES];
-for (int i = 0; i < FILTER_SAMPLES; ++i) {
-    xcovs[i] = 0.0;
-    xwgts[i] = 0.0;
-}
-
-for (int i = 0; i < hCurveCount; i++) {
-    ivec2 ascending = ivec2(0, 0);
-    ivec2 descending = ivec2(0, 0);
-    readBandCurveIndex(hCurveIndex + i, ascending, descending);
-
-    vec2 a, b, c;
-    readCurve(descending, a, b, c);
-
-    if (hasStroke) {
-        minDist = min(minDist, quad_bezier_distance(slugPosition, a, b, c));
-    }
-
-    if (needsCoverage)
-    for (int s = 0; s < FILTER_SAMPLES; ++s) {
-        vec2 o = float(s - FILTER_SAMPLES / 2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
-        vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
-        vec2 p3 = c - (slugPosition + o);
-
-        if (max(max(p12.x, p12.z), p3.x) * pixelsPerEm.x < -0.5) break;
-
-        uint code = CalcRootCode(p12.y, p12.w, p3.y);
-        if (code != 0U) {
-            // At least one root makes a contribution. Calculate them and scale so
-            // that the current pixel corresponds to the range [0,1].
-            vec2 r = SolveHorizPoly(p12, p3) * pixelsPerEm.x;
-
-            // Bits in code tell which roots make a contribution.
-            if ((code & 1U) != 0U) {
-                xcovs[s] += saturate(r.x + 0.5);
-                xwgts[s] = max(xwgts[s], saturate(1.0 - abs(r.x) * 2.0));
-            }
-
-            if (code > 1U) {
-                xcovs[s] -= saturate(r.y + 0.5);
-                xwgts[s] = max(xwgts[s], saturate(1.0 - abs(r.y) * 2.0));
-            }
-        }
-    }
-}
-for (int i = 0; i < FILTER_SAMPLES; ++i) {
-    xcov += xcovs[i];
-    xwgt += xwgts[i];
-}
-xcov /= float(FILTER_SAMPLES);
-xwgt /= float(FILTER_SAMPLES);
-
-// -- vertical band, rays along y
-int vCurveCount = 0;
-int vCurveIndex = 0;
-int vBand = 0;
-readBandHeader(vi_bandIndex, vi_bandCount + bandIndex.x, vCurveCount, vCurveIndex, vBand);
-
-float ycov = 0.0;
-float ywgt = 0.0;
-float ycovs[FILTER_SAMPLES];
-float ywgts[FILTER_SAMPLES];
-for (int i = 0; i < FILTER_SAMPLES; ++i) {
-    ycovs[i] = 0.0;
-    ywgts[i] = 0.0;
-}
-
-for (int i = 0; i < vCurveCount; i++) {
-    ivec2 ascending = ivec2(0, 0);
-    ivec2 descending = ivec2(0, 0);
-    readBandCurveIndex(vCurveIndex + i, ascending, descending);
-
-    vec2 a, b, c;
-    readCurve(ascending, a, b, c);
-
-    if (hasStroke) {
-        minDist = min(minDist, quad_bezier_distance(slugPosition, a, b, c));
-    }
-
-    if (needsCoverage)
-    for (int s = 0; s < FILTER_SAMPLES; ++s) {
-        vec2 o = float(s - FILTER_SAMPLES / 2) * vec2(emsPerPixel.x * FILTER_SPREAD, 0.0);
-        vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
-        vec2 p3 = c - (slugPosition + o);
-
-        if (max(max(p12.y, p12.w), p3.y) * pixelsPerEm.y < -0.5) break;
-
-        uint code = CalcRootCode(p12.x, p12.z, p3.x);
-        if (code != 0U) {
-            vec2 r = SolveVertPoly(p12, p3) * pixelsPerEm.y;
-
-            if ((code & 1U) != 0U) {
-                ycovs[s] -= saturate(r.x + 0.5);
-                ywgts[s] = max(ywgts[s], saturate(1.0 - abs(r.x) * 2.0));
-            }
-
-            if (code > 1U) {
-                ycovs[s] += saturate(r.y + 0.5);
-                ywgts[s] = max(ywgts[s], saturate(1.0 - abs(r.y) * 2.0));
-            }
-        }
-    }
-}
-for (int i = 0; i < FILTER_SAMPLES; ++i) {
-    ycov += ycovs[i];
-    ywgt += ywgts[i];
-}
-ycov /= float(FILTER_SAMPLES);
-ywgt /= float(FILTER_SAMPLES);
-
-float slugCoverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
+float slugCoverage = 0.0;
 float slugStrokeCoverage = 0.0;
+float slugProfile = 0.0;
 
-if (hasStroke) {
-    // half a pixel on each side of the stroke edge, like the anti-aliasing of the fill
-    float w = 0.5 * fwidth(minDist);
-    if (vi_strokeMode == 0) { // CENTER
-        slugStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
-    } else if (vi_strokeMode == 1) { // INSIDE
-        slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * slugCoverage;
-    } else if (vi_strokeMode == 2) { // OUTSIDE
-        slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * (1.0 - slugCoverage);
-    } else if (vi_strokeMode == 3) { // ERODE
-        float erosion = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist);
-        slugCoverage *= (1.0 - erosion);
+if (slugCurveWeight < 1.0) {
+    slugProfile = slugProfileCoverage(slugPosition, emsPerPixel);
+}
+if (slugCurveWeight > 0.0) {
+    float minDist = 1E10;
+
+    // -- horizontal band, rays along x
+    int hCurveCount = 0;
+    int hCurveIndex = 0;
+    int hBand = 0;
+    readBandHeader(vi_bandIndex, bandIndex.y, hCurveCount, hCurveIndex, hBand);
+
+    float xcov = 0.0;
+    float xwgt = 0.0;
+    float xcovs[FILTER_SAMPLES];
+    float xwgts[FILTER_SAMPLES];
+    for (int i = 0; i < FILTER_SAMPLES; ++i) {
+        xcovs[i] = 0.0;
+        xwgts[i] = 0.0;
+    }
+
+    for (int i = 0; i < hCurveCount; i++) {
+        ivec2 ascending = ivec2(0, 0);
+        ivec2 descending = ivec2(0, 0);
+        readBandCurveIndex(hCurveIndex + i, ascending, descending);
+
+        vec2 a, b, c;
+        readCurve(descending, a, b, c);
+
+        if (hasStroke) {
+            minDist = min(minDist, quad_bezier_distance(slugPosition, a, b, c));
+        }
+
+        if (needsCoverage)
+        for (int s = 0; s < FILTER_SAMPLES; ++s) {
+            vec2 o = float(s - FILTER_SAMPLES / 2) * vec2(0.0, emsPerPixel.y * FILTER_SPREAD);
+            vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
+            vec2 p3 = c - (slugPosition + o);
+
+            if (max(max(p12.x, p12.z), p3.x) * pixelsPerEm.x < -0.5) break;
+
+            uint code = CalcRootCode(p12.y, p12.w, p3.y);
+            if (code != 0U) {
+                // At least one root makes a contribution. Calculate them and scale so
+                // that the current pixel corresponds to the range [0,1].
+                vec2 r = SolveHorizPoly(p12, p3) * pixelsPerEm.x;
+
+                // Bits in code tell which roots make a contribution.
+                if ((code & 1U) != 0U) {
+                    xcovs[s] += saturate(r.x + 0.5);
+                    xwgts[s] = max(xwgts[s], saturate(1.0 - abs(r.x) * 2.0));
+                }
+
+                if (code > 1U) {
+                    xcovs[s] -= saturate(r.y + 0.5);
+                    xwgts[s] = max(xwgts[s], saturate(1.0 - abs(r.y) * 2.0));
+                }
+            }
+        }
+    }
+    for (int i = 0; i < FILTER_SAMPLES; ++i) {
+        xcov += xcovs[i];
+        xwgt += xwgts[i];
+    }
+    xcov /= float(FILTER_SAMPLES);
+    xwgt /= float(FILTER_SAMPLES);
+
+    // -- vertical band, rays along y
+    int vCurveCount = 0;
+    int vCurveIndex = 0;
+    int vBand = 0;
+    readBandHeader(vi_bandIndex, vi_bandCount + bandIndex.x, vCurveCount, vCurveIndex, vBand);
+
+    float ycov = 0.0;
+    float ywgt = 0.0;
+    float ycovs[FILTER_SAMPLES];
+    float ywgts[FILTER_SAMPLES];
+    for (int i = 0; i < FILTER_SAMPLES; ++i) {
+        ycovs[i] = 0.0;
+        ywgts[i] = 0.0;
+    }
+
+    for (int i = 0; i < vCurveCount; i++) {
+        ivec2 ascending = ivec2(0, 0);
+        ivec2 descending = ivec2(0, 0);
+        readBandCurveIndex(vCurveIndex + i, ascending, descending);
+
+        vec2 a, b, c;
+        readCurve(ascending, a, b, c);
+
+        if (hasStroke) {
+            minDist = min(minDist, quad_bezier_distance(slugPosition, a, b, c));
+        }
+
+        if (needsCoverage)
+        for (int s = 0; s < FILTER_SAMPLES; ++s) {
+            vec2 o = float(s - FILTER_SAMPLES / 2) * vec2(emsPerPixel.x * FILTER_SPREAD, 0.0);
+            vec4 p12 = vec4(a, b) - vec4(slugPosition + o, slugPosition + o);
+            vec2 p3 = c - (slugPosition + o);
+
+            if (max(max(p12.y, p12.w), p3.y) * pixelsPerEm.y < -0.5) break;
+
+            uint code = CalcRootCode(p12.x, p12.z, p3.x);
+            if (code != 0U) {
+                vec2 r = SolveVertPoly(p12, p3) * pixelsPerEm.y;
+
+                if ((code & 1U) != 0U) {
+                    ycovs[s] -= saturate(r.x + 0.5);
+                    ywgts[s] = max(ywgts[s], saturate(1.0 - abs(r.x) * 2.0));
+                }
+
+                if (code > 1U) {
+                    ycovs[s] += saturate(r.y + 0.5);
+                    ywgts[s] = max(ywgts[s], saturate(1.0 - abs(r.y) * 2.0));
+                }
+            }
+        }
+    }
+    for (int i = 0; i < FILTER_SAMPLES; ++i) {
+        ycov += ycovs[i];
+        ywgt += ywgts[i];
+    }
+    ycov /= float(FILTER_SAMPLES);
+    ywgt /= float(FILTER_SAMPLES);
+
+    slugCoverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
+
+    if (hasStroke) {
+        // half a pixel on each side of the stroke edge, like the anti-aliasing of the fill
+        float w = 0.5 * fwidth(minDist);
+        if (vi_strokeMode == 0) { // CENTER
+            slugStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
+        } else if (vi_strokeMode == 1) { // INSIDE
+            slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * slugCoverage;
+        } else if (vi_strokeMode == 2) { // OUTSIDE
+            slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * (1.0 - slugCoverage);
+        } else if (vi_strokeMode == 3) { // ERODE
+            float erosion = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist);
+            slugCoverage *= (1.0 - erosion);
+        }
     }
 }
+slugCoverage = mix(slugProfile, slugCoverage, slugCurveWeight);
 """.trimIndent()
 
 /**

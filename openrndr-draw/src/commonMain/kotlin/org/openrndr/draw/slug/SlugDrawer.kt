@@ -57,6 +57,14 @@ class SlugDrawer: AutoCloseable {
      */
     var contrast = 1.5
 
+    /**
+     * Shapes that are at most this many pixels in width and height are drawn from the ink of their horizontal bands
+     * instead of from their curves, which is faster and averages the ink of the shape over the pixels it covers. Up to
+     * 1.5 times this size the two are blended, so shapes change smoothly when they are scaled. Shapes with a stroke are
+     * always drawn from their curves. 0.0 draws all shapes from their curves.
+     */
+    var minificationThreshold = 2.0
+
     fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
     val instances = createInstanceBuffer(10_000)
@@ -117,6 +125,7 @@ class SlugDrawer: AutoCloseable {
         shader.uniform("u_slugCurves", 0)
         shader.uniform("u_slugBands", 1)
         shader.uniform("u_slugContrast", contrast)
+        shader.uniform("u_slugMinification", minificationThreshold)
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
             shader,

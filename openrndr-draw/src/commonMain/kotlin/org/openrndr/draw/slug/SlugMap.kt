@@ -155,12 +155,12 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         return IntVector2(x, y)
     }
 
-    private fun writeBandHeader(curveCount: Int, offset: Int, band: Int): IntVector2 {
+    private fun writeBandHeader(curveCount: Int, offset: Int, profile: BandProfile = BandProfile.EMPTY): IntVector2 {
         bandBuffer.rewind()
         bandBuffer.put(curveCount.toShort())
         bandBuffer.put(offset.toShort())
-        bandBuffer.put(0.toShort())
-        bandBuffer.put(0.toShort())
+        bandBuffer.put(profile.density.toShort())
+        bandBuffer.put(profile.hull.toShort())
         bandBuffer.rewind()
         return writeBand(bandBuffer)
     }
@@ -234,7 +234,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
             val asc = bandCurves.sortedBy { segments[it].bounds.x }
             val desc = bandCurves.sortedByDescending { segments[it].bounds.x + segments[it].bounds.width }
-            writeBandHeader(bandCurves.size, curveOffset, y)
+            writeBandHeader(bandCurves.size, curveOffset, bandProfile(segments, bounds, bandCount, y))
             curveOffset += bandCurves.size
             asc.map { segmentIndices[it] } to desc.map { segmentIndices[it] }
         }
@@ -250,7 +250,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
 
             val asc = bandSegments.sortedBy { segments[it].bounds.y }
             val desc = bandSegments.sortedByDescending { segments[it].bounds.x + segments[it].bounds.height }
-            writeBandHeader(bandSegments.size, curveOffset, x)
+            writeBandHeader(bandSegments.size, curveOffset)
             curveOffset += bandSegments.size
             asc.map { segmentIndices[it] } to desc.map { segmentIndices[it] }
         }
@@ -274,4 +274,77 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         shapes++
         return shapes - 1
     }
+}
+
+/**
+ * The ink of a horizontal band, used to draw shapes that are only a few pixels in size without evaluating their
+ * curves. The ink is spread evenly over the x range that holds the ink of the band.
+ * @property density the fraction of the x range of the band that is ink, in 1/65535
+ * @property hull the x range of the ink, in 1/255 of the width of the shape, the start in the low byte and the end in
+ * the high byte
+ */
+internal class BandProfile(val density: Int, val hull: Int) {
+    companion object {
+        val EMPTY = BandProfile(0, 0)
+    }
+}
+
+/**
+ * Computes the ink of horizontal band [band] of [bandCount] bands over [bounds] of the shape made of [segments]
+ */
+internal fun bandProfile(segments: List<Segment2D>, bounds: Rectangle, bandCount: Int, band: Int): BandProfile {
+    if (bounds.width <= 0.0 || bounds.height <= 0.0) {
+        return BandProfile.EMPTY
+    }
+    val y0 = bounds.y + bounds.height * band / bandCount
+    val y1 = bounds.y + bounds.height * (band + 1) / bandCount
+
+    // the area of the shape within the band, by Green's theorem over the flattened curves clipped to the band
+    var area = 0.0
+    var xMin = Double.POSITIVE_INFINITY
+    var xMax = Double.NEGATIVE_INFINITY
+    val steps = 16
+    for (segment in segments) {
+        var previous = segment.position(0.0)
+        for (i in 1..steps) {
+            val current = segment.position(i.toDouble() / steps)
+            val dy = current.y - previous.y
+            val ta: Double
+            val tb: Double
+            if (dy == 0.0) {
+                if (previous.y < y0 || previous.y > y1) {
+                    previous = current
+                    continue
+                }
+                ta = 0.0
+                tb = 1.0
+            } else {
+                val t0 = ((y0 - previous.y) / dy)
+                val t1 = ((y1 - previous.y) / dy)
+                ta = maxOf(0.0, minOf(t0, t1))
+                tb = minOf(1.0, maxOf(t0, t1))
+            }
+            if (ta <= tb) {
+                val xa = previous.x + (current.x - previous.x) * ta
+                val xb = previous.x + (current.x - previous.x) * tb
+                area += (xa + xb) * 0.5 * (tb - ta) * dy
+                xMin = minOf(xMin, xa, xb)
+                xMax = maxOf(xMax, xa, xb)
+            }
+            previous = current
+        }
+    }
+    area = kotlin.math.abs(area)
+    if (area <= 0.0 || xMax <= xMin) {
+        return BandProfile.EMPTY
+    }
+    // the hull is quantized outward so it holds all ink, the density is computed for the quantized hull
+    val start = kotlin.math.floor((xMin - bounds.x) / bounds.width * 255.0).toInt().coerceIn(0, 255)
+    val end = kotlin.math.ceil((xMax - bounds.x) / bounds.width * 255.0).toInt().coerceIn(start, 255)
+    val hullWidth = (end - start) / 255.0 * bounds.width
+    if (hullWidth <= 0.0) {
+        return BandProfile.EMPTY
+    }
+    val density = (area / (hullWidth * (y1 - y0))).coerceIn(0.0, 1.0)
+    return BandProfile((density * 65535.0 + 0.5).toInt(), start or (end shl 8))
 }

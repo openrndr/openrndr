@@ -1054,6 +1054,7 @@ ${shadeStructure.uniforms ?: ""}
 uniform sampler2D u_slugCurves;
 uniform usampler2D u_slugBands;
 uniform float u_slugContrast;
+uniform float u_slugMinification;
 
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
