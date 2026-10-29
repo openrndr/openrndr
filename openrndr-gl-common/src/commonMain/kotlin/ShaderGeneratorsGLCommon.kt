@@ -1092,10 +1092,11 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float fillCoverage = slugContrastCoverage(slugCoverage, x_fill.rgb, u_slugContrast);
     float strokeCoverage = slugContrastCoverage(slugStrokeCoverage, x_stroke.rgb, u_slugContrast);
-    vec4 final = x_fill;
-    final.a *= fillCoverage;
-    final *= (1.0 - strokeCoverage);
-    final += x_stroke * strokeCoverage;
+    // the stroke over the fill, composited premultiplied, final holds the straight-alpha result
+    float fillAlpha = x_fill.a * fillCoverage;
+    float strokeAlpha = x_stroke.a * strokeCoverage;
+    vec4 premultiplied = vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
+    vec4 final = vec4(premultiplied.rgb / max(premultiplied.a, 1e-6), premultiplied.a);
     ${
         if (!shadeStructure.suppressDefaultOutput) """
     o_color = final;
