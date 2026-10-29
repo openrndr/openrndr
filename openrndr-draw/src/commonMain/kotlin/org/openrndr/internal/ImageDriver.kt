@@ -113,6 +113,16 @@ interface ImageDriver {
      * @param details An optional [ImageFileDetails] object to populate with additional metadata about the image, such as dimensions and channels.
      * @return An [ImageData] instance representing the loaded image. The caller is responsible for managing the lifecycle of the returned object.
      */
+    /**
+     * Loads an image without blocking, drivers that decode images asynchronously, like in browsers, override this
+     */
+    suspend fun loadImageSuspend(
+        fileOrUrl: String,
+        formatHint: ImageFileFormat?,
+        allowSRGB: Boolean,
+        details: ImageFileDetails?
+    ): ImageData = loadImage(fileOrUrl, formatHint, allowSRGB, details)
+
     fun loadImage(
         buffer: MPPBuffer,
         name: String?,
