@@ -5,6 +5,8 @@ import org.openrndr.draw.*
 import org.openrndr.draw.boundary.BoundaryCommand
 import org.openrndr.draw.boundary.BoundaryDrawCommand
 import org.openrndr.draw.boundary.BoundaryDrawer
+import org.openrndr.draw.boundary.BoundaryMap
+import org.openrndr.draw.boundary.boundaryMap
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
@@ -17,7 +19,7 @@ typealias SlugCommand = BoundaryCommand
 @JvmRecord
 data class SlugDrawCommand(override val instances: VertexBuffer, override val count: Int) : BoundaryDrawCommand
 
-class SlugDrawer : BoundaryDrawer<SlugMap> {
+class SlugDrawer : BoundaryDrawer {
     val vb = vertexBuffer(vertexFormat {
         position(3)
         textureCoordinate(2)
@@ -69,6 +71,13 @@ class SlugDrawer : BoundaryDrawer<SlugMap> {
 
     override fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
+    override fun createMap() = boundaryMap<SlugMap>(4096, 64)
+
+    private fun slugMap(map: BoundaryMap): SlugMap {
+        require(map is SlugMap) { "a SlugDrawer draws from a SlugMap, not from a ${map::class.simpleName}, create the map with createMap()" }
+        return map
+    }
+
     override val instances = createInstanceBuffer(10_000)
     internal var internalCommand = SlugDrawCommand(instances, 0)
 
@@ -78,8 +87,8 @@ class SlugDrawer : BoundaryDrawer<SlugMap> {
         fsGenerator = Driver.instance.shaderGenerators::slugFragmentShader
     )
 
-    override fun prepare(map: SlugMap, commands: List<BoundaryCommand>, instances: VertexBuffer): SlugDrawCommand {
-        val slugMap = map
+    override fun prepare(map: BoundaryMap, commands: List<BoundaryCommand>, instances: VertexBuffer): SlugDrawCommand {
+        val slugMap = slugMap(map)
         instances.put {
             for (command in commands) {
                 write(command.transform)
@@ -109,11 +118,11 @@ class SlugDrawer : BoundaryDrawer<SlugMap> {
         return drawCommand
     }
 
-    override fun draw(drawer: Drawer, map: SlugMap) = draw(drawer, map, internalCommand)
+    override fun draw(drawer: Drawer, map: BoundaryMap) = draw(drawer, map, internalCommand)
 
-    override fun draw(drawer: Drawer, map: SlugMap, command: BoundaryDrawCommand) {
+    override fun draw(drawer: Drawer, map: BoundaryMap, command: BoundaryDrawCommand) {
+        val slugMap = slugMap(map)
         if (command.count == 0) return
-        val slugMap = map
 
         val drawStyle = drawer.drawStyle
         val shader = shaderManager.shader(

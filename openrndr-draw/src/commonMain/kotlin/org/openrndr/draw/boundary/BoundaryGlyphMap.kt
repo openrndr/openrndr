@@ -8,7 +8,7 @@ import org.openrndr.draw.font.Face
  * @property map the map the boundaries of glyphs are added to
  * @property glyphs the boundary indices of glyphs, by a hash of their face and glyph index
  */
-open class BoundaryGlyphMap<M : BoundaryMap>(val map: M, val glyphs: MutableMap<Int, Int> = mutableMapOf()) {
+open class BoundaryGlyphMap(val map: BoundaryMap, val glyphs: MutableMap<Int, Int> = mutableMapOf()) {
 
     /**
      * Starts a batch in [map], glyphs added until [endBatch] is called are uploaded to the GPU at once

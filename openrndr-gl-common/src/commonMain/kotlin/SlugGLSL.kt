@@ -298,21 +298,24 @@ vec2 SlugDilate(vec4 pos, vec2 tex, vec4 jac, vec4 m0, vec4 m1, vec4 m3, vec2 di
 """.trimIndent()
 
 /**
- * Texture fetch helpers for the slug curve and band textures, which are addressed as flat arrays of 4096 texels wide
+ * Texture fetch helpers for the slug curve and band textures, which are addressed as flat arrays in rows of the width
+ * of the texture
  */
 internal val slugFetch = """
 vec4 flatFetch(sampler2D tex, int index) {
-    ivec2 index2d = ivec2(index % 4096, index / 4096);
+    int width = textureSize(tex, 0).x;
+    ivec2 index2d = ivec2(index % width, index / width);
     return texelFetch(tex, index2d, 0);
 }
 
 uvec4 flatFetch(usampler2D tex, int index) {
-    ivec2 index2d = ivec2(index % 4096, index / 4096);
+    int width = textureSize(tex, 0).x;
+    ivec2 index2d = ivec2(index % width, index / width);
     return texelFetch(tex, index2d, 0);
 }
 
 void readCurve(ivec2 curveIndex, out vec2 a, out vec2 b, out vec2 c) {
-    int flatIndex = curveIndex.x + curveIndex.y * 4096;
+    int flatIndex = curveIndex.x + curveIndex.y * textureSize(u_slugCurves, 0).x;
 
     a = flatFetch(u_slugCurves, flatIndex).xy;
     b = flatFetch(u_slugCurves, flatIndex + 1).xy;
@@ -320,7 +323,7 @@ void readCurve(ivec2 curveIndex, out vec2 a, out vec2 b, out vec2 c) {
 }
 
 void readBandHeader(ivec2 bandIndex, int bandId, out int curveCount, out int curveIndex, out int band) {
-    int bandIndexFlat = bandIndex.y * 4096 + bandIndex.x + bandId;
+    int bandIndexFlat = bandIndex.y * textureSize(u_slugBands, 0).x + bandIndex.x + bandId;
     uvec4 data = flatFetch(u_slugBands, bandIndexFlat);
     curveCount = int(data.r);
     curveIndex = int(data.g);
@@ -328,7 +331,7 @@ void readBandHeader(ivec2 bandIndex, int bandId, out int curveCount, out int cur
 }
 
 void readBandCurveIndex(int curveId, out ivec2 ascendingIndex, out ivec2 descendingIndex) {
-    int curveIndexFlat = vi_bandIndex.y * 4096 + vi_bandIndex.x + curveId + vi_bandCount * 2;
+    int curveIndexFlat = vi_bandIndex.y * textureSize(u_slugBands, 0).x + vi_bandIndex.x + curveId + vi_bandCount * 2;
 
     uvec4 data = flatFetch(u_slugBands, curveIndexFlat);
 
@@ -349,7 +352,7 @@ float slugProfileCoverage(vec2 position, vec2 footprint) {
 
     float ink = 0.0;
     for (int band = first; band <= last; ++band) {
-        uvec4 header = flatFetch(u_slugBands, vi_bandIndex.y * 4096 + vi_bandIndex.x + band);
+        uvec4 header = flatFetch(u_slugBands, vi_bandIndex.y * textureSize(u_slugBands, 0).x + vi_bandIndex.x + band);
         float density = float(header.b) / 65535.0;
         if (density <= 0.0) {
             continue;

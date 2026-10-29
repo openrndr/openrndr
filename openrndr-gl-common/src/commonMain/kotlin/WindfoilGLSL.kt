@@ -8,14 +8,16 @@ package org.openrndr.internal.glcommon
 internal val windfoilFunctions = """
 // bands with more than WINDFOIL_SORT_MIN pieces are sorted by descending maximum x, must match WindfoilMap.SORT_MIN
 #define WINDFOIL_SORT_MIN 4
-#define WINDFOIL_WIDTH 4096
 
+// the textures are flat arrays in rows of the width of the texture
 vec2 windfoilCurve(int texel) {
-    return texelFetch(u_windfoilCurves, ivec2(texel % WINDFOIL_WIDTH, texel / WINDFOIL_WIDTH), 0).xy;
+    int width = textureSize(u_windfoilCurves, 0).x;
+    return texelFetch(u_windfoilCurves, ivec2(texel % width, texel / width), 0).xy;
 }
 
 uvec4 windfoilRow(int texel) {
-    return texelFetch(u_windfoilRows, ivec2(texel % WINDFOIL_WIDTH, texel / WINDFOIL_WIDTH), 0);
+    int width = textureSize(u_windfoilRows, 0).x;
+    return texelFetch(u_windfoilRows, ivec2(texel % width, texel / width), 0);
 }
 
 // the first piece and the number of pieces of a band

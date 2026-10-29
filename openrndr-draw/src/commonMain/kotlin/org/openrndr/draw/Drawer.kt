@@ -5,7 +5,8 @@ package org.openrndr.draw
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.slug.SlugDrawer
+import org.openrndr.draw.boundary.BoundaryDrawer
+import org.openrndr.draw.windfoil.WindfoilDrawer
 import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
@@ -74,7 +75,11 @@ class Drawer(val driver: Driver) {
     private var qualityPolygonDrawer = QualityPolygonDrawer()
 
     val fontImageMapDrawer = FontImageMapDrawer()
-    val slugDrawer by lazy { SlugDrawer() }
+    /**
+     * The drawer for boundaries of shapes and glyphs, a [WindfoilDrawer]. Maps for it are created with
+     * [BoundaryDrawer.createMap].
+     */
+    val boundaryDrawer: BoundaryDrawer by lazy { WindfoilDrawer() }
 
     private val modelStack = ArrayDeque<Matrix44>()
     private val viewStack = ArrayDeque<Matrix44>()

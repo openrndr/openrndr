@@ -1,7 +1,14 @@
 package org.openrndr.draw.boundary
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.ColorFormat
+import org.openrndr.draw.ColorType
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.slug.SlugDrawer
+import org.openrndr.draw.slug.SlugMap
+import org.openrndr.draw.windfoil.WindfoilDrawer
+import org.openrndr.draw.windfoil.WindfoilMap
 import org.openrndr.draw.VertexBuffer
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.FillRule
@@ -57,9 +64,10 @@ interface BoundaryMap {
 }
 
 /**
- * Draws boundaries from a [BoundaryMap] of type [M]
+ * Draws boundaries from a [BoundaryMap]. Each kind of drawer draws from its own kind of map, created with [createMap],
+ * drawing from another kind of map fails.
  */
-interface BoundaryDrawer<M : BoundaryMap> : AutoCloseable {
+interface BoundaryDrawer : AutoCloseable {
     /**
      * How much the coverage of edges in dark colors is increased, 0.0 for uncorrected coverage
      */
@@ -79,17 +87,49 @@ interface BoundaryDrawer<M : BoundaryMap> : AutoCloseable {
     fun createInstanceBuffer(size: Int): VertexBuffer
 
     /**
+     * Creates a map for the boundaries this drawer draws
+     */
+    fun createMap(): BoundaryMap
+
+    /**
      * Prepares [commands] in [instances]
      */
-    fun prepare(map: M, commands: List<BoundaryCommand>, instances: VertexBuffer = this.instances): BoundaryDrawCommand
+    fun prepare(map: BoundaryMap, commands: List<BoundaryCommand>, instances: VertexBuffer = this.instances): BoundaryDrawCommand
 
     /**
      * Draws the prepared [command] with the draw state of [drawer]
      */
-    fun draw(drawer: Drawer, map: M, command: BoundaryDrawCommand)
+    fun draw(drawer: Drawer, map: BoundaryMap, command: BoundaryDrawCommand)
 
     /**
      * Draws the commands last prepared in [instances]
      */
-    fun draw(drawer: Drawer, map: M)
+    fun draw(drawer: Drawer, map: BoundaryMap)
+}
+
+/**
+ * Creates a [BoundaryMap] of type [T], a [SlugMap] or a [WindfoilMap], with curve and band textures of [width] x
+ * [height] texels
+ */
+inline fun <reified T : BoundaryMap> boundaryMap(width: Int, height: Int): T = when (T::class) {
+    SlugMap::class -> SlugMap(
+        colorBuffer(width, height, type = ColorType.FLOAT32, format = ColorFormat.RG),
+        colorBuffer(width, height, type = ColorType.UINT16_INT, format = ColorFormat.RGBa)
+    ) as T
+
+    WindfoilMap::class -> WindfoilMap(
+        colorBuffer(width, height, type = ColorType.FLOAT32, format = ColorFormat.RG),
+        colorBuffer(width, height, type = ColorType.UINT32_INT, format = ColorFormat.RGBa)
+    ) as T
+
+    else -> error("can not create a boundary map of type ${T::class.simpleName}")
+}
+
+/**
+ * Creates a map for the boundaries this drawer draws, with curve and band textures of [width] x [height] texels
+ */
+fun BoundaryDrawer.createBoundaryMap(width: Int, height: Int): BoundaryMap = when (this) {
+    is SlugDrawer -> boundaryMap<SlugMap>(width, height)
+    is WindfoilDrawer -> boundaryMap<WindfoilMap>(width, height)
+    else -> error("can not create a boundary map for a ${this::class.simpleName}")
 }

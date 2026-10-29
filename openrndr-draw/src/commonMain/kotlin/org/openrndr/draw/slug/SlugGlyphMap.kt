@@ -9,7 +9,7 @@ import org.openrndr.draw.font.Face
  * @property slugMap the `SlugMap` instance used to manage and store slugs.
  */
 class SlugGlyphMap(val slugMap: SlugMap, glyphs: MutableMap<Int, Int> = mutableMapOf()) :
-    BoundaryGlyphMap<SlugMap>(slugMap, glyphs) {
+    BoundaryGlyphMap(slugMap, glyphs) {
 
     /**
      * Returns the slug of the glyph at [index] in [face], adding the glyph to [slugMap] when it is not in it yet

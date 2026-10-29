@@ -5,6 +5,8 @@ import org.openrndr.draw.*
 import org.openrndr.draw.boundary.BoundaryCommand
 import org.openrndr.draw.boundary.BoundaryDrawCommand
 import org.openrndr.draw.boundary.BoundaryDrawer
+import org.openrndr.draw.boundary.BoundaryMap
+import org.openrndr.draw.boundary.boundaryMap
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
@@ -22,7 +24,7 @@ class WindfoilDrawCommand(override val instances: VertexBuffer, override val cou
  * distance to the curves within reach of the stroke.
  *
  */
-class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
+class WindfoilDrawer : BoundaryDrawer {
     private val vb = vertexBuffer(vertexFormat {
         position(3)
         textureCoordinate(2)
@@ -58,6 +60,13 @@ class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
 
     override fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
+    override fun createMap() = boundaryMap<WindfoilMap>(4096, 64)
+
+    private fun windfoilMap(map: BoundaryMap): WindfoilMap {
+        require(map is WindfoilMap) { "a WindfoilDrawer draws from a WindfoilMap, not from a ${map::class.simpleName}, create the map with createMap()" }
+        return map
+    }
+
     override val instances = createInstanceBuffer(10_000)
     private var internalCommand = WindfoilDrawCommand(instances, 0)
 
@@ -67,10 +76,11 @@ class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
         fsGenerator = Driver.instance.shaderGenerators::windfoilFragmentShader
     )
 
-    override fun prepare(map: WindfoilMap, commands: List<BoundaryCommand>, instances: VertexBuffer): WindfoilDrawCommand {
+    override fun prepare(map: BoundaryMap, commands: List<BoundaryCommand>, instances: VertexBuffer): WindfoilDrawCommand {
+        val windfoilMap = windfoilMap(map)
         instances.put {
             for (command in commands) {
-                val shape = map.shapes[command.boundaryIndex]
+                val shape = windfoilMap.shapes[command.boundaryIndex]
                 write(command.transform)
                 val bounds = shape.bounds
                 write(Vector4(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height))
@@ -92,9 +102,10 @@ class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
         return drawCommand
     }
 
-    override fun draw(drawer: Drawer, map: WindfoilMap) = draw(drawer, map, internalCommand)
+    override fun draw(drawer: Drawer, map: BoundaryMap) = draw(drawer, map, internalCommand)
 
-    override fun draw(drawer: Drawer, map: WindfoilMap, command: BoundaryDrawCommand) {
+    override fun draw(drawer: Drawer, map: BoundaryMap, command: BoundaryDrawCommand) {
+        val windfoilMap = windfoilMap(map)
         if (command.count == 0) return
 
         val drawStyle = drawer.drawStyle
@@ -104,8 +115,8 @@ class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
             listOf(command.instances.vertexFormat)
         )
         // texture units 0 and 1 are reserved for built-in textures, shade style textures start at 2
-        shader.textureBindings[0] = map.curves
-        shader.textureBindings[1] = map.rows
+        shader.textureBindings[0] = windfoilMap.curves
+        shader.textureBindings[1] = windfoilMap.rows
         shader.begin()
         drawer.context.applyToShader(shader)
         drawStyle.applyToShader(shader)

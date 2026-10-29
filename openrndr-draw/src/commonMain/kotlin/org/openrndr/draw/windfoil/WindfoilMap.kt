@@ -47,15 +47,15 @@ class WindfoilShape(
  * [curves] holds three texels per piece (start, control and end point) and must be an RG FLOAT32 color buffer.
  * [rows] holds two texels per band and must be an RGBa UINT32_INT color buffer, with the first piece and the number
  * of pieces of the band, and the ink profile of the band: its winding density and the x range of its pieces.
- * Both are addressed as flat arrays in rows of 4096 texels.
+ * Both are addressed as flat arrays in rows of the width of the color buffer.
  */
 class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap {
     init {
-        require(curves.width == TEXTURE_WIDTH && curves.format == ColorFormat.RG && curves.type == ColorType.FLOAT32) {
-            "curves must be a $TEXTURE_WIDTH texels wide RG FLOAT32 color buffer"
+        require(curves.format == ColorFormat.RG && curves.type == ColorType.FLOAT32) {
+            "curves must be an RG FLOAT32 color buffer"
         }
-        require(rows.width == TEXTURE_WIDTH && rows.format == ColorFormat.RGBa && rows.type == ColorType.UINT32_INT) {
-            "rows must be a $TEXTURE_WIDTH texels wide RGBa UINT32_INT color buffer"
+        require(rows.format == ColorFormat.RGBa && rows.type == ColorType.UINT32_INT) {
+            "rows must be an RGBa UINT32_INT color buffer"
         }
         curves.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
         rows.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
@@ -178,9 +178,9 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
     private fun writeTexels(colorBuffer: ColorBuffer, from: Int, to: Int, bytesPerTexel: Int, put: (MPPBuffer, Int) -> Unit) {
         var texel = from
         while (texel < to) {
-            val x = texel % TEXTURE_WIDTH
-            val y = texel / TEXTURE_WIDTH
-            val width = min(TEXTURE_WIDTH - x, to - texel)
+            val x = texel % colorBuffer.width
+            val y = texel / colorBuffer.width
+            val width = min(colorBuffer.width - x, to - texel)
             val buffer = MPPBuffer.allocate(width * bytesPerTexel)
             for (i in 0 until width) put(buffer, texel + i)
             buffer.rewind()
@@ -190,8 +190,6 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
     }
 
     companion object {
-        const val TEXTURE_WIDTH = 4096
-
         // pieces per band before duplication, bands with more pieces than SORT_MIN are sorted by their maximum x,
         // SORT_MIN must match the shader
         internal const val TARGET_PER_BAND = 10
