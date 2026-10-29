@@ -7,6 +7,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
+import org.openrndr.internal.glcommon.FontImageMapManager
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import web.gl.*
 import web.gl.WebGL2RenderingContext as GL
@@ -736,8 +737,7 @@ class DriverWebGL(var context: GL) : Driver {
         TODO("Not yet implemented")
     }
 
-    override val fontImageMapManager: FontMapManager
-        get() = TODO("Not yet implemented")
+    override val fontImageMapManager: FontMapManager by lazy { FontImageMapManager() }
     override val fontVectorMapManager: FontMapManager
         get() = TODO("Not yet implemented")
     override val shaderGenerators: ShaderGenerators by lazy {

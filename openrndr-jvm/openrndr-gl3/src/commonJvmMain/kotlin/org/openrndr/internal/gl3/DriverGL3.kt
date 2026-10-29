@@ -8,6 +8,7 @@ import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandBufferGL3
 import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandGL3
 import org.openrndr.internal.gl3.org.openrndr.internal.gl3.IndexedCommandGL3
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
+import org.openrndr.internal.glcommon.FontImageMapManager
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33

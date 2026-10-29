@@ -22,6 +22,7 @@ kotlin {
         getByName("commonMain") {
             dependencies {
                 implementation(project(":openrndr-draw"))
+                implementation(project(":openrndr-binpack"))
                 implementation(libs.kotlin.logging)
             }
         }

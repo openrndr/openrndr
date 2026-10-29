@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glcommon
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.binpack.IntPacker
@@ -9,10 +9,12 @@ import org.openrndr.internal.FontMapManager
 import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
-import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Creates [FontImageMap]s, maps of glyph bitmaps rasterized by the font driver, packed in a single color buffer
+ */
 class FontImageMapManager : FontMapManager() {
     override fun fontMapFromUrl(
         url: String,
@@ -50,11 +52,11 @@ class FontImageMapManager : FontMapManager() {
 
         val glyphMetrics = mutableMapOf<Char, GlyphMetrics>()
 
-        val bitmap = MemoryUtil.memAlloc(packSize * packSize)
-
-        // zero memory to prevent glitchy fontmaps on macOS
+        // the space between glyphs must be empty
+        val bitmap = MPPBuffer.allocate(packSize * packSize)
+        val empty: Byte = 0
         for (i in 0 until packSize * packSize) {
-            bitmap.put(0)
+            bitmap.put(empty)
         }
         bitmap.rewind()
 
@@ -81,15 +83,14 @@ class FontImageMapManager : FontMapManager() {
                     xBitmapShift = bitmapBounds.x.toDouble(),
                     yBitmapShift = bitmapBounds.y.toDouble()
                 )
-                (bitmap as Buffer).rewind()
-                (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)
-                glyph.rasterize(contentScale, MPPBuffer(bitmap), packSize, true)
+                bitmap.rewind()
+                bitmap.position((sanding + t.area.y) * packSize + sanding + t.area.x)
+                glyph.rasterize(contentScale, bitmap, packSize, true)
             }
         }
         logger.debug { "uploading bitmap to color buffer" }
-        (bitmap as Buffer).rewind()
-        image.writeBuffer( bitmap, level = 0)
-        MemoryUtil.memFree(bitmap)
+        bitmap.rewind()
+        image.write(bitmap)
 
         val leading = face.lineGap
         return FontImageMap(
