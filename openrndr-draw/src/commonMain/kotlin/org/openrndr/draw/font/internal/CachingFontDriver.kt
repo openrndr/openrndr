@@ -21,6 +21,11 @@ class CachingFontDriver(val driver: FontDriver) : FontDriver {
         return base.withSize(FontDriver.DEFAULT_SIZE_IN_POINTS)
     }
 
+    override suspend fun loadFaceSuspend(fileOrUrl: String): Face {
+        val base = faces[fileOrUrl] ?: driver.loadFaceSuspend(fileOrUrl).also { faces[fileOrUrl] = it }
+        return base.withSize(FontDriver.DEFAULT_SIZE_IN_POINTS)
+    }
+
     /**
      * Closes and removes all cached base faces. Faces previously returned by [loadFace] remain valid.
      */

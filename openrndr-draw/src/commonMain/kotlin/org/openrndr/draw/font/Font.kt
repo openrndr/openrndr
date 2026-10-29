@@ -278,3 +278,13 @@ fun loadFace(fileOrUrl: String): Face {
     return FontDriver.instance.loadFace(fileOrUrl)
 }
 
+/**
+ * Load a face without blocking, in browsers fonts are fetched asynchronously
+ *
+ * The face is loaded at [FontDriver.DEFAULT_SIZE_IN_POINTS], use [Face.withSize] to obtain the face at other sizes.
+ * @param fileOrUrl a file or url to load the face from
+ */
+suspend fun loadFaceSuspend(fileOrUrl: String): Face {
+    return FontDriver.instance.loadFaceSuspend(fileOrUrl)
+}
+

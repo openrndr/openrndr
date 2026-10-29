@@ -12,6 +12,12 @@ interface FontDriver {
      */
     fun loadFace(fileOrUrl: String): Face
 
+    /**
+     * Load a face at [DEFAULT_SIZE_IN_POINTS] without blocking, drivers that load fonts asynchronously, like in
+     * browsers, override this
+     */
+    suspend fun loadFaceSuspend(fileOrUrl: String): Face = loadFace(fileOrUrl)
+
     companion object {
         const val DEFAULT_SIZE_IN_POINTS = 16.0
 
