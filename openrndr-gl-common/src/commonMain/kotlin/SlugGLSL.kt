@@ -486,7 +486,8 @@ float slugCoverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
 float slugStrokeCoverage = 0.0;
 
 if (hasStroke) {
-    float w = fwidth(minDist);
+    // half a pixel on each side of the stroke edge, like the anti-aliasing of the fill
+    float w = 0.5 * fwidth(minDist);
     if (vi_strokeMode == 0) { // CENTER
         slugStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
     } else if (vi_strokeMode == 1) { // INSIDE
