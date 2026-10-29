@@ -20,6 +20,7 @@ import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorType
+import org.openrndr.draw.D3D11TextureImporterFactory
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.IOSurfaceImporter
 import org.openrndr.draw.IOSurfaceImporterFactory
@@ -209,7 +210,8 @@ class VideoPlayerConfiguration {
 
     /**
      * Keep hardware decoded frames on the GPU when the driver can import them, this is the case on macOS with
-     * ANGLE. The frames are then copied to [VideoPlayerFFMPEG.colorBuffer] on the GPU.
+     * ANGLE and on Windows with OpenGL drivers that support WGL_NV_DX_interop2. The frames are then copied to
+     * [VideoPlayerFFMPEG.colorBuffer] on the GPU.
      */
     var useZeroCopyFrames = true
 
@@ -297,6 +299,9 @@ class VideoPlayerFFMPEG private constructor(
 
     /** imports frames that are kept on the GPU, null when frames are converted on the CPU */
     private var ioSurfaceImporter: IOSurfaceImporter? = null
+
+    /** converts D3D11VA frames that are kept on the GPU, null when frames are converted on the CPU */
+    private var d3d11FrameConverter: D3D11FrameConverter? = null
     private val frameConverter = FrameConverter()
 
     private var audioThread: Thread? = null
@@ -523,13 +528,21 @@ class VideoPlayerFFMPEG private constructor(
             file.dumpFormat()
 
             if (configuration.useHardwareDecoding && configuration.useZeroCopyFrames && mode.useVideo) {
-                ioSurfaceImporter = (Driver.instance as? IOSurfaceImporterFactory)?.createIOSurfaceImporter()
+                when (Platform.type) {
+                    PlatformType.MAC -> ioSurfaceImporter =
+                        (Driver.instance as? IOSurfaceImporterFactory)?.createIOSurfaceImporter()
+
+                    PlatformType.WINDOWS -> d3d11FrameConverter = (Driver.instance as? D3D11TextureImporterFactory)
+                        ?.takeIf { it.supportsD3D11TextureImport }?.let { D3D11FrameConverter(it) }
+
+                    else -> {}
+                }
             }
 
             val (decoder, info) =
                 Decoder.fromContext(
                     statistics, configuration, file.context, mode.useVideo, mode.useAudio,
-                    outputHardwareFrames = ioSurfaceImporter != null
+                    outputHardwareFrames = ioSurfaceImporter != null || d3d11FrameConverter != null
                 )
 
             this.decoder = decoder
@@ -817,7 +830,25 @@ class VideoPlayerFFMPEG private constructor(
             frame.unref()
             return
         }
-        if (hardwareFrame != null) {
+        if (hardwareFrame != null && hardwareFrame.format() == AV_PIX_FMT_D3D11) {
+            val converter = d3d11FrameConverter ?: error("no converter for D3D11 frames")
+            val converted = converter.convert(frame)
+            // the conversion is queued on the device before the decoder can reuse the frame's surface
+            frame.unref()
+            if (converted == null) {
+                logger.error { "failed to convert D3D11 frame, converting frames on the CPU" }
+                decoder?.stopKeepingFramesOnGpu()
+                return
+            }
+            val (source, importer) = converted
+            if (!importer.lock(source)) {
+                return
+            }
+            frameConverter.convertRGB(frame.color, source, target)
+            importer.unlock(source)
+            // locking waits for the conversion, start converting the next frame while this one is shown
+            synchronized(displayQueue) { displayQueue.peek() }?.let { converter.prepare(it) }
+        } else if (hardwareFrame != null) {
             val importer = ioSurfaceImporter ?: error("no importer for hardware frames")
             val ioSurface = CoreVideo.ioSurface(hardwareFrame)
             val format = CoreVideo.planarFormat(hardwareFrame)
@@ -1073,6 +1104,7 @@ class VideoPlayerFFMPEG private constructor(
             buffer.unref()
         }
         ioSurfaceImporter?.close()
+        d3d11FrameConverter?.close()
         frameConverter.close()
 
         colorBuffer?.destroy()

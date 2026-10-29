@@ -122,13 +122,20 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 }
 
 private class CacheState(val cachedTextureBindings: LongArray = LongArray(32) { -1 })
-abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImporterFactory {
+abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImporterFactory,
+    D3D11TextureImporterFactory {
 
     override fun enableErrorChecking() {
 
     }
 
     override fun createIOSurfaceImporter(): IOSurfaceImporter? = createIOSurfaceImporterGL3()
+
+    override val supportsD3D11TextureImport: Boolean
+        get() = supportsD3D11TextureImportGL3()
+
+    override fun createD3D11TextureImporter(device: Long): D3D11TextureImporter? =
+        createD3D11TextureImporterGL3(device)
 
     override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
         val commandBuffer =  CommandBufferGL3<Command>(size, session)

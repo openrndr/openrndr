@@ -120,9 +120,17 @@ internal class Decoder(
                 }
             }
 
+            // only VideoToolbox and D3D11VA frames can stay on the GPU
+            val keepFramesOnGpu = outputHardwareFrames &&
+                    (hwType == AV_HWDEVICE_TYPE_VIDEOTOOLBOX || hwType == AV_HWDEVICE_TYPE_D3D11VA)
+
             // the hardware device has to be set before the codec is opened
             val videoContext = videoStream?.openCodec { context ->
                 hwDeviceContext?.let { context.hw_device_ctx(av_buffer_ref(it)) }
+                if (keepFramesOnGpu && hwType == AV_HWDEVICE_TYPE_D3D11VA) {
+                    // queued frames hold surfaces of the decoder's pool, which does not grow
+                    context.extra_hw_frames(d3d11ExtraPoolFrames(configuration))
+                }
             }
             val audioContext = audioStream?.openCodec()
 
@@ -148,8 +156,7 @@ internal class Decoder(
                     audioStream,
                     hwType,
                     hwDeviceContext,
-                    // only VideoToolbox frames can stay on the GPU
-                    outputHardwareFrames && hwType == AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
+                    keepFramesOnGpu,
                 ), CodecInfo(video, audio)
             )
         }
@@ -483,6 +490,13 @@ internal class Decoder(
 
     fun nextVideoFrame(): VideoFrame? {
         return videoDecoder?.nextFrame()
+    }
+
+    /**
+     * Converts video frames that are decoded from now on on the CPU
+     */
+    fun stopKeepingFramesOnGpu() {
+        videoDecoder?.stopKeepingFramesOnGpu()
     }
 
 

@@ -70,6 +70,15 @@ internal class FrameConverter : AutoCloseable {
         filter.apply(source, target)
     }
 
+    /**
+     * Converts a frame that was converted to R'G'B' on the GPU, in [source], to [target]
+     */
+    fun convertRGB(color: ColorDescription, source: ColorBuffer, target: ColorBuffer) {
+        val filter = filter(color, target)
+        filter.parameters["yCbCr"] = false
+        filter.apply(source, target)
+    }
+
     private fun filter(color: ColorDescription, target: ColorBuffer): Filter {
         val filter = filter ?: Filter(filterShaderFromCode(conversionShader, "video-frame-conversion")).also {
             filter = it

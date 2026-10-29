@@ -86,8 +86,8 @@ internal class VideoDecoder(
     private val videoCodecContext: AVCodecContext,
     output: VideoDecoderOutput,
     hwType: Int,
-    /** queue NV12 and P010 VideoToolbox frames as they are, instead of converting them to BGR32 */
-    private val outputHardwareFrames: Boolean = false
+    /** queue NV12 and P010 VideoToolbox and D3D11VA frames as they are, instead of converting them to BGR32 */
+    outputHardwareFrames: Boolean = false
 ) {
     private val windowSize = output.size
     private val avPixelFormat = output.avPixelFormat
@@ -145,8 +145,25 @@ internal class VideoDecoder(
     /** keeps the precision of HDR video, created for the first HDR frame */
     private var rgb16Conversion: RGBConversion? = null
 
-    private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize)
-    private val minVideoFrames = configuration.videoFrameQueueSize
+    /** queued D3D11VA frames hold surfaces of the fixed size pool of the decoder */
+    private val queueSize = if (outputHardwareFrames && hwType == AV_HWDEVICE_TYPE_D3D11VA) {
+        d3d11QueueSize(configuration)
+    } else {
+        configuration.videoFrameQueueSize
+    }
+
+    private val videoQueue = Queue<VideoFrame>(queueSize)
+    private val minVideoFrames = queueSize
+
+    @Volatile
+    private var keepFramesOnGpu = outputHardwareFrames
+
+    /**
+     * Converts frames that are decoded from now on on the CPU, for when hardware frames can not be shown
+     */
+    fun stopKeepingFramesOnGpu() {
+        keepFramesOnGpu = false
+    }
 
     fun dispose() {
         logger.debug { "disposing video decoder" }
@@ -264,10 +281,14 @@ internal class VideoDecoder(
      * Queues [decodedFrame] to be shown at [timeStamp]
      */
     private fun queueFrame(decodedFrame: AVFrame, timeStamp: Double) {
-        if (outputHardwareFrames && decodedFrame.format() == AV_PIX_FMT_VIDEOTOOLBOX &&
-            CoreVideo.planarFormat(decodedFrame) != null
-        ) {
-            // the clone references the frame's CVPixelBuffer, which returns to the decoder's pool when freed
+        val keepOnGpu = keepFramesOnGpu && when (decodedFrame.format()) {
+            AV_PIX_FMT_VIDEOTOOLBOX -> CoreVideo.planarFormat(decodedFrame) != null
+            AV_PIX_FMT_D3D11 -> isD3D11FrameSupported(decodedFrame)
+            else -> false
+        }
+        if (keepOnGpu) {
+            // the clone references the frame's CVPixelBuffer or D3D11 surface, which returns to the decoder's pool
+            // when freed
             val hardwareFrame = av_frame_clone(decodedFrame)
             synchronized(videoQueue) {
                 videoQueue.push(VideoFrame(null, 0, timeStamp, 0, ColorDescription.of(decodedFrame), hardwareFrame))
