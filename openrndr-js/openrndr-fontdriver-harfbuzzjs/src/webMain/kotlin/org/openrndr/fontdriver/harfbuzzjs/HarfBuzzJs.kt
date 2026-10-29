@@ -27,9 +27,17 @@ suspend fun loadHarfBuzzModule(): HarfBuzzModule = importHarfBuzz().await()
 
 // -- loading font data
 
-/** reads a file or url synchronously, from the file system in Node.js and with a synchronous request in browsers */
+/** reads a file or url synchronously, from the file system in Node.js and with a synchronous request in browsers, base64 data urls are decoded */
 internal fun readBytesSync(fileOrUrl: String): Uint8Array<*> = js(
     """(() => {
+        if (fileOrUrl.indexOf('data:') === 0) {
+            const binary = atob(fileOrUrl.substring(fileOrUrl.indexOf(',') + 1));
+            const decoded = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                decoded[i] = binary.charCodeAt(i);
+            }
+            return decoded;
+        }
         const process = globalThis.process;
         const node = process && process.getBuiltinModule ? process.getBuiltinModule('fs') : undefined;
         if (node && !/^[a-z]+:\/\//i.test(fileOrUrl)) {
@@ -53,6 +61,14 @@ internal fun readBytesSync(fileOrUrl: String): Uint8Array<*> = js(
 
 private fun fetchBytes(fileOrUrl: String): Promise<Uint8Array<*>> = js(
     """(() => {
+        if (fileOrUrl.indexOf('data:') === 0) {
+            const binary = atob(fileOrUrl.substring(fileOrUrl.indexOf(',') + 1));
+            const decoded = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                decoded[i] = binary.charCodeAt(i);
+            }
+            return Promise.resolve(decoded);
+        }
         const process = globalThis.process;
         const node = process && process.getBuiltinModule ? process.getBuiltinModule('fs') : undefined;
         if (node && !/^[a-z]+:\/\//i.test(fileOrUrl)) {

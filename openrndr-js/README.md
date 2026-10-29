@@ -13,6 +13,10 @@ This directory contains modules that are only relevant to the Kotlin/JS and Kotl
 The WebGL application sets up the harfbuzzjs font and text shaping drivers before the program starts. Fonts can be
 loaded without blocking with `loadFaceSuspend(url)` in a program, `loadFace(url)` loads them with a synchronous request.
 
+`drawer.text` works like on the JVM. The default font, IBM Plex Mono (SIL Open Font License, see
+[openrndr-fontdriver-harfbuzzjs/IBMPlexMono-LICENSE.txt](openrndr-fontdriver-harfbuzzjs/IBMPlexMono-LICENSE.txt)), is
+embedded, `loadFont(url, size)` loads other fonts.
+
 harfbuzzjs imports Node's `module` built-in in code that only runs in Node.js. Applications built with webpack need a
 fallback for it, in `webpack.config.d/harfbuzzjs.js`:
 
