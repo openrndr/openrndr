@@ -1070,6 +1070,7 @@ in vec2 v_dilatedTexCoord;
 
 ${slugBezierDistance}
 ${slugCoverageFunctions}
+${strokeEdgeFunction}
 ${slugContrastFunctions}
 ${slugFetch}
 
@@ -1182,6 +1183,7 @@ in vec2 v_dilatedTexCoord;
 
 ${slugBezierDistance}
 ${slugContrastFunctions}
+${strokeEdgeFunction}
 ${windfoilFunctions}
 
 ${
@@ -1236,13 +1238,13 @@ void main(void) {
         // half a pixel on each side of the stroke edge
         float w = 0.5 * fwidth(minDist);
         if (vi_strokeMode == 0) { // CENTER
-            windfoilStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
+            windfoilStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight / 2.0, minDist, w);
         } else if (vi_strokeMode == 1) { // INSIDE
-            windfoilStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * windfoilCoverage;
+            windfoilStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight, minDist, w) * windfoilCoverage;
         } else if (vi_strokeMode == 2) { // OUTSIDE
-            windfoilStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * (1.0 - windfoilCoverage);
+            windfoilStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight, minDist, w) * (1.0 - windfoilCoverage);
         } else if (vi_strokeMode == 3) { // ERODE
-            float erosion = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist);
+            float erosion = strokeEdgeCoverage(vi_strokeWeight, minDist, w);
             windfoilCoverage *= (1.0 - erosion);
         }
     }

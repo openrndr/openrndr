@@ -528,13 +528,13 @@ if (slugCurveWeight > 0.0) {
         // half a pixel on each side of the stroke edge, like the anti-aliasing of the fill
         float w = 0.5 * fwidth(minDist);
         if (vi_strokeMode == 0) { // CENTER
-            slugStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
+            slugStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight / 2.0, minDist, w);
         } else if (vi_strokeMode == 1) { // INSIDE
-            slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * slugCoverage;
+            slugStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight, minDist, w) * slugCoverage;
         } else if (vi_strokeMode == 2) { // OUTSIDE
-            slugStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * (1.0 - slugCoverage);
+            slugStrokeCoverage = strokeEdgeCoverage(vi_strokeWeight, minDist, w) * (1.0 - slugCoverage);
         } else if (vi_strokeMode == 3) { // ERODE
-            float erosion = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist);
+            float erosion = strokeEdgeCoverage(vi_strokeWeight, minDist, w);
             slugCoverage *= (1.0 - erosion);
         }
     }
@@ -568,5 +568,18 @@ float slugContrastCoverage(float coverage, vec3 color, float contrast) {
     float blended = slugSRGBToLinear(mix(1.0, slugLinearToSRGB(foreground), coverage));
     float corrected = (1.0 - blended) / (1.0 - foreground);
     return clamp(coverage + max(corrected - coverage, 0.0) * contrast * darkness, 0.0, 1.0);
+}
+""".trimIndent()
+
+/**
+ * The anti-aliased coverage of stroke edges, used by the slug and windfoil shaders
+ */
+internal val strokeEdgeFunction = """
+// the coverage of a stroke edge at [edge] for distance [d], smoothly over [-w, w] around the edge. smoothstep() is
+// undefined for reversed or equal edges, a width of 0 would divide by 0.
+float strokeEdgeCoverage(float edge, float d, float w) {
+    float width = max(w, 1e-6);
+    float t = clamp((edge + width - d) / (2.0 * width), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
 }
 """.trimIndent()
