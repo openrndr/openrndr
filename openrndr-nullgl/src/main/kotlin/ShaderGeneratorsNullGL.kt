@@ -99,4 +99,12 @@ class ShaderGeneratorsNullGL : ShaderGenerators {
     override fun slugFragmentShader(shadeStructure: ShadeStructure): String {
         return ""
     }
+
+    override fun windfoilVertexShader(shadeStructure: ShadeStructure): String {
+        return ""
+    }
+
+    override fun windfoilFragmentShader(shadeStructure: ShadeStructure): String {
+        return ""
+    }
 }

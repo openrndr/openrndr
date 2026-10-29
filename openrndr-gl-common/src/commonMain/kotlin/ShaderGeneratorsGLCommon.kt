@@ -1107,5 +1107,164 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 }
 """
 
+    override fun windfoilVertexShader(shadeStructure: ShadeStructure): String = """
+// -- windfoil vertex shader
+${primitiveTypes("d_windfoil")}
+${shadeStructure.structDefinitions ?: ""}
+${shadeStructure.buffers ?: ""}
+${drawerUniforms()}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${transformVaryingOut}
+${windfoilDilate}
+${shadeStructure.vertexPreamble ?: ""}
 
+flat out int v_instance;
+out vec2 v_dilatedTexCoord;
+
+void main() {
+    v_instance = gl_InstanceID;
+${vertexMainConstants()}
+${shadeStructure.varyingBridge ?: ""}
+    ${preVertexTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    vec3 x_position;
+    {
+        // dilate the shape quad in viewport space, plus the stroke outset
+        vec2 dims = max(i_windfoilBounds.zw - i_windfoilBounds.xy, vec2(1e-6));
+        vec3 boundsPosition = vec3(mix(i_windfoilBounds.xy, i_windfoilBounds.zw, a_texCoord0.xy), 0.0);
+        vec2 quadNormal = (a_texCoord0.xy - vec2(0.5)) * 2.0;
+        vec4 pos = vec4(boundsPosition.xy, quadNormal);
+
+        // maps the object-space dilation vector to normalized texture coordinates
+        vec4 jac = vec4(1.0 / dims.x, 0.0, 0.0, 1.0 / dims.y);
+
+        mat4 mvpt = transpose(u_projectionMatrix * u_viewMatrix * u_modelMatrix * i_transform);
+        vec2 viewportPixels = u_viewDimensions * u_contentScale;
+
+        vec2 dilatedPosition;
+        v_dilatedTexCoord = WindfoilDilate(pos, a_texCoord0, jac, mvpt[0], mvpt[1], mvpt[3], viewportPixels, dilatedPosition);
+        x_position = (i_transform * vec4(dilatedPosition, 0.0, 1.0)).xyz;
+    }
+    {
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
+    }
+    ${postVertexTransform}
+    gl_Position = v_clipPosition;
+}
+"""
+
+    override fun windfoilFragmentShader(shadeStructure: ShadeStructure): String = """
+// -- windfoil fragment shader
+${primitiveTypes("d_windfoil")}
+${shadeStructure.structDefinitions ?: ""}
+${shadeStructure.buffers ?: ""}
+${shadeStructure.uniforms ?: ""}
+
+uniform sampler2D u_windfoilCurves;
+uniform usampler2D u_windfoilRows;
+uniform float u_windfoilContrast;
+uniform float u_windfoilMinification;
+uniform int u_windfoilExactSamples;
+
+${drawerUniforms()}
+${shadeStructure.varyingIn ?: ""}
+${shadeStructure.outputs ?: ""}
+${transformVaryingIn}
+
+#ifndef OUTPUT_color
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
+
+flat in int v_instance;
+in vec2 v_dilatedTexCoord;
+
+${slugBezierDistance}
+${slugContrastFunctions}
+${windfoilFunctions}
+
+${
+        fragmentMainConstants(
+            instance = "v_instance",
+            boundsPosition = "vec3(v_dilatedTexCoord, 0.0)",
+            boundsSize = "vec3(vi_windfoilBounds.zw - vi_windfoilBounds.xy, 0.0)"
+        )
+    }
+${shadeStructure.fragmentPreamble ?: ""}
+
+void main(void) {
+    // the position of the fragment in shape space and the size of its pixel box
+    vec2 rc = mix(vi_windfoilBounds.xy, vi_windfoilBounds.zw, v_dilatedTexCoord);
+    vec2 s = max(fwidth(rc), vec2(1e-9));
+
+    bool hasStroke = vi_stroke.a > 0.0 && vi_strokeWeight > 0.0;
+    bool needsCoverage = vi_fill.a > 0.0 || (hasStroke && vi_strokeMode != 0);
+
+    float windfoilCoverage = 0.0;
+    if (needsCoverage) {
+        if (u_windfoilExactSamples > 0) {
+            windfoilCoverage = windfoilExactCoverage(vi_rowBase, vi_bandCount, vi_bandScale, vi_windfoilBounds.y,
+                vi_fillRule, rc, s, u_windfoilExactSamples);
+        } else {
+            // shapes up to u_windfoilMinification pixels are drawn from the ink profiles of their bands, up to 1.5
+            // times that size the profile is blended with the winding integral
+            vec2 sizePixels = (vi_windfoilBounds.zw - vi_windfoilBounds.xy) / s;
+            float integralWeight = u_windfoilMinification > 0.0 && !hasStroke
+                ? smoothstep(u_windfoilMinification, u_windfoilMinification * 1.5, max(sizePixels.x, sizePixels.y))
+                : 1.0;
+            float profileCoverage = 0.0;
+            float integralCoverage = 0.0;
+            if (integralWeight < 1.0) {
+                float f = windfoilProfileFace(vi_rowBase, vi_bandCount, vi_bandScale, vi_windfoilBounds, rc, s);
+                profileCoverage = windfoilFold(f / (s.x * s.y), vi_fillRule);
+            }
+            if (integralWeight > 0.0) {
+                float f = windfoilIntegrateFace(vi_rowBase, vi_bandCount, vi_bandScale, vi_windfoilBounds.y, rc, s);
+                integralCoverage = windfoilFold(f / (s.x * s.y), vi_fillRule);
+            }
+            windfoilCoverage = mix(profileCoverage, integralCoverage, integralWeight);
+        }
+    }
+
+    float windfoilStrokeCoverage = 0.0;
+    if (hasStroke) {
+        // pieces within two pixels beyond the stroke edge are found, so the anti-aliased edge and its neighbours see
+        // their distances, and distances beyond reach are capped so the derivative stays small
+        float reach = (vi_strokeMode == 0 ? 0.5 : 1.0) * vi_strokeWeight + 2.0 * max(s.x, s.y);
+        float minDist = min(windfoilDistance(vi_rowBase, vi_bandCount, vi_bandScale, vi_windfoilBounds.y, rc, reach), reach);
+        // half a pixel on each side of the stroke edge
+        float w = 0.5 * fwidth(minDist);
+        if (vi_strokeMode == 0) { // CENTER
+            windfoilStrokeCoverage = smoothstep(vi_strokeWeight / 2.0 + w, vi_strokeWeight / 2.0 - w, minDist);
+        } else if (vi_strokeMode == 1) { // INSIDE
+            windfoilStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * windfoilCoverage;
+        } else if (vi_strokeMode == 2) { // OUTSIDE
+            windfoilStrokeCoverage = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist) * (1.0 - windfoilCoverage);
+        } else if (vi_strokeMode == 3) { // ERODE
+            float erosion = smoothstep(vi_strokeWeight + w, vi_strokeWeight - w, minDist);
+            windfoilCoverage *= (1.0 - erosion);
+        }
+    }
+
+    vec4 x_fill = vi_fill;
+    vec4 x_stroke = vi_stroke;
+    {
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
+    }
+    float fillCoverage = slugContrastCoverage(windfoilCoverage, x_fill.rgb, u_windfoilContrast);
+    float strokeCoverage = slugContrastCoverage(windfoilStrokeCoverage, x_stroke.rgb, u_windfoilContrast);
+    // the stroke over the fill, composited premultiplied, final holds the straight-alpha result
+    float fillAlpha = x_fill.a * fillCoverage;
+    float strokeAlpha = x_stroke.a * strokeCoverage;
+    vec4 premultiplied = vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
+    vec4 final = vec4(premultiplied.rgb / max(premultiplied.a, 1e-6), premultiplied.a);
+    ${
+        if (!shadeStructure.suppressDefaultOutput) """
+    o_color = final;
+    o_color.rgb *= o_color.a;
+    """ else ""
+    }
+}
+"""
 }

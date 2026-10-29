@@ -42,4 +42,7 @@ interface ShaderGenerators {
 
     fun slugVertexShader(shadeStructure: ShadeStructure): String
     fun slugFragmentShader(shadeStructure: ShadeStructure): String
+
+    fun windfoilVertexShader(shadeStructure: ShadeStructure): String
+    fun windfoilFragmentShader(shadeStructure: ShadeStructure): String
 }
