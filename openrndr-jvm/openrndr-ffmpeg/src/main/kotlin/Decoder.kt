@@ -224,8 +224,10 @@ internal class Decoder(
             }
         }
         while (!disposed) {
-            decodeIfNeeded()
-            Thread.sleep(0)
+            if (!decodeIfNeeded()) {
+                // the queues are full, wait for frames to be taken from them
+                Thread.sleep(1)
+            }
         }
         logger.debug {
             "decoder loop ended"
@@ -333,7 +335,7 @@ internal class Decoder(
         return needMoreAudioFrames || needMoreVideoFrames
     }
 
-    private fun decodeIfNeeded() {
+    private fun decodeIfNeeded(): Boolean {
         if (seekRequested) {
             logger.debug { "seek requested" }
             atEndOfFile = false
@@ -398,7 +400,7 @@ internal class Decoder(
             } else if (!received) {
                 Thread.sleep(1)
             }
-            return
+            return true
         }
 
         var packetsReceived = 0
@@ -406,13 +408,13 @@ internal class Decoder(
             if (videoDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "video queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
                 Thread.sleep(1)
-                return
+                return true
             }
 
             if (audioDecoder?.isQueueAlmostFull() == true && !readAheadForVideo()) {
                 logger.warn { "audio queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
                 Thread.sleep(5)
-                return
+                return true
             }
 
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
@@ -435,12 +437,12 @@ internal class Decoder(
                 }
                 av_packet_free(packet)
                 Thread.sleep(10)
-                return
+                return true
 
             } else if (packetResult < 0) {
                 Thread.sleep(10)
                 av_packet_free(packet)
-                return
+                return true
             }
 
             if (packet != null) {
@@ -482,6 +484,7 @@ internal class Decoder(
                 }
             }
         }
+        return packetsReceived > 0
     }
 
     fun peekNextVideoFrame(): VideoFrame? {
