@@ -11,7 +11,9 @@ import org.openrndr.draw.defaultFontUrl
 import org.openrndr.fontdriver.harfbuzzjs.DEFAULT_FONT_URL
 import org.openrndr.fontdriver.harfbuzzjs.FontDriverHarfBuzzJs
 import org.openrndr.textshapingdriver.harfbuzzjs.TextShapingDriverHarfBuzzJs
+import org.openrndr.imagedriver.browser.ImageDriverBrowser
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.math.Vector2
 import web.animations.requestAnimationFrame
 import web.device.devicePixelRatio
@@ -312,6 +314,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
         }
         if (TextShapingDriver.driver == null) {
             TextShapingDriver.driver = TextShapingDriverHarfBuzzJs()
+        }
+        // images are decoded by the browser
+        if (ImageDriver.driver == null) {
+            ImageDriver.driver = ImageDriverBrowser()
         }
         // the default font is embedded, IBM Plex Mono like the default font on the JVM
         if (defaultFontUrl == null) {

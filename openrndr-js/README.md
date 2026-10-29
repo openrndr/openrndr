@@ -5,6 +5,7 @@ This directory contains modules that are only relevant to the Kotlin/JS and Kotl
 | module                                                                       | description
 |------------------------------------------------------------------------------|---------------------------------------
 | [openrndr-webgl](openrndr-webgl)                                             | WebGL graphics back-end
+| [openrndr-image-driver-browser](openrndr-image-driver-browser)               | Image driver, images decoded and encoded by the browser
 | [openrndr-fontdriver-harfbuzzjs](openrndr-fontdriver-harfbuzzjs)             | Font driver backed by [harfbuzzjs](https://github.com/harfbuzz/harfbuzzjs)
 | [openrndr-textshapingdriver-harfbuzzjs](openrndr-textshapingdriver-harfbuzzjs) | Text shaping driver backed by harfbuzzjs
 
@@ -24,3 +25,8 @@ fallback for it, in `webpack.config.d/harfbuzzjs.js`:
 config.resolve = config.resolve || {};
 config.resolve.fallback = Object.assign({}, config.resolve.fallback, { module: false });
 ```
+
+## Images
+
+Browsers decode images asynchronously: PNG, JPEG, GIF, WebP and BMP images are loaded with `loadImageSuspend(url)` in a
+program, `loadImage(url)` only loads DDS images. `ColorBuffer`s can be encoded as PNG or JPEG data urls.

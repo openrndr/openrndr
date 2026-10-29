@@ -7,20 +7,23 @@ kotlin {
     sourceSets {
         getByName("webMain") {
             dependencies {
-                api(project(":openrndr-application"))
                 api(project(":openrndr-draw"))
-                implementation(project(":openrndr-gl-common"))
-                implementation(libs.kotlin.coroutines)
+                implementation(project(":openrndr-dds"))
+                implementation(project(":openrndr-utils"))
                 implementation(libs.kotlin.js)
-                implementation(libs.kotlin.browser)
-                implementation(libs.kotlin.web)
                 implementation(libs.kotlin.stdlib)
             }
         }
-        getByName("wasmJsMain") {
+        getByName("webTest") {
             dependencies {
-                implementation(libs.kotlin.stdlib)
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlin.coroutines.test)
             }
         }
     }
+}
+
+// the tests read a cubemap from the repository, which only works when they run in Node.js
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest>().configureEach {
+    environment("OPENRNDR_ROOT", rootProject.projectDir.absolutePath)
 }
