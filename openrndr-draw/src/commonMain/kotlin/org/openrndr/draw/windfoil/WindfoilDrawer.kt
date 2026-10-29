@@ -2,7 +2,9 @@ package org.openrndr.draw.windfoil
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.draw.slug.SlugCommand
+import org.openrndr.draw.boundary.BoundaryCommand
+import org.openrndr.draw.boundary.BoundaryDrawCommand
+import org.openrndr.draw.boundary.BoundaryDrawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
@@ -12,16 +14,15 @@ import org.openrndr.shape.Rectangle
 /**
  * Prepared windfoil instances, drawn with [WindfoilDrawer.draw]
  */
-class WindfoilDrawCommand(val instances: VertexBuffer, val count: Int)
+class WindfoilDrawCommand(override val instances: VertexBuffer, override val count: Int) : BoundaryDrawCommand
 
 /**
  * Draws shapes from a [WindfoilMap] with the windfoil algorithm. The coverage of a pixel is the box filtered
  * coverage of the shape over the pixel, computed from the winding integral of its curves. Strokes are drawn from the
  * distance to the curves within reach of the stroke.
  *
- * Commands are [SlugCommand]s, of which [SlugCommand.slugIndex] is the index of a shape in the [WindfoilMap].
  */
-class WindfoilDrawer : AutoCloseable {
+class WindfoilDrawer : BoundaryDrawer<WindfoilMap> {
     private val vb = vertexBuffer(vertexFormat {
         position(3)
         textureCoordinate(2)
@@ -40,14 +41,14 @@ class WindfoilDrawer : AutoCloseable {
     /**
      * How much the coverage of edges in dark colors is increased, see [org.openrndr.draw.slug.SlugDrawer.contrast]
      */
-    var contrast = 1.5
+    override var contrast = 1.5
 
     /**
      * Shapes that are at most this many pixels in width and height are drawn from the winding densities of their
      * bands instead of from their curves, which is faster but approximate. Up to 1.5 times this size the two are
      * blended. Shapes with a stroke are always drawn from their curves. 0.0 draws all shapes from their curves.
      */
-    var minificationThreshold = 2.0
+    override var minificationThreshold = 2.0
 
     /**
      * When larger than 0, coverage is the fraction of exactSamples x exactSamples points in the pixel that are inside
@@ -55,9 +56,9 @@ class WindfoilDrawer : AutoCloseable {
      */
     var exactSamples = 0
 
-    fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
+    override fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
-    val instances = createInstanceBuffer(10_000)
+    override val instances = createInstanceBuffer(10_000)
     private var internalCommand = WindfoilDrawCommand(instances, 0)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
@@ -66,10 +67,10 @@ class WindfoilDrawer : AutoCloseable {
         fsGenerator = Driver.instance.shaderGenerators::windfoilFragmentShader
     )
 
-    fun prepare(map: WindfoilMap, commands: List<SlugCommand>, instances: VertexBuffer = this.instances): WindfoilDrawCommand {
+    override fun prepare(map: WindfoilMap, commands: List<BoundaryCommand>, instances: VertexBuffer): WindfoilDrawCommand {
         instances.put {
             for (command in commands) {
-                val shape = map.shapes[command.slugIndex]
+                val shape = map.shapes[command.boundaryIndex]
                 write(command.transform)
                 val bounds = shape.bounds
                 write(Vector4(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height))
@@ -91,7 +92,9 @@ class WindfoilDrawer : AutoCloseable {
         return drawCommand
     }
 
-    fun draw(drawer: Drawer, map: WindfoilMap, command: WindfoilDrawCommand = internalCommand) {
+    override fun draw(drawer: Drawer, map: WindfoilMap) = draw(drawer, map, internalCommand)
+
+    override fun draw(drawer: Drawer, map: WindfoilMap, command: BoundaryDrawCommand) {
         if (command.count == 0) return
 
         val drawStyle = drawer.drawStyle

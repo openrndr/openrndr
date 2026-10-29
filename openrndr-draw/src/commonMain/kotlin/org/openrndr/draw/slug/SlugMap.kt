@@ -3,8 +3,10 @@ package org.openrndr.draw.slug
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.MagnifyingFilter
 import org.openrndr.draw.MinifyingFilter
+import org.openrndr.draw.boundary.BoundaryMap
 import org.openrndr.draw.font.Face
 import org.openrndr.math.IntVector2
+import org.openrndr.shape.FillRule
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Segment2D
 import org.openrndr.shape.Shape
@@ -21,7 +23,7 @@ import kotlin.time.Clock
  * incomplete and sample as zero, which makes slug rendering silently draw nothing. NEAREST is set on
  * construction and re-applied by [SlugDrawer] before drawing.
  */
-class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
+class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) : BoundaryMap {
     init {
         bands.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
     }
@@ -32,6 +34,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
     val bandCounts = mutableListOf<Int>()
     val bounds = mutableListOf<Rectangle>()
     val bandIndices = mutableListOf<IntVector2>()
+    val fillRules = mutableListOf<FillRule>()
 
     private var batching = false
 
@@ -65,12 +68,12 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
      * @throws IllegalArgumentException if batching is already active (i.e., `batching` is `true`).
      * @see endBatch
      */
-    fun startBatch() {
+    override fun startBatch() {
         require(!batching)
         batching = true
     }
 
-    fun endBatch() {
+    override fun endBatch() {
         require(batching)
         batching = false
         flushCurves()
@@ -210,7 +213,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         return IntVector2(totalIndex.mod(bands.width), totalIndex / bands.width)
     }
 
-    fun addShape(shape: Shape, quadraticTolerance: Double = 1.0): Int {
+    override fun addShape(shape: Shape, fillRule: FillRule, quadraticTolerance: Double): Int {
         val segments = shape.contours.flatMap { it.segments.flatMap { it.toQuadratics(quadraticTolerance) } }
 
         val bandCount = ceil(sqrt(segments.size.toDouble())).toInt().coerceIn(4..16)
@@ -218,6 +221,7 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) {
         val bounds = shape.bounds
         this.bounds.add(bounds)
         bandCounts.add(bandCount)
+        fillRules.add(fillRule)
         bandIndices.add(bandIndex())
 
         val segmentIndices = segments.map { writeCurve(it) }

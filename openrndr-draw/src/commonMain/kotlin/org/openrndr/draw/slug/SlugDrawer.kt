@@ -2,20 +2,22 @@ package org.openrndr.draw.slug
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.draw.boundary.BoundaryCommand
+import org.openrndr.draw.boundary.BoundaryDrawCommand
+import org.openrndr.draw.boundary.BoundaryDrawer
 import org.openrndr.internal.Driver
-import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
+import org.openrndr.shape.FillRule
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
 
-@JvmRecord
-data class SlugCommand(val slugIndex: Int, val transform: Matrix44, val fill: ColorRGBa?, val stroke: ColorRGBa?, val strokeWeight: Double, val strokeMode : Int = 0)
+typealias SlugCommand = BoundaryCommand
 
 @JvmRecord
-data class SlugDrawCommand(val instances: VertexBuffer, val count: Int)
+data class SlugDrawCommand(override val instances: VertexBuffer, override val count: Int) : BoundaryDrawCommand
 
-class SlugDrawer: AutoCloseable {
+class SlugDrawer : BoundaryDrawer<SlugMap> {
     val vb = vertexBuffer(vertexFormat {
         position(3)
         textureCoordinate(2)
@@ -55,7 +57,7 @@ class SlugDrawer: AutoCloseable {
      * about 0.2 pixels heavier than SVG strokes in browsers, at 1.0 their widths match. Strokes drawn with the drawer are
      * not corrected and look lighter at any setting.
      */
-    var contrast = 1.5
+    override var contrast = 1.5
 
     /**
      * Shapes that are at most this many pixels in width and height are drawn from the ink of their horizontal bands
@@ -63,11 +65,11 @@ class SlugDrawer: AutoCloseable {
      * 1.5 times this size the two are blended, so shapes change smoothly when they are scaled. Shapes with a stroke are
      * always drawn from their curves. 0.0 draws all shapes from their curves.
      */
-    var minificationThreshold = 2.0
+    override var minificationThreshold = 2.0
 
-    fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
+    override fun createInstanceBuffer(size: Int) = vertexBuffer(instanceFormat, size)
 
-    val instances = createInstanceBuffer(10_000)
+    override val instances = createInstanceBuffer(10_000)
     internal var internalCommand = SlugDrawCommand(instances, 0)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
@@ -76,13 +78,14 @@ class SlugDrawer: AutoCloseable {
         fsGenerator = Driver.instance.shaderGenerators::slugFragmentShader
     )
 
-    fun prepare(slugMap: SlugMap, slugCommands: List<SlugCommand>, instances: VertexBuffer = this.instances): SlugDrawCommand {
+    override fun prepare(map: SlugMap, commands: List<BoundaryCommand>, instances: VertexBuffer): SlugDrawCommand {
+        val slugMap = map
         instances.put {
-            for (command in slugCommands) {
+            for (command in commands) {
                 write(command.transform)
 
                 run {
-                    val bounds = slugMap.bounds[command.slugIndex]
+                    val bounds = slugMap.bounds[command.boundaryIndex]
                     val minmax = Vector4(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height)
                     write(minmax)
                 }
@@ -92,11 +95,12 @@ class SlugDrawer: AutoCloseable {
                 write(command.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
                 write(command.strokeWeight.toFloat())
                 write(command.strokeMode)
-                write(slugMap.bandIndices[command.slugIndex])
-                write(slugMap.bandCounts[command.slugIndex])
+                write(slugMap.bandIndices[command.boundaryIndex])
+                write(slugMap.bandCounts[command.boundaryIndex])
+                write(if (slugMap.fillRules[command.boundaryIndex] == FillRule.EVEN_ODD) 1 else 0)
             }
         }
-        val drawCommand = SlugDrawCommand(instances, slugCommands.size)
+        val drawCommand = SlugDrawCommand(instances, commands.size)
 
         if (instances === this.instances) {
             internalCommand  = drawCommand
@@ -105,8 +109,11 @@ class SlugDrawer: AutoCloseable {
         return drawCommand
     }
 
-    fun draw(drawer: Drawer, slugMap: SlugMap, command: SlugDrawCommand = internalCommand) {
+    override fun draw(drawer: Drawer, map: SlugMap) = draw(drawer, map, internalCommand)
+
+    override fun draw(drawer: Drawer, map: SlugMap, command: BoundaryDrawCommand) {
         if (command.count == 0) return
+        val slugMap = map
 
         val drawStyle = drawer.drawStyle
         val shader = shaderManager.shader(
@@ -157,6 +164,7 @@ class SlugDrawer: AutoCloseable {
             attribute("strokeMode", VertexElementType.INT32)
             attribute("bandIndex", VertexElementType.VECTOR2_INT32)
             attribute("bandCount", VertexElementType.INT32)
+            attribute("fillRule", VertexElementType.INT32)
         }
     }
 }

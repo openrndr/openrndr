@@ -228,25 +228,18 @@ vec2 SolveVertPoly(vec4 p12, vec2 p3) {
     return (vec2((a.y * t1 - b.y * 2.0) * t1 + p12.y, (a.y * t2 - b.y * 2.0) * t2 + p12.y));
 }
 
-float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int flags) {
+// folds coverage by fill rule: nonzero (0) saturates, even-odd (1) folds with a period-2 triangle wave
+float slugFold(float coverage, int fillRule) {
+    return fillRule == 1 ? 1.0 - abs(1.0 - fract(coverage * 0.5) * 2.0) : clamp(coverage, 0.0, 1.0);
+}
+
+float CalcCoverage(float xcov, float ycov, float xwgt, float ywgt, int fillRule) {
     // Combine coverages from the horizontal and vertical rays using their weights.
     // Absolute values ensure that either winding direction convention works.
 
     float coverage = max(abs(xcov * xwgt + ycov * ywgt) / max(xwgt + ywgt, 1.0 / 65536.0), min(abs(xcov), abs(ycov)));
 
-    // If SLUG_EVENODD is defined during compilation, then check E flag in tex.w. (See vertex shader.)
-
-    #if defined(SLUG_EVENODD)
-    if ((flags & 0x1000) == 0) {
-    #endif
-        // Using nonzero fill rule here.
-        coverage = clamp(coverage, 0.0, 1.0);
-    #if defined(SLUG_EVENODD)
-    } else {
-        // Using even-odd fill rule here.
-        coverage = 1.0 - abs(1.0 - fract(coverage * 0.5) * 2.0);
-    }
-    #endif
+    coverage = slugFold(coverage, fillRule);
 
     // If SLUG_WEIGHT is defined during compilation, then take a square root to boost optical weight.
     #if defined(SLUG_WEIGHT)
@@ -368,7 +361,7 @@ float slugProfileCoverage(vec2 position, vec2 footprint) {
         float overlapX = max(0.0, min(hi.x, x1) - max(lo.x, x0));
         ink += density * overlapX * overlapY;
     }
-    return clamp(ink / (footprint.x * footprint.y), 0.0, 1.0);
+    return ink / (footprint.x * footprint.y);
 }
 """.trimIndent()
 
@@ -402,7 +395,7 @@ float slugStrokeCoverage = 0.0;
 float slugProfile = 0.0;
 
 if (slugCurveWeight < 1.0) {
-    slugProfile = slugProfileCoverage(slugPosition, emsPerPixel);
+    slugProfile = slugFold(slugProfileCoverage(slugPosition, emsPerPixel), vi_fillRule);
 }
 if (slugCurveWeight > 0.0) {
     float minDist = 1E10;
@@ -526,7 +519,7 @@ if (slugCurveWeight > 0.0) {
     ycov /= float(FILTER_SAMPLES);
     ywgt /= float(FILTER_SAMPLES);
 
-    slugCoverage = CalcCoverage(xcov, ycov, xwgt, ywgt, 0);
+    slugCoverage = CalcCoverage(xcov, ycov, xwgt, ywgt, vi_fillRule);
 
     if (hasStroke) {
         // half a pixel on each side of the stroke edge, like the anti-aliasing of the fill

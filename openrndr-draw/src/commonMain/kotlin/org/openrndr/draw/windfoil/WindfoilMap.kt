@@ -5,6 +5,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.MagnifyingFilter
 import org.openrndr.draw.MinifyingFilter
+import org.openrndr.draw.boundary.BoundaryMap
 import org.openrndr.math.Vector2
 import org.openrndr.shape.FillRule
 import org.openrndr.shape.Rectangle
@@ -48,7 +49,7 @@ class WindfoilShape(
  * of pieces of the band, and the ink profile of the band: its winding density and the x range of its pieces.
  * Both are addressed as flat arrays in rows of 4096 texels.
  */
-class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) {
+class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap {
     init {
         require(curves.width == TEXTURE_WIDTH && curves.format == ColorFormat.RG && curves.type == ColorType.FLOAT32) {
             "curves must be a $TEXTURE_WIDTH texels wide RG FLOAT32 color buffer"
@@ -71,12 +72,12 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) {
     /**
      * Starts a batch, in which shapes are uploaded to the GPU once [endBatch] is called instead of after each shape
      */
-    fun startBatch() {
+    override fun startBatch() {
         require(!batching)
         batching = true
     }
 
-    fun endBatch() {
+    override fun endBatch() {
         require(batching)
         batching = false
         upload()
@@ -86,7 +87,7 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) {
      * Adds [shape] and returns its index. Open contours are closed, like contours of filled shapes in SVG.
      * @param quadraticTolerance the tolerance with which cubic segments are approximated with quadratic segments
      */
-    fun addShape(shape: Shape, fillRule: FillRule = FillRule.NON_ZERO, quadraticTolerance: Double = 1.0): Int {
+    override fun addShape(shape: Shape, fillRule: FillRule, quadraticTolerance: Double): Int {
         val bounds = if (shape.contours.isEmpty()) Rectangle(0.0, 0.0, 0.0, 0.0) else shape.bounds
         val pieces = mutableListOf<Piece>()
         for (contour in shape.contours) {
