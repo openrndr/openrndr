@@ -82,7 +82,8 @@ class TestColorBufferReadGL3 : AbstractApplicationTestFixture() {
 
         val floats = buffer(bytes.size * 4)
         colorBuffer.read(floats, ColorFormat.RGBa, ColorType.FLOAT32)
-        assertEquals(bytes.map { it / 255.0f }, List(bytes.size) { floats.getFloat(it * 4) })
+        // drivers may normalize with a reciprocal multiply instead of a division, which can differ by an ulp
+        bytes.forEachIndexed { index, value -> assertEquals(value / 255.0f, floats.getFloat(index * 4), 1e-6f) }
 
         val reds = buffer(4)
         colorBuffer.read(reds, ColorFormat.R, ColorType.UINT8)
