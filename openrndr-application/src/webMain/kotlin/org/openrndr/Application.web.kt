@@ -1,6 +1,7 @@
 package org.openrndr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.openrndr.color.ColorProfile
 import org.openrndr.math.Vector2
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -66,6 +67,12 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+    actual open val windowColorProfile: ColorProfile
+        get() = ColorProfile.SRGB
+    actual open val windowHdrHeadroom: Double
+        get() = 1.0
+    actual open val windowSdrWhiteLevel: Double
+        get() = 1.0
     actual abstract var windowMultisample: WindowMultisample
     actual abstract var windowResizable: Boolean
 }

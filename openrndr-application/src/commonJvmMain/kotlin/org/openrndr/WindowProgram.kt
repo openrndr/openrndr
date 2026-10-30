@@ -1,6 +1,7 @@
 package org.openrndr
 
 import org.openrndr.animatable.Animatable
+import org.openrndr.color.ColorProfile
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -296,6 +297,19 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
             set(value) {
                 application.windowPosition = value
             }
+
+        override val colorProfile: ColorProfile
+            get() = applicationWindow.windowColorProfile
+
+        override val hdrHeadroom: Double
+            get() = applicationWindow.windowHdrHeadroom
+
+        override val sdrWhiteLevel: Double
+            get() = applicationWindow.windowSdrWhiteLevel
+
+        override val colorProfileChanged = Event<WindowEvent>("window-color-profile-changed", postpone = true)
+
+        override val hdrChanged = Event<WindowEvent>("window-hdr-changed", postpone = true)
     }
 
     override val window = Window()

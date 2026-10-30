@@ -3,6 +3,7 @@
 package org.openrndr
 
 import org.openrndr.animatable.Animatable
+import org.openrndr.color.ColorProfile
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -24,7 +25,9 @@ enum class WindowEventType {
     UNFOCUSED,
     MINIMIZED,
     RESTORED,
-    CLOSED
+    CLOSED,
+    COLOR_PROFILE_CHANGED,
+    HDR_CHANGED
 }
 
 /**
@@ -329,6 +332,40 @@ interface Window {
      * Window position
      */
     var position: Vector2
+
+    /**
+     * The color profile of the display the window is on. It describes what the display shows, not how the window
+     * encodes its colors. Back-ends that can not query color profiles report [ColorProfile.SRGB].
+     * @see colorProfileChanged
+     */
+    val colorProfile: ColorProfile
+        get() = ColorProfile.SRGB
+
+    /**
+     * How many times brighter than SDR white the display the window is on can show colors, 1.0 when HDR is not enabled
+     * for the display. This describes the display, an SDR window is still limited to SDR white.
+     * @see hdrChanged
+     */
+    val hdrHeadroom: Double
+        get() = 1.0
+
+    /**
+     * The brightness of SDR white relative to the reference white of the display, 1.0 when HDR is not enabled for the
+     * display
+     */
+    val sdrWhiteLevel: Double
+        get() = 1.0
+
+    /**
+     * Color profile changed event, triggered when the color profile of the display changes or when the window moves
+     * to a display with another color profile
+     */
+    val colorProfileChanged: Event<WindowEvent>
+
+    /**
+     * HDR changed event, triggered when the HDR headroom or SDR white level of the window change
+     */
+    val hdrChanged: Event<WindowEvent>
 }
 
 /**
@@ -574,6 +611,19 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
             set(value) {
                 application.windowPosition = value
             }
+
+        override val colorProfile: ColorProfile
+            get() = application.windowColorProfile
+
+        override val hdrHeadroom: Double
+            get() = application.windowHdrHeadroom
+
+        override val sdrWhiteLevel: Double
+            get() = application.windowSdrWhiteLevel
+
+        override val colorProfileChanged = Event<WindowEvent>("window-color-profile-changed", postpone = true)
+
+        override val hdrChanged = Event<WindowEvent>("window-hdr-changed", postpone = true)
     }
 
     override val window = Window()

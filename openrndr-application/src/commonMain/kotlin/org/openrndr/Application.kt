@@ -2,6 +2,7 @@
 
 package org.openrndr
 
+import org.openrndr.color.ColorProfile
 import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import kotlin.jvm.JvmName
@@ -70,6 +71,21 @@ expect abstract class Application {
     abstract var windowResizable: Boolean
 
     abstract var windowHitTest: ((Vector2) -> Hit)?
+
+    /**
+     * The color profile of the display the window is on, [ColorProfile.SRGB] unless the back-end can query it
+     */
+    open val windowColorProfile: ColorProfile
+
+    /**
+     * The HDR headroom of the window, 1.0 unless the back-end can query it
+     */
+    open val windowHdrHeadroom: Double
+
+    /**
+     * The SDR white level of the window, 1.0 unless the back-end can query it
+     */
+    open val windowSdrWhiteLevel: Double
 
     abstract fun windowClose()
     abstract fun windowMinimize()

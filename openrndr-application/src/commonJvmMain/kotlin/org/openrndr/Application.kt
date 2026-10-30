@@ -3,6 +3,7 @@ package org.openrndr
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.openrndr.ApplicationConfiguration.preloadClassName
+import org.openrndr.color.ColorProfile
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
@@ -57,6 +58,24 @@ abstract class ApplicationWindow(val program: Program) : AutoCloseable {
     abstract var presentationMode: PresentationMode
     abstract fun requestDraw()
     abstract var windowContentScale: Double
+
+    /**
+     * The color profile of the display the window is on, [ColorProfile.SRGB] unless the back-end can query it
+     */
+    open val windowColorProfile: ColorProfile
+        get() = ColorProfile.SRGB
+
+    /**
+     * The HDR headroom of the window, 1.0 unless the back-end can query it
+     */
+    open val windowHdrHeadroom: Double
+        get() = 1.0
+
+    /**
+     * The SDR white level of the window, 1.0 unless the back-end can query it
+     */
+    open val windowSdrWhiteLevel: Double
+        get() = 1.0
 
     abstract var unfocusBehaviour: UnfocusBehaviour
     abstract fun destroy()
@@ -140,6 +159,12 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+    actual open val windowColorProfile: ColorProfile
+        get() = ColorProfile.SRGB
+    actual open val windowHdrHeadroom: Double
+        get() = 1.0
+    actual open val windowSdrWhiteLevel: Double
+        get() = 1.0
     abstract fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow
     actual abstract var windowHitTest: ((Vector2) -> Hit)?
 }
