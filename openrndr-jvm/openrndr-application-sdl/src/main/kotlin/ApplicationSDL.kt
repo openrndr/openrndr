@@ -23,6 +23,7 @@ import org.lwjgl.sdl.SDL_Event
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
+import org.openrndr.color.ColorProfile
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
@@ -304,11 +305,27 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 //                println("pixel size changed")
             }
 
-            SDL_EVENT_WINDOW_ICCPROF_CHANGED -> {
-//                println("icc profile changed")
+            // a window gets the color profile of the display it is on. SDL also sends these events to the hidden
+            // windows that hold OpenGL contexts, which are not in windowById and are skipped without a warning
+            SDL_EVENT_WINDOW_ICCPROF_CHANGED, SDL_EVENT_WINDOW_DISPLAY_CHANGED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId) ?: return
+                if (eventWindow.updateColorProfile()) {
+                    logger.debug { "color profile of window $windowId changed to ${eventWindow.windowColorProfile}" }
+                    eventWindow.program.window.colorProfileChanged.trigger(
+                        WindowEvent(WindowEventType.COLOR_PROFILE_CHANGED, Vector2.ZERO, Vector2.ZERO, true)
+                    )
+                }
             }
 
-            SDL_EVENT_WINDOW_DISPLAY_CHANGED -> {
+            SDL_EVENT_WINDOW_HDR_STATE_CHANGED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId) ?: return
+                if (eventWindow.updateHdrState()) {
+                    eventWindow.program.window.hdrChanged.trigger(
+                        WindowEvent(WindowEventType.HDR_CHANGED, Vector2.ZERO, Vector2.ZERO, true)
+                    )
+                }
             }
 
             SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED -> {
@@ -826,6 +843,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         get() = SDL_GetTicks() / 1000.0
     override var presentationMode by Proxy { window::presentationMode }
     override var windowContentScale by Proxy { window::windowContentScale }
+    override val windowColorProfile: ColorProfile
+        get() = window.windowColorProfile
+    override val windowHdrHeadroom: Double
+        get() = window.windowHdrHeadroom
+    override val windowSdrWhiteLevel: Double
+        get() = window.windowSdrWhiteLevel
 
     override fun createChildWindow(
         configuration: WindowConfiguration,

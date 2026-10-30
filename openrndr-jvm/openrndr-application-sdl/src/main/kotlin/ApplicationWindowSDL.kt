@@ -10,6 +10,7 @@ import org.lwjgl.sdl.SDL_Point
 import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
+import org.openrndr.color.ColorProfile
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
@@ -215,6 +216,35 @@ class ApplicationWindowSDL(
             return SDL_GetWindowDisplayScale(window).toDouble()
         }
         set(value) {}
+
+    override var windowColorProfile: ColorProfile = readWindowColorProfile(window)
+        private set
+
+    /**
+     * Reads the color profile of the display the window is on again
+     * @return true when the color profile changed
+     */
+    internal fun updateColorProfile(): Boolean {
+        val profile = readWindowColorProfile(window)
+        return (profile != windowColorProfile).also { windowColorProfile = profile }
+    }
+
+    override val windowHdrHeadroom: Double
+        get() = SDL_GetFloatProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f).toDouble()
+
+    override val windowSdrWhiteLevel: Double
+        get() = SDL_GetFloatProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 1.0f).toDouble()
+
+    private var lastHdrState = windowHdrHeadroom to windowSdrWhiteLevel
+
+    /**
+     * Reads the HDR headroom and SDR white level again
+     * @return true when either changed
+     */
+    internal fun updateHdrState(): Boolean {
+        val state = windowHdrHeadroom to windowSdrWhiteLevel
+        return (state != lastHdrState).also { lastHdrState = state }
+    }
 
     init {
         this.windowTitle = windowTitle
