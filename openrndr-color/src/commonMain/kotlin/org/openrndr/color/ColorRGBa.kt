@@ -24,6 +24,15 @@ enum class Linearity(val certainty: Int) {
      * designed for consistent color representation across devices.
      */
     SRGB(1),
+
+    /**
+     * Represents the Display P3 color space.
+     *
+     * P3 colors have the wider gamut of the P3 primaries and are encoded with the sRGB transfer function, like
+     * `color(display-p3 r g b)` in CSS. Converted to [LINEAR], which has the sRGB primaries, colors outside of the
+     * sRGB gamut have components below 0 or above 1.
+     */
+    DISPLAY_P3(1),
     ;
 
     fun leastCertain(other: Linearity): Linearity {
@@ -41,8 +50,8 @@ enum class Linearity(val certainty: Int) {
 }
 
 /**
- * Represents a color in the RGBA color space. Each component, including red, green, blue, and alpha (opacity),
- * is represented as a `Double` in the range `[0.0, 1.0]`. The color can be defined in either linear or sRGB space,
+ * Represents a color in the RGBA color space. Each component, includingC, green, blue, and alpha (opacity),
+ * is represented as a `Double` in the range `[0.0, 1.0]`. The color can be defined in linear, sRGB or Display P3 space,
  * determined by the `linearity` property.
  *
  * This class provides a wide variety of utility functions for manipulating and converting colors, such as shading,
@@ -53,7 +62,7 @@ enum class Linearity(val certainty: Int) {
  * @property g Green component of the color as a value between `0.0` and `1.0`.
  * @property b Blue component of the color as a value between `0.0` and `1.0`.
  * @property alpha Alpha (opacity) component of the color as a value between `0.0` and `1.0`. Defaults to `1.0`.
- * @property linearity Indicates whether the color is defined in linear or sRGB space. Defaults to [Linearity.LINEAR].
+ * @property linearity Indicates whether the color is defined in linear, sRGB or Display P3 space. Defaults to [Linearity.LINEAR].
  */
 @Serializable
 @JvmRecord
@@ -147,6 +156,7 @@ data class ColorRGBa(
 
         /** @suppress */
         val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0, Linearity.SRGB)
+
 
         /** @suppress */
         val BLUE = ColorRGBa(0.0, 0.0, 1.0, 1.0, Linearity.SRGB)
@@ -253,21 +263,22 @@ data class ColorRGBa(
      */
     val luminance: Double
         get() = when (linearity) {
-            Linearity.SRGB -> toLinear().luminance
-            else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
+            Linearity.LINEAR -> 0.2126 * r + 0.7152 * g + 0.0722 * b
+            else -> toLinear().luminance
         }
 
     /**
      * Converts this color to the specified linearity.
      *
      * @param linearity The target linearity to which the color should be converted.
-     *                  Supported values are [Linearity.SRGB] and [Linearity.LINEAR].
+     *                  Supported values are [Linearity.SRGB], [Linearity.LINEAR] and [Linearity.DISPLAY_P3].
      * @return A [ColorRGBa] instance in the specified linearity.
      */
     fun toLinearity(linearity: Linearity): ColorRGBa {
         return when (linearity) {
             Linearity.SRGB -> toSRGB()
             Linearity.LINEAR -> toLinear()
+            Linearity.DISPLAY_P3 -> toP3()
         }
     }
 
@@ -295,13 +306,27 @@ data class ColorRGBa(
 
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHUVa = toLUVa(ref).toLCHUVa()
 
+    /**
+     * Convert to linear, with the sRGB primaries. Colors outside of the sRGB gamut, such as [Linearity.DISPLAY_P3] colors,
+     * have components below 0 or above 1.
+     */
     fun toLinear(): ColorRGBa {
-        fun t(x: Double): Double {
-            return if (x <= 0.04045) x / 12.92 else ((x + 0.055) / (1 + 0.055)).pow(2.4)
-        }
         return when (linearity) {
-            Linearity.SRGB -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.LINEAR)
-            else -> this
+            Linearity.SRGB -> ColorRGBa(decodeSRGB(r), decodeSRGB(g), decodeSRGB(b), alpha, Linearity.LINEAR)
+            Linearity.DISPLAY_P3 -> {
+                val lr = decodeSRGB(r)
+                val lg = decodeSRGB(g)
+                val lb = decodeSRGB(b)
+                // the linear P3 to linear sRGB matrix of CSS Color 4
+                ColorRGBa(
+                    1.2249401762805598 * lr - 0.22494017628055996 * lg,
+                    -0.042056954709688163 * lr + 1.0420569547096881 * lg,
+                    -0.019637554590334432 * lr - 0.07863604555063189 * lg + 1.0982736001409663 * lb,
+                    alpha,
+                    Linearity.LINEAR
+                )
+            }
+            Linearity.LINEAR -> this
         }
     }
 
@@ -310,12 +335,31 @@ data class ColorRGBa(
      * @see toLinear
      */
     fun toSRGB(): ColorRGBa {
-        fun t(x: Double): Double {
-            return if (x <= 0.0031308) 12.92 * x else (1 + 0.055) * x.pow(1.0 / 2.4) - 0.055
-        }
         return when (linearity) {
-            Linearity.LINEAR -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.SRGB)
-            else -> this
+            Linearity.LINEAR -> ColorRGBa(encodeSRGB(r), encodeSRGB(g), encodeSRGB(b), alpha, Linearity.SRGB)
+            Linearity.DISPLAY_P3 -> toLinear().toSRGB()
+            Linearity.SRGB -> this
+        }
+    }
+
+    /**
+     * Convert to Display P3, colors outside of the P3 gamut have components below 0 or above 1
+     * @see Linearity.DISPLAY_P3
+     */
+    fun toP3(): ColorRGBa {
+        return when (linearity) {
+            Linearity.DISPLAY_P3 -> this
+            else -> {
+                val linear = toLinear()
+                // the linear sRGB to linear P3 matrix of CSS Color 4
+                ColorRGBa(
+                    encodeSRGB(0.8224619687143623 * linear.r + 0.17753803128563775 * linear.g),
+                    encodeSRGB(0.03319419885096161 * linear.r + 0.9668058011490384 * linear.g),
+                    encodeSRGB(0.017082630235101 * linear.r + 0.07239744066396346 * linear.g + 0.9105199291009355 * linear.b),
+                    alpha,
+                    Linearity.DISPLAY_P3
+                )
+            }
         }
     }
 
@@ -394,6 +438,10 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
             Linearity.SRGB -> {
                 mix(left.toSRGB(), right.toSRGB(), x)
             }
+
+            Linearity.DISPLAY_P3 -> {
+                mix(left.toP3(), right.toP3(), x)
+            }
         }
     }
 }
@@ -458,4 +506,18 @@ operator fun Matrix55.times(color: ColorRGBa): ColorRGBa {
         b = color.r * c0r2 + color.g * c1r2 + color.b * c2r2 + color.alpha * c3r2 + c4r2,
         alpha = color.r * c0r3 + color.g * c1r3 + color.b * c2r3 + color.alpha * c3r3 + c4r3
     )
+}
+
+/**
+ * The sRGB transfer function, also used by Display P3
+ */
+private fun encodeSRGB(x: Double): Double {
+    return if (x <= 0.0031308) 12.92 * x else (1 + 0.055) * x.pow(1.0 / 2.4) - 0.055
+}
+
+/**
+ * The inverse of the sRGB transfer function, also used by Display P3
+ */
+private fun decodeSRGB(x: Double): Double {
+    return if (x <= 0.04045) x / 12.92 else ((x + 0.055) / (1 + 0.055)).pow(2.4)
 }
