@@ -5,6 +5,7 @@ import org.openrndr.draw.ColorType
 import org.openrndr.draw.ShadeStyle
 import org.openrndr.draw.ShadeStyleFilter
 import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.glslFunction
 import org.openrndr.draw.glslParameter
 import org.openrndr.draw.isolatedWithTarget
 import org.openrndr.draw.renderTarget
@@ -187,5 +188,77 @@ class TestDynamicParametersGL3 : AbstractApplicationTestFixture() {
         val imagePixels = read(image)
         assertValues(List(size * size) { 0.5 }, pixels.map { it.r })
         assertValues(imagePixels.map { it.g }, pixels.map { it.g })
+    }
+
+    private fun fillWithExpression(expression: String) =
+        shadeStyle { fragmentTransform = "x_fill = vec4(vec3($expression), 1.0);" }
+
+    @Test
+    fun functionsWithoutContextAreCalled() {
+        val style = fillWithExpression("p_f(0.25)")
+        style.parameter("f", glslFunction<Double>("float x", "x * p_scale") { parameter("scale", 2.0) })
+        assertColors(uniform(0.5, 0.5, 0.5), render(style))
+    }
+
+    @Test
+    fun functionsReceiveTheContext() {
+        // the position in the bounds, at the centers of the pixels of a row
+        val style = fillWithExpression("p_f(1.0)")
+        style.parameter("f", glslFunction<Double>("float k", "c_boundsPosition.x * k"))
+        assertValues(List(size * size) { (it % size + 0.5) / size }, render(style).map { it.r })
+    }
+
+    @Test
+    fun functionsWithSeveralArguments() {
+        val style = fillWithExpression("p_sum(0.25, p_dot(vec2(0.25, 0.5)))")
+        style.parameter("sum", glslFunction<Double>("float a, float b", "a + b + 0.0 * c_boundsPosition.x"))
+        style.parameter("dot", glslFunction<Double>("vec2 v", "v.x + v.y"))
+        assertColors(uniform(1.0, 1.0, 1.0), render(style))
+    }
+
+    @Test
+    fun stylesCanTakeShapes() {
+        // a style that fills the inside of a signed distance function
+        val mask = shadeStyle { fragmentTransform = "x_fill = vec4(vec3(p_shape(c_boundsPosition.xy) < 0.0 ? 1.0 : 0.0), 1.0);" }
+        mask.parameter("shape", glslFunction<Double>("vec2 p", "length(p - vec2(0.5)) - p_radius") { parameter("radius", 0.3) })
+        val pixels = render(mask).map { it.r }
+        // the four center pixels are inside, the corners are outside
+        assertValues(listOf(1.0, 1.0, 1.0, 1.0), listOf(5, 6, 9, 10).map { pixels[it] })
+        assertValues(listOf(0.0, 0.0, 0.0, 0.0), listOf(0, 3, 12, 15).map { pixels[it] })
+    }
+
+    @Test
+    fun functionsCanBeNested() {
+        val style = fillWithExpression("p_f(0.125)")
+        style.parameter("f", glslFunction<Double>("float x", "p_inner(x) + p_offset") {
+            parameter("inner", glslFunction<Double>("float y", "y * 2.0"))
+            parameter("offset", 0.25)
+        })
+        assertColors(uniform(0.5, 0.5, 0.5), render(style))
+
+        val expression = fillWith("amount")
+        expression.parameter("amount", glslParameter<Double>("p_f(0.25)") {
+            parameter("f", glslFunction<Double>("float x", "x * 2.0 + 0.0 * c_boundsPosition.x"))
+        })
+        assertColors(uniform(0.5, 0.5, 0.5), render(expression))
+    }
+
+    @Test
+    fun shadeStyleFiltersCallFunctions() {
+        val image = gradient()
+        val target = colorBuffer(size, size, 1.0, ColorFormat.RGBa, ColorType.FLOAT32).also { buffers += it }
+        val filter = ShadeStyleFilter(shadeStyle { fragmentTransform = "x_fill = vec4(p_f(x_fill.r), 0.0, 0.0, 1.0);" })
+        filter.parameter("f", glslFunction<Double>("float x", "x + p_offset") { parameter("offset", 0.25) })
+        filter.apply(image, target)
+        assertValues(read(image).map { it.r + 0.25 }, read(target).map { it.r })
+    }
+
+    @Test
+    fun composedStylesKeepTheirFunctions() {
+        fun channel(channel: String, scale: Double) = shadeStyle {
+            fragmentTransform = "x_fill.$channel = p_f(0.25);"
+            parameter("f", glslFunction<Double>("float x", "x * p_scale + 0.0 * c_boundsPosition.x") { parameter("scale", scale) })
+        }
+        assertColors(uniform(0.5, 0.75, 0.0), render(channel("r", 2.0) + channel("g", 3.0)))
     }
 }

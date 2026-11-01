@@ -1,14 +1,16 @@
 package org.openrndr.draw
 
 /**
- * A parameter of a shade style whose value is resolved in the shader: read from a texture or computed by GLSL code.
- * Shade style code reads it like any parameter, as `p_<name>`.
+ * A parameter of a shade style whose value is resolved in the shader: read from a texture, computed by GLSL code,
+ * or a GLSL function. Shade style code reads it like any parameter, as `p_<name>`, and calls a function as
+ * `p_<name>(arguments)`.
  *
- * Changing the texture of a [TextureParameter] or the values of the parameters of a [GlslParameter] does not
- * recompile shaders, changing the code or the coordinate does.
+ * Changing the texture of a [TextureParameter] or the values of the parameters of a [GlslParameter] or
+ * [GlslFunction] does not recompile shaders, changing code or coordinates does.
  *
  * @see textureParameter
  * @see glslParameter
+ * @see glslFunction
  */
 sealed class DynamicParameter {
     /** the GLSL type of the value */
@@ -70,6 +72,53 @@ inline fun <reified T> glslParameter(code: String, parameters: StyleParameters.(
     GlslParameter(shadeStyleTypeToGLSL(shadeStyleType<T>()), code).apply(parameters)
 
 /**
+ * A GLSL function with [arguments], a GLSL parameter list such as `vec2 p, float r`, that returns a [glslType].
+ * [code] is an expression or a function body with `return`, it reads its own parameters as `p_<name>`, which are set
+ * on this object and can be dynamic themselves. Shade style code calls it as `p_<name>(arguments)`.
+ */
+class GlslFunction(
+    override val glslType: String,
+    val arguments: String,
+    val code: String,
+    internal val scope: ShadeStyle = ShadeStyle()
+) : DynamicParameter(), StyleParameters by scope {
+    override val signature: String get() = "function $glslType ($arguments) $code"
+
+    /** the number of arguments */
+    internal val arity: Int
+        get() {
+            var depth = 0
+            var count = if (arguments.isBlank()) 0 else 1
+            for (c in arguments) {
+                when (c) {
+                    '(', '[' -> depth++
+                    ')', ']' -> depth--
+                    ',' -> if (depth == 0) count++
+                }
+            }
+            return count
+        }
+}
+
+/**
+ * A GLSL function that returns a [T], with [arguments], a GLSL parameter list such as `vec2 p`. [code] is an
+ * expression or a function body with `return`, [parameters] sets the parameters the code reads. Shade style code calls
+ * it as `p_<name>(arguments)`, which makes shade styles that take functions, such as signed distance functions:
+ *
+ * ```
+ * parameter("shape", glslFunction<Double>("vec2 p", "length(p - 0.5) - p_radius") {
+ *     parameter("radius", 0.25)
+ * })
+ * // in the shade style: float d = p_shape(c_boundsPosition.xy);
+ * ```
+ */
+inline fun <reified T> glslFunction(
+    arguments: String,
+    code: String,
+    parameters: StyleParameters.() -> Unit = {}
+): GlslFunction = GlslFunction(shadeStyleTypeToGLSL(shadeStyleType<T>()), arguments, code).apply(parameters)
+
+/**
  * A shade style that is [original] with its dynamic parameters replaced by resolver functions and uniforms. Its
  * values are read from [original] when they are used, its structure is updated when the structure of [original]
  * changes.
@@ -106,6 +155,7 @@ private class ResolvedValues(private val original: ShadeStyle) : AbstractMutable
                     when (value) {
                         is TextureParameter -> result["$prefix${key}_texture"] = value.texture
                         is GlslParameter -> expand("$prefix${key}_", value.scope.parameterValues)
+                        is GlslFunction -> expand("$prefix${key}_", value.scope.parameterValues)
                         else -> result["$prefix$key"] = value
                     }
                 }
@@ -119,7 +169,7 @@ private class ResolvedValues(private val original: ShadeStyle) : AbstractMutable
 private fun structureVersions(style: ShadeStyle): List<Long> = buildList {
     add(style.structureVersion)
     for (value in style.parameterValues.values) {
-        if (value is GlslParameter) addAll(structureVersions(value.scope))
+        scopeOf(value)?.let { addAll(structureVersions(it)) }
     }
 }
 
@@ -138,30 +188,69 @@ private val contextValues = listOf(
     "c_textureCoordinate" to "vec2"
 )
 
+/** the parameters of the code of a GLSL parameter or function */
+private fun scopeOf(value: Any): ShadeStyle? = when (value) {
+    is GlslParameter -> value.scope
+    is GlslFunction -> value.scope
+    else -> null
+}
+
 /** the code of [value] and of its nested dynamic parameters */
 private fun codeOf(value: DynamicParameter): List<String> = when (value) {
     is TextureParameter -> listOf(value.coordinate)
-    is GlslParameter -> listOf(value.code) + value.scope.parameterValues.values.filterIsInstance<DynamicParameter>().flatMap { codeOf(it) }
-}
+    is GlslParameter -> listOf(value.code)
+    is GlslFunction -> listOf(value.code)
+} + (scopeOf(value)?.parameterValues?.values?.filterIsInstance<DynamicParameter>()?.flatMap { codeOf(it) } ?: emptyList())
 
 /**
- * The resolver functions of a dynamic parameter, the uniforms they read and the expression that calls it
+ * The resolver functions of a dynamic parameter, the uniforms they read, and [definition] which defines `p_<key>`
+ * for given context arguments
  */
-private class Resolver(val functions: String, val uniformTypes: Map<String, String>, val call: String)
+private class Resolver(
+    val functions: String,
+    val uniformTypes: Map<String, String>,
+    val definition: (contextArguments: List<String>) -> String
+)
 
 /**
- * Generates the resolver of the dynamic parameter [value] that is read as `p_[key]`: `<type> r_<key>(context)` with
- * the functions it calls before it. [context] are the context values the resolver and its nested resolvers read.
+ * Generates the resolver of the dynamic parameter [value] that is read as `p_[key]`: `r_<key>(arguments, context)`
+ * with the functions it calls before it. [context] are the context values the resolver and its nested resolvers read,
+ * they are the last arguments of every resolver. `p_<key>` is a macro that calls the resolver with the context
+ * arguments where it is defined: the context values in shade style code, the context arguments in resolvers.
  */
 private fun resolver(key: String, value: DynamicParameter, context: List<Pair<String, String>>): Resolver {
     val functions = StringBuilder()
     val uniformTypes = mutableMapOf<String, String>()
     // inside resolvers the context values are arguments
     val contextRenames = context.associate { (name, _) -> name to "ctx_" + name.removePrefix("c_") }
-    val parameters = context.joinToString(", ") { (name, type) -> "$type ${contextRenames.getValue(name)}" }
-    fun call(arguments: (String) -> String) = "r_$key(${context.joinToString(", ") { arguments(it.first) }})"
+    val contextParameters = context.map { (name, type) -> "$type ${contextRenames.getValue(name)}" }
+    val contextArguments = context.map { contextRenames.getValue(it.first) }
 
-    when (value) {
+    /** the body of GLSL code: an expression is returned */
+    fun body(code: String) = if (Regex("\\breturn\\b").containsMatchIn(code)) code else "return ${value.glslType}($code);"
+
+    /**
+     * Namespaces the parameters of the code with the key of this parameter. Nested dynamic parameters are macros that
+     * call their resolvers with the context arguments of this resolver.
+     */
+    fun resolveScope(scope: ShadeStyle): Map<String, String> {
+        val renames = contextRenames.toMutableMap()
+        for ((name, nested) in scope.parameterValues) {
+            val nestedKey = "${key}_$name"
+            renames["p_$name"] = "p_$nestedKey"
+            if (nested is DynamicParameter) {
+                val nestedResolver = resolver(nestedKey, nested, context)
+                functions.append(nestedResolver.functions)
+                functions.append(nestedResolver.definition(contextArguments))
+                uniformTypes.putAll(nestedResolver.uniformTypes)
+            } else {
+                uniformTypes[nestedKey] = scope.parameterTypes[name] ?: error("no type for parameter '$name'")
+            }
+        }
+        return renames
+    }
+
+    val definition: (List<String>) -> String = when (value) {
         is TextureParameter -> {
             val sampler = "${key}_texture"
             uniformTypes[sampler] = when (value.texture.type.colorSampling) {
@@ -176,32 +265,29 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
                 else -> ""
             }
             val coordinate = glslRename(value.coordinate, contextRenames)
-            functions.appendLine("${value.glslType} r_$key($parameters) { return ${value.glslType}(texture(p_$sampler, $coordinate)$channels); }")
+            functions.appendLine("${value.glslType} r_$key(${contextParameters.joinToString(", ")}) { return ${value.glslType}(texture(p_$sampler, $coordinate)$channels); }")
+            ({ arguments -> "#define p_$key (r_$key(${arguments.joinToString(", ")}))\n" })
         }
 
         is GlslParameter -> {
-            // the parameters of the code are namespaced with the key of this parameter, nested dynamic parameters
-            // are calls of their resolvers with the context arguments of this resolver
-            val scope = value.scope
-            val renames = contextRenames.toMutableMap()
-            for ((name, nested) in scope.parameterValues) {
-                val nestedKey = "${key}_$name"
-                if (nested is DynamicParameter) {
-                    val nestedResolver = resolver(nestedKey, nested, context)
-                    functions.append(nestedResolver.functions)
-                    uniformTypes.putAll(nestedResolver.uniformTypes)
-                    renames["p_$name"] = "r_$nestedKey(${context.joinToString(", ") { contextRenames.getValue(it.first) }})"
-                } else {
-                    uniformTypes[nestedKey] = scope.parameterTypes[name] ?: error("no type for parameter '$name'")
-                    renames["p_$name"] = "p_$nestedKey"
-                }
-            }
-            val code = glslRename(value.code, renames).trim()
-            val body = if (Regex("\\breturn\\b").containsMatchIn(code)) code else "return ${value.glslType}($code);"
-            functions.appendLine("${value.glslType} r_$key($parameters) {\n$body\n}")
+            val code = glslRename(value.code, resolveScope(value.scope)).trim()
+            functions.appendLine("${value.glslType} r_$key(${contextParameters.joinToString(", ")}) {\n${body(code)}\n}")
+            ({ arguments -> "#define p_$key (r_$key(${arguments.joinToString(", ")}))\n" })
+        }
+
+        is GlslFunction -> {
+            val code = glslRename(value.code, resolveScope(value.scope)).trim()
+            val parameters = (listOf(value.arguments).filter { it.isNotBlank() } + contextParameters).joinToString(", ")
+            functions.appendLine("${value.glslType} r_$key($parameters) {\n${body(code)}\n}")
+            // GLSL has no variadic macros, the macro has the arity of the function
+            val macroArguments = List(value.arity) { "a$it" }
+            ({ arguments ->
+                if (arguments.isEmpty()) "#define p_$key r_$key\n"
+                else "#define p_$key(${macroArguments.joinToString(", ")}) r_$key(${(macroArguments + arguments).joinToString(", ")})\n"
+            })
         }
     }
-    return Resolver(functions.toString(), uniformTypes, call { it })
+    return Resolver(functions.toString(), uniformTypes, definition)
 }
 
 /** does [code] read the identifier [name]? */
@@ -224,8 +310,8 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
     }
     resolved.versions = versions
 
-    // the resolvers of the dynamic parameters, and the plain parameters
-    val resolvers = mutableMapOf<String, Resolver>()
+    // the resolvers of the dynamic parameters with the context values they read, and the plain parameters
+    val resolvers = mutableMapOf<String, Pair<Resolver, List<String>>>()
     resolved.parameterTypes.clear()
     for ((key, value) in parameterValues) {
         if (value is DynamicParameter) {
@@ -233,7 +319,7 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
             val code = codeOf(value)
             val context = contextValues.filter { (name, _) -> code.any { reads(it, name) } }
             resolver(key, value, context).also {
-                resolvers[key] = it
+                resolvers[key] = it to context.map { (name, _) -> name }
                 resolved.parameterTypes.putAll(it.uniformTypes)
             }
         } else {
@@ -247,7 +333,7 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
      */
     fun resolversFor(vararg code: String?): String = resolvers.filter { (key, _) ->
         code.any { reads(it, "p_$key") }
-    }.entries.joinToString("") { (key, resolver) -> resolver.functions + "#define p_$key (${resolver.call})\n" }
+    }.values.joinToString("") { (resolver, context) -> resolver.functions + resolver.definition(context) }
 
     fun preamble(resolvers: String, preamble: String?): String? =
         if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
