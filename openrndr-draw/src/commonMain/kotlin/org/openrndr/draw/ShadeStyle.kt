@@ -138,7 +138,20 @@ open class ShadeStyle(
     override var parameterValues: MutableMap<String, Any> = mutableMapOf(),
     override var textureBaseIndex: Int = 2
 ) : StyleParameters, StyleBufferBindings, StyleImageBindings {
-    var dirty = true
+    /**
+     * Is the structure of this shade style changed since its shaders were generated?
+     */
+    open var dirty = true
+        set(value) {
+            if (value) structureVersion++
+            field = value
+        }
+
+    /**
+     * Counts the changes of the structure of this shade style: its code, parameter types and outputs
+     */
+    var structureVersion = 0L
+        private set
 
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 
@@ -244,38 +257,12 @@ open class ShadeStyle(
     }
 
 
-    operator fun plus(other: ShadeStyle): ShadeStyle {
-        val s = ShadeStyle()
-        s.vertexTransform = concat(vertexTransform, other.vertexTransform)
-        s.fragmentTransform = concat(fragmentTransform, other.fragmentTransform)
-
-        s.vertexPreamble =
-            (if (vertexPreamble == null) "" else vertexPreamble) + "\n" + if (other.vertexPreamble == null) "" else other.vertexPreamble
-        s.fragmentPreamble =
-            (if (fragmentPreamble == null) "" else fragmentPreamble) + "\n" + if (other.fragmentPreamble == null) "" else other.fragmentPreamble
-
-        s.parameterTypes.apply {
-            putAll(parameterTypes)
-            putAll(other.parameterTypes)
-        }
-
-        s.parameterValues.apply {
-            putAll(parameterValues)
-            putAll(other.parameterValues)
-        }
-
-        s.outputs.apply {
-            putAll(outputs)
-            putAll(other.outputs)
-        }
-
-        s.attributes.apply {
-            addAll(attributes)
-            addAll(other.attributes)
-        }
-
-        return s
-    }
+    /**
+     * Composes this shade style with [other]: this shade style is applied first, then [other], each in its own
+     * namespace, so they can use the same names for parameters, functions and varyings
+     * @see ComposedShadeStyle
+     */
+    operator fun plus(other: ShadeStyle): ShadeStyle = ComposedShadeStyle(listOf(this, other))
 }
 
 /**
@@ -293,24 +280,3 @@ fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle {
     }
     return ShadeStyle().apply(builder)
 }
-
-private fun concat(left: String?, right: String?): String? {
-    return if (left == null && right == null) {
-        null
-    } else if (left == null && right != null) {
-        right
-    } else if (left != null && right == null) {
-        left
-    } else if (left != null && right != null) {
-        "${isolate(left)}\n${isolate(right)}"
-    } else {
-        throw RuntimeException("should never happen")
-    }
-}
-
-private fun isolate(code: String): String =
-    if (code.startsWith("{") && code.endsWith("}")) {
-        code
-    } else {
-        "{$code}"
-    }
