@@ -111,14 +111,21 @@ open class RenderTargetWebGL(
         if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
             error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
         }
-        context.framebufferTexture2D(
-            FRAMEBUFFER,
-            glColorAttachment(colorAttachments.size),
-            colorBuffer.target,
-            colorBuffer.texture,
-            level
-        )
-        context.checkErrors("frameBufferTexture2D $colorBuffer")
+        val renderbuffer = colorBuffer.renderbuffer
+        if (renderbuffer != null) {
+            // multisampled color buffers are renderbuffers
+            context.framebufferRenderbuffer(FRAMEBUFFER, glColorAttachment(colorAttachments.size), RENDERBUFFER, renderbuffer)
+            context.checkErrors("framebufferRenderbuffer $colorBuffer")
+        } else {
+            context.framebufferTexture2D(
+                FRAMEBUFFER,
+                glColorAttachment(colorAttachments.size),
+                colorBuffer.target,
+                colorBuffer.texture,
+                level
+            )
+            context.checkErrors("frameBufferTexture2D $colorBuffer")
+        }
         val status = context.checkFramebufferStatus(FRAMEBUFFER)
         require(status == FRAMEBUFFER_COMPLETE) {
             "status: $status, while attaching $colorBuffer"
@@ -185,8 +192,12 @@ open class RenderTargetWebGL(
 
     override fun detachColorAttachments() {
         bound {
-            for ((index, _) in colorAttachments.withIndex()) {
-                context.framebufferTexture2D(FRAMEBUFFER, glColorAttachment(index), TEXTURE_2D, null, 0)
+            for ((index, attachment) in colorAttachments.withIndex()) {
+                if ((attachment as? ColorBufferAttachment)?.colorBuffer?.multisample is BufferMultisample.SampleCount) {
+                    context.framebufferRenderbuffer(FRAMEBUFFER, glColorAttachment(index), RENDERBUFFER, null)
+                } else {
+                    context.framebufferTexture2D(FRAMEBUFFER, glColorAttachment(index), TEXTURE_2D, null, 0)
+                }
                 context.checkErrors("framebufferTexture2D detach $index")
             }
         }

@@ -30,6 +30,19 @@ class DepthBufferWebGL(
             context.bindRenderbuffer(RENDERBUFFER, buffer)
             context.checkErrors("bindRenderBuffer")
 
+            if (multisample is BufferMultisample.SampleCount) {
+                // multisampled storage needs sized formats
+                val sizedFormat = when (format) {
+                    DepthFormat.DEPTH16 -> DEPTH_COMPONENT16
+                    DepthFormat.DEPTH_STENCIL -> DEPTH24_STENCIL8
+                    DepthFormat.STENCIL8 -> STENCIL_INDEX8
+                    else -> error("unsupported depth buffer format $format")
+                }
+                context.renderbufferStorageMultisample(RENDERBUFFER, multisample.samples(context), sizedFormat, width, height)
+                context.checkErrors("renderbufferStorageMultisample")
+                return DepthBufferWebGL(context, buffer, width, height, format, multisample, session)
+            }
+
             val webGlFormat = when(format) {
                 DepthFormat.DEPTH16 -> DEPTH_COMPONENT16
                 DepthFormat.DEPTH_STENCIL -> DEPTH_STENCIL
