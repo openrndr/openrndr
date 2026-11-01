@@ -10,6 +10,9 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageData
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.ImageSaveConfiguration
+import org.openrndr.internal.glcommon.clipCopyRectangles
+import org.openrndr.internal.glcommon.copyRectangleShader
+import org.openrndr.internal.glcommon.defaultCopyRectangles
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
 import org.openrndr.shape.IntRectangle
@@ -134,28 +137,6 @@ class ColorBufferGL3(
         /** the filter that draws copies, recreated when the driver, and with it the application, changes */
         private var copyRectangleFilter: Filter? = null
         private var copyRectangleFilterDriver: Driver? = null
-
-        private val copyRectangleShader = """
-            |in vec2 v_texCoord0;
-            |uniform sampler2D tex0;
-            |// rectangles in pixels with the origin in the top-left corner: x, y, width, height
-            |uniform vec4 sourceRectangle;
-            |uniform vec4 targetRectangle;
-            |uniform vec2 sourceLevelSize;
-            |uniform vec2 targetLevelSize;
-            |uniform float sourceLevel;
-            |out vec4 o_color;
-            |
-            |void main() {
-            |    vec2 p = vec2(v_texCoord0.x, 1.0 - v_texCoord0.y) * targetLevelSize;
-            |    vec2 r = (p - targetRectangle.xy) / targetRectangle.zw;
-            |    if (r.x < 0.0 || r.y < 0.0 || r.x >= 1.0 || r.y >= 1.0) {
-            |        discard;
-            |    }
-            |    vec2 s = sourceRectangle.xy + r * sourceRectangle.zw;
-            |    o_color = textureLod(tex0, vec2(s.x / sourceLevelSize.x, 1.0 - s.y / sourceLevelSize.y), sourceLevel);
-            |}
-        """.trimMargin()
 
         fun create(
             width: Int,
@@ -361,45 +342,10 @@ class ColorBufferGL3(
         val targetHeight = target.effectiveHeight / (1 shl toLevel)
 
         // the overlapping region, anchored at the texture origin (the bottom-left corner) as copies always were
-        val width = min(sourceWidth, targetWidth)
-        val height = min(sourceHeight, targetHeight)
-        copyTo(
-            target, fromLevel, toLevel,
-            IntRectangle(0, sourceHeight - height, width, height),
-            IntRectangle(0, targetHeight - height, width, height),
-            filter
+        val (sourceRectangle, targetRectangle) = defaultCopyRectangles(
+            IntRectangle(0, 0, sourceWidth, sourceHeight), IntRectangle(0, 0, targetWidth, targetHeight)
         )
-    }
-
-    /**
-     * Clips the rectangles of an unscaled copy to the levels of the source and target
-     * @return the clipped source and target rectangles, or null when nothing is left to copy
-     */
-    private fun clipCopyRectangles(
-        sourceRectangle: IntRectangle,
-        targetRectangle: IntRectangle,
-        sourceLevel: IntRectangle,
-        targetLevel: IntRectangle
-    ): Pair<IntRectangle, IntRectangle>? {
-        if (sourceRectangle.width < 0 || sourceRectangle.height < 0) {
-            return Pair(sourceRectangle, targetRectangle)
-        }
-        var sx = sourceRectangle.x
-        var sy = sourceRectangle.y
-        var tx = targetRectangle.x
-        var ty = targetRectangle.y
-        var width = sourceRectangle.width
-        var height = sourceRectangle.height
-
-        val left = maxOf(0, -sx, -tx)
-        sx += left; tx += left; width -= left
-        val top = maxOf(0, -sy, -ty)
-        sy += top; ty += top; height -= top
-        width = minOf(width, sourceLevel.width - sx, targetLevel.width - tx)
-        height = minOf(height, sourceLevel.height - sy, targetLevel.height - ty)
-
-        return if (width <= 0 || height <= 0) null else
-            Pair(IntRectangle(sx, sy, width, height), IntRectangle(tx, ty, width, height))
+        copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
     }
 
     override fun copyTo(
