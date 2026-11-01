@@ -22,7 +22,9 @@ import web.gl.WebGL2RenderingContext
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
 
 /** the red component of the bottom left pixel of the bound framebuffer */
@@ -43,6 +45,16 @@ private fun restoreDrawingBufferStorage(): Unit = js(
  */
 private fun removeCanvas() {
     document.getElementById(ElementId(Configuration().canvasId))?.remove()
+}
+
+/**
+ * Asserts that [actual] has the values of [expected] within one 8-bit step: OpenGL allows sRGB conversions to be
+ * approximated, Mesa's llvmpipe encodes linear 0.5 as 187 where 187.53 rounds to 188
+ */
+private fun assertColorValues(expected: Map<String, Int>, actual: Map<String, Int>) {
+    assertEquals(expected.keys, actual.keys)
+    val wrong = expected.filter { (name, value) -> abs(value - actual.getValue(name)) > 1 }
+    assertTrue(wrong.isEmpty(), "expected $expected but was $actual")
 }
 
 /**
@@ -121,20 +133,20 @@ abstract class AbstractColorEncodingWebGL : AbstractApplicationTestFixture() {
 
     @Test
     fun theWindowHoldsSrgbColors() {
-        assertEquals(windowExpectations, measure(null))
+        assertColorValues(windowExpectations, measure(null))
     }
 
     @Test
     fun srgbRenderTargetsHoldSrgbColors() {
         val target = renderTarget(4, 4, 1.0) { colorBuffer(type = ColorType.UINT8_SRGB) }
-        assertEquals(srgbTargetExpectations, measure(target))
+        assertColorValues(srgbTargetExpectations, measure(target))
         target.destroy()
     }
 
     @Test
     fun linearRenderTargetsHoldLinearColors() {
         val target = renderTarget(4, 4, 1.0) { colorBuffer(type = ColorType.UINT8) }
-        assertEquals(linearTargetExpectations, measure(target))
+        assertColorValues(linearTargetExpectations, measure(target))
         target.destroy()
     }
 

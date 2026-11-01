@@ -12,7 +12,19 @@ import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.test.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+/**
+ * Asserts that [actual] has the values of [expected] within one 8-bit step: OpenGL allows sRGB conversions to be
+ * approximated, Mesa's llvmpipe encodes linear 0.5 as 187 where 187.53 rounds to 188
+ */
+private fun assertColorValues(expected: Map<String, Int>, actual: Map<String, Int>) {
+    assertEquals(expected.keys, actual.keys)
+    val wrong = expected.filter { (name, value) -> abs(value - actual.getValue(name)) > 1 }
+    assertTrue(wrong.isEmpty(), "expected $expected but was $actual")
+}
 
 /**
  * Colors are linear in shaders and the window holds sRGB colors. TestColorEncodingWebGL checks the same values.
@@ -87,20 +99,20 @@ class TestColorEncodingGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `the window holds sRGB colors`() {
-        assertEquals(windowExpectations, measure(null))
+        assertColorValues(windowExpectations, measure(null))
     }
 
     @Test
     fun `sRGB render targets hold sRGB colors`() {
         val target = renderTarget(4, 4, 1.0) { colorBuffer(type = ColorType.UINT8_SRGB) }
-        assertEquals(srgbTargetExpectations, measure(target))
+        assertColorValues(srgbTargetExpectations, measure(target))
         target.destroy()
     }
 
     @Test
     fun `linear render targets hold linear colors`() {
         val target = renderTarget(4, 4, 1.0) { colorBuffer(type = ColorType.UINT8) }
-        assertEquals(linearTargetExpectations, measure(target))
+        assertColorValues(linearTargetExpectations, measure(target))
         target.destroy()
     }
 
