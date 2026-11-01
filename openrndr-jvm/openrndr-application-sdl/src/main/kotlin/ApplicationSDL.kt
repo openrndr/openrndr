@@ -706,16 +706,20 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
 
                 val keyEvent = event.key()
-                val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
+                val isRepeat = keyEvent.repeat()
+                val eventType = if (isRepeat) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
                 val key = keyEvent.key()
-                eventWindow.program.keyboard.keyDown.trigger(
-                    KeyEvent(
-                        eventType,
-                        key,
-                        KeyboardDriver.instance.getKeyName(key),
-                        modifiersFromSdl(keyEvent.mod().toInt())
-                    )
+                val event = KeyEvent(
+                    eventType,
+                    key,
+                    KeyboardDriver.instance.getKeyName(key),
+                    modifiersFromSdl(keyEvent.mod().toInt())
                 )
+                if(isRepeat) {
+                    eventWindow.program.keyboard.keyRepeat.trigger(event)
+                } else {
+                    eventWindow.program.keyboard.keyDown.trigger(event)
+                }
             }
 
             SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
