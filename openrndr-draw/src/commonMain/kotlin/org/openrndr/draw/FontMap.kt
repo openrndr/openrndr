@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import org.openrndr.internal.shareGroupID
 import org.openrndr.shape.IntRectangle
 import kotlin.jvm.JvmRecord
 
@@ -84,7 +85,16 @@ data class GlyphMetrics(val advanceWidth: Double, val leftSideBearing: Double, v
  * @property contentScale The scaling factor for rendering the font.
  */
 @JvmRecord
-data class FontImageMapDescriptor(val fontUrl: String, val size: Double, val alphabet:Set<Char>, val contentScale: Double)
+/**
+ * The key of a cached [FontImageMap], font image maps are cached per [share group][Driver.shareGroupID]
+ */
+data class FontImageMapDescriptor(
+    val fontUrl: String,
+    val size: Double,
+    val alphabet: Set<Char>,
+    val contentScale: Double,
+    val shareGroupID: Long = 0L
+)
 
 private val fontImageMaps: MutableMap<FontImageMapDescriptor, FontImageMap> = mutableMapOf()
 
@@ -147,7 +157,7 @@ class FontImageMap(val texture: ColorBuffer,
          * @return A `FontImageMap` generated based on the given parameters.
          */
         fun fromUrl(fontUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = 1.0): FontImageMap =
-                fontImageMaps.getOrPut(FontImageMapDescriptor(fontUrl, size,  characterSet, contentScale)) {
+                fontImageMaps.getOrPut(FontImageMapDescriptor(fontUrl, size, characterSet, contentScale, Driver.instance.shareGroupID)) {
                     Driver.instance.fontImageMapManager.fontMapFromUrl(fontUrl, size, characterSet, contentScale)
                 }
 
@@ -163,7 +173,7 @@ class FontImageMap(val texture: ColorBuffer,
          * @return A `FontImageMap` representing the graphical mapping of characters based on the specified configurations.
          */
         fun fromFile(file: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = 1.0): FontImageMap =
-                fontImageMaps.getOrPut(FontImageMapDescriptor("file:$file", size, characterSet, contentScale)) {
+                fontImageMaps.getOrPut(FontImageMapDescriptor("file:$file", size, characterSet, contentScale, Driver.instance.shareGroupID)) {
                     Driver.instance.fontImageMapManager.fontMapFromUrl("file:$file", size, characterSet, contentScale)
                 }
     }

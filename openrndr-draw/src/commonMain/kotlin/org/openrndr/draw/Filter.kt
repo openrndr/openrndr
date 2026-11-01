@@ -2,16 +2,17 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.internal.shareGroupID
 import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
 import org.openrndr.shape.Rectangle
 
 /**
- * The quad that filters draw. GL objects belong to the contexts of one application, the quad is recreated when the
- * driver changes. It is not tracked by a session: ending the session it was created in, for example by closing a
+ * The quads that filters draw, one per [share group][Driver.shareGroupID]. The quads are recreated when the driver
+ * changes. It is not tracked by a session: ending the session it was created in, for example by closing a
  * child window, must not destroy it.
  */
-private var filterQuad: VertexBuffer? = null
+private val filterQuads = mutableMapOf<Long, VertexBuffer>()
 private var filterQuadDriver: Driver? = null
 private var filterQuadFormat = vertexFormat {
     position(2)
@@ -146,7 +147,11 @@ void main() {
         filterDrawStyle.clip = clip
         target.bind()
 
-        if (filterQuad == null || filterQuadDriver !== Driver.instance) {
+        if (filterQuadDriver !== Driver.instance) {
+            filterQuads.clear()
+            filterQuadDriver = Driver.instance
+        }
+        val filterQuad = filterQuads.getOrPut(Driver.instance.shareGroupID) {
             val fq = VertexBuffer.createDynamic(filterQuadFormat, 6, null)
 
             fq.shadow.writer().apply {
@@ -160,8 +165,7 @@ void main() {
             }
             fq.shadow.upload()
             fq.shadow.destroy()
-            filterQuad = fq
-            filterQuadDriver = Driver.instance
+            fq
         }
 
         shader.begin()
@@ -256,7 +260,7 @@ void main() {
             }
         }
 
-        Driver.instance.drawVertexBuffer(shader, listOf(filterQuad!!), DrawPrimitive.TRIANGLES, 0, 6)
+        Driver.instance.drawVertexBuffer(shader, listOf(filterQuad), DrawPrimitive.TRIANGLES, 0, 6)
         shader.end()
         target.unbind()
     }

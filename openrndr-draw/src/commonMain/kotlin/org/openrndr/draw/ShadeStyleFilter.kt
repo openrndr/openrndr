@@ -2,15 +2,22 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.internal.shareGroupID
 import org.openrndr.shape.Rectangle
 
-private val shadeStyleManager by lazy {
-    ShadeStyleManager.fromGenerators(
-        "shade-style-filter",
-        vsGenerator = Driver.instance.shaderGenerators::filterVertexShader,
-        fsGenerator = Driver.instance.shaderGenerators::filterFragmentShader
-    )
-}
+/**
+ * The shade style managers of shade style filters, one per [share group][Driver.shareGroupID]
+ */
+private val shadeStyleManagers = mutableMapOf<Long, ShadeStyleManager>()
+
+private val shadeStyleManager: ShadeStyleManager
+    get() = shadeStyleManagers.getOrPut(Driver.instance.shareGroupID) {
+        ShadeStyleManager.fromGenerators(
+            "shade-style-filter",
+            vsGenerator = Driver.instance.shaderGenerators::filterVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::filterFragmentShader
+        )
+    }
 
 /**
  * A [Filter] that uses the [ShadeStyle] interface and language
