@@ -12,7 +12,12 @@ import org.openrndr.internal.Driver
 import web.gl.*
 import web.gl.WebGL2RenderingContext as GL
 
-private val active = ArrayDeque<RenderTargetWebGL>()
+/**
+ * The stacks of bound render targets, one per context: every canvas of a page has its own context
+ */
+private val activeStacks = mutableMapOf<GL, ArrayDeque<RenderTargetWebGL>>()
+
+private fun activeStack(context: GL) = activeStacks.getOrPut(context) { ArrayDeque() }
 
 /**
  * The render target of the canvas
@@ -77,7 +82,7 @@ open class RenderTargetWebGL(
 
         val activeRenderTarget: RenderTargetWebGL
             get() {
-                return active.last()
+                return activeStack((Driver.instance as DriverWebGL).context).last()
             }
     }
 
@@ -268,7 +273,7 @@ open class RenderTargetWebGL(
         if (bound) {
             throw RuntimeException("already bound")
         } else {
-            active.push(this)
+            activeStack(context).push(this)
             bindTarget()
         }
     }
@@ -276,6 +281,7 @@ open class RenderTargetWebGL(
     override fun unbind() {
         context.checkErrors("preexisting errors")
         if (!bound) {
+            val active = activeStack(context)
             active.pop()
             val previous = active.last()
             previous.bindTarget()

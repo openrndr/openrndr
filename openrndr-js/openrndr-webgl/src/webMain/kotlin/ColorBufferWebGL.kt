@@ -14,6 +14,7 @@ import js.typedarrays.Uint8Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
+import org.openrndr.internal.shareGroupID
 import org.openrndr.internal.glcommon.clipCopyRectangles
 import org.openrndr.internal.glcommon.copyRectangleShader
 import org.openrndr.internal.glcommon.defaultCopyRectangles
@@ -72,8 +73,8 @@ class ColorBufferWebGL(
     }
 
     companion object {
-        /** the filter of copies that are drawn, it belongs to the driver it was created with */
-        private var copyRectangleFilter: Filter? = null
+        /** the filters of copies that are drawn, one per share group (canvas) of the driver they were created with */
+        private val copyRectangleFilters = mutableMapOf<Long, Filter>()
         private var copyRectangleFilterDriver: Driver? = null
 
         fun create(
@@ -455,12 +456,13 @@ class ColorBufferWebGL(
             filter
         )
 
-        val copy = copyRectangleFilter.takeIf { copyRectangleFilterDriver === Driver.instance }
-            ?: Filter(filterShaderFromCode(copyRectangleShader, "copy-rectangle")).apply {
-                untrack()
-                copyRectangleFilter = this
-                copyRectangleFilterDriver = Driver.instance
-            }
+        if (copyRectangleFilterDriver !== Driver.instance) {
+            copyRectangleFilters.clear()
+            copyRectangleFilterDriver = Driver.instance
+        }
+        val copy = copyRectangleFilters.getOrPut(Driver.instance.shareGroupID) {
+            Filter(filterShaderFromCode(copyRectangleShader, "copy-rectangle")).apply { untrack() }
+        }
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
         copy.parameters["sourceRectangle"] = Vector4(

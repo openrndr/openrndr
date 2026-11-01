@@ -339,6 +339,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
             defaultFontUrl = DEFAULT_FONT_URL
         }
 
+        // the setups of the applications of a page run interleaved while the drivers above load, the program
+        // creates its resources in the context of its own canvas
+        (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
         program.setup()
     }
 

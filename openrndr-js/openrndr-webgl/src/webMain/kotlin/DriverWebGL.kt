@@ -17,7 +17,7 @@ internal fun Int.toJsUInt(): JsUInt = this.toJsNumber().unsafeCast<JsUInt>()
 
 private val logger = KotlinLogging.logger {  }
 
-class DriverWebGL(var context: GL) : Driver {
+class DriverWebGL(var context: GL) : Driver, ShareGroups {
     init {
         logger.debug { "Creating WebGL driver" }
         Driver.driver = this
@@ -88,6 +88,10 @@ class DriverWebGL(var context: GL) : Driver {
 
     override val contextID: Long
         get() = context.hashCode().toLong()
+
+    /** WebGL contexts do not share resources, every canvas has its own context */
+    override val shareGroupID: Long
+        get() = contextID
 
     override fun createShader(
         vsCode: String,
