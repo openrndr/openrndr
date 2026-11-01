@@ -44,6 +44,16 @@ import web.mouse.MouseEvent as HtmlMouseEvent
 
 private val logger = KotlinLogging.logger {  }
 
+/**
+ * Calls [callback] with true when [canvas] comes within [margin] of the view, and with false when it leaves it
+ */
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun observeInView(canvas: HTMLCanvasElement, margin: String, callback: (Boolean) -> Unit): Unit = js(
+    """new IntersectionObserver((entries) => {
+        callback(entries[entries.length - 1].isIntersecting);
+    }, { rootMargin: margin }).observe(canvas)"""
+)
+
 @OptIn(ExperimentalWasmJsInterop::class)
 @JsName("Object")
 external object JsObject {
@@ -68,6 +78,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
     }
 
     private var drawRequested: Boolean = true
+
+    /** is the canvas in view, or close to it? */
+    private var canvasInView: Boolean = true
     private var referenceTime: Double = 0.0
 
 
@@ -162,6 +175,20 @@ class ApplicationWebGL(override var program: Program, override var configuration
                 resize()
              }
             ro.observe(canvasParent)
+        }
+
+        // the program is not drawn while its canvas is out of view, drawing starts a little before it enters
+        if (!configuration.drawOutOfView) {
+            observeInView(canvas ?: error("no canvas"), "200px") { inView ->
+                if (inView != canvasInView) {
+                    canvasInView = inView
+                    val event = WindowEvent(
+                        if (inView) WindowEventType.RESTORED else WindowEventType.MINIMIZED,
+                        windowPosition, windowSize, false
+                    )
+                    if (inView) program.window.restored.trigger(event) else program.window.minimized.trigger(event)
+                }
+            }
         }
 
         // Keyboard
@@ -388,14 +415,15 @@ class ApplicationWebGL(override var program: Program, override var configuration
     }
 
     override fun loop() {
-        //("start loop")
-        if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+        val storedContext = (Driver.instance as DriverWebGL).context
+        (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
+        // events and launched coroutines are processed every frame, also when the program is not drawn
+        program.dispatcher.execute()
 
-            val storedContext = (Driver.instance as DriverWebGL).context
-
-            (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
+        // a requested frame is drawn once the canvas is in view
+        val inView = canvasInView || configuration.drawOutOfView
+        if (inView && (presentationMode == PresentationMode.AUTOMATIC || drawRequested)) {
             drawRequested = false
-            program.dispatcher.execute()
 
             val dims = windowSize
             program.width = dims.x.toInt()
@@ -409,9 +437,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
             defaultRenderTarget?.bindTarget()
             program.drawImpl()
             srgbFallback?.present()
-
-            (Driver.instance as DriverWebGL).context = storedContext
         }
+        (Driver.instance as DriverWebGL).context = storedContext
 
         requestAnimationFrame {
             loop()

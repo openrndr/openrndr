@@ -72,6 +72,13 @@ class Configuration {
     var canvasId = "openrndr-canvas"
 
     /**
+     * Should the program draw while its canvas is out of view? Only used in browsers. When false the program is not
+     * drawn while its canvas is scrolled out of view, it keeps processing events and launched coroutines, and
+     * [Window.minimized] and [Window.restored] are triggered when the canvas leaves and enters the view.
+     */
+    var drawOutOfView = false
+
+    /**
      * The preferred window width
      */
     var width: Int = 640
