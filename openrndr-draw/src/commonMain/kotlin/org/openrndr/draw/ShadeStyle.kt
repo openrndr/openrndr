@@ -99,10 +99,8 @@ data class ShadeStyleOutput(
 
 class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit) : MutableMap<K, V> by b {
     override fun put(key: K, value: V): V? {
-        if (key in this) {
-            if (get(key) != value) {
-                onChange()
-            }
+        if (key !in this || get(key) != value) {
+            onChange()
         }
         return b.put(key, value)
     }
@@ -152,6 +150,9 @@ open class ShadeStyle(
      */
     var structureVersion = 0L
         private set
+
+    /** this shade style with its dynamic parameters resolved, see [resolveDynamicParameters] */
+    internal var resolvedStyle: ShadeStyle? = null
 
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 

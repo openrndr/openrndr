@@ -296,6 +296,16 @@ interface StyleParameters {
         parameterTypes[name] = shadeStyleType<ColorRGBa>()
     }
 
+    /**
+     * Sets [name] to a parameter that is resolved in the shader, read from a texture or computed by GLSL code
+     * @see textureParameter
+     * @see glslParameter
+     */
+    fun parameter(name: String, value: DynamicParameter) {
+        parameterValues[name] = value
+        parameterTypes[name] = "dynamic ${value.signature}"
+    }
+
     fun parameter(name: String, value: ColorBuffer) {
         parameterValues[name] = value
         parameterTypes[name] = when (value.type.colorSampling) {

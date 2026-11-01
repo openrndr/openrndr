@@ -24,7 +24,8 @@ actual class ShadeStyleGLSL {
             screenSize: String,
             contourPosition: String,
             boundsPosition: String,
-            boundsSize: String
+            boundsSize: String,
+            textureCoordinate: String
         ) = """
         |// -- fragmentConstants
         |#define c_instance ($instance)
@@ -33,7 +34,8 @@ actual class ShadeStyleGLSL {
         |#define c_screenSize ($screenSize)
         |#define c_contourPosition ($contourPosition)
         |#define c_boundsPosition ($boundsPosition)
-        |#define c_boundsSize ($boundsSize)""".trimMargin()
+        |#define c_boundsSize ($boundsSize)
+        |#define c_textureCoordinate ($textureCoordinate)""".trimMargin()
 
         /**
          * This granule is used inside the main() function of vertex shaders to set up

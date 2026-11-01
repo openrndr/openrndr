@@ -24,7 +24,9 @@ expect class ShadeStyleGLSL {
             screenSize: String = "u_viewDimensions",
             contourPosition: String = "0.0",
             boundsPosition: String = "vec3(0.0)",
-            boundsSize: String = "vec3(0.0)"
+            boundsSize: String = "vec3(0.0)",
+            // the coordinate at which a texture is shown like drawn images and filter inputs show it
+            textureCoordinate: String = "vec2(c_boundsPosition.x, 1.0 - c_boundsPosition.y)"
         ): String
 
         /**
