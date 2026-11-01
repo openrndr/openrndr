@@ -268,6 +268,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
         canvas?.addEventListener(EventType("wheel"), {
             it as WheelEvent
+            // a wheel event with the control key held is a trackpad pinch, see listenToTouchInput
+            if (it.ctrlKey) return@addEventListener
             program.mouse.scrolled.trigger(
                 MouseEvent(
                     cursorPosition,
@@ -317,6 +319,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
             }
         })
 
+
+        // touches, pens and pinches
+        canvas?.let { listenToTouchInput(it, program) }
 
         // Drag and drop
         canvas?.addEventListener(EventType("dragover"), {
@@ -370,6 +375,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
         // creates its resources in the context of its own canvas
         (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
         program.setup()
+        // the program listens to touches and pinches once it is set up
+        canvas?.let { updateTouchAction(it, program) }
     }
 
     override fun windowClose() {
