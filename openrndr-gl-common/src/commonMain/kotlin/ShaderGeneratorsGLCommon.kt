@@ -938,7 +938,7 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |out vec2 v_texCoord0;
         |void main() {
         |   v_texCoord0 = a_texCoord0;
-        |   vec2 transformed = a_position * (targetSize - 2*padding) + padding;
+        |   vec2 transformed = a_position * (targetSize - 2.0 * padding) + padding;
         |   gl_Position = projectionMatrix * vec4(transformed, 0.0, 1.0);
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |}
@@ -974,7 +974,8 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
             instance = "0",
             screenPosition = "v_texCoord0",
             boundsPosition = "vec3(v_texCoord0, 0.0)",
-            boundsSize = "vec3(targetSize, 0.0)"
+            boundsSize = "vec3(targetSize, 0.0)",
+            textureCoordinate = "v_texCoord0"
         )
     }
         |${shadeStructure.fragmentPreamble ?: ""}

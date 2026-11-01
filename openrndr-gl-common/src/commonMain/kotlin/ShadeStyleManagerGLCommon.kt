@@ -22,10 +22,12 @@ class ShadeStyleManagerGLCommon(
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
     override fun shader(
-        style: ShadeStyle?,
+        shadeStyle: ShadeStyle?,
         vertexFormats: List<VertexFormat>,
         instanceFormats: List<VertexFormat>
     ): Shader {
+        // dynamic parameters are read through generated resolver functions
+        val style = shadeStyle?.resolveDynamicParameters()
         val outputInstanceFormats = instanceFormats + (style?.attributes
             ?: emptyList()).map { it.vertexFormat }
 
