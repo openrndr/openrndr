@@ -85,14 +85,19 @@ internal class AVFile(
     frameRate: Double? = null,
     imageWidth: Int? = null,
     imageHeight: Int? = null,
-    windowId: String? = null
+    windowId: String? = null,
+    pixelFormat: String? = null,
+    codec: String? = null
 ) {
 
-    val context: AVFormatContext = avformat_alloc_context()
+    /** a failed open frees the context, a new one is allocated for each retry */
+    var context: AVFormatContext = avformat_alloc_context()
+        private set
 
     init {
         val options = AVDictionary(null)
         val isDevice = formatName != null
+        require(pixelFormat == null || codec == null) { "a device mode has a pixel format or a codec, not both" }
 
         val format = if (formatName != null) {
             avdevice_register_all()
@@ -118,6 +123,31 @@ internal class AVFile(
             av_dict_set(options, "window_id", windowId, 0)
         }
 
+        // v4l2 takes pixel formats and codecs as input_format, dshow and avfoundation take pixel formats as
+        // pixel_format. dshow takes the codec from the format context, avfoundation does not select codecs.
+        if (pixelFormat != null) {
+            av_dict_set(options, if (formatName == "video4linux2") "input_format" else "pixel_format", pixelFormat, 0)
+        }
+        val videoCodecId = when {
+            codec == null -> null
+            formatName == "video4linux2" -> {
+                av_dict_set(options, "input_format", codec, 0)
+                null
+            }
+
+            formatName == "dshow" -> avcodec_descriptor_get_by_name(codec)?.id()
+                ?: throw IllegalArgumentException("unknown codec '$codec'")
+
+            else -> {
+                logger.warn { "$formatName does not select codecs, ignoring codec '$codec'" }
+                null
+            }
+        }
+        val openInput = {
+            videoCodecId?.let { context.video_codec_id(it) }
+            avformat_open_input(context, filename, format, options)
+        }
+
         if (filename.startsWith("rtsp://")) {
             av_dict_set(options, "max_delay", "0", 0)
             if (playMode == PlayMode.VIDEO) {
@@ -132,7 +162,7 @@ internal class AVFile(
         )
 
         if (isDevice && frameRate == null) {
-            val result = avformat_open_input(context, filename, format, options)
+            val result = openInput()
 
             if (result != 0) {
                 logger.info { "opening device with default frame rate failed." }
@@ -143,7 +173,8 @@ internal class AVFile(
                     val r = av_d2q(candidate, 1001000)
                     av_dict_set(options, "framerate", r.num().toString() + "/" + r.den(), 0)
 
-                    val retryResult = avformat_open_input(context, filename, format, options)
+                    context = avformat_alloc_context()
+                    val retryResult = openInput()
                     if (retryResult != 0) {
                         logger.warn { retryResult.toAVError() }
                     }
@@ -158,7 +189,7 @@ internal class AVFile(
                 }
             }
         } else {
-            avformat_open_input(context, filename, format, options).checkAVError()
+            openInput().checkAVError()
         }
 
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
@@ -273,7 +304,9 @@ fun loadVideoDevice(
     width: Int? = null,
     height: Int? = null,
     frameRate: Double? = null,
-    configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
+    configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live(),
+    pixelFormat: String? = null,
+    codec: String? = null
 ): VideoPlayerFFMPEG {
     logger.info { """loading video device $deviceName (mode: $mode)""" }
     return VideoPlayerFFMPEG.fromDevice(
@@ -283,8 +316,24 @@ fun loadVideoDevice(
         imageWidth = width,
         imageHeight = height,
         frameRate = frameRate,
-        configuration = configuration
+        configuration = configuration,
+        pixelFormat = pixelFormat,
+        codec = codec
     )
+}
+
+/**
+ * Load a video device in [deviceMode], a mode from [VideoPlayerFFMPEG.listDeviceModes]
+ */
+fun loadVideoDevice(
+    audioDevice: AudioDevice? = null,
+    deviceName: String = VideoPlayerFFMPEG.defaultDevice(),
+    deviceMode: VideoDeviceMode,
+    mode: PlayMode = PlayMode.VIDEO,
+    configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
+): VideoPlayerFFMPEG {
+    logger.info { """loading video device $deviceName in $deviceMode (mode: $mode)""" }
+    return VideoPlayerFFMPEG.fromDevice(audioDevice, deviceName, deviceMode, mode, configuration)
 }
 
 /**
@@ -345,8 +394,8 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         /**
-         * Lists the modes that the video device [deviceName] supports, a name from [listDeviceNames]. The size and
-         * frame rate of a mode can be passed to [fromDevice]. On Linux the modes have no frame rates.
+         * Lists the modes that the video device [deviceName] supports, a name from [listDeviceNames]. A mode can be
+         * passed to [fromDevice] and [loadVideoDevice]. On Linux the modes have no frame rates.
          */
         @Suppress("unused")
         fun listDeviceModes(deviceName: String = defaultDevice()): List<VideoDeviceMode> {
@@ -394,6 +443,9 @@ class VideoPlayerFFMPEG private constructor(
          * @param imageWidth optional image width
          * @param imageHeight optional image height
          * @param configuration optional video player configuration
+         * @param pixelFormat optional FFmpeg name of the pixel format of an uncompressed mode, like `nv12`
+         * @param codec optional FFmpeg name of the codec of a compressed mode, like `mjpeg`. macOS does not select
+         * codecs.
          * @return a ready-to-play video player on success
          */
         fun fromDevice(
@@ -403,7 +455,9 @@ class VideoPlayerFFMPEG private constructor(
             frameRate: Double? = null,
             imageWidth: Int? = null,
             imageHeight: Int? = null,
-            configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
+            configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live(),
+            pixelFormat: String? = null,
+            codec: String? = null
         )
                 : VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
@@ -413,10 +467,32 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.GENERIC -> ("video4linux2" to deviceName)
                 else -> error("unsupported platform ${Platform.type}")
             }
-            val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
+            val file = AVFile(
+                configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight,
+                pixelFormat = pixelFormat, codec = codec
+            )
             logger.debug { file }
             return VideoPlayerFFMPEG(audioDevice, file, mode, configuration)
         }
+
+        /**
+         * Opens a webcam or video device in [deviceMode], a mode from [listDeviceModes]. The device delivers images
+         * of the size and in the pixel format or codec of the mode, at the highest frame rate of the mode.
+         * @param deviceName a machine-specific device name
+         * @param mode which streams should be opened and played
+         * @param configuration optional video player configuration
+         * @return a ready-to-play video player on success
+         */
+        fun fromDevice(
+            audioDevice: AudioDevice?,
+            deviceName: String = defaultDevice(),
+            deviceMode: VideoDeviceMode,
+            mode: PlayMode = PlayMode.VIDEO,
+            configuration: VideoPlayerConfiguration = VideoPlayerConfiguration.live()
+        ): VideoPlayerFFMPEG = fromDevice(
+            audioDevice, deviceName, mode, deviceMode.maxFrameRate, deviceMode.width, deviceMode.height,
+            configuration, deviceMode.pixelFormat, deviceMode.codec
+        )
 
         /**
          * Returns machine-specific default device
