@@ -264,6 +264,7 @@ class ApplicationWindowSDL(
         }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
         Driver.instance.destroyContext(window)
+        SDL_GL_DestroyContext(glContext)
 
         application.windowsById.remove(SDL_GetWindowID(window))
         application.windows.remove(this)

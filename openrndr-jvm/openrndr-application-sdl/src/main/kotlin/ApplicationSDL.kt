@@ -13,6 +13,7 @@ import org.lwjgl.opengles.GLES30
 import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
 import org.lwjgl.sdl.SDLClipboard.SDL_SetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
+import org.lwjgl.sdl.SDLInit.SDL_Quit
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
 import org.lwjgl.sdl.SDLKeycode.*
@@ -822,7 +823,20 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         for (window in windows) {
             window.destroy()
         }
+        shutdown()
+    }
 
+    /**
+     * Destroys the primary context and window and shuts SDL down. EGL is only terminated by [SDL_Quit], some EGL
+     * drivers crash at exit when it was not.
+     */
+    private fun shutdown() {
+        SDL_GL_MakeCurrent(0L, 0L)
+        SDL_GL_DestroyContext(primaryGlContext)
+        SDL_DestroyWindow(primaryWindow)
+        primaryGlContext = 0L
+        primaryWindow = 0L
+        SDL_Quit()
     }
 
 
