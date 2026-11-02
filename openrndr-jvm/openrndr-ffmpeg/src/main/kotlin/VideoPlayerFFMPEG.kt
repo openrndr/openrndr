@@ -171,7 +171,7 @@ internal class AVFile(
     }
 
     fun dispose() {
-        avformat_free_context(context)
+        avformat_close_input(context)
     }
 }
 
