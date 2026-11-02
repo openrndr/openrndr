@@ -22,13 +22,13 @@ variants {
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
         dependencies {
             runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":linux-arm64")
-            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-arm64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-arm64-gpl")
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.X86_64) {
         dependencies {
             runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":linux-x86_64")
-            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-x86_64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-x86_64-gpl")
         }
     }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.ARM64) {
