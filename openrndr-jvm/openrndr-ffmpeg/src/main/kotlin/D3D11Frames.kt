@@ -14,27 +14,8 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.D3D11TextureImporter
 import org.openrndr.draw.D3D11TextureImporterFactory
-import kotlin.math.min
 
 private val logger = KotlinLogging.logger { }
-
-/**
- * The number of decoded D3D11VA frames that are queued, the frames are kept in the fixed size surface pool of the
- * decoder
- */
-private const val MAX_QUEUED_FRAMES = 16
-
-/** the D3D11VA frames the decoder needs besides the queued frames: the frame that is shown and spare frames */
-private const val EXTRA_POOL_FRAMES = 4
-
-internal fun d3d11QueueSize(configuration: VideoPlayerConfiguration) =
-    min(configuration.videoFrameQueueSize, MAX_QUEUED_FRAMES)
-
-/**
- * The surfaces to add to the pool of a D3D11VA decoder that queues its frames
- */
-internal fun d3d11ExtraPoolFrames(configuration: VideoPlayerConfiguration) =
-    d3d11QueueSize(configuration) + configuration.displayQueueSize + EXTRA_POOL_FRAMES
 
 // DXGI_FORMAT
 private const val DXGI_FORMAT_R10G10B10A2_UNORM = 24

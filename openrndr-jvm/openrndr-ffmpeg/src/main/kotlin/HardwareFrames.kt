@@ -4,6 +4,7 @@ import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.lwjgl.system.JNI
 import org.lwjgl.system.macosx.MacOSXLibrary
 import kotlin.jvm.JvmRecord
+import kotlin.math.min
 
 /** kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange and FullRange, NV12 */
 private const val PIXEL_FORMAT_420V = 0x34323076
@@ -12,6 +13,27 @@ private const val PIXEL_FORMAT_420F = 0x34323066
 /** kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange and FullRange, P010 */
 private const val PIXEL_FORMAT_X420 = 0x78343230
 private const val PIXEL_FORMAT_XF20 = 0x78663230
+
+/**
+ * The number of decoded D3D11VA and VAAPI frames that are queued, the frames are kept in the fixed size surface pool
+ * of the decoder
+ */
+private const val MAX_QUEUED_POOL_FRAMES = 16
+
+/** the pool frames the decoder needs besides the queued frames: the frame that is shown and spare frames */
+private const val EXTRA_POOL_FRAMES = 4
+
+/**
+ * The size of the video queue of a decoder whose queued frames hold surfaces of its fixed size pool
+ */
+internal fun pooledFramesQueueSize(configuration: VideoPlayerConfiguration) =
+    min(configuration.videoFrameQueueSize, MAX_QUEUED_POOL_FRAMES)
+
+/**
+ * The surfaces to add to the fixed size pool of a decoder that queues its frames
+ */
+internal fun pooledFramesExtraPoolSize(configuration: VideoPlayerConfiguration) =
+    pooledFramesQueueSize(configuration) + configuration.displayQueueSize + EXTRA_POOL_FRAMES
 
 /**
  * The functions of the CoreVideo framework

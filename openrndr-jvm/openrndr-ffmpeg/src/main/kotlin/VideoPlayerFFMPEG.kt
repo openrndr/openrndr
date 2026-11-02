@@ -21,6 +21,8 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.D3D11TextureImporterFactory
+import org.openrndr.draw.DmaBufImporter
+import org.openrndr.draw.DmaBufImporterFactory
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.IOSurfaceImporter
 import org.openrndr.draw.IOSurfaceImporterFactory
@@ -210,7 +212,8 @@ class VideoPlayerConfiguration {
 
     /**
      * Keep hardware decoded frames on the GPU when the driver can import them, this is the case on macOS with
-     * ANGLE and on Windows with OpenGL drivers that support WGL_NV_DX_interop2. The frames are then copied to
+     * ANGLE, on Windows with OpenGL drivers that support WGL_NV_DX_interop2 and on Linux with VAAPI and EGL
+     * contexts that support EGL_EXT_image_dma_buf_import. The frames are then copied to
      * [VideoPlayerFFMPEG.colorBuffer] on the GPU.
      */
     var useZeroCopyFrames = true
@@ -302,6 +305,10 @@ class VideoPlayerFFMPEG private constructor(
 
     /** converts D3D11VA frames that are kept on the GPU, null when frames are converted on the CPU */
     private var d3d11FrameConverter: D3D11FrameConverter? = null
+
+    /** imports VAAPI frames that are kept on the GPU, null when frames are converted on the CPU */
+    private var dmaBufImporter: DmaBufImporter? = null
+    private var vaapiImportFailed = false
     private val frameConverter = FrameConverter()
 
     private var audioThread: Thread? = null
@@ -535,6 +542,9 @@ class VideoPlayerFFMPEG private constructor(
                     PlatformType.WINDOWS -> d3d11FrameConverter = (Driver.instance as? D3D11TextureImporterFactory)
                         ?.takeIf { it.supportsD3D11TextureImport }?.let { D3D11FrameConverter(it) }
 
+                    PlatformType.GENERIC -> dmaBufImporter =
+                        (Driver.instance as? DmaBufImporterFactory)?.createDmaBufImporter()
+
                     else -> {}
                 }
             }
@@ -542,7 +552,8 @@ class VideoPlayerFFMPEG private constructor(
             val (decoder, info) =
                 Decoder.fromContext(
                     statistics, configuration, file.context, mode.useVideo, mode.useAudio,
-                    outputHardwareFrames = ioSurfaceImporter != null || d3d11FrameConverter != null
+                    outputHardwareFrames = ioSurfaceImporter != null || d3d11FrameConverter != null ||
+                            dmaBufImporter != null
                 )
 
             this.decoder = decoder
@@ -848,6 +859,27 @@ class VideoPlayerFFMPEG private constructor(
             importer.unlock(source)
             // locking waits for the conversion, start converting the next frame while this one is shown
             synchronized(displayQueue) { displayQueue.peek() }?.let { converter.prepare(it) }
+        } else if (hardwareFrame != null && hardwareFrame.format() == AV_PIX_FMT_VAAPI) {
+            val importer = dmaBufImporter ?: error("no importer for VAAPI frames")
+            val imported = importVaapiFrame(hardwareFrame, importer)
+            if (imported == null) {
+                // frames that were queued before the decoder stopped keeping frames on the GPU are skipped
+                if (!vaapiImportFailed) {
+                    logger.error { "failed to import VAAPI frame, converting frames on the CPU" }
+                    vaapiImportFailed = true
+                    decoder?.stopKeepingFramesOnGpu()
+                }
+                frame.unref()
+                return
+            }
+            frameConverter.convertPlanes(
+                frame.color, vaapiPlanarFormat(hardwareFrame), imported.luma, imported.chroma, target
+            )
+            // the decoder may reuse the frame's surface once the copy has finished
+            importer.runWhenGpuFinished {
+                imported.release()
+                frame.unref()
+            }
         } else if (hardwareFrame != null) {
             val importer = ioSurfaceImporter ?: error("no importer for hardware frames")
             val ioSurface = CoreVideo.ioSurface(hardwareFrame)
@@ -882,6 +914,7 @@ class VideoPlayerFFMPEG private constructor(
     @OptIn(InternalCoroutinesApi::class)
     private fun update(blockUntilFinished: Boolean) {
         ioSurfaceImporter?.update()
+        dmaBufImporter?.update()
         if (audioOnly) {
             // playback ended when all decoded audio has been played
             if (state == State.PLAYING && endOfFileReached && seekPositions.isEmpty() &&
@@ -1105,6 +1138,7 @@ class VideoPlayerFFMPEG private constructor(
         }
         ioSurfaceImporter?.close()
         d3d11FrameConverter?.close()
+        dmaBufImporter?.close()
         frameConverter.close()
 
         colorBuffer?.destroy()

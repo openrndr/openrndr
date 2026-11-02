@@ -92,9 +92,9 @@ internal class Decoder(
                     )
 
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
-                    PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_OPENCL)
+                    PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI, AV_HWDEVICE_TYPE_OPENCL)
                     PlatformType.BROWSER -> error("browser not supported")
-                }.reversed()
+                }
 
                 val foundHW = mutableListOf<Int>()
                 var next = AV_HWDEVICE_TYPE_NONE
@@ -105,31 +105,33 @@ internal class Decoder(
                     }
                 } while (next != AV_HWDEVICE_TYPE_NONE)
 
-                hwType = (foundHW.map { Pair(it, preferredHW.indexOf(it)) })
-                    .filter { it.second >= 0 }
-                    .maxByOrNull { it.second }
-                    ?.first ?: AV_HWDEVICE_TYPE_NONE
-
-                if (hwType != AV_HWDEVICE_TYPE_NONE) {
+                // the first preferred device that can be created, VAAPI devices can not be created on systems
+                // without a VAAPI driver
+                for (type in preferredHW.filter { it in foundHW }) {
                     val hwContextPtr = PointerPointer<AVHWDeviceContext>(1)
-                    val name = av_hwdevice_get_type_name(hwType).string
+                    val name = av_hwdevice_get_type_name(type).string
                     logger.debug { "creating hw device context (type: $name)" }
-                    av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
-                    val hwContext = AVHWDeviceContext(hwContextPtr[0])
-                    hwDeviceContext = AVBufferRef(hwContext)
+                    val result = av_hwdevice_ctx_create(hwContextPtr, type, null, null, 0)
+                    if (result != 0) {
+                        logger.info { "failed to create hw device context (type: $name): ${result.toAVError()}" }
+                        continue
+                    }
+                    hwType = type
+                    hwDeviceContext = AVBufferRef(hwContextPtr[0])
+                    break
                 }
             }
 
-            // only VideoToolbox and D3D11VA frames can stay on the GPU
-            val keepFramesOnGpu = outputHardwareFrames &&
-                    (hwType == AV_HWDEVICE_TYPE_VIDEOTOOLBOX || hwType == AV_HWDEVICE_TYPE_D3D11VA)
+            // only VideoToolbox, D3D11VA and VAAPI frames can stay on the GPU
+            val keepFramesOnGpu = outputHardwareFrames && (hwType == AV_HWDEVICE_TYPE_VIDEOTOOLBOX ||
+                    hwType == AV_HWDEVICE_TYPE_D3D11VA || hwType == AV_HWDEVICE_TYPE_VAAPI)
 
             // the hardware device has to be set before the codec is opened
             val videoContext = videoStream?.openCodec { context ->
                 hwDeviceContext?.let { context.hw_device_ctx(av_buffer_ref(it)) }
-                if (keepFramesOnGpu && hwType == AV_HWDEVICE_TYPE_D3D11VA) {
+                if (keepFramesOnGpu && hwType.hasFixedSizePool()) {
                     // queued frames hold surfaces of the decoder's pool, which does not grow
-                    context.extra_hw_frames(d3d11ExtraPoolFrames(configuration))
+                    context.extra_hw_frames(pooledFramesExtraPoolSize(configuration))
                 }
             }
             val audioContext = audioStream?.openCodec()
