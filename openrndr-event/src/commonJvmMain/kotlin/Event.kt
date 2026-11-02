@@ -29,7 +29,10 @@ actual class Event<T> actual constructor(val name: String, var postpone: Boolean
     private val messages = mutableListOf<T>()
     actual val listeners: MutableList<(T) -> Unit> = CopyOnWriteArrayList()
 
-    private val oneShotListeners = CopyOnWriteArrayList<(T) -> Unit>()
+    actual val oneShotListeners: MutableList<(T) -> Unit> = CopyOnWriteArrayList()
+
+    actual val hasListeners: Boolean
+        get() = listeners.isNotEmpty() || oneShotListeners.isNotEmpty()
 
 
     val timeSinceLastTrigger: Duration

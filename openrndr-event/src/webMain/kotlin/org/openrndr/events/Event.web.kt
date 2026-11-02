@@ -7,7 +7,10 @@ private val logger = KotlinLogging.logger {}
 
 actual class Event<T> actual constructor(val name: String, val postpone: Boolean): AutoCloseable {
     actual val listeners: MutableList<(T) -> Unit> = mutableListOf()
-    private val oneShotListeners: MutableList<(T) -> Unit> = mutableListOf()
+    actual val oneShotListeners: MutableList<(T) -> Unit> = mutableListOf()
+
+    actual val hasListeners: Boolean
+        get() = listeners.isNotEmpty() || oneShotListeners.isNotEmpty()
     private val messages = mutableListOf<T>()
 
     actual fun trigger(message: T) {

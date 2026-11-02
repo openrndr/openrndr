@@ -3,6 +3,16 @@ package org.openrndr.events
 expect class Event<T>(name: String = "<unnamed-event>", postpone: Boolean = false): AutoCloseable {
     val listeners: MutableList<(T) -> Unit>
 
+    /**
+     * the listeners that are removed after they received a message, added with [listenOnce]
+     */
+    val oneShotListeners: MutableList<(T) -> Unit>
+
+    /**
+     * does the event have [listeners] or [oneShotListeners]?
+     */
+    val hasListeners: Boolean
+
     fun trigger(message: T)
     fun deliver()
 
