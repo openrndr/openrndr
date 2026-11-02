@@ -7,9 +7,7 @@ import org.lwjgl.BufferUtils
 import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.platform.Platform
-import org.openrndr.platform.PlatformType
 import java.io.File
-import kotlin.math.roundToInt
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.Buffer
@@ -20,6 +18,10 @@ import java.nio.channels.WritableByteChannel
 private val logger = KotlinLogging.logger {}
 
 private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
+
+/** the directory of the last ffmpeg executable that was found, it is logged when it changes */
+@Volatile
+private var loggedFfmpegDirectory: File? = null
 
 /**
  * Finds the ffmpeg executable the user provided, see [VideoWriter.findFfmpeg]
@@ -33,7 +35,10 @@ internal fun findFfmpegFile(): File? {
         null -> {
             val directory = (listOf(File(".")) + Platform.path()).find { File(it, ffmpegExe).exists() }
             if (directory != null) {
-                logger.info { "ffmpeg found in '$directory'" }
+                if (directory != loggedFfmpegDirectory) {
+                    logger.info { "ffmpeg found in '$directory'" }
+                    loggedFfmpegDirectory = directory
+                }
                 File(directory, ffmpegExe)
             } else {
                 null
@@ -55,9 +60,11 @@ internal fun findFfmpegFile(): File? {
 }
 
 /**
- * The ffmpeg executable that [VideoWriter] runs
+ * The ffmpeg executable that [VideoWriter] runs: the executable [VideoWriter.findFfmpeg] finds, or the built-in
+ * ffmpeg when it finds none
+ * @since openrndr 0.5.1
  */
-internal fun ffmpegBinary(): String = findFfmpegFile()?.toString() ?: builtInFfmpegBinary
+fun ffmpegExecutable(): String = findFfmpegFile()?.toString() ?: builtInFfmpegBinary
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
@@ -152,33 +159,21 @@ class H264Profile : VideoWriterProfile() {
     /**
      * the DRM render node that the VAAPI encoder encodes with, set by [hardwareAcceleration]
      */
-    var vaapiDevice = "/dev/dri/renderD128"
+    var vaapiDevice = HardwareEncoder.DEFAULT_VAAPI_DEVICE
 
     /**
      * Encode with a hardware encoder, which uses a fraction of the CPU time of the software encoder: VideoToolbox on
      * macOS, on Linux NVENC on NVIDIA GPUs or VAAPI on Intel and AMD GPUs, and on Windows NVENC on NVIDIA GPUs, Quick
      * Sync on Intel GPUs, AMF on AMD GPUs or else the hardware encoder of Media Foundation. On Linux and Windows the
      * encoders are tried with the ffmpeg executable that [VideoWriter] runs, the software encoder is kept when none
-     * of them works.
+     * of them works, see [findHardwareEncoder].
      */
     fun hardwareAcceleration() {
-        when (Platform.type) {
-            PlatformType.MAC -> videoCodec = CODEC_H264_VIDEOTOOLBOX
-            PlatformType.GENERIC, PlatformType.WINDOWS -> findHardwareH264Encoder(ffmpegBinary())?.let {
-                videoCodec = it.codec
-                it.vaapiDevice?.let { device -> vaapiDevice = device }
-            }
-
-            else -> {}
+        findHardwareEncoder("h264")?.let {
+            videoCodec = it.codec
+            it.device?.let { device -> vaapiDevice = device }
         }
     }
-
-    /**
-     * the quantizer of NVENC, VAAPI and AMF, and the ICQ quality of Quick Sync, for [quality], from 51 to 4 where lower
-     * is better. A quality of 60 maps to 23, NVENC and Quick Sync then encode with about the structural similarity of
-     * the software encoder at its default constant rate factor.
-     */
-    private fun quantizer(quality: Int) = (51 - 0.47 * quality).roundToInt().coerceIn(0, 51)
 
 
     var pixelFormat = "yuv420p" as String?
@@ -201,17 +196,17 @@ class H264Profile : VideoWriterProfile() {
     val filters = mutableListOf("vflip")
 
     override fun arguments(): Array<String> {
+        val requestedEncoder = videoCodec?.let { HardwareEncoder.forCodec(it, vaapiDevice) }
         // NVENC encodes full chroma, the other hardware encoders do not
-        val nv12Codecs = listOf(CODEC_H264_VAAPI, CODEC_H264_QSV, CODEC_H264_AMF, CODEC_H264_MF)
-        val videoCodec = if (fullChroma && (videoCodec == CODEC_H264_VIDEOTOOLBOX || videoCodec in nv12Codecs)) {
+        val encoder = if (fullChroma && requestedEncoder != null && !requestedEncoder.encodesFullChroma) {
             logger.warn { "$videoCodec does not encode full chroma, using $CODEC_LIBX264" }
-            CODEC_LIBX264
+            null
         } else {
-            videoCodec
+            requestedEncoder
         }
-        val vaapi = videoCodec == CODEC_H264_VAAPI
-        // VAAPI encodes frames that are uploaded to the GPU as NV12, Quick Sync, AMF and Media Foundation encode NV12
-        val pixelFormat = if (vaapi) null else if (fullChroma) "yuv444p" else if (videoCodec in nv12Codecs) "nv12" else pixelFormat
+        val videoCodec = if (requestedEncoder != null && encoder == null) CODEC_LIBX264 else videoCodec
+        val requestedPixelFormat = if (fullChroma) "yuv444p" else pixelFormat
+        val input = encoder?.input(requestedPixelFormat ?: "yuv420p") ?: EncoderInput(requestedPixelFormat, emptyList())
 
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf(
@@ -233,43 +228,18 @@ class H264Profile : VideoWriterProfile() {
         // the filters are not changed, the arguments can be requested more than once
         val filters = filters + rotation.filters +
                 (if (highPrecisionChroma) listOf("colorspace=bt709:iall=bt601-6-625:fast=1") else emptyList()) +
-                (if (vaapi) listOf("format=nv12", "hwupload") else emptyList())
+                input.filters
 
         @Suppress("DEPRECATION")
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
-        val pixelFormatArguments = pixelFormat?.let { arrayOf("-pix_fmt", it) } ?: emptyArray()
+        val pixelFormatArguments = input.pixelFormat?.let { arrayOf("-pix_fmt", it) } ?: emptyArray()
         val videoCodecArguments = videoCodec?.let { arrayOf("-vcodec", it) } ?: emptyArray()
         val filterArguments = arrayOf("-vf", filters.joinToString(","))
 
-        // VideoToolbox has no constant rate factor and presets, it encodes with a constant quality, and falls back
-        // to its software encoder on Macs without a hardware encoder
-        // NVENC, VAAPI and AMF encode with a constant quantizer, NVENC varies it per frame type
-        // Quick Sync encodes with its intelligent constant quality, Media Foundation with its quality from 1 to 100
-        val encoderArguments = if (videoCodec?.endsWith("_videotoolbox") == true) {
-            arrayOf("-allow_sw", "1") + (quality?.let { arrayOf("-q:v", it.toString()) } ?: emptyArray())
-        } else if (videoCodec?.endsWith("_nvenc") == true) {
-            arrayOf("-preset", "p5", "-tune", "hq") +
-                    (quality?.let { arrayOf("-rc", "vbr", "-cq", quantizer(it).toString(), "-b:v", "0") } ?: emptyArray())
-        } else if (vaapi) {
-            arrayOf("-vaapi_device", vaapiDevice) +
-                    (quality?.let { arrayOf("-rc_mode", "CQP", "-qp", quantizer(it).toString()) } ?: emptyArray())
-        } else if (videoCodec == CODEC_H264_QSV) {
-            arrayOf("-preset", "slow") +
-                    (quality?.let { arrayOf("-global_quality", quantizer(it).toString()) } ?: emptyArray())
-        } else if (videoCodec == CODEC_H264_AMF) {
-            arrayOf("-quality", "quality") +
-                    (quality?.let {
-                        val qp = quantizer(it).toString()
-                        arrayOf("-rc", "cqp", "-qp_i", qp, "-qp_p", qp, "-qp_b", qp)
-                    } ?: emptyArray())
-        } else if (videoCodec == CODEC_H264_MF) {
-            // without -hw_encoding Media Foundation falls back to its software encoder
-            arrayOf("-hw_encoding", "1") +
-                    (quality?.let { arrayOf("-rate_control", "quality", "-quality", it.toString()) } ?: emptyArray())
-        } else {
-            (constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()) +
-                    (preset?.let { arrayOf("-preset", it) } ?: emptyArray())
-        }
+        // the hardware encoders have no constant rate factor and presets of libx264, they encode with a constant quality
+        val encoderArguments = encoder?.arguments(quality)?.toTypedArray()
+            ?: ((constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()) +
+                    (preset?.let { arrayOf("-preset", it) } ?: emptyArray()))
 
         val arguments =
             hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + encoderArguments + userArguments
@@ -386,7 +356,7 @@ class VideoWriter(
 
         val command = mutableListOf<String>()
 
-        command.add(ffmpegBinary())
+        command.add(ffmpegExecutable())
         command.addAll(listOf(*preamble))
         command.addAll(listOf(*profileArguments))
 
