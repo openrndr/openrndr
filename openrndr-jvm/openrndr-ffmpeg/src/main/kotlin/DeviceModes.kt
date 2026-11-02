@@ -8,11 +8,8 @@ import org.bytedeco.ffmpeg.global.avformat.av_find_input_format
 import org.bytedeco.ffmpeg.global.avformat.avformat_alloc_context
 import org.bytedeco.ffmpeg.global.avformat.avformat_close_input
 import org.bytedeco.ffmpeg.global.avformat.avformat_open_input
-import org.bytedeco.ffmpeg.global.avutil.AV_LOG_INFO
 import org.bytedeco.ffmpeg.global.avutil.av_dict_free
 import org.bytedeco.ffmpeg.global.avutil.av_dict_set
-import org.bytedeco.ffmpeg.global.avutil.av_log_get_level
-import org.bytedeco.ffmpeg.global.avutil.av_log_set_level
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 
@@ -59,21 +56,8 @@ internal fun listVideoDeviceModes(deviceName: String): List<VideoDeviceMode> {
         logger.warn { "input format $formatName is not available" }
         return emptyList()
     }
-    val lines = withLogLevel(AV_LOG_INFO) { logLines { logModes(format, url, options) } }
+    val lines = logLines { logModes(format, url, options) }
     return if (Platform.type == PlatformType.WINDOWS) parseDshowModes(lines) else parseV4l2Modes(lines)
-}
-
-/**
- * Runs [block] with FFmpeg logging at [level] or more, FFmpeg only passes messages up to its level to the callback
- */
-private fun <T> withLogLevel(level: Int, block: () -> T): T {
-    val previous = av_log_get_level()
-    if (previous < level) av_log_set_level(level)
-    try {
-        return block()
-    } finally {
-        av_log_set_level(previous)
-    }
 }
 
 /**

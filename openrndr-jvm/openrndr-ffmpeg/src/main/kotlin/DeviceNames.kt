@@ -4,15 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.avdevice.AVDeviceInfoList
 import org.bytedeco.ffmpeg.avformat.AVInputFormat
 import org.bytedeco.ffmpeg.avutil.AVDictionary
-import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer
+import org.bytedeco.ffmpeg.avutil.LogCallback
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_free_list_devices
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_list_input_sources
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all
 import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.BytePointer
-import org.bytedeco.javacpp.IntPointer
-import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -120,35 +118,44 @@ private fun logDevices(format: AVInputFormat, url: String) {
     avformat_close_input(context)
 }
 
+/** the "[name @ address] " prefixes FFmpeg puts before the lines it logs, nested contexts have more than one */
+private val logPrefix = Regex("""^(\[[^\]]* @ 0x[0-9a-fA-F]+\] )+""")
+
 /**
- * Runs [block] and returns the lines that FFmpeg logs while it runs, without the "[name @ address]" prefixes
+ * Runs [block] and returns the lines that FFmpeg logs at [level] or more while it runs, without the
+ * "[name @ address]" prefixes
  */
-internal fun logLines(block: () -> Unit): List<String> {
+internal fun logLines(level: Int = AV_LOG_INFO, block: () -> Unit): List<String> {
     val text = StringBuilder()
-    val line = BytePointer(1024)
-    val printPrefix = IntPointer(1)
-    val callback = object : Callback_Pointer_int_String_Pointer() {
-        override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
+    // the native callback of the presets formats the messages, it passes the messages up to FFmpeg's log level
+    val callback = object : LogCallback() {
+        override fun call(level: Int, msg: BytePointer) {
             synchronized(text) {
-                printPrefix.put(0)
-                // the length of the formatted line, which is truncated when it does not fit
-                val length = av_log_format_line2(source, level, formatStr, params, line, 1024, printPrefix)
-                if (length > 0) {
-                    text.append(line.string.substring(0, minOf(length, 1023)))
-                }
+                text.append(msg.getString(Charsets.UTF_8))
             }
         }
     }
-    av_log_set_callback(callback)
+    setLogCallback(callback)
     try {
-        block()
+        withLogLevel(level, block)
     } finally {
         DefaultLogger.install()
         callback.close()
     }
-    line.close()
-    printPrefix.close()
-    return text.lines()
+    return synchronized(text) { text.lines() }.map { it.replace(logPrefix, "") }
+}
+
+/**
+ * Runs [block] with FFmpeg logging at [level] or more
+ */
+private fun <T> withLogLevel(level: Int, block: () -> T): T {
+    val previous = av_log_get_level()
+    if (previous < level) av_log_set_level(level)
+    try {
+        return block()
+    } finally {
+        av_log_set_level(previous)
+    }
 }
 
 /**

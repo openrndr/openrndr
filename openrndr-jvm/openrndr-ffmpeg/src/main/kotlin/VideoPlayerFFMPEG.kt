@@ -7,7 +7,7 @@ import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
-import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer
+import org.bytedeco.ffmpeg.avutil.LogCallback
 import org.bytedeco.ffmpeg.global.avcodec.*
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all
 import org.bytedeco.ffmpeg.global.avformat.*
@@ -267,12 +267,17 @@ class VideoPlayerConfiguration {
     var audioChannels = 2
 }
 
-internal object DefaultLogger : Callback_Pointer_int_String_Pointer() {
-    override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
-        av_log_default_callback(source, level, formatStr, params)
+/**
+ * Writes the lines FFmpeg logs to the standard error stream, like FFmpeg's default log callback. The lines are
+ * formatted by the native callback of the presets: a callback that receives the `va_list` of the message can not
+ * pass it on where `va_list` is an array, like on x86-64 Linux, where formatting it crashes.
+ */
+internal object DefaultLogger : LogCallback() {
+    override fun call(level: Int, msg: BytePointer) {
+        System.err.print(msg.getString(Charsets.UTF_8))
     }
 
-    fun install() = av_log_set_callback(this)
+    fun install() = setLogCallback(this)
 }
 
 /**
