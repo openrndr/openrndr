@@ -1,5 +1,7 @@
 package org.openrndr.draw
 
+import org.openrndr.utils.collections.LRUCache
+
 /**
  * A parameter of a shade style whose value is resolved in the shader: read from a texture, computed by GLSL code,
  * or a GLSL function. Shade style code reads it like any parameter, as `p_<name>`, and calls a function as
@@ -21,6 +23,19 @@ sealed class DynamicParameter {
 }
 
 /**
+ * The parameters of the code of a [GlslParameter] or [GlslFunction]
+ */
+internal class ParameterScope : StyleParameters {
+    /** counts the changes of the structure of the parameters: their names and types */
+    var structureVersion = 0L
+        private set
+
+    override var parameterValues: MutableMap<String, Any> = mutableMapOf()
+    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { structureVersion++ }
+    override var textureBaseIndex: Int = 0
+}
+
+/**
  * A parameter read from [texture] at [coordinate], a GLSL expression of the shade style language. By default the
  * texture covers the bounds of what is drawn, the way [Drawer.image] shows it, and in filters the input.
  */
@@ -29,7 +44,7 @@ class TextureParameter(
     override val glslType: String,
     val coordinate: String = DEFAULT_COORDINATE
 ) : DynamicParameter() {
-    override val signature: String get() = "texture $glslType $coordinate"
+    override val signature: String get() = "texture $glslType ${texture.type.colorSampling} $coordinate"
 
     companion object {
         /** shows the texture over the bounds of what is drawn like [Drawer.image] does, and like the input of filters */
@@ -41,11 +56,13 @@ class TextureParameter(
  * A parameter computed by GLSL [code]: an expression, or a function body when it contains `return`. The code reads
  * its own parameters as `p_<name>`, which are set on this object and can be dynamic themselves.
  */
-class GlslParameter(
+class GlslParameter internal constructor(
     override val glslType: String,
     val code: String,
-    internal val scope: ShadeStyle = ShadeStyle()
+    internal val scope: ParameterScope
 ) : DynamicParameter(), StyleParameters by scope {
+    constructor(glslType: String, code: String) : this(glslType, code, ParameterScope())
+
     override val signature: String get() = "glsl $glslType $code"
 }
 
@@ -76,12 +93,14 @@ inline fun <reified T> glslParameter(code: String, parameters: StyleParameters.(
  * [code] is an expression or a function body with `return`, it reads its own parameters as `p_<name>`, which are set
  * on this object and can be dynamic themselves. Shade style code calls it as `p_<name>(arguments)`.
  */
-class GlslFunction(
+class GlslFunction internal constructor(
     override val glslType: String,
     val arguments: String,
     val code: String,
-    internal val scope: ShadeStyle = ShadeStyle()
+    internal val scope: ParameterScope
 ) : DynamicParameter(), StyleParameters by scope {
+    constructor(glslType: String, arguments: String, code: String) : this(glslType, arguments, code, ParameterScope())
+
     override val signature: String get() = "function $glslType ($arguments) $code"
 
     /** the number of arguments */
@@ -192,7 +211,7 @@ private val contextValues = listOf(
 )
 
 /** the parameters of the code of a GLSL parameter or function */
-private fun scopeOf(value: Any): ShadeStyle? = when (value) {
+private fun scopeOf(value: Any): ParameterScope? = when (value) {
     is GlslParameter -> value.scope
     is GlslFunction -> value.scope
     else -> null
@@ -236,7 +255,7 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
      * Namespaces the parameters of the code with the key of this parameter. Nested dynamic parameters are macros that
      * call their resolvers with the context arguments of this resolver.
      */
-    fun resolveScope(scope: ShadeStyle): Map<String, String> {
+    fun resolveScope(scope: ParameterScope): Map<String, String> {
         val renames = contextRenames.toMutableMap()
         for ((name, nested) in scope.parameterValues) {
             val nestedKey = "${key}_$name"
@@ -335,6 +354,49 @@ private fun resolveParameters(values: Map<String, Any>, types: Map<String, Strin
     return ParameterResolution(uniformTypes, resolvers)
 }
 
+/**
+ * Resolutions by the structure they were made for, so that equal shade styles made anew, for example every frame,
+ * do not resolve their dynamic parameters again
+ */
+private val resolutionCache = LRUCache<String, Pair<Map<String, String>, List<String>>>(256)
+
+/** describes the structure of parameters: their names and types, the signatures of dynamic parameters, recursively */
+private fun structuralSignature(values: Map<String, Any>, types: Map<String, String>): String = buildString {
+    for ((key, value) in values) {
+        append(key).append('=')
+        if (value is DynamicParameter) {
+            append(value.signature)
+            scopeOf(value)?.let { scope ->
+                append('{').append(structuralSignature(scope.parameterValues, scope.parameterTypes)).append('}')
+            }
+        } else {
+            append(types[key])
+        }
+        append(';')
+    }
+}
+
+/**
+ * The uniform types and the resolver code of every stage, the code of a stage is the list of code that reads
+ * parameters in that stage
+ */
+private fun cachedResolution(
+    values: Map<String, Any>,
+    types: Map<String, String>,
+    stages: List<List<String?>>
+): Pair<Map<String, String>, List<String>> {
+    val key = buildString {
+        for (stage in stages) {
+            for (code in stage) append(code ?: "").append('\u0001')
+            append('\u0002')
+        }
+        append(structuralSignature(values, types))
+    }
+    return resolutionCache.get(key) ?: resolveParameters(values, types).let { resolution ->
+        (resolution.uniformTypes to stages.map { resolution.code(*it.toTypedArray()) }).also { resolutionCache.set(key, it) }
+    }
+}
+
 private fun withResolvers(resolvers: String, preamble: String?): String? =
     if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
 
@@ -354,13 +416,16 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
     }
     resolved.versions = versions
 
-    val resolution = resolveParameters(parameterValues, parameterTypes)
+    val (uniformTypes, stageResolvers) = cachedResolution(
+        parameterValues, parameterTypes,
+        listOf(listOf(vertexPreamble, vertexTransform), listOf(geometryPreamble, geometryTransform), listOf(fragmentPreamble, fragmentTransform))
+    )
     resolved.parameterTypes.clear()
-    resolved.parameterTypes.putAll(resolution.uniformTypes)
+    resolved.parameterTypes.putAll(uniformTypes)
 
-    resolved.vertexPreamble = withResolvers(resolution.code(vertexPreamble, vertexTransform), vertexPreamble)
-    resolved.geometryPreamble = withResolvers(resolution.code(geometryPreamble, geometryTransform), geometryPreamble)
-    resolved.fragmentPreamble = withResolvers(resolution.code(fragmentPreamble, fragmentTransform), fragmentPreamble)
+    resolved.vertexPreamble = withResolvers(stageResolvers[0], vertexPreamble)
+    resolved.geometryPreamble = withResolvers(stageResolvers[1], geometryPreamble)
+    resolved.fragmentPreamble = withResolvers(stageResolvers[2], fragmentPreamble)
     resolved.vertexTransform = vertexTransform
     resolved.geometryTransform = geometryTransform
     resolved.fragmentTransform = fragmentTransform
@@ -393,15 +458,17 @@ fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
     if (parameterValues.values.none { it is DynamicParameter }) {
         return this
     }
-    val resolution = resolveParameters(parameterValues, parameterTypes)
+    val (uniformTypes, stageResolvers) = cachedResolution(
+        parameterValues, parameterTypes, listOf(listOf(computePreamble, computeTransform))
+    )
 
     val original = this
     return ComputeStyle().apply {
-        computePreamble = withResolvers(resolution.code(original.computePreamble, original.computeTransform), original.computePreamble) ?: ""
+        computePreamble = withResolvers(stageResolvers[0], original.computePreamble) ?: ""
         computeTransform = original.computeTransform
         workGroupSize = original.workGroupSize
         textureBaseIndex = original.textureBaseIndex
-        parameterTypes.putAll(resolution.uniformTypes)
+        parameterTypes.putAll(uniformTypes)
         parameterValues = ResolvedValues { original.parameterValues }
         bufferValues = original.bufferValues
         buffers.putAll(original.buffers)
