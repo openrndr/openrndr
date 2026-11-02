@@ -9,6 +9,7 @@ import org.openrndr.draw.ColorBuffer
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import java.io.File
+import kotlin.math.roundToInt
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.Buffer
@@ -19,6 +20,44 @@ import java.nio.channels.WritableByteChannel
 private val logger = KotlinLogging.logger {}
 
 private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
+
+/**
+ * Finds the ffmpeg executable the user provided, see [VideoWriter.findFfmpeg]
+ * @return the executable, or null when the built-in ffmpeg is used
+ */
+internal fun findFfmpegFile(): File? {
+    val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
+
+    return when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
+        // 1, 2. `-Dorg.openrndr.ffmpeg` not provided by the user
+        null -> {
+            val directory = (listOf(File(".")) + Platform.path()).find { File(it, ffmpegExe).exists() }
+            if (directory != null) {
+                logger.info { "ffmpeg found in '$directory'" }
+                File(directory, ffmpegExe)
+            } else {
+                null
+            }
+        }
+        // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
+        "jar" -> {
+            null
+        }
+        // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
+        else -> {
+            val specified = File(ffmpegPathArg)
+            require(specified.exists()) {
+                "file '$ffmpegPathArg' does not exist"
+            }
+            specified
+        }
+    }
+}
+
+/**
+ * The ffmpeg executable that [VideoWriter] runs
+ */
+internal fun ffmpegBinary(): String = findFfmpegFile()?.toString() ?: builtInFfmpegBinary
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
@@ -89,6 +128,7 @@ class H264Profile : VideoWriterProfile() {
     val CODEC_LIBX264 = "libx264"
     val CODEC_H264_NVENC = "h264_nvenc"
     val CODEC_H264_VIDEOTOOLBOX = "h264_videotoolbox"
+    val CODEC_H264_VAAPI = "h264_vaapi"
 
     var videoCodec = CODEC_LIBX264 as String?
 
@@ -101,20 +141,39 @@ class H264Profile : VideoWriterProfile() {
     var preset = null as String?
 
     /**
-     * constant quality of the VideoToolbox encoder, from 1 to 100 where higher is better, or null for its default
+     * constant quality of the hardware encoders, from 1 to 100 where higher is better, or null for their default
      * bitrate. The default of 60 is comparable to the default constant rate factor of the software encoder.
      */
     var quality = 60 as Int?
 
     /**
-     * Encode with the VideoToolbox encoder on macOS, which uses a fraction of the CPU time of the software encoder.
-     * On other platforms the encoder is not changed.
+     * the DRM render node that the VAAPI encoder encodes with, set by [hardwareAcceleration]
+     */
+    var vaapiDevice = "/dev/dri/renderD128"
+
+    /**
+     * Encode with a hardware encoder, which uses a fraction of the CPU time of the software encoder: VideoToolbox on
+     * macOS, and on Linux NVENC on NVIDIA GPUs or VAAPI on Intel and AMD GPUs. On Linux the encoders are tried with
+     * the ffmpeg executable that [VideoWriter] runs, the software encoder is kept when none of them works. On other
+     * platforms the encoder is not changed.
      */
     fun hardwareAcceleration() {
-        if (Platform.type == PlatformType.MAC) {
-            videoCodec = CODEC_H264_VIDEOTOOLBOX
+        when (Platform.type) {
+            PlatformType.MAC -> videoCodec = CODEC_H264_VIDEOTOOLBOX
+            PlatformType.GENERIC -> findLinuxH264Encoder(ffmpegBinary())?.let {
+                videoCodec = it.codec
+                it.vaapiDevice?.let { device -> vaapiDevice = device }
+            }
+
+            else -> {}
         }
     }
+
+    /**
+     * the quantizer of NVENC and VAAPI for [quality], from 51 to 4 where lower is better. A quality of 60 maps to 23,
+     * NVENC then encodes with the structural similarity of the software encoder at its default constant rate factor.
+     */
+    private fun quantizer(quality: Int) = (51 - 0.47 * quality).roundToInt().coerceIn(0, 51)
 
 
     var pixelFormat = "yuv420p" as String?
@@ -137,13 +196,16 @@ class H264Profile : VideoWriterProfile() {
     val filters = mutableListOf("vflip")
 
     override fun arguments(): Array<String> {
-        val videoCodec = if (fullChroma && videoCodec == CODEC_H264_VIDEOTOOLBOX) {
-            logger.warn { "$CODEC_H264_VIDEOTOOLBOX does not encode full chroma, using $CODEC_LIBX264" }
+        // NVENC encodes full chroma, VideoToolbox and VAAPI do not
+        val videoCodec = if (fullChroma && (videoCodec == CODEC_H264_VIDEOTOOLBOX || videoCodec == CODEC_H264_VAAPI)) {
+            logger.warn { "$videoCodec does not encode full chroma, using $CODEC_LIBX264" }
             CODEC_LIBX264
         } else {
             videoCodec
         }
-        val pixelFormat = if (fullChroma) "yuv444p" else pixelFormat
+        val vaapi = videoCodec == CODEC_H264_VAAPI
+        // VAAPI encodes frames that are uploaded to the GPU as NV12
+        val pixelFormat = if (vaapi) null else if (fullChroma) "yuv444p" else pixelFormat
 
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf(
@@ -164,7 +226,8 @@ class H264Profile : VideoWriterProfile() {
 
         // the filters are not changed, the arguments can be requested more than once
         val filters = filters + rotation.filters +
-                (if (highPrecisionChroma) listOf("colorspace=bt709:iall=bt601-6-625:fast=1") else emptyList())
+                (if (highPrecisionChroma) listOf("colorspace=bt709:iall=bt601-6-625:fast=1") else emptyList()) +
+                (if (vaapi) listOf("format=nv12", "hwupload") else emptyList())
 
         @Suppress("DEPRECATION")
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
@@ -174,8 +237,15 @@ class H264Profile : VideoWriterProfile() {
 
         // VideoToolbox has no constant rate factor and presets, it encodes with a constant quality, and falls back
         // to its software encoder on Macs without a hardware encoder
+        // NVENC and VAAPI encode with a constant quantizer, NVENC varies it per frame type
         val encoderArguments = if (videoCodec?.endsWith("_videotoolbox") == true) {
             arrayOf("-allow_sw", "1") + (quality?.let { arrayOf("-q:v", it.toString()) } ?: emptyArray())
+        } else if (videoCodec?.endsWith("_nvenc") == true) {
+            arrayOf("-preset", "p5", "-tune", "hq") +
+                    (quality?.let { arrayOf("-rc", "vbr", "-cq", quantizer(it).toString(), "-b:v", "0") } ?: emptyArray())
+        } else if (vaapi) {
+            arrayOf("-vaapi_device", vaapiDevice) +
+                    (quality?.let { arrayOf("-rc_mode", "CQP", "-qp", quantizer(it).toString()) } ?: emptyArray())
         } else {
             (constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()) +
                     (preset?.let { arrayOf("-preset", it) } ?: emptyArray())
@@ -242,34 +312,7 @@ class VideoWriter(
         this.filename = filename
     }
 
-    fun findFfmpeg(): File? {
-        val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
-
-        return when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
-            // 1, 2. `-Dorg.openrndr.ffmpeg` not provided by the user
-            null -> {
-                val directory = (listOf(File(".")) + Platform.path()).find { File(it, ffmpegExe).exists() }
-                if (directory != null) {
-                    logger.info { "ffmpeg found in '$directory'" }
-                    File(directory, ffmpegExe)
-                } else {
-                    null
-                }
-            }
-            // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
-            "jar" -> {
-                null
-            }
-            // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
-            else -> {
-                val specified = File(ffmpegPathArg)
-                require(specified.exists()) {
-                    "file '$ffmpegPathArg' does not exist"
-                }
-                specified
-            }
-        }
-    }
+    fun findFfmpeg(): File? = findFfmpegFile()
 
     /**
      * Start writing to the video file
@@ -323,13 +366,7 @@ class VideoWriter(
 
         val command = mutableListOf<String>()
 
-        val ffmpegFile = findFfmpeg()
-
-        if (ffmpegFile != null) {
-            command.add(ffmpegFile.toString())
-        } else {
-            command.add(builtInFfmpegBinary)
-        }
+        command.add(ffmpegBinary())
         command.addAll(listOf(*preamble))
         command.addAll(listOf(*profileArguments))
 
