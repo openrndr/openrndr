@@ -7,6 +7,7 @@ import org.lwjgl.sdl.SDLProperties.SDL_GetBooleanProperty
 import org.lwjgl.sdl.SDLStdinc.SDL_free
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Rect
+import org.lwjgl.system.linux.LinuxLibrary
 import org.openrndr.*
 import org.openrndr.Application
 import org.openrndr.ApplicationBase
@@ -34,6 +35,28 @@ import org.openrndr.biditextdriver.BidiTextDriverUax9
 
 private val logger = KotlinLogging.logger { }
 
+/**
+ * libEGL, loaded for as long as the process runs. SDL unloads libEGL when it shuts down, and NVIDIA's libEGL crashes
+ * at exit when it was unloaded.
+ */
+private var eglLibrary: LinuxLibrary? = null
+
+/**
+ * Loads libEGL and keeps it loaded
+ * @return false when libEGL is not available, SDL can then only create GLX contexts on X11
+ */
+private fun loadEGL(): Boolean {
+    if (eglLibrary == null) {
+        eglLibrary = try {
+            LinuxLibrary("libEGL.so.1")
+        } catch (e: Throwable) {
+            logger.debug(e) { "libEGL.so.1 could not be loaded, using GLX on X11" }
+            null
+        }
+    }
+    return eglLibrary != null
+}
+
 class ApplicationBaseSDL : ApplicationBase() {
     private val realDisplays = mutableListOf<Display>()
     override val displays: List<Display> = realDisplays
@@ -55,6 +78,12 @@ class ApplicationBaseSDL : ApplicationBase() {
             SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1")
         }
 
+        if (Platform.type == PlatformType.GENERIC && Platform.property("org.openrndr.sdl.egl") != "false" &&
+            loadEGL()
+        ) {
+            // SDL creates GLX contexts on X11 by default, EGL contexts can import DMA-BUFs, like VAAPI video frames
+            SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, "1")
+        }
         SDL_SetHint(SDL_HINT_TRACKPAD_IS_TOUCH_ONLY, "1")
         SDL_SetHint(SDL_HINT_MAC_SCROLL_MOMENTUM, "1")
         SDL_Init(SDL_INIT_VIDEO)
