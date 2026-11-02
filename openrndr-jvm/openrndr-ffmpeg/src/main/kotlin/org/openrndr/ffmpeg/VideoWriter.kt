@@ -129,6 +129,9 @@ class H264Profile : VideoWriterProfile() {
     val CODEC_H264_NVENC = "h264_nvenc"
     val CODEC_H264_VIDEOTOOLBOX = "h264_videotoolbox"
     val CODEC_H264_VAAPI = "h264_vaapi"
+    val CODEC_H264_QSV = "h264_qsv"
+    val CODEC_H264_AMF = "h264_amf"
+    val CODEC_H264_MF = "h264_mf"
 
     var videoCodec = CODEC_LIBX264 as String?
 
@@ -153,14 +156,15 @@ class H264Profile : VideoWriterProfile() {
 
     /**
      * Encode with a hardware encoder, which uses a fraction of the CPU time of the software encoder: VideoToolbox on
-     * macOS, and on Linux NVENC on NVIDIA GPUs or VAAPI on Intel and AMD GPUs. On Linux the encoders are tried with
-     * the ffmpeg executable that [VideoWriter] runs, the software encoder is kept when none of them works. On other
-     * platforms the encoder is not changed.
+     * macOS, on Linux NVENC on NVIDIA GPUs or VAAPI on Intel and AMD GPUs, and on Windows NVENC on NVIDIA GPUs, Quick
+     * Sync on Intel GPUs, AMF on AMD GPUs or else the hardware encoder of Media Foundation. On Linux and Windows the
+     * encoders are tried with the ffmpeg executable that [VideoWriter] runs, the software encoder is kept when none
+     * of them works.
      */
     fun hardwareAcceleration() {
         when (Platform.type) {
             PlatformType.MAC -> videoCodec = CODEC_H264_VIDEOTOOLBOX
-            PlatformType.GENERIC -> findLinuxH264Encoder(ffmpegBinary())?.let {
+            PlatformType.GENERIC, PlatformType.WINDOWS -> findHardwareH264Encoder(ffmpegBinary())?.let {
                 videoCodec = it.codec
                 it.vaapiDevice?.let { device -> vaapiDevice = device }
             }
@@ -170,8 +174,9 @@ class H264Profile : VideoWriterProfile() {
     }
 
     /**
-     * the quantizer of NVENC and VAAPI for [quality], from 51 to 4 where lower is better. A quality of 60 maps to 23,
-     * NVENC then encodes with the structural similarity of the software encoder at its default constant rate factor.
+     * the quantizer of NVENC, VAAPI and AMF, and the ICQ quality of Quick Sync, for [quality], from 51 to 4 where lower
+     * is better. A quality of 60 maps to 23, NVENC and Quick Sync then encode with about the structural similarity of
+     * the software encoder at its default constant rate factor.
      */
     private fun quantizer(quality: Int) = (51 - 0.47 * quality).roundToInt().coerceIn(0, 51)
 
@@ -180,8 +185,8 @@ class H264Profile : VideoWriterProfile() {
 
     /**
      * Encode colors at full resolution (4:4:4, the yuv444p pixel format) instead of at half resolution (4:2:0). This
-     * keeps the colors of thin lines and edges, but the video does not play in web browsers. The VideoToolbox encoder
-     * does not encode 4:4:4, with full chroma the software encoder is used instead.
+     * keeps the colors of thin lines and edges, but the video does not play in web browsers. Of the hardware encoders
+     * only NVENC encodes 4:4:4, with full chroma the software encoder is used instead of the others.
      */
     var fullChroma = false
 
@@ -196,16 +201,17 @@ class H264Profile : VideoWriterProfile() {
     val filters = mutableListOf("vflip")
 
     override fun arguments(): Array<String> {
-        // NVENC encodes full chroma, VideoToolbox and VAAPI do not
-        val videoCodec = if (fullChroma && (videoCodec == CODEC_H264_VIDEOTOOLBOX || videoCodec == CODEC_H264_VAAPI)) {
+        // NVENC encodes full chroma, the other hardware encoders do not
+        val nv12Codecs = listOf(CODEC_H264_VAAPI, CODEC_H264_QSV, CODEC_H264_AMF, CODEC_H264_MF)
+        val videoCodec = if (fullChroma && (videoCodec == CODEC_H264_VIDEOTOOLBOX || videoCodec in nv12Codecs)) {
             logger.warn { "$videoCodec does not encode full chroma, using $CODEC_LIBX264" }
             CODEC_LIBX264
         } else {
             videoCodec
         }
         val vaapi = videoCodec == CODEC_H264_VAAPI
-        // VAAPI encodes frames that are uploaded to the GPU as NV12
-        val pixelFormat = if (vaapi) null else if (fullChroma) "yuv444p" else pixelFormat
+        // VAAPI encodes frames that are uploaded to the GPU as NV12, Quick Sync, AMF and Media Foundation encode NV12
+        val pixelFormat = if (vaapi) null else if (fullChroma) "yuv444p" else if (videoCodec in nv12Codecs) "nv12" else pixelFormat
 
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf(
@@ -237,7 +243,8 @@ class H264Profile : VideoWriterProfile() {
 
         // VideoToolbox has no constant rate factor and presets, it encodes with a constant quality, and falls back
         // to its software encoder on Macs without a hardware encoder
-        // NVENC and VAAPI encode with a constant quantizer, NVENC varies it per frame type
+        // NVENC, VAAPI and AMF encode with a constant quantizer, NVENC varies it per frame type
+        // Quick Sync encodes with its intelligent constant quality, Media Foundation with its quality from 1 to 100
         val encoderArguments = if (videoCodec?.endsWith("_videotoolbox") == true) {
             arrayOf("-allow_sw", "1") + (quality?.let { arrayOf("-q:v", it.toString()) } ?: emptyArray())
         } else if (videoCodec?.endsWith("_nvenc") == true) {
@@ -246,6 +253,19 @@ class H264Profile : VideoWriterProfile() {
         } else if (vaapi) {
             arrayOf("-vaapi_device", vaapiDevice) +
                     (quality?.let { arrayOf("-rc_mode", "CQP", "-qp", quantizer(it).toString()) } ?: emptyArray())
+        } else if (videoCodec == CODEC_H264_QSV) {
+            arrayOf("-preset", "slow") +
+                    (quality?.let { arrayOf("-global_quality", quantizer(it).toString()) } ?: emptyArray())
+        } else if (videoCodec == CODEC_H264_AMF) {
+            arrayOf("-quality", "quality") +
+                    (quality?.let {
+                        val qp = quantizer(it).toString()
+                        arrayOf("-rc", "cqp", "-qp_i", qp, "-qp_p", qp, "-qp_b", qp)
+                    } ?: emptyArray())
+        } else if (videoCodec == CODEC_H264_MF) {
+            // without -hw_encoding Media Foundation falls back to its software encoder
+            arrayOf("-hw_encoding", "1") +
+                    (quality?.let { arrayOf("-rate_control", "quality", "-quality", it.toString()) } ?: emptyArray())
         } else {
             (constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()) +
                     (preset?.let { arrayOf("-preset", it) } ?: emptyArray())

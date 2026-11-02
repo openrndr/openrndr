@@ -65,6 +65,46 @@ class TestH264Profile {
     }
 
     @Test
+    fun `Quick Sync encodes NV12 with intelligent constant quality`() {
+        val profile = H264Profile().apply { videoCodec = CODEC_H264_QSV }
+        val arguments = profile.arguments()
+        assertEquals("h264_qsv", arguments.valueOf("-vcodec"))
+        assertEquals("nv12", arguments.valueOf("-pix_fmt"))
+        assertEquals("23", arguments.valueOf("-global_quality"))
+        assertFalse("-crf" in arguments)
+    }
+
+    @Test
+    fun `AMF encodes NV12 with a constant quantizer`() {
+        val profile = H264Profile().apply { videoCodec = CODEC_H264_AMF }
+        val arguments = profile.arguments()
+        assertEquals("nv12", arguments.valueOf("-pix_fmt"))
+        assertEquals("cqp", arguments.valueOf("-rc"))
+        assertEquals(listOf("23", "23", "23"), listOf("-qp_i", "-qp_p", "-qp_b").map { arguments.valueOf(it) })
+    }
+
+    @Test
+    fun `Media Foundation encodes in hardware`() {
+        val profile = H264Profile().apply { videoCodec = CODEC_H264_MF }
+        val arguments = profile.arguments()
+        assertEquals("nv12", arguments.valueOf("-pix_fmt"))
+        assertEquals("1", arguments.valueOf("-hw_encoding"))
+        assertEquals("60", arguments.valueOf("-quality"))
+    }
+
+    @Test
+    fun `Quick Sync full chroma is encoded with libx264`() {
+        val profile = H264Profile().apply {
+            videoCodec = CODEC_H264_QSV
+            fullChroma = true
+        }
+        val arguments = profile.arguments()
+        assertEquals("libx264", arguments.valueOf("-vcodec"))
+        assertEquals("yuv444p", arguments.valueOf("-pix_fmt"))
+        assertFalse("-global_quality" in arguments)
+    }
+
+    @Test
     fun `VAAPI full chroma is encoded with libx264`() {
         val profile = H264Profile().apply {
             videoCodec = CODEC_H264_VAAPI
