@@ -11,12 +11,15 @@ variants {
         dependencies {
             runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":macosx-arm64")
             runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":macosx-arm64-gpl")
+            // the modes of video devices are read from AVFoundation through LWJGL
+            runtimeOnly(libs.lwjgl.core.get().withClassifier("natives-macos-arm64"))
         }
     }
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
         dependencies {
             runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":macosx-x86_64")
             runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":macosx-x86_64-gpl")
+            runtimeOnly(libs.lwjgl.core.get().withClassifier("natives-macos"))
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {

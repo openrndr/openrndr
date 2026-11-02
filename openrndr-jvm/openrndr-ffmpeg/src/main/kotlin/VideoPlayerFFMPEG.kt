@@ -345,6 +345,16 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         /**
+         * Lists the modes that the video device [deviceName] supports, a name from [listDeviceNames]. The size and
+         * frame rate of a mode can be passed to [fromDevice]. On Linux the modes have no frame rates.
+         */
+        @Suppress("unused")
+        fun listDeviceModes(deviceName: String = defaultDevice()): List<VideoDeviceMode> {
+            logger.debug { "listing modes of device $deviceName" }
+            return listVideoDeviceModes(deviceName)
+        }
+
+        /**
          * Lists the names of the screens that can be captured, the names can be passed to [fromScreen]. On macOS these
          * are `Capture screen <N>`, on Linux X11 displays like `:0`, on Windows the desktop.
          */

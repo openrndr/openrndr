@@ -123,7 +123,7 @@ private fun logDevices(format: AVInputFormat, url: String) {
 /**
  * Runs [block] and returns the lines that FFmpeg logs while it runs, without the "[name @ address]" prefixes
  */
-private fun logLines(block: () -> Unit): List<String> {
+internal fun logLines(block: () -> Unit): List<String> {
     val text = StringBuilder()
     val line = BytePointer(1024)
     val printPrefix = IntPointer(1)
