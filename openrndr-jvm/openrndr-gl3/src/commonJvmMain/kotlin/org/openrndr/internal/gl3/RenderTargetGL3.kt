@@ -11,6 +11,14 @@ import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Wait for the GPU when a render target is unbound? This works around bugs in ANGLE on MoltenVK, other drivers do
+ * not need it, and waiting for the GPU stalls the thread that draws.
+ */
+private val finishOnUnbind by lazy {
+    Driver.glType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
+}
+
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
 class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled, Session.root)
@@ -193,7 +201,9 @@ open class RenderTargetGL3(
             }
             previous as RenderTargetGL3
             logger.trace { "restoring to previous render target $previous" }
-            Driver.instance.finish()
+            if (finishOnUnbind) {
+                Driver.instance.finish()
+            }
             previous.bindTarget()
             bound = false
         } else {
