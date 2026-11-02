@@ -124,7 +124,7 @@ inline fun <reified T> glslFunction(
  * changes.
  */
 private class ResolvedShadeStyle(val original: ShadeStyle) : ShadeStyle() {
-    override var parameterValues: MutableMap<String, Any> = ResolvedValues(original)
+    override var parameterValues: MutableMap<String, Any> = ResolvedValues { original.parameterValues }
     override var bufferValues: MutableMap<String, Any>
         get() = original.bufferValues
         set(value) {
@@ -142,9 +142,10 @@ private class ResolvedShadeStyle(val original: ShadeStyle) : ShadeStyle() {
 }
 
 /**
- * The values of a style with dynamic parameters expanded to the uniforms of their resolvers
+ * The parameter values of a style, read by [source], with dynamic parameters expanded to the uniforms of their
+ * resolvers
  */
-private class ResolvedValues(private val original: ShadeStyle) : AbstractMutableMap<String, Any>() {
+private class ResolvedValues(private val source: () -> Map<String, Any>) : AbstractMutableMap<String, Any>() {
     override fun put(key: String, value: Any): Any? = error("the values of resolved shade styles are read only")
 
     override val entries: MutableSet<MutableMap.MutableEntry<String, Any>>
@@ -160,16 +161,18 @@ private class ResolvedValues(private val original: ShadeStyle) : AbstractMutable
                     }
                 }
             }
-            expand("", original.parameterValues)
+            expand("", source())
             return result.entries
         }
 }
 
-/** the structure versions of [style] and of the scopes of its dynamic parameters, recursively */
-private fun structureVersions(style: ShadeStyle): List<Long> = buildList {
-    add(style.structureVersion)
-    for (value in style.parameterValues.values) {
-        scopeOf(value)?.let { addAll(structureVersions(it)) }
+/** the structure versions of the scopes of the dynamic parameters in [values], recursively */
+private fun scopeVersions(values: Map<String, Any>): List<Long> = buildList {
+    for (value in values.values) {
+        scopeOf(value)?.let {
+            add(it.structureVersion)
+            addAll(scopeVersions(it.parameterValues))
+        }
     }
 }
 
@@ -295,6 +298,47 @@ private fun reads(code: String?, name: String): Boolean =
     code != null && glslTokens(code).any { it.kind == GlslToken.Kind.IDENTIFIER && it.text == name }
 
 /**
+ * The resolvers of the dynamic parameters of a style and the types of the uniforms of the resolved style
+ */
+private class ParameterResolution(
+    val uniformTypes: Map<String, String>,
+    private val resolvers: Map<String, Pair<Resolver, List<String>>>
+) {
+    /**
+     * The resolvers of the parameters that are read by [code], the code of a shader stage. `p_<key>` calls the
+     * resolver with the context values where it is read.
+     */
+    fun code(vararg code: String?): String = resolvers.filter { (key, _) ->
+        code.any { reads(it, "p_$key") }
+    }.values.joinToString("") { (resolver, context) -> resolver.functions + resolver.definition(context) }
+}
+
+/**
+ * Resolves the dynamic parameters in [values], plain parameters keep their [types]
+ */
+private fun resolveParameters(values: Map<String, Any>, types: Map<String, String>): ParameterResolution {
+    val uniformTypes = mutableMapOf<String, String>()
+    val resolvers = mutableMapOf<String, Pair<Resolver, List<String>>>()
+    for ((key, value) in values) {
+        if (value is DynamicParameter) {
+            // the context values read anywhere in the resolver and its nested resolvers
+            val code = codeOf(value)
+            val context = contextValues.filter { (name, _) -> code.any { reads(it, name) } }
+            resolver(key, value, context).also {
+                resolvers[key] = it to context.map { (name, _) -> name }
+                uniformTypes.putAll(it.uniformTypes)
+            }
+        } else {
+            uniformTypes[key] = types[key] ?: error("no type for parameter '$key'")
+        }
+    }
+    return ParameterResolution(uniformTypes, resolvers)
+}
+
+private fun withResolvers(resolvers: String, preamble: String?): String? =
+    if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
+
+/**
  * This shade style with its dynamic parameters resolved: the shade style itself when it has none, otherwise a shade
  * style that reads them through resolver functions. Shade style managers use it to make shaders.
  * @see DynamicParameter
@@ -304,43 +348,19 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
         return this
     }
     val resolved = resolvedStyle as? ResolvedShadeStyle ?: ResolvedShadeStyle(this).also { resolvedStyle = it }
-    val versions = structureVersions(this)
+    val versions = listOf(structureVersion) + scopeVersions(parameterValues)
     if (versions == resolved.versions) {
         return resolved
     }
     resolved.versions = versions
 
-    // the resolvers of the dynamic parameters with the context values they read, and the plain parameters
-    val resolvers = mutableMapOf<String, Pair<Resolver, List<String>>>()
+    val resolution = resolveParameters(parameterValues, parameterTypes)
     resolved.parameterTypes.clear()
-    for ((key, value) in parameterValues) {
-        if (value is DynamicParameter) {
-            // the context values read anywhere in the resolver and its nested resolvers
-            val code = codeOf(value)
-            val context = contextValues.filter { (name, _) -> code.any { reads(it, name) } }
-            resolver(key, value, context).also {
-                resolvers[key] = it to context.map { (name, _) -> name }
-                resolved.parameterTypes.putAll(it.uniformTypes)
-            }
-        } else {
-            resolved.parameterTypes[key] = parameterTypes[key] ?: error("no type for parameter '$key'")
-        }
-    }
+    resolved.parameterTypes.putAll(resolution.uniformTypes)
 
-    /**
-     * The resolvers of the parameters that are read by the code of a shader stage. `p_<key>` calls the resolver with
-     * the context values where it is read.
-     */
-    fun resolversFor(vararg code: String?): String = resolvers.filter { (key, _) ->
-        code.any { reads(it, "p_$key") }
-    }.values.joinToString("") { (resolver, context) -> resolver.functions + resolver.definition(context) }
-
-    fun preamble(resolvers: String, preamble: String?): String? =
-        if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
-
-    resolved.vertexPreamble = preamble(resolversFor(vertexPreamble, vertexTransform), vertexPreamble)
-    resolved.geometryPreamble = preamble(resolversFor(geometryPreamble, geometryTransform), geometryPreamble)
-    resolved.fragmentPreamble = preamble(resolversFor(fragmentPreamble, fragmentTransform), fragmentPreamble)
+    resolved.vertexPreamble = withResolvers(resolution.code(vertexPreamble, vertexTransform), vertexPreamble)
+    resolved.geometryPreamble = withResolvers(resolution.code(geometryPreamble, geometryTransform), geometryPreamble)
+    resolved.fragmentPreamble = withResolvers(resolution.code(fragmentPreamble, fragmentTransform), fragmentPreamble)
     resolved.vertexTransform = vertexTransform
     resolved.geometryTransform = geometryTransform
     resolved.fragmentTransform = fragmentTransform
@@ -359,4 +379,40 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
     resolved.suppressDefaultOutput = suppressDefaultOutput
     resolved.dirty = true
     return resolved
+}
+
+/**
+ * This compute style with its dynamic parameters resolved: the compute style itself when it has none, otherwise a
+ * compute style that reads them through resolver functions. Compute style managers use it to make compute shaders.
+ *
+ * Compute shaders have no shade style language values (`c_`), resolvers can read built-in values such as
+ * `gl_GlobalInvocationID`, texture parameters need a coordinate.
+ * @see DynamicParameter
+ */
+fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
+    if (parameterValues.values.none { it is DynamicParameter }) {
+        return this
+    }
+    val resolution = resolveParameters(parameterValues, parameterTypes)
+
+    val original = this
+    return ComputeStyle().apply {
+        computePreamble = withResolvers(resolution.code(original.computePreamble, original.computeTransform), original.computePreamble) ?: ""
+        computeTransform = original.computeTransform
+        workGroupSize = original.workGroupSize
+        textureBaseIndex = original.textureBaseIndex
+        parameterTypes.putAll(resolution.uniformTypes)
+        parameterValues = ResolvedValues { original.parameterValues }
+        bufferValues = original.bufferValues
+        buffers.putAll(original.buffers)
+        bufferTypes.putAll(original.bufferTypes)
+        bufferAccess.putAll(original.bufferAccess)
+        bufferFlags.putAll(original.bufferFlags)
+        imageBindings.putAll(original.imageBindings)
+        imageTypes.putAll(original.imageTypes)
+        imageValues.putAll(original.imageValues)
+        imageAccess.putAll(original.imageAccess)
+        imageFlags.putAll(original.imageFlags)
+        imageArrayLength.putAll(original.imageArrayLength)
+    }
 }

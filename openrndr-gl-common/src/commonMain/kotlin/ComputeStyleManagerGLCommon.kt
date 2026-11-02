@@ -24,7 +24,9 @@ class ComputeStyleManagerGLCommon : ComputeStyleManager(), StyleManagerDispatchU
     override var textureIndex: Int = 2
     override var imageIndex: Int = 0
 
-    override fun shader(style: ComputeStyle, name: String): ComputeShader {
+    override fun shader(computeStyle: ComputeStyle, name: String): ComputeShader {
+        // dynamic parameters are read through generated resolver functions
+        val style = computeStyle.resolveDynamicParameters()
         val structure = style.structure()
         val shader = shaders.getOrPut(structure) {
             val code = """${Driver.instance.shaderConfiguration(ShaderType.COMPUTE)}
