@@ -129,6 +129,8 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
         geometryTransform = geometryTransforms.joinOrNull()
         fragmentTransform = fragmentTransforms.joinOrNull()
         suppressDefaultOutput = members.any { it.suppressDefaultOutput }
+        // libraries are shared by the members, they are not namespaced
+        libraries = members.flatMap { it.libraries }
         super.dirty = true
     }
 }

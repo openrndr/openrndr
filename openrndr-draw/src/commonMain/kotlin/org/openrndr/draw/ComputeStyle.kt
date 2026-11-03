@@ -28,6 +28,13 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var computePreamble: String = ""
     var computeTransform: String = ""
 
+    /**
+     * The GLSL libraries the code of this compute style uses, their code is emitted before the preamble when it reads
+     * their names
+     * @see GlslLibrary
+     */
+    var libraries: List<GlslLibrary> = emptyList()
+
     override var textureBaseIndex: Int = 2
 
     /**

@@ -226,6 +226,17 @@ open class ShadeStyle(
             field = value
         }
 
+    /**
+     * The GLSL libraries the code of this shade style uses, their code is emitted before the preambles of the stages
+     * that read their names
+     * @see GlslLibrary
+     */
+    var libraries: List<GlslLibrary> = emptyList()
+        set(value) {
+            dirty = true
+            field = value
+        }
+
     override var bufferValues = mutableMapOf<String, Any>()
     override val buffers = mutableMapOf<String, String>()
     override val bufferTypes = mutableMapOf<String, String>()

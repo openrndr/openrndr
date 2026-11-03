@@ -20,6 +20,9 @@ sealed class DynamicParameter {
 
     /** describes the structure of the parameter, two parameters with the same signature share shaders */
     internal abstract val signature: String
+
+    /** the GLSL libraries the code of the parameter uses */
+    open val libraries: List<GlslLibrary> get() = emptyList()
 }
 
 /**
@@ -54,16 +57,19 @@ class TextureParameter(
 
 /**
  * A parameter computed by GLSL [code]: an expression, or a function body when it contains `return`. The code reads
- * its own parameters as `p_<name>`, which are set on this object and can be dynamic themselves.
+ * its own parameters as `p_<name>`, which are set on this object and can be dynamic themselves, and can call the
+ * functions of [libraries].
  */
 class GlslParameter internal constructor(
     override val glslType: String,
     val code: String,
+    override val libraries: List<GlslLibrary>,
     internal val scope: ParameterScope
 ) : DynamicParameter(), StyleParameters by scope {
-    constructor(glslType: String, code: String) : this(glslType, code, ParameterScope())
+    constructor(glslType: String, code: String, libraries: List<GlslLibrary> = emptyList()) :
+            this(glslType, code, libraries, ParameterScope())
 
-    override val signature: String get() = "glsl $glslType $code"
+    override val signature: String get() = "glsl $glslType $code" + librariesSignature(libraries)
 }
 
 /**
@@ -76,8 +82,8 @@ inline fun <reified T> textureParameter(
 ): TextureParameter = TextureParameter(texture, shadeStyleTypeToGLSL(shadeStyleType<T>()), coordinate)
 
 /**
- * A parameter of type [T] computed by GLSL [code], an expression or a function body with `return`. [parameters]
- * sets the parameters the code reads.
+ * A parameter of type [T] computed by GLSL [code], an expression or a function body with `return`, that can call the
+ * functions of [libraries]. [parameters] sets the parameters the code reads.
  *
  * ```
  * parameter("amount", glslParameter<Double>("0.5 + 0.5 * sin(p_time + c_boundsPosition.x * 10.0)") {
@@ -85,23 +91,29 @@ inline fun <reified T> textureParameter(
  * })
  * ```
  */
-inline fun <reified T> glslParameter(code: String, parameters: StyleParameters.() -> Unit = {}): GlslParameter =
-    GlslParameter(shadeStyleTypeToGLSL(shadeStyleType<T>()), code).apply(parameters)
+inline fun <reified T> glslParameter(
+    code: String,
+    libraries: List<GlslLibrary> = emptyList(),
+    parameters: StyleParameters.() -> Unit = {}
+): GlslParameter = GlslParameter(shadeStyleTypeToGLSL(shadeStyleType<T>()), code, libraries).apply(parameters)
 
 /**
  * A GLSL function with [arguments], a GLSL parameter list such as `vec2 p, float r`, that returns a [glslType].
  * [code] is an expression or a function body with `return`, it reads its own parameters as `p_<name>`, which are set
- * on this object and can be dynamic themselves. Shade style code calls it as `p_<name>(arguments)`.
+ * on this object and can be dynamic themselves, and can call the functions of [libraries]. Shade style code calls it
+ * as `p_<name>(arguments)`.
  */
 class GlslFunction internal constructor(
     override val glslType: String,
     val arguments: String,
     val code: String,
+    override val libraries: List<GlslLibrary>,
     internal val scope: ParameterScope
 ) : DynamicParameter(), StyleParameters by scope {
-    constructor(glslType: String, arguments: String, code: String) : this(glslType, arguments, code, ParameterScope())
+    constructor(glslType: String, arguments: String, code: String, libraries: List<GlslLibrary> = emptyList()) :
+            this(glslType, arguments, code, libraries, ParameterScope())
 
-    override val signature: String get() = "function $glslType ($arguments) $code"
+    override val signature: String get() = "function $glslType ($arguments) $code" + librariesSignature(libraries)
 
     /** the number of arguments */
     internal val arity: Int
@@ -121,8 +133,9 @@ class GlslFunction internal constructor(
 
 /**
  * A GLSL function that returns a [T], with [arguments], a GLSL parameter list such as `vec2 p`. [code] is an
- * expression or a function body with `return`, [parameters] sets the parameters the code reads. Shade style code calls
- * it as `p_<name>(arguments)`, which makes shade styles that take functions, such as signed distance functions:
+ * expression or a function body with `return` that can call the functions of [libraries], [parameters] sets the
+ * parameters the code reads. Shade style code calls it as `p_<name>(arguments)`, which makes shade styles that take
+ * functions, such as signed distance functions:
  *
  * ```
  * parameter("shape", glslFunction<Double>("vec2 p", "length(p - 0.5) - p_radius") {
@@ -134,8 +147,10 @@ class GlslFunction internal constructor(
 inline fun <reified T> glslFunction(
     arguments: String,
     code: String,
+    libraries: List<GlslLibrary> = emptyList(),
     parameters: StyleParameters.() -> Unit = {}
-): GlslFunction = GlslFunction(shadeStyleTypeToGLSL(shadeStyleType<T>()), arguments, code).apply(parameters)
+): GlslFunction =
+    GlslFunction(shadeStyleTypeToGLSL(shadeStyleType<T>()), arguments, code, libraries).apply(parameters)
 
 /**
  * A shade style that is [original] with its dynamic parameters replaced by resolver functions and uniforms. Its
@@ -388,13 +403,25 @@ private fun structuralSignature(values: Map<String, Any>, types: Map<String, Str
     }
 }
 
+/** the libraries of the dynamic parameters in [values], recursively */
+private fun parameterLibraries(values: Map<String, Any>): List<GlslLibrary> = buildList {
+    for (value in values.values) {
+        if (value is DynamicParameter) {
+            addAll(value.libraries)
+            scopeOf(value)?.let { addAll(parameterLibraries(it.parameterValues)) }
+        }
+    }
+}
+
 /**
- * The uniform types and the resolver code of every stage, the code of a stage is the list of code that reads
- * parameters in that stage
+ * The uniform types and the code of every stage that goes before its preamble: the libraries it uses and the
+ * resolvers of the parameters it reads. The code of a stage is the list of code of that stage, [libraries] are the
+ * libraries of the style.
  */
 private fun cachedResolution(
     values: Map<String, Any>,
     types: Map<String, String>,
+    libraries: List<GlslLibrary>,
     stages: List<List<String?>>
 ): Pair<Map<String, String>, List<String>> {
     val key = buildString {
@@ -402,10 +429,16 @@ private fun cachedResolution(
             for (code in stage) append(code ?: "").append('\u0001')
             append('\u0002')
         }
+        append(librariesSignature(libraries)).append('\u0002')
         append(structuralSignature(values, types))
     }
     return resolutionCache.get(key) ?: resolveParameters(values, types).let { resolution ->
-        (resolution.uniformTypes to stages.map { resolution.code(*it.toTypedArray()) }).also { resolutionCache.set(key, it) }
+        val collected = collectLibraries(libraries + parameterLibraries(values))
+        val stageCode = stages.map { stage ->
+            val resolvers = resolution.code(*stage.toTypedArray())
+            libraryCode(collected, stage + resolvers) + resolvers
+        }
+        (resolution.uniformTypes to stageCode).also { resolutionCache.set(key, it) }
     }
 }
 
@@ -413,12 +446,13 @@ private fun withResolvers(resolvers: String, preamble: String?): String? =
     if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
 
 /**
- * This shade style with its dynamic parameters resolved: the shade style itself when it has none, otherwise a shade
- * style that reads them through resolver functions. Shade style managers use it to make shaders.
+ * This shade style with its dynamic parameters and libraries resolved: the shade style itself when it has none,
+ * otherwise a shade style that reads them through resolver functions and has the code of the libraries it uses in its
+ * preambles. Shade style managers use it to make shaders.
  * @see DynamicParameter
  */
 fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
-    if (parameterValues.values.none { it is DynamicParameter }) {
+    if (libraries.isEmpty() && parameterValues.values.none { it is DynamicParameter }) {
         return this
     }
     val resolved = resolvedStyle as? ResolvedShadeStyle ?: ResolvedShadeStyle(this).also { resolvedStyle = it }
@@ -435,7 +469,7 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
     resolved.signature = signature
 
     val (uniformTypes, stageResolvers) = cachedResolution(
-        parameterValues, parameterTypes,
+        parameterValues, parameterTypes, libraries,
         listOf(listOf(vertexPreamble, vertexTransform), listOf(geometryPreamble, geometryTransform), listOf(fragmentPreamble, fragmentTransform))
     )
     resolved.parameterTypes.clear()
@@ -465,19 +499,20 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
 }
 
 /**
- * This compute style with its dynamic parameters resolved: the compute style itself when it has none, otherwise a
- * compute style that reads them through resolver functions. Compute style managers use it to make compute shaders.
+ * This compute style with its dynamic parameters and libraries resolved: the compute style itself when it has none,
+ * otherwise a compute style that reads them through resolver functions and has the code of the libraries it uses in
+ * its preamble. Compute style managers use it to make compute shaders.
  *
  * Compute shaders have no shade style language values (`c_`), resolvers can read built-in values such as
  * `gl_GlobalInvocationID`, texture parameters need a coordinate.
  * @see DynamicParameter
  */
 fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
-    if (parameterValues.values.none { it is DynamicParameter }) {
+    if (libraries.isEmpty() && parameterValues.values.none { it is DynamicParameter }) {
         return this
     }
     val (uniformTypes, stageResolvers) = cachedResolution(
-        parameterValues, parameterTypes, listOf(listOf(computePreamble, computeTransform))
+        parameterValues, parameterTypes, libraries, listOf(listOf(computePreamble, computeTransform))
     )
 
     val original = this
