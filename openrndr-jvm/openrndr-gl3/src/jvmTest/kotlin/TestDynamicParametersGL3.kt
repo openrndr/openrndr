@@ -244,6 +244,19 @@ class TestDynamicParametersGL3 : AbstractApplicationTestFixture() {
     }
 
     @Test
+    fun functionsWithOtherNestedFunctionsAreResolvedAgain() {
+        // two functions with the same code and parameters that only differ in the code of a nested function
+        fun f(inner: String) = glslFunction<Double>("float x", "p_inner(x)") {
+            parameter("inner", glslFunction<Double>("float y", inner))
+        }
+        val style = fillWithExpression("p_f(0.25)")
+        style.parameter("f", f("y * 2.0"))
+        assertColors(uniform(0.5, 0.5, 0.5), render(style))
+        style.parameter("f", f("y * 3.0"))
+        assertColors(uniform(0.75, 0.75, 0.75), render(style))
+    }
+
+    @Test
     fun shadeStyleFiltersCallFunctions() {
         val image = gradient()
         val target = colorBuffer(size, size, 1.0, ColorFormat.RGBa, ColorType.FLOAT32).also { buffers += it }

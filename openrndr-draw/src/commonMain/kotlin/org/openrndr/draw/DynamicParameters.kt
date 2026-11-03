@@ -156,8 +156,14 @@ private class ResolvedShadeStyle(val original: ShadeStyle) : ShadeStyle() {
             original.textureBaseIndex = value
         }
 
-    /** the structure versions of the original and the scopes of its dynamic parameters */
-    var versions: List<Long> = emptyList()
+    /**
+     * The structure version of the original with its dynamic parameters and the structure versions of their scopes,
+     * dynamic parameters compare by identity. When it differs [signature] tells if the structure changed.
+     */
+    var versions: List<Any> = emptyList()
+
+    /** the structure version and the structural signature of the original when it was resolved */
+    var signature: String? = null
 }
 
 /**
@@ -185,12 +191,18 @@ private class ResolvedValues(private val source: () -> Map<String, Any>) : Abstr
         }
 }
 
-/** the structure versions of the scopes of the dynamic parameters in [values], recursively */
-private fun scopeVersions(values: Map<String, Any>): List<Long> = buildList {
+/**
+ * The dynamic parameters in [values] and the structure versions of their scopes, recursively. Dynamic parameters
+ * compare by identity, a parameter replaced by another with the same type but other nested parameters changes it.
+ */
+private fun scopeVersions(values: Map<String, Any>): List<Any> = buildList {
     for (value in values.values) {
-        scopeOf(value)?.let {
-            add(it.structureVersion)
-            addAll(scopeVersions(it.parameterValues))
+        if (value is DynamicParameter) {
+            add(value)
+            scopeOf(value)?.let {
+                add(it.structureVersion)
+                addAll(scopeVersions(it.parameterValues))
+            }
         }
     }
 }
@@ -415,6 +427,12 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
         return resolved
     }
     resolved.versions = versions
+    // other dynamic parameters with the same structure, for example made anew every frame, keep the resolution
+    val signature = "$structureVersion;" + structuralSignature(parameterValues, parameterTypes)
+    if (signature == resolved.signature) {
+        return resolved
+    }
+    resolved.signature = signature
 
     val (uniformTypes, stageResolvers) = cachedResolution(
         parameterValues, parameterTypes,
