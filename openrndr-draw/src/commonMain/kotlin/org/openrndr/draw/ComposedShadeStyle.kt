@@ -2,28 +2,31 @@ package org.openrndr.draw
 
 /**
  * The values of the members of a [ComposedShadeStyle] under their namespaced keys, `amount` of member 1 is
- * `s1_amount`. Reads and writes go to the members, so values changed on a member are used by the composition.
+ * `s1_amount`. Reads and writes go to the members, so values changed on a member are used by the composition. Other
+ * keys are values of the composition itself, kept in [own], such as the inputs that shade style filters set.
  */
 private class NamespacedValues<V>(
     private val members: List<ShadeStyle>,
     private val select: (ShadeStyle) -> MutableMap<String, V>
 ) : AbstractMutableMap<String, V>() {
+    private val own = mutableMapOf<String, V>()
 
-    private fun member(key: String): Pair<MutableMap<String, V>, String>? {
-        val separator = key.indexOf('_')
-        if (!key.startsWith("s") || separator < 2) return null
-        val index = key.substring(1, separator).toIntOrNull() ?: return null
-        return members.getOrNull(index)?.let { select(it) to key.substring(separator + 1) }
-    }
+    private fun member(key: String): Pair<MutableMap<String, V>, String>? =
+        memberKey(key, members.size)?.let { (index, name) -> select(members[index]) to name }
 
     override fun put(key: String, value: V): V? {
-        val (map, name) = member(key) ?: error("'$key' is not a namespaced key of a composed shade style")
+        val (map, name) = member(key) ?: return own.put(key, value)
         return map.put(name, value)
+    }
+
+    override fun remove(key: String): V? {
+        val (map, name) = member(key) ?: return own.remove(key)
+        return map.remove(name)
     }
 
     override val entries: MutableSet<MutableMap.MutableEntry<String, V>>
         get() {
-            val result = LinkedHashMap<String, V>()
+            val result = LinkedHashMap<String, V>(own)
             for ((index, member) in members.withIndex()) {
                 for ((key, value) in select(member)) {
                     result[namespaced(index, key)] = value
@@ -32,10 +35,18 @@ private class NamespacedValues<V>(
             return result.entries
         }
 
-    override fun get(key: String): V? = member(key)?.let { (map, name) -> map[name] }
+    override fun get(key: String): V? = member(key)?.let { (map, name) -> map[name] } ?: own[key]
 }
 
 private fun namespace(index: Int) = "s${index}_"
+
+/** the index of the member and the name of [key] when it is `s<index>_<name>` of one of [memberCount] members */
+private fun memberKey(key: String, memberCount: Int): Pair<Int, String>? {
+    val separator = key.indexOf('_')
+    if (!key.startsWith("s") || separator < 2) return null
+    val index = key.substring(1, separator).toIntOrNull() ?: return null
+    return if (index in 0 until memberCount) index to key.substring(separator + 1) else null
+}
 private fun namespaced(index: Int, name: String) = namespace(index) + name
 
 /**
@@ -47,6 +58,9 @@ private fun namespaced(index: Int, name: String) = namespace(index) + name
  *
  * Changes to the members are used by the composition: values of parameters directly, changes of structure when the
  * composition is drawn next.
+ *
+ * Parameters set on the composition itself are not namespaced, members read them under their own names when they do
+ * not have a parameter with that name. Shade style filters set their fill and inputs this way.
  */
 class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
 
@@ -86,7 +100,10 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
         val geometryTransforms = mutableListOf<String>()
         val fragmentTransforms = mutableListOf<String>()
 
+        // the parameters of the composition itself are kept, the parameters of the members are made anew
+        val ownTypes = parameterTypes.filterKeys { name -> memberKey(name, members.size) == null }
         parameterTypes.clear()
+        parameterTypes.putAll(ownTypes)
         buffers.clear(); bufferTypes.clear(); bufferFlags.clear(); bufferAccess.clear()
         imageTypes.clear(); imageAccess.clear(); imageFlags.clear(); imageArrayLength.clear(); imageBindings.clear()
         outputs.clear()

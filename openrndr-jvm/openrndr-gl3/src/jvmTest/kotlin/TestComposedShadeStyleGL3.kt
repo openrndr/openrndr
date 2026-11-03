@@ -1,6 +1,10 @@
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
+import org.openrndr.draw.ShadeStyleFilter
+import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.ShadeStyle
+import org.openrndr.draw.ShadeStyleFilter1to1
 import org.openrndr.draw.composeShadeStyles
 import org.openrndr.draw.isolatedWithTarget
 import org.openrndr.draw.renderTarget
@@ -102,5 +106,23 @@ class TestComposedShadeStyleGL3 : AbstractApplicationTestFixture() {
             parameter("value", value)
         }
         assertColor(0.25, 0.75, 0.0, render(varying("r", 0.25) + varying("g", 0.75)))
+    }
+
+    @Test
+    fun parametersOfTheCompositionAreShared() {
+        // shade style filters set the fill and the inputs on the composition, the members read them
+        val source = colorBuffer(4, 4, 1.0, ColorFormat.RGBa, ColorType.FLOAT32)
+        source.fill(ColorRGBa(0.25, 0.0, 0.0, 1.0))
+        val target = colorBuffer(4, 4, 1.0, ColorFormat.RGBa, ColorType.FLOAT32)
+        val read = shadeStyle { fragmentTransform = "x_fill = texture(p_input0, c_textureCoordinate) + vec4(0.0, p_fill.g, 0.0, 0.0);" }
+        val filter = ShadeStyleFilter1to1(read + add("b", 0.5))
+        filter.fill = ColorRGBa(0.0, 0.125, 0.0, 1.0)
+        filter.apply(source, target)
+
+        val buffer = ByteBuffer.allocateDirect(4 * 4 * 4 * 4)
+        target.read(buffer)
+        assertColor(0.25, 0.125, 0.5, ColorRGBa(buffer.getFloat(0).toDouble(), buffer.getFloat(4).toDouble(), buffer.getFloat(8).toDouble()))
+        source.destroy()
+        target.destroy()
     }
 }
