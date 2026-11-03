@@ -7,6 +7,9 @@ import org.openrndr.utils.collections.LRUCache
  * or a GLSL function. Shade style code reads it like any parameter, as `p_<name>`, and calls a function as
  * `p_<name>(arguments)`.
  *
+ * The code of a [GlslParameter] or [GlslFunction] can call the functions of the preamble of the style and of the
+ * [GlslLibrary]s it uses, the preamble can read dynamic parameters and call GLSL functions.
+ *
  * Changing the texture of a [TextureParameter] or the values of the parameters of a [GlslParameter] or
  * [GlslFunction] does not recompile shaders, changing code or coordinates does.
  *
@@ -252,10 +255,11 @@ private fun codeOf(value: DynamicParameter): List<String> = when (value) {
 } + (scopeOf(value)?.parameterValues?.values?.filterIsInstance<DynamicParameter>()?.flatMap { codeOf(it) } ?: emptyList())
 
 /**
- * The resolver functions of a dynamic parameter, the uniforms they read, and [definition] which defines `p_<key>`
- * for given context arguments
+ * The resolver functions of a dynamic parameter, their [prototypes], the uniforms they read, and [definition] which
+ * defines `p_<key>` for given context arguments
  */
 private class Resolver(
+    val prototypes: String,
     val functions: String,
     val uniformTypes: Map<String, String>,
     val definition: (contextArguments: List<String>) -> String
@@ -268,12 +272,19 @@ private class Resolver(
  * arguments where it is defined: the context values in shade style code, the context arguments in resolvers.
  */
 private fun resolver(key: String, value: DynamicParameter, context: List<Pair<String, String>>): Resolver {
+    val prototypes = StringBuilder()
     val functions = StringBuilder()
     val uniformTypes = mutableMapOf<String, String>()
     // inside resolvers the context values are arguments
     val contextRenames = context.associate { (name, _) -> name to "ctx_" + name.removePrefix("c_") }
     val contextParameters = context.map { (name, type) -> "$type ${contextRenames.getValue(name)}" }
     val contextArguments = context.map { contextRenames.getValue(it.first) }
+
+    /** adds the function with [signature] and [body] and its prototype */
+    fun function(signature: String, body: String) {
+        prototypes.appendLine("$signature;")
+        functions.appendLine("$signature $body")
+    }
 
     /** the body of GLSL code: an expression is returned */
     fun body(code: String) = if (Regex("\\breturn\\b").containsMatchIn(code)) code else "return ${value.glslType}($code);"
@@ -289,6 +300,7 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
             renames["p_$name"] = "p_$nestedKey"
             if (nested is DynamicParameter) {
                 val nestedResolver = resolver(nestedKey, nested, context)
+                prototypes.append(nestedResolver.prototypes)
                 functions.append(nestedResolver.functions)
                 functions.append(nestedResolver.definition(contextArguments))
                 uniformTypes.putAll(nestedResolver.uniformTypes)
@@ -314,20 +326,23 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
                 else -> ""
             }
             val coordinate = glslRename(value.coordinate, contextRenames)
-            functions.appendLine("${value.glslType} r_$key(${contextParameters.joinToString(", ")}) { return ${value.glslType}(texture(p_$sampler, $coordinate)$channels); }")
+            function(
+                "${value.glslType} r_$key(${contextParameters.joinToString(", ")})",
+                "{ return ${value.glslType}(texture(p_$sampler, $coordinate)$channels); }"
+            )
             ({ arguments -> "#define p_$key (r_$key(${arguments.joinToString(", ")}))\n" })
         }
 
         is GlslParameter -> {
             val code = glslRename(value.code, resolveScope(value.scope)).trim()
-            functions.appendLine("${value.glslType} r_$key(${contextParameters.joinToString(", ")}) {\n${body(code)}\n}")
+            function("${value.glslType} r_$key(${contextParameters.joinToString(", ")})", "{\n${body(code)}\n}")
             ({ arguments -> "#define p_$key (r_$key(${arguments.joinToString(", ")}))\n" })
         }
 
         is GlslFunction -> {
             val code = glslRename(value.code, resolveScope(value.scope)).trim()
             val parameters = (listOf(value.arguments).filter { it.isNotBlank() } + contextParameters).joinToString(", ")
-            functions.appendLine("${value.glslType} r_$key($parameters) {\n${body(code)}\n}")
+            function("${value.glslType} r_$key($parameters)", "{\n${body(code)}\n}")
             // GLSL has no variadic macros, the macro has the arity of the function
             val macroArguments = List(value.arity) { "a$it" }
             ({ arguments ->
@@ -336,7 +351,7 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
             })
         }
     }
-    return Resolver(functions.toString(), uniformTypes, definition)
+    return Resolver(prototypes.toString(), functions.toString(), uniformTypes, definition)
 }
 
 /** does [code] read the identifier [name]? */
@@ -351,12 +366,16 @@ private class ParameterResolution(
     private val resolvers: Map<String, Pair<Resolver, List<String>>>
 ) {
     /**
-     * The resolvers of the parameters that are read by [code], the code of a shader stage. `p_<key>` calls the
-     * resolver with the context values where it is read.
+     * The resolvers of the parameters that are read by [code], the code of a shader stage: their prototypes and the
+     * definitions of `p_<key>`, which go before the preamble so that it can read the parameters, and their functions,
+     * which go after the preamble so that they can call its functions. `p_<key>` calls the resolver with the context
+     * values where it is read.
      */
-    fun code(vararg code: String?): String = resolvers.filter { (key, _) ->
-        code.any { reads(it, "p_$key") }
-    }.values.joinToString("") { (resolver, context) -> resolver.functions + resolver.definition(context) }
+    fun code(vararg code: String?): Pair<String, String> {
+        val read = resolvers.filter { (key, _) -> code.any { reads(it, "p_$key") } }.values
+        return read.joinToString("") { (resolver, context) -> resolver.prototypes + resolver.definition(context) } to
+                read.joinToString("") { (resolver, _) -> resolver.functions }
+    }
 }
 
 /**
@@ -385,7 +404,18 @@ private fun resolveParameters(values: Map<String, Any>, types: Map<String, Strin
  * Resolutions by the structure they were made for, so that equal shade styles made anew, for example every frame,
  * do not resolve their dynamic parameters again
  */
-private val resolutionCache = LRUCache<String, Pair<Map<String, String>, List<String>>>(256)
+private val resolutionCache = LRUCache<String, Pair<Map<String, String>, List<StageCode>>>(256)
+
+/**
+ * The code that a stage gets around its preamble: [beforePreamble] are the libraries it uses, the prototypes of the
+ * resolvers of the parameters it reads and the definitions of the parameters, [afterPreamble] are the resolvers
+ */
+private class StageCode(val beforePreamble: String, val afterPreamble: String) {
+    /** the preamble with the code around it */
+    fun around(preamble: String?): String? =
+        if (beforePreamble.isEmpty() && afterPreamble.isEmpty()) preamble
+        else beforePreamble + (preamble?.let { if (it.endsWith("\n")) it else it + "\n" } ?: "") + afterPreamble
+}
 
 /** describes the structure of parameters: their names and types, the signatures of dynamic parameters, recursively */
 private fun structuralSignature(values: Map<String, Any>, types: Map<String, String>): String = buildString {
@@ -414,7 +444,7 @@ private fun parameterLibraries(values: Map<String, Any>): List<GlslLibrary> = bu
 }
 
 /**
- * The uniform types and the code of every stage that goes before its preamble: the libraries it uses and the
+ * The uniform types and the code of every stage that goes around its preamble: the libraries it uses and the
  * resolvers of the parameters it reads. The code of a stage is the list of code of that stage, [libraries] are the
  * libraries of the style.
  */
@@ -423,7 +453,7 @@ private fun cachedResolution(
     types: Map<String, String>,
     libraries: List<GlslLibrary>,
     stages: List<List<String?>>
-): Pair<Map<String, String>, List<String>> {
+): Pair<Map<String, String>, List<StageCode>> {
     val key = buildString {
         for (stage in stages) {
             for (code in stage) append(code ?: "").append('\u0001')
@@ -435,15 +465,12 @@ private fun cachedResolution(
     return resolutionCache.get(key) ?: resolveParameters(values, types).let { resolution ->
         val collected = collectLibraries(libraries + parameterLibraries(values))
         val stageCode = stages.map { stage ->
-            val resolvers = resolution.code(*stage.toTypedArray())
-            libraryCode(collected, stage + resolvers) + resolvers
+            val (declarations, resolvers) = resolution.code(*stage.toTypedArray())
+            StageCode(libraryCode(collected, stage + resolvers) + declarations, resolvers)
         }
         (resolution.uniformTypes to stageCode).also { resolutionCache.set(key, it) }
     }
 }
-
-private fun withResolvers(resolvers: String, preamble: String?): String? =
-    if (resolvers.isEmpty()) preamble else resolvers + (preamble ?: "")
 
 /**
  * This shade style with its dynamic parameters and libraries resolved: the shade style itself when it has none,
@@ -475,9 +502,9 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
     resolved.parameterTypes.clear()
     resolved.parameterTypes.putAll(uniformTypes)
 
-    resolved.vertexPreamble = withResolvers(stageResolvers[0], vertexPreamble)
-    resolved.geometryPreamble = withResolvers(stageResolvers[1], geometryPreamble)
-    resolved.fragmentPreamble = withResolvers(stageResolvers[2], fragmentPreamble)
+    resolved.vertexPreamble = stageResolvers[0].around(vertexPreamble)
+    resolved.geometryPreamble = stageResolvers[1].around(geometryPreamble)
+    resolved.fragmentPreamble = stageResolvers[2].around(fragmentPreamble)
     resolved.vertexTransform = vertexTransform
     resolved.geometryTransform = geometryTransform
     resolved.fragmentTransform = fragmentTransform
@@ -517,7 +544,7 @@ fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
 
     val original = this
     return ComputeStyle().apply {
-        computePreamble = withResolvers(stageResolvers[0], original.computePreamble) ?: ""
+        computePreamble = stageResolvers[0].around(original.computePreamble) ?: ""
         computeTransform = original.computeTransform
         workGroupSize = original.workGroupSize
         textureBaseIndex = original.textureBaseIndex

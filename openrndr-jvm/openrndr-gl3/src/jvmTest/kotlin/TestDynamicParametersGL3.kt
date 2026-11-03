@@ -257,6 +257,19 @@ class TestDynamicParametersGL3 : AbstractApplicationTestFixture() {
     }
 
     @Test
+    fun functionsAndPreamblesCallEachOther() {
+        val style = fillWithExpression("pre_h(0.125)")
+        style.fragmentPreamble = """
+            float pre_g(float x) { return x * 2.0; }
+            float pre_h(float x) { return p_f(x) + p_amount; }
+        """.trimIndent()
+        // the function calls a function of the preamble, which calls the function
+        style.parameter("f", glslFunction<Double>("float x", "pre_g(x) * p_scale") { parameter("scale", 1.0) })
+        style.parameter("amount", glslParameter<Double>("pre_g(0.0625)"))
+        assertColors(uniform(0.375, 0.375, 0.375), render(style))
+    }
+
+    @Test
     fun shadeStyleFiltersCallFunctions() {
         val image = gradient()
         val target = colorBuffer(size, size, 1.0, ColorFormat.RGBa, ColorType.FLOAT32).also { buffers += it }
