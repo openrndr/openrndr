@@ -44,7 +44,7 @@ class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(null), StyleParamete
 }
 
 
-class ShadeStyleFilter1to1(val shadeStyle: ShadeStyle) : Filter1to1(null), StyleParameters by shadeStyle {
+open class ShadeStyleFilter1to1(val shadeStyle: ShadeStyle) : Filter1to1(null), StyleParameters by shadeStyle {
     var fill: ColorRGBa by parameters
 
     init {
