@@ -4,6 +4,7 @@ import org.openrndr.draw.DrawContext
 import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.StrokeAlignment
 import org.openrndr.math.Vector2
+import org.openrndr.math.Vector4
 import kotlin.math.abs
 
 /**
@@ -27,12 +28,15 @@ class QualityLineDrawer {
      * @param corners     A list of boolean lists indicating whether the corner at each corresponding vertex
      *                    in the line strip should be smooth (true) or sharp (false).
      * @param fringeWidth The additional width to add to the line edges for anti-aliasing or fringe rendering.
+     * @param bounds      The bounds that shade styles read positions in as `c_boundsPosition`, the position of the
+     *                    top-left corner and the size, by default the bounds of the strips.
      */
     fun drawLineStrips(drawContext: DrawContext,
                        drawStyle: DrawStyle,
                        strips: List<List<Vector2>>,
                        corners: List<List<Boolean>>,
-                       fringeWidth: Double) {
+                       fringeWidth: Double,
+                       bounds: Vector4 = expansionBounds(strips)) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
             val expansions = strips.mapIndexed { index, it ->
@@ -45,7 +49,7 @@ class QualityLineDrawer {
                     drawStyle.miterLimit
                 )
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, bounds)
         }
     }
 
@@ -76,7 +80,7 @@ class QualityLineDrawer {
                 val path = Path.fromLineStrip(it, corners[index], false)
                 path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, expansionBounds(strips))
         }
     }
 
@@ -126,7 +130,7 @@ class QualityLineDrawer {
                 )
             }
             expansionDrawer.renderStrokes(
-                drawContext, drawStyle, expansions, effectiveFringeWidth,
+                drawContext, drawStyle, expansions, effectiveFringeWidth, expansionBounds(strips),
                 clip(drawStyle, strips, corners, effectiveFringeWidth)
             )
         }
@@ -193,7 +197,7 @@ class QualityLineDrawer {
                     )
                 }
                 expansionDrawer.renderStrokes(
-                    drawContext, drawStyle, expansions, fw,
+                    drawContext, drawStyle, expansions, fw, expansionBounds(group.map { strips[it] }),
                     clip(drawStyle, group.map { strips[it] }, group.map { corners[it] }, fw, group.minOf { weights[it] })
                 )
             }

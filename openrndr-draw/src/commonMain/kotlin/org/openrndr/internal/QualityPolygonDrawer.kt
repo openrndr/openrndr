@@ -4,6 +4,7 @@ import org.openrndr.draw.DrawContext
 import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.LineJoin
 import org.openrndr.math.Vector2
+import org.openrndr.math.Vector4
 
 /**
  * Class responsible for high-quality polygon rendering with support for advanced features such as
@@ -24,12 +25,15 @@ class QualityPolygonDrawer {
      * @param loops A list of closed loop paths represented as lists of `Vector2` points defining the edges of the polygon.
      * @param corners A list of lists indicating corner flags for each point in the loops. Defines if a corner is convex or concave.
      * @param fringeWidth A value specifying the fringe width for smoothing, primarily used in rendering filled polygons.
+     * @param bounds The bounds that shade styles read positions in as `c_boundsPosition`, the position of the top-left
+     *               corner and the size, by default the bounds of the loops.
      */
     fun drawPolygon(drawContext: DrawContext,
                     drawStyle: DrawStyle,
                     loops: List<List<Vector2>>,
                     corners: List<List<Boolean>>,
-                    fringeWidth: Double) {
+                    fringeWidth: Double,
+                    bounds: Vector4 = expansionBounds(loops)) {
 
         if (drawStyle.fill != null && loops.isNotEmpty()) {
             val path = Path.fromLineLoops(loops, corners)
@@ -38,7 +42,7 @@ class QualityPolygonDrawer {
             // inside or outside of the outline
             val fw = if (drawStyle.smooth) fringeWidth else 0.0
             val fillExpansions = path.expandFill(fw, fw, LineJoin.BEVEL, 2.4)
-            expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw)
+            expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw, bounds)
         }
     }
 

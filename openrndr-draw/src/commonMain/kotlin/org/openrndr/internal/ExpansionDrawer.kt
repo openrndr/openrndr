@@ -1,8 +1,30 @@
 package org.openrndr.internal
 
 import org.openrndr.draw.*
+import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmRecord
+
+/**
+ * The bounds of [loops] as the `bounds` uniform of the expansion shaders: the position of the top-left corner and the
+ * size, over all points of all loops. Shade styles read positions in them as `c_boundsPosition`. They are the bounds
+ * of the geometry, strokes have the bounds of the geometry they stroke, without the stroke weight.
+ */
+internal fun expansionBounds(loops: List<List<Vector2>>): Vector4 {
+    var minX = Double.POSITIVE_INFINITY
+    var minY = Double.POSITIVE_INFINITY
+    var maxX = Double.NEGATIVE_INFINITY
+    var maxY = Double.NEGATIVE_INFINITY
+    for (loop in loops) {
+        for (point in loop) {
+            if (point.x < minX) minX = point.x
+            if (point.x > maxX) maxX = point.x
+            if (point.y < minY) minY = point.y
+            if (point.y > maxY) maxY = point.y
+        }
+    }
+    return if (minX > maxX) Vector4.ZERO else Vector4(minX, minY, maxX - minX, maxY - minY)
+}
 
 /**
  * Clips strokes to the inside ([inside] is true) or the outside of [polygons], [fringes] draw the anti-aliased edge
@@ -64,7 +86,8 @@ internal class ExpansionDrawer {
         drawContext: DrawContext,
         drawStyle: DrawStyle,
         commands: List<ExpansionCommand>,
-        fringeWidth: Double
+        fringeWidth: Double,
+        bounds: Vector4
     ) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat), emptyList())
@@ -72,6 +95,7 @@ internal class ExpansionDrawer {
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
+        shader.uniform("bounds", bounds)
 
         val localStyle = drawStyle.copy()
         val fs = fringeWidth
@@ -79,7 +103,6 @@ internal class ExpansionDrawer {
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
 
-            //shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
             localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
@@ -141,6 +164,7 @@ internal class ExpansionDrawer {
         drawStyle: DrawStyle,
         commands: List<ExpansionCommand>,
         fringeScale: Double,
+        bounds: Vector4,
         clipCommands: List<ExpansionCommand> = emptyList(),
         fringeCommands: List<ExpansionCommand> = emptyList(),
         clipInside: Boolean = true
@@ -158,7 +182,7 @@ internal class ExpansionDrawer {
             shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
             shader.uniform("strokeFillFactor", 0.0)
 
-            shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
+            shader.uniform("bounds", bounds)
 
             // -- clip, mark the clip polygons in the stencil buffer
             val clipped = clipCommands.isNotEmpty()
@@ -261,13 +285,15 @@ internal class ExpansionDrawer {
         drawContext: DrawContext,
         drawStyle: DrawStyle,
         commands: List<ExpansionCommand>,
-        fringeScale: Double
+        fringeScale: Double,
+        bounds: Vector4
     ) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
+        shader.uniform("bounds", bounds)
 
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
@@ -303,7 +329,8 @@ internal class ExpansionDrawer {
         drawContext: DrawContext,
         drawStyle: DrawStyle,
         commands: List<ExpansionCommand>,
-        fringeWidth: Double
+        fringeWidth: Double,
+        bounds: Vector4
     ) {
         if (commands.isEmpty()) {
             return
@@ -329,11 +356,7 @@ internal class ExpansionDrawer {
         val maxX = commands.maxByOrNull { it.maxX }?.maxX ?: error("no commands")
         val maxY = commands.maxByOrNull { it.maxY }?.maxY ?: error("no commands")
 
-        val command = commands[0]
-        shader.uniform(
-            "bounds",
-            Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY)
-        )
+        shader.uniform("bounds", bounds)
         localStyle.frontStencil = StencilStyle()
         localStyle.backStencil = StencilStyle()
 
@@ -532,9 +555,17 @@ internal class ExpansionDrawer {
      * @param expansion The geometry expansion describing the shape of the stroke to be rendered.
      * @param fringeScale The scale factor applied to the fringe of the stroke for anti-aliasing or smoothing.
      */
-    fun renderStroke(drawContext: DrawContext, drawStyle: DrawStyle, expansion: Expansion, fringeScale: Double) {
+    fun renderStroke(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        expansion: Expansion,
+        fringeScale: Double,
+        bounds: Vector4
+    ) {
         val vertexCount = expansion.vertexCount + 2
-        renderStrokeCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), listOf(expansion)), fringeScale)
+        renderStrokeCommands(
+            drawContext, drawStyle, toCommands(vertices(vertexCount), listOf(expansion)), fringeScale, bounds
+        )
     }
 
     /**
@@ -550,6 +581,7 @@ internal class ExpansionDrawer {
         drawStyle: DrawStyle,
         expansions: List<Expansion>,
         fringeScale: Double,
+        bounds: Vector4,
         clip: StrokeClip? = null
     ) {
         val clipExpansions = clip?.let { it.polygons + it.fringes } ?: emptyList()
@@ -563,6 +595,7 @@ internal class ExpansionDrawer {
             drawStyle,
             commands.filter { it.type == ExpansionType.STROKE },
             fringeScale,
+            bounds,
             commands.filter { it.type == ExpansionType.FILL },
             commands.filter { it.type == ExpansionType.FRINGE },
             clip?.inside ?: true
@@ -583,7 +616,8 @@ internal class ExpansionDrawer {
         drawStyle: DrawStyle,
         expansions: List<Expansion>,
         convex: Boolean,
-        fringeScale: Double
+        fringeScale: Double,
+        bounds: Vector4
     ) {
         val vertexCount = expansions.sumOf {
             if (it.type == ExpansionType.FILL) {
@@ -593,9 +627,9 @@ internal class ExpansionDrawer {
             }
         }
         if (convex) {
-            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale)
+            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
         } else {
-            renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale)
+            renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
         }
     }
 
@@ -607,7 +641,13 @@ internal class ExpansionDrawer {
      * @param expansions A list of expansions describing the geometry of the shapes to be filled.
      * @param fringeScale The scale factor applied to the fringe of the shapes for anti-aliasing or smoothing.
      */
-    fun renderFills(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
+    fun renderFills(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        expansions: List<Expansion>,
+        fringeScale: Double,
+        bounds: Vector4
+    ) {
         val vertexCount = expansions.sumOf {
             if (it.type == ExpansionType.FILL) {
                 (it.vertexCount - 2).coerceAtLeast(0) * 3
@@ -615,6 +655,6 @@ internal class ExpansionDrawer {
                 it.vertexCount + 2
             }
         }
-        renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale)
+        renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
     }
 }

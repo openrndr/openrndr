@@ -934,11 +934,13 @@ class Drawer(val driver: Driver) {
                     val closedPC = shape.closedContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
                     val closedP = closedPC.map { it.first }
                     val closedC = closedPC.map { it.second }
-                    qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth)
                     val openPC = shape.openContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
                     val openP = openPC.map { it.first }
                     val openC = openPC.map { it.second }
-                    qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth)
+                    // the fill and the strokes have the bounds of the whole shape
+                    val bounds = expansionBounds(closedP + openP)
+                    qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth, bounds)
+                    qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth, bounds)
                 }
             }
         } else {
