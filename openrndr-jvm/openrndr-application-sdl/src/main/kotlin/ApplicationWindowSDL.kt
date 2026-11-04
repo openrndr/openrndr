@@ -338,11 +338,14 @@ class ApplicationWindowSDL(
         program.dispatcher.execute()
 
         val ct = System.currentTimeMillis()
-        val draw =  windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
+        val presentationAllowed = presentationMode == PresentationMode.AUTOMATIC || drawRequested
+        val draw = presentationAllowed &&
+                (windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100))
 
         val surfaceArea = program.width * program.height
         val minimized = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
         if (draw && surfaceArea > 0 && !minimized) {
+            drawRequested = false
             program.drawImpl()
             SDL_GL_SwapWindow(window)
             lastUpdate = ct

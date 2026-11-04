@@ -71,10 +71,8 @@ private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
 class ApplicationSDL(override var program: Program, override var configuration: Configuration) : Application() {
 
     override fun requestDraw() {
-        drawRequested = true
+        window.requestDraw()
     }
-
-    private var drawRequested = false
 
     private var exitRequested = false
 
@@ -298,7 +296,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_WINDOW_EXPOSED -> {
                 val windowId = event.window().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_EXPOSED) for unknown window id (=${windowId}): " }; return };
+                // the window contents need to be presented again, also when presentation mode is manual
+                eventWindow.requestDraw()
                 eventWindow.update()
             }
 
@@ -808,6 +808,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 handleSDLEvent(event)
             }
             window.update()
+            if (window.presentationMode != PresentationMode.AUTOMATIC) {
+                Thread.sleep(10)
+            }
 
             val closeWindows = windows.filter { it.closeRequested }
             for (window in closeWindows) {
