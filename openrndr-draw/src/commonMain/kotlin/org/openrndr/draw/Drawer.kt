@@ -940,6 +940,7 @@ class Drawer(val driver: Driver) {
                     // the fill and the strokes have the bounds of the whole shape
                     val bounds = expansionBounds(closedP + openP)
                     qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth, bounds)
+                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true, bounds = bounds)
                     qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth, bounds)
                 }
             }

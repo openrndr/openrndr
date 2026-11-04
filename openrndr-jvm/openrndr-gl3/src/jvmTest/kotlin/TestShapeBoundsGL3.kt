@@ -8,6 +8,7 @@ import org.openrndr.draw.shadeStyle
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
+import org.openrndr.shape.ShapeContour
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
@@ -121,5 +122,23 @@ class TestShapeBoundsGL3 : AbstractApplicationTestFixture() {
         val bounds = Rectangle(50.0, 50.0, 300.0, 100.0)
         assertBounds(pixels, 200, 50, bounds)
         assertBounds(pixels, 350, 100, bounds)
+    }
+
+    @Test
+    fun mixedShapesStrokeTheirClosedContours() {
+        // a closed square and an open line below it
+        val line = ShapeContour.fromPoints(listOf(Vector2(210.0, 180.0), Vector2(390.0, 180.0)), closed = false)
+        val shape = Shape(listOf(square.contour, line))
+        val bounds = Rectangle(10.0, 10.0, 380.0, 180.0)
+        val pixels = draw {
+            fill = null
+            stroke = ColorRGBa.WHITE
+            strokeWeight = 10.0
+            shape(shape)
+        }
+        // the outline of the closed contour and the open contour are stroked, with the bounds of the whole shape
+        assertBounds(pixels, 10, 100, bounds)
+        assertBounds(pixels, 100, 10, bounds)
+        assertBounds(pixels, 300, 180, bounds)
     }
 }

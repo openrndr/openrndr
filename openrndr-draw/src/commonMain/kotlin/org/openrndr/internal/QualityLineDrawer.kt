@@ -100,19 +100,23 @@ class QualityLineDrawer {
      * @param asShape Are the loops the contours of a single shape? The outside of all loops is then determined by the
      *                loop with the largest area, so that holes wound opposite to it are stroked into the shape.
      *                Otherwise the outside of every loop is determined by the loop itself.
+     * @param bounds The bounds that shade styles read positions in as `c_boundsPosition`, the position of the top-left
+     *               corner and the size, by default the bounds of the loops, or of every loop when they are clipped
+     *               independently.
      */
     fun drawLineLoops(drawContext: DrawContext,
                       drawStyle: DrawStyle,
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
                       fringeWidth: Double = 1.0,
-                      asShape: Boolean = false) {
+                      asShape: Boolean = false,
+                      bounds: Vector4? = null) {
         val effectiveFringeWidth = if (drawStyle.smooth) fringeWidth else 0.0
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0) {
             if (!asShape && strips.size > 1 && drawStyle.strokeAlignment != StrokeAlignment.CENTER) {
                 // independent loops are clipped independently
                 for (index in strips.indices) {
-                    drawLineLoops(drawContext, drawStyle, listOf(strips[index]), listOf(corners[index]), fringeWidth, true)
+                    drawLineLoops(drawContext, drawStyle, listOf(strips[index]), listOf(corners[index]), fringeWidth, true, bounds)
                 }
                 return
             }
@@ -130,7 +134,7 @@ class QualityLineDrawer {
                 )
             }
             expansionDrawer.renderStrokes(
-                drawContext, drawStyle, expansions, effectiveFringeWidth, expansionBounds(strips),
+                drawContext, drawStyle, expansions, effectiveFringeWidth, bounds ?: expansionBounds(strips),
                 clip(drawStyle, strips, corners, effectiveFringeWidth)
             )
         }
