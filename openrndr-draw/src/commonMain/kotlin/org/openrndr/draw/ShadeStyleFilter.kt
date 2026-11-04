@@ -79,7 +79,7 @@ class ShadeStyleFilter2to1(val shadeStyle: ShadeStyle) : Filter2to1(null), Style
             shadeStyle.parameter("input$index", buffer)
         }
         val shader = shadeStyleManager.shader(shadeStyle, format)
-        val realFilter = Filter1to1(shader)
+        val realFilter = Filter2to1(shader)
         realFilter.apply(source, target, clip)
     }
 }
