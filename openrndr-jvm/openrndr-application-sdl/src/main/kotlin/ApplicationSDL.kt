@@ -785,6 +785,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         program.drawer.reset()
         program.drawer.ortho()
 
+        if (configuration.showBeforeSetup) {
+            window.showBeforeSetup()
+        }
+
         runBlocking {
             program.setup()
         }

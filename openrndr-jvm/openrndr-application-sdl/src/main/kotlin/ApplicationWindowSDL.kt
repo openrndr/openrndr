@@ -11,6 +11,7 @@ import org.lwjgl.sdl.SDL_Rect
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
 import org.openrndr.color.ColorProfile
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
@@ -347,6 +348,38 @@ class ApplicationWindowSDL(
             SDL_GL_SwapWindow(window)
             lastUpdate = ct
         }
+        if (!shown) {
+            show()
+        }
+    }
+
+    /**
+     * Is the window shown? Windows are created hidden and shown when their first frame is drawn, or before the setup
+     * of their program, see [showBeforeSetup].
+     */
+    private var shown = false
+
+    /**
+     * Clears the window to black and shows it, before the setup of its program
+     * @see org.openrndr.Configuration.showBeforeSetup
+     */
+    internal fun showBeforeSetup() {
+        program.drawer.clear(ColorRGBa.BLACK)
+        SDL_GL_SwapWindow(window)
+        show()
+    }
+
+    /**
+     * Shows the window. Windows are shown after their first frame is drawn, a window that is shown before it is
+     * drawn shows an empty, black frame, during the setup of its program and until its first frame.
+     */
+    private fun show() {
+        shown = true
+        SDL_ShowWindow(window)
+        if (Platform.type == PlatformType.MAC) {
+            SDL_RaiseWindow(window)
+        }
+        SDL_SyncWindow(window)
     }
 
     fun recreateContext() {
@@ -531,8 +564,6 @@ fun createApplicationWindowSDL(
         }
     }
 
-    SDL_ShowWindow(window)
-
 //    if (!SDL_SetWindowSurfaceVSync(window, 1)) {
 //        logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
 //    }
@@ -572,11 +603,7 @@ fun createApplicationWindowSDL(
 
     val drawer = drawer ?: Drawer(Driver.instance)
 
-    //
-    if (Platform.type == PlatformType.MAC) {
-        SDL_RaiseWindow(window)
-    }
-    SDL_SyncWindow(window)
+    // the window is shown when its first frame is drawn, see ApplicationWindowSDL.update
     return ApplicationWindowSDL(
         application,
         window,

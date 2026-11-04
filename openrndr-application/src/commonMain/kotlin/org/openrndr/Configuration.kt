@@ -139,9 +139,11 @@ class Configuration {
     var fullscreen: Fullscreen = Fullscreen.DISABLED
 
     /**
-     * Should the window be made visible before calling setup?
+     * Should the window be made visible before calling setup? The window is then cleared to black and shown before
+     * setup, which shows that the program started when setup takes long. Otherwise the window is shown when its first
+     * frame is drawn, so it does not show a black frame first.
      */
-    var showBeforeSetup = true
+    var showBeforeSetup = false
 
     /**
      * Should the cursor be hidden?

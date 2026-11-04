@@ -421,6 +421,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         if (System.getenv("DESKTOP_SESSION") == "i3") {
             logger.debug { "showing window early: $window" }
             glfwShowWindow(window)
+            windowShown = true
         }
 
         // Get the thread stack and push a new frame
@@ -573,9 +574,16 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 get() = (program.seconds * 1E6).toLong()
         })
 
-        glfwShowWindow(window)
-        glfwSwapBuffers(window)
+        // the window is shown before setup, or when its first frame is drawn, see Configuration.showBeforeSetup
+        if (configuration.showBeforeSetup && !windowShown) {
+            glfwShowWindow(window)
+            windowShown = true
+            glfwSwapBuffers(window)
+        }
     }
+
+    /** is the window shown? It is created hidden and shown before setup or when its first frame is drawn */
+    private var windowShown = false
 
     override fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow {
         // acquire current context, we may be calling this from another context that we want to return to
@@ -993,6 +1001,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     break
                 }
                 glfwSwapBuffers(window)
+            }
+            if (!windowShown) {
+                glfwShowWindow(window)
+                windowShown = true
             }
 
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
