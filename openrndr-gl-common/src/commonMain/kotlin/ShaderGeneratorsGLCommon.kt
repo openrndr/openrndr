@@ -1012,6 +1012,8 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec2 v_dilatedTexCoord;
+// the position in the coordinates of the text, before the model matrix, like the expansion shaders
+out vec3 v_objectPosition;
 
 void main() {
     v_instance = gl_InstanceID;
@@ -1037,6 +1039,7 @@ ${shadeStructure.varyingBridge ?: ""}
         v_dilatedTexCoord = SlugDilate(pos, a_texCoord0, jac, mvpt[0], mvpt[1], mvpt[3], viewportPixels, dilatedPosition);
         x_position = (i_transform * vec4(dilatedPosition, 0.0, 1.0)).xyz;
     }
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -1068,6 +1071,7 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 flat in int v_instance;
 in vec2 v_dilatedTexCoord;
+in vec3 v_objectPosition;
 
 ${slugBezierDistance}
 ${slugCoverageFunctions}
@@ -1124,6 +1128,8 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec2 v_dilatedTexCoord;
+// the position in the coordinates of the text, before the model matrix, like the expansion shaders
+out vec3 v_objectPosition;
 
 void main() {
     v_instance = gl_InstanceID;
@@ -1149,6 +1155,7 @@ ${shadeStructure.varyingBridge ?: ""}
         v_dilatedTexCoord = WindfoilDilate(pos, a_texCoord0, jac, mvpt[0], mvpt[1], mvpt[3], viewportPixels, dilatedPosition);
         x_position = (i_transform * vec4(dilatedPosition, 0.0, 1.0)).xyz;
     }
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -1181,6 +1188,7 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 flat in int v_instance;
 in vec2 v_dilatedTexCoord;
+in vec3 v_objectPosition;
 
 ${slugBezierDistance}
 ${slugContrastFunctions}
