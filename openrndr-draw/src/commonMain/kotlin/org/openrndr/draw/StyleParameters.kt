@@ -44,6 +44,8 @@ class Parameter<R : Any>(
     fun setValue(name: String, value: R) {
         parameterValues[name] = value
         parameterTypes[name] = when (value) {
+            is DynamicParameter -> "dynamic ${value.signature}"
+            is DynamicParameterSource -> DYNAMIC_SOURCE_TYPE
             is Boolean -> "boolean"
             is Int -> "int"
             is Double -> "float"
@@ -306,6 +308,15 @@ interface StyleParameters {
         parameterTypes[name] = "dynamic ${value.signature}"
     }
 
+    /**
+     * Sets [name] to the dynamic parameter that [value] provides, it is read from [value] when the style is used
+     * @see DynamicParameterSource
+     */
+    fun parameter(name: String, value: DynamicParameterSource) {
+        parameterValues[name] = value
+        parameterTypes[name] = DYNAMIC_SOURCE_TYPE
+    }
+
     fun parameter(name: String, value: ColorBuffer) {
         parameterValues[name] = value
         parameterTypes[name] = when (value.type.colorSampling) {
@@ -376,3 +387,9 @@ inline fun <reified T : Struct<T>> StyleParameters.parameter(name: String, value
     parameterValues[name] = value
     parameterTypes[name] = "struct ${T::class.simpleName},${value.size}"
 }
+
+/**
+ * The type of parameters that are [DynamicParameterSource]s, their structure is the structure of the dynamic parameter
+ * they provide when the style is used
+ */
+internal const val DYNAMIC_SOURCE_TYPE = "dynamic source"

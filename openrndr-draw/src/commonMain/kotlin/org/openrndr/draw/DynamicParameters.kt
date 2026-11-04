@@ -29,6 +29,37 @@ sealed class DynamicParameter {
 }
 
 /**
+ * An object that provides a [DynamicParameter], such as a preset that holds a [GlslFunction] and the parameters of
+ * the user interface for it. A source can be set as a parameter of a style, or of a [GlslParameter] or [GlslFunction],
+ * like the dynamic parameter itself. [dynamicParameter] is read when the style is used, so a source can replace its
+ * dynamic parameter without setting it on the style again.
+ *
+ * [dynamicParameter] should return the same object until it is replaced: a different object makes the structure of
+ * the style be compared again, an object with another structure makes another shader.
+ *
+ * ```
+ * class Ripple : DynamicParameterSource {
+ *     override val dynamicParameter = glslFunction<Vector2>("vec2 uv", "uv + p_amount * sin(uv.yx * 40.0)") {
+ *         parameter("amount", 0.01)
+ *     }
+ *     var amount: Double by dynamicParameter.Parameter("amount")
+ * }
+ * filter.parameter("warp", Ripple())
+ * ```
+ */
+interface DynamicParameterSource {
+    /** the dynamic parameter of this source */
+    val dynamicParameter: DynamicParameter
+}
+
+/** the dynamic parameter [value] is or provides, null when it is neither */
+internal fun dynamicOf(value: Any?): DynamicParameter? = when (value) {
+    is DynamicParameter -> value
+    is DynamicParameterSource -> value.dynamicParameter
+    else -> null
+}
+
+/**
  * The parameters of the code of a [GlslParameter] or [GlslFunction]
  */
 internal class ParameterScope : StyleParameters {
@@ -118,20 +149,47 @@ class GlslFunction internal constructor(
 
     override val signature: String get() = "function $glslType ($arguments) $code" + librariesSignature(libraries)
 
+    /**
+     * The GLSL types of the [arguments], without their names and precision qualifiers: `vec2 p, in highp float r[2]`
+     * has the types `vec2` and `in float[2]`. With [glslType] they are the contract of the function, functions with
+     * the same contract can replace each other.
+     */
+    val argumentTypes: List<String> by lazy { glslArgumentTypes(arguments) }
+
+    /** does this function return [returnType] and take arguments of [argumentTypes]? */
+    fun hasContract(returnType: String, vararg argumentTypes: String): Boolean =
+        glslType == returnType && this.argumentTypes == argumentTypes.toList()
+
     /** the number of arguments */
-    internal val arity: Int
-        get() {
-            var depth = 0
-            var count = if (arguments.isBlank()) 0 else 1
-            for (c in arguments) {
-                when (c) {
-                    '(', '[' -> depth++
-                    ')', ']' -> depth--
-                    ',' -> if (depth == 0) count++
-                }
+    internal val arity: Int get() = argumentTypes.size
+}
+
+private val glslPrecisions = setOf("lowp", "mediump", "highp")
+
+/** the types of a GLSL parameter list, see [GlslFunction.argumentTypes] */
+internal fun glslArgumentTypes(arguments: String): List<String> {
+    if (arguments.isBlank()) return emptyList()
+    // split at the commas outside of brackets
+    val parts = mutableListOf<String>()
+    var depth = 0
+    var start = 0
+    for ((i, c) in arguments.withIndex()) {
+        when (c) {
+            '(', '[' -> depth++
+            ')', ']' -> depth--
+            ',' -> if (depth == 0) {
+                parts.add(arguments.substring(start, i)); start = i + 1
             }
-            return count
         }
+    }
+    parts.add(arguments.substring(start))
+    return parts.map { part ->
+        val words = part.replace("[", " [").trim().split(Regex("\\s+")).filter { it !in glslPrecisions }
+        // the brackets of the type or of the name, the name is the last word that is not a bracket
+        val arrays = words.filter { it.startsWith("[") }.joinToString("") { it.replace(" ", "") }
+        val names = words.filter { !it.startsWith("[") }
+        (if (names.size > 1) names.dropLast(1) else names).joinToString(" ") + arrays
+    }
 }
 
 /**
@@ -196,11 +254,11 @@ private class ResolvedValues(private val source: () -> Map<String, Any>) : Abstr
             val result = LinkedHashMap<String, Any>()
             fun expand(prefix: String, values: Map<String, Any>) {
                 for ((key, value) in values) {
-                    when (value) {
-                        is TextureParameter -> result["$prefix${key}_texture"] = value.texture
-                        is GlslParameter -> expand("$prefix${key}_", value.scope.parameterValues)
-                        is GlslFunction -> expand("$prefix${key}_", value.scope.parameterValues)
-                        else -> result["$prefix$key"] = value
+                    when (val dynamic = dynamicOf(value)) {
+                        is TextureParameter -> result["$prefix${key}_texture"] = dynamic.texture
+                        is GlslParameter -> expand("$prefix${key}_", dynamic.scope.parameterValues)
+                        is GlslFunction -> expand("$prefix${key}_", dynamic.scope.parameterValues)
+                        null -> result["$prefix$key"] = value
                     }
                 }
             }
@@ -215,9 +273,10 @@ private class ResolvedValues(private val source: () -> Map<String, Any>) : Abstr
  */
 private fun scopeVersions(values: Map<String, Any>): List<Any> = buildList {
     for (value in values.values) {
-        if (value is DynamicParameter) {
-            add(value)
-            scopeOf(value)?.let {
+        val dynamic = dynamicOf(value)
+        if (dynamic != null) {
+            add(dynamic)
+            scopeOf(dynamic)?.let {
                 add(it.structureVersion)
                 addAll(scopeVersions(it.parameterValues))
             }
@@ -252,7 +311,7 @@ private fun codeOf(value: DynamicParameter): List<String> = when (value) {
     is TextureParameter -> listOf(value.coordinate)
     is GlslParameter -> listOf(value.code)
     is GlslFunction -> listOf(value.code)
-} + (scopeOf(value)?.parameterValues?.values?.filterIsInstance<DynamicParameter>()?.flatMap { codeOf(it) } ?: emptyList())
+} + (scopeOf(value)?.parameterValues?.values?.mapNotNull { dynamicOf(it) }?.flatMap { codeOf(it) } ?: emptyList())
 
 /**
  * The resolver functions of a dynamic parameter, their [prototypes], the uniforms they read, and [definition] which
@@ -298,8 +357,9 @@ private fun resolver(key: String, value: DynamicParameter, context: List<Pair<St
         for ((name, nested) in scope.parameterValues) {
             val nestedKey = "${key}_$name"
             renames["p_$name"] = "p_$nestedKey"
-            if (nested is DynamicParameter) {
-                val nestedResolver = resolver(nestedKey, nested, context)
+            val nestedDynamic = dynamicOf(nested)
+            if (nestedDynamic != null) {
+                val nestedResolver = resolver(nestedKey, nestedDynamic, context)
                 prototypes.append(nestedResolver.prototypes)
                 functions.append(nestedResolver.functions)
                 functions.append(nestedResolver.definition(contextArguments))
@@ -385,11 +445,12 @@ private fun resolveParameters(values: Map<String, Any>, types: Map<String, Strin
     val uniformTypes = mutableMapOf<String, String>()
     val resolvers = mutableMapOf<String, Pair<Resolver, List<String>>>()
     for ((key, value) in values) {
-        if (value is DynamicParameter) {
+        val dynamic = dynamicOf(value)
+        if (dynamic != null) {
             // the context values read anywhere in the resolver and its nested resolvers
-            val code = codeOf(value)
+            val code = codeOf(dynamic)
             val context = contextValues.filter { (name, _) -> code.any { reads(it, name) } }
-            resolver(key, value, context).also {
+            resolver(key, dynamic, context).also {
                 resolvers[key] = it to context.map { (name, _) -> name }
                 uniformTypes.putAll(it.uniformTypes)
             }
@@ -421,9 +482,10 @@ private class StageCode(val beforePreamble: String, val afterPreamble: String) {
 private fun structuralSignature(values: Map<String, Any>, types: Map<String, String>): String = buildString {
     for ((key, value) in values) {
         append(key).append('=')
-        if (value is DynamicParameter) {
-            append(value.signature)
-            scopeOf(value)?.let { scope ->
+        val dynamic = dynamicOf(value)
+        if (dynamic != null) {
+            append(dynamic.signature)
+            scopeOf(dynamic)?.let { scope ->
                 append('{').append(structuralSignature(scope.parameterValues, scope.parameterTypes)).append('}')
             }
         } else {
@@ -436,9 +498,10 @@ private fun structuralSignature(values: Map<String, Any>, types: Map<String, Str
 /** the libraries of the dynamic parameters in [values], recursively */
 private fun parameterLibraries(values: Map<String, Any>): List<GlslLibrary> = buildList {
     for (value in values.values) {
-        if (value is DynamicParameter) {
-            addAll(value.libraries)
-            scopeOf(value)?.let { addAll(parameterLibraries(it.parameterValues)) }
+        val dynamic = dynamicOf(value)
+        if (dynamic != null) {
+            addAll(dynamic.libraries)
+            scopeOf(dynamic)?.let { addAll(parameterLibraries(it.parameterValues)) }
         }
     }
 }
@@ -479,7 +542,7 @@ private fun cachedResolution(
  * @see DynamicParameter
  */
 fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
-    if (libraries.isEmpty() && parameterValues.values.none { it is DynamicParameter }) {
+    if (libraries.isEmpty() && parameterValues.values.none { dynamicOf(it) != null }) {
         return this
     }
     val resolved = resolvedStyle as? ResolvedShadeStyle ?: ResolvedShadeStyle(this).also { resolvedStyle = it }
@@ -535,7 +598,7 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
  * @see DynamicParameter
  */
 fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
-    if (libraries.isEmpty() && parameterValues.values.none { it is DynamicParameter }) {
+    if (libraries.isEmpty() && parameterValues.values.none { dynamicOf(it) != null }) {
         return this
     }
     val (uniformTypes, stageResolvers) = cachedResolution(
