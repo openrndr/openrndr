@@ -27,16 +27,39 @@ suspend fun loadHarfBuzzModule(): HarfBuzzModule = importHarfBuzz().await()
 
 // -- loading font data
 
-/** reads a file or url synchronously, from the file system in Node.js and with a synchronous request in browsers, base64 data urls are decoded */
+/** reads a file or url synchronously, from the file system in Node.js and with a synchronous request in browsers, data urls are decoded, base64 or percent-encoded */
 internal fun readBytesSync(fileOrUrl: String): Uint8Array<*> = js(
     """(() => {
-        if (fileOrUrl.indexOf('data:') === 0) {
-            const binary = atob(fileOrUrl.substring(fileOrUrl.indexOf(',') + 1));
-            const decoded = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                decoded[i] = binary.charCodeAt(i);
+        if (fileOrUrl.slice(0, 5).toLowerCase() === 'data:') {
+            const comma = fileOrUrl.indexOf(',');
+            const header = fileOrUrl.substring(5, comma);
+            let data = fileOrUrl.substring(comma + 1);
+            // percent-encoded bytes, also in base64 data
+            const bytes = [];
+            for (let i = 0; i < data.length; i++) {
+                const c = data.charCodeAt(i);
+                if (c === 37 && i + 2 < data.length && /^[0-9a-fA-F]{2}$/.test(data.substr(i + 1, 2))) {
+                    bytes.push(parseInt(data.substr(i + 1, 2), 16));
+                    i += 2;
+                } else if (c < 128) {
+                    bytes.push(c);
+                } else {
+                    for (const b of new TextEncoder().encode(data[i])) bytes.push(b);
+                }
             }
-            return decoded;
+            if (/;base64$/i.test(header)) {
+                let text = '';
+                for (let i = 0; i < bytes.length; i += 8192) {
+                    text += String.fromCharCode.apply(null, bytes.slice(i, i + 8192));
+                }
+                const binary = atob(text.replace(/\s/g, ''));
+                const decoded = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    decoded[i] = binary.charCodeAt(i);
+                }
+                return decoded;
+            }
+            return new Uint8Array(bytes);
         }
         const process = globalThis.process;
         const node = process && process.getBuiltinModule ? process.getBuiltinModule('fs') : undefined;
@@ -61,14 +84,6 @@ internal fun readBytesSync(fileOrUrl: String): Uint8Array<*> = js(
 
 private fun fetchBytes(fileOrUrl: String): Promise<Uint8Array<*>> = js(
     """(() => {
-        if (fileOrUrl.indexOf('data:') === 0) {
-            const binary = atob(fileOrUrl.substring(fileOrUrl.indexOf(',') + 1));
-            const decoded = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                decoded[i] = binary.charCodeAt(i);
-            }
-            return Promise.resolve(decoded);
-        }
         const process = globalThis.process;
         const node = process && process.getBuiltinModule ? process.getBuiltinModule('fs') : undefined;
         if (node && !/^[a-z]+:\/\//i.test(fileOrUrl)) {
@@ -83,8 +98,24 @@ private fun fetchBytes(fileOrUrl: String): Promise<Uint8Array<*>> = js(
     })()"""
 )
 
-/** reads a file or url asynchronously, from the file system in Node.js and with fetch in browsers */
-internal suspend fun readBytes(fileOrUrl: String): Uint8Array<*> = fetchBytes(fileOrUrl).await()
+/**
+ * reads a file or url asynchronously, from the file system in Node.js and with fetch in browsers, data urls are
+ * decoded, base64 or percent-encoded
+ */
+internal suspend fun readBytes(fileOrUrl: String): Uint8Array<*> =
+    if (fileOrUrl.startsWith("data:", ignoreCase = true)) readBytesSync(fileOrUrl) else fetchBytes(fileOrUrl).await()
+
+internal fun uint8ArrayToByteArray(array: Uint8Array<*>): ByteArray {
+    val size = uint8Length(array)
+    return ByteArray(size) { uint8At(array, it).toByte() }
+}
+
+private fun uint8Length(array: Uint8Array<*>): Int = js("array.length")
+private fun uint8At(array: Uint8Array<*>, index: Int): Int = js("array[index]")
+
+/** the first four bytes of [array] as a tag, an empty string when it is shorter */
+internal fun uint8Tag(array: Uint8Array<*>): String =
+    if (uint8Length(array) < 4) "" else (0 until 4).map { uint8At(array, it).toChar() }.joinToString("")
 
 internal fun byteArrayToUint8Array(bytes: ByteArray): Uint8Array<*> {
     val array = createUint8Array(bytes.size)

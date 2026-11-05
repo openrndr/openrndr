@@ -4,6 +4,7 @@ package org.openrndr.fontdriver.harfbuzzjs
 
 import js.typedarrays.Uint8Array
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.webfont.sfntFontBytes
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.internal.FontDriver
 
@@ -26,8 +27,15 @@ class FontDriverHarfBuzzJs(val harfBuzz: HarfBuzzModule) : FontDriver {
      */
     fun loadFace(bytes: ByteArray, index: Int = 0): FaceHarfBuzzJs = loadFace(byteArrayToUint8Array(bytes), index)
 
-    private fun loadFace(bytes: Uint8Array<*>, index: Int = 0): FaceHarfBuzzJs {
+    private fun loadFace(data: Uint8Array<*>, index: Int = 0): FaceHarfBuzzJs {
+        // HarfBuzz reads TrueType and OpenType fonts, WOFF and WOFF2 fonts are decoded
+        val tag = uint8Tag(data)
+        val bytes = if (tag == "wOFF" || tag == "wOF2") {
+            byteArrayToUint8Array(sfntFontBytes(uint8ArrayToByteArray(data)))
+        } else data
         val hbFace = hbCreateFace(harfBuzz, bytes, index)
+        // HarfBuzz makes an empty face of data it cannot read
+        require(int32Length(hbCollectUnicodes(hbFace)) > 0) { "the data is not a font that can be read, or the font has no characters" }
 
         // variation axes are named like FreeType names them, by the name of the axis in the font
         val axes = hbAxes(hbFace)

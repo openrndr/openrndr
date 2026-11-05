@@ -7,6 +7,8 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
+import java.util.Base64
+import org.openrndr.draw.font.webfont.sfntFontBytes
 
 private val logger = KotlinLogging.logger { }
 
@@ -34,9 +36,52 @@ val fontCacheDirectory: File by lazy {
  * Read font bytes from a file or url.
  *
  * Fonts loaded from http(s) urls are cached on disk in [cacheDirectory], so they are only downloaded once.
- * Set the `org.openrndr.fontcache` system property to `false` to disable the disk cache.
+ * Set the `org.openrndr.fontcache` system property to `false` to disable the disk cache. `data:` urls are decoded,
+ * base64 or percent-encoded. WOFF and WOFF2 fonts are decoded to TrueType or OpenType fonts.
  */
-fun fontBytesFromFileOrUrl(fileOrUrl: String, cacheDirectory: File = fontCacheDirectory): ByteArray {
+fun fontBytesFromFileOrUrl(fileOrUrl: String, cacheDirectory: File = fontCacheDirectory): ByteArray =
+    sfntFontBytes(readFontBytes(fileOrUrl, cacheDirectory))
+
+/**
+ * The bytes of the `data:` url [url]: `data:[<mediatype>][;base64],<data>`
+ */
+fun bytesOfDataUrl(url: String): ByteArray {
+    require(url.startsWith("data:", ignoreCase = true)) { "not a data url" }
+    val comma = url.indexOf(',')
+    require(comma >= 0) { "data url without data" }
+    val header = url.substring(5, comma)
+    val data = url.substring(comma + 1)
+    return if (header.endsWith(";base64", ignoreCase = true)) {
+        // whitespace and percent-encoded characters can occur in base64 data urls
+        Base64.getDecoder().decode(percentDecode(data).toString(Charsets.ISO_8859_1).filterNot { it.isWhitespace() })
+    } else {
+        percentDecode(data)
+    }
+}
+
+private fun percentDecode(text: String): ByteArray {
+    val out = java.io.ByteArrayOutputStream(text.length)
+    var i = 0
+    while (i < text.length) {
+        val c = text[i]
+        if (c == '%' && i + 2 < text.length) {
+            val hex = text.substring(i + 1, i + 3).toIntOrNull(16)
+            if (hex != null) {
+                out.write(hex)
+                i += 3
+                continue
+            }
+        }
+        if (c.code < 0x80) out.write(c.code) else out.write(c.toString().toByteArray(Charsets.UTF_8))
+        i++
+    }
+    return out.toByteArray()
+}
+
+private fun readFontBytes(fileOrUrl: String, cacheDirectory: File): ByteArray {
+    if (fileOrUrl.startsWith("data:", ignoreCase = true)) {
+        return bytesOfDataUrl(fileOrUrl)
+    }
     val isHttp = fileOrUrl.startsWith("http://") || fileOrUrl.startsWith("https://")
     if (!isHttp) {
         return if (fileOrUrl.startsWith("file:") || fileOrUrl.startsWith("jar:")) {

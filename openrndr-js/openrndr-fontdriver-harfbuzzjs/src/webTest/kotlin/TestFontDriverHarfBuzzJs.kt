@@ -1,11 +1,14 @@
 import kotlinx.coroutines.test.runTest
 import org.openrndr.draw.font.Face
 import org.openrndr.fontdriver.harfbuzzjs.FontDriverHarfBuzzJs
+import org.openrndr.fontdriver.harfbuzzjs.readBytesSync
+import org.openrndr.fontdriver.harfbuzzjs.uint8ArrayToByteArray
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -57,6 +60,47 @@ class TestFontDriverHarfBuzzJs {
         assertEquals(461.0 / 2048.0 * 32.0, metrics.strikeoutPosition, 1E-9)
         assertEquals(102.0 / 2048.0 * 32.0, metrics.strikeoutThickness, 1E-9)
         assertTrue(metrics.underlineFromFont && metrics.strikeoutFromFont)
+    }
+
+    private val dejavuWoff = "openrndr-jvm/openrndr-gl3/src/jvmTest/resources/fonts/DejaVuLGCSansMono-BoldOblique.woff"
+
+    private fun assertSameFaces(expected: Face, actual: Face, message: String) {
+        assertEquals(expected.unitsPerEm(), actual.unitsPerEm(), "$message units per em")
+        assertEquals(expected.ascent, actual.ascent, 1E-9, "$message ascent")
+        for (c in "Hagx&") {
+            val e = expected.glyphForCharacter(c)
+            val a = actual.glyphForCharacter(c)
+            assertEquals(e.advanceWidth(), a.advanceWidth(), 1E-9, "$message advance of '$c'")
+            assertEquals(e.shape().contours.map { it.segments }, a.shape().contours.map { it.segments }, "$message outline of '$c'")
+        }
+    }
+
+    @Test
+    fun webFonts() = runTest {
+        val woff = face(dejavuWoff) ?: return@runTest
+        val woff2 = face(dejavuWoff + "2") ?: return@runTest
+        assertEquals(2048, woff.unitsPerEm())
+        assertTrue(woff.glyphForCharacter('H').shape().contours.isNotEmpty())
+        assertSameFaces(woff, woff2, "WOFF2")
+    }
+
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+    @Test
+    fun dataUrls() = runTest {
+        val root = repositoryRoot() ?: return@runTest
+        val file = face(dejavuWoff + "2") ?: return@runTest
+        val bytes = uint8ArrayToByteArray(readBytesSync("$root/${dejavuWoff}2"))
+        val driver = FontDriverHarfBuzzJs.create()
+        val base64 = "data:font/woff2;base64," + kotlin.io.encoding.Base64.encode(bytes)
+        assertSameFaces(file, driver.loadFace(base64).withSize(32.0), "base64 data url")
+        assertSameFaces(file, driver.loadFaceSuspend(base64).withSize(32.0), "base64 data url, suspending")
+        val percent = "data:font/woff2," + bytes.joinToString("") { "%" + (it.toInt() and 0xff).toString(16).padStart(2, '0') }
+        assertSameFaces(file, driver.loadFace(percent).withSize(32.0), "percent-encoded data url")
+    }
+
+    @Test
+    fun dataThatIsNotAFontFails() = runTest {
+        assertFailsWith<IllegalArgumentException> { FontDriverHarfBuzzJs.create().loadFace("data:,not%20a%20font") }
     }
 
     @Test
