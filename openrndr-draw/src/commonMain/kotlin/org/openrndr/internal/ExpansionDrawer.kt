@@ -5,6 +5,45 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
 import org.openrndr.shape.FillRule
 import kotlin.jvm.JvmRecord
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.sqrt
+
+/**
+ * The linear part of the map from positions in the plane z = 0 to device pixels: (a, b, c, d), x' = a x + b y,
+ * y' = c x + d y, when the map is affine, as it is with orthographic projections, null otherwise
+ */
+internal fun devicePixelMap(drawContext: DrawContext): DoubleArray? {
+    val m = drawContext.projection * drawContext.view * drawContext.model
+    // the w of positions in the plane z = 0 must not depend on the position
+    if (abs(m.c0r3) > 1E-12 || abs(m.c1r3) > 1E-12 || abs(m.c3r3) < 1E-12) {
+        return null
+    }
+    val sx = 0.5 * drawContext.width * drawContext.contentScale / m.c3r3
+    val sy = 0.5 * drawContext.height * drawContext.contentScale / m.c3r3
+    val map = doubleArrayOf(m.c0r0 * sx, m.c1r0 * sx, m.c0r1 * sy, m.c1r1 * sy)
+    val determinant = map[0] * map[3] - map[1] * map[2]
+    return if (abs(determinant) > 1E-12 && map.all { it.isFinite() }) map else null
+}
+
+/** the smallest scale of the linear [map] (a, b, c, d) in any direction, its smallest singular value */
+internal fun minimumScale(map: DoubleArray): Double {
+    val (a, b, c, d) = map
+    val sum = a * a + b * b + c * c + d * d
+    val determinant = a * d - b * c
+    return sqrt(max(0.0, 0.5 * (sum - sqrt(max(0.0, sum * sum - 4.0 * determinant * determinant)))))
+}
+
+/**
+ * Maps [expansions] made in device pixels by [map] back: the inverse of the linear map (a, b, c, d)
+ */
+internal fun mapFromDevicePixels(expansions: List<Expansion>, map: DoubleArray) {
+    val (a, b, c, d) = map
+    val determinant = a * d - b * c
+    for (expansion in expansions) {
+        expansion.mapPositions(d / determinant, -b / determinant, -c / determinant, a / determinant)
+    }
+}
 
 /**
  * The bounds of [loops] as the `bounds` uniform of the expansion shaders: the position of the top-left corner and the
@@ -83,6 +122,19 @@ internal class ExpansionDrawer {
         )
     }
 
+    /**
+     * Measures the coverage of strokes in device pixels, by the change of their across-stroke coordinate, when they
+     * have a fringe of [fringeWidth]: strokes are anti-aliased a pixel wide however they are scaled
+     */
+    private fun strokeCoverage(shader: Shader, drawStyle: DrawStyle, fringeWidth: Double) {
+        if (fringeWidth > 0.0) {
+            shader.uniform("strokeCoverage", 1)
+            shader.uniform("strokeEdge", drawStyle.strokeWeight / (drawStyle.strokeWeight + fringeWidth))
+        } else {
+            shader.uniform("strokeCoverage", 0)
+        }
+    }
+
     private fun renderStrokeCommands(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
@@ -98,11 +150,13 @@ internal class ExpansionDrawer {
         Driver.instance.setState(drawStyle)
         shader.uniform("bounds", bounds)
         shader.uniform("fringeMode", 0)
+        shader.uniform("strokeCoverage", 0)
 
         val localStyle = drawStyle.copy()
         val fs = fringeWidth
         shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
         shader.uniform("strokeFillFactor", 0.0)
+        strokeCoverage(shader, drawStyle, fs)
         commands.forEach { command ->
 
             localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
@@ -183,6 +237,7 @@ internal class ExpansionDrawer {
             val fs = fringeScale
             shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
             shader.uniform("strokeFillFactor", 0.0)
+            strokeCoverage(shader, drawStyle, fs)
 
             shader.uniform("bounds", bounds)
             shader.uniform("fringeMode", 0)
@@ -240,6 +295,8 @@ internal class ExpansionDrawer {
             if (fringeCommands.isNotEmpty()) {
                 shader.uniform("strokeThr", -1.0f)
                 shader.uniform("strokeMult", 1.0)
+                // the fringes are made a pixel wide
+                shader.uniform("strokeCoverage", 0)
                 localStyle.stencil.stencilFunc(StencilTest.EQUAL, if (clipInside) 0x00 else CLIP_BIT, 0xff)
                 localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
                 Driver.instance.setState(localStyle)
@@ -298,6 +355,7 @@ internal class ExpansionDrawer {
         Driver.instance.setState(drawStyle)
         shader.uniform("bounds", bounds)
         shader.uniform("fringeMode", 0)
+        shader.uniform("strokeCoverage", 0)
 
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
@@ -369,6 +427,7 @@ internal class ExpansionDrawer {
 
         shader.uniform("bounds", bounds)
         shader.uniform("fringeMode", 0)
+        shader.uniform("strokeCoverage", 0)
         localStyle.frontStencil = StencilStyle()
         localStyle.backStencil = StencilStyle()
 

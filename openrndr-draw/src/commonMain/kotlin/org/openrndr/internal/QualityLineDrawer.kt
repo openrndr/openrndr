@@ -37,7 +37,7 @@ class QualityLineDrawer {
                        corners: List<List<Boolean>>,
                        fringeWidth: Double,
                        bounds: Vector4 = expansionBounds(strips)) {
-        val fw = if (drawStyle.smooth) fringeWidth else 0.0
+        val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
             val expansions = strips.mapIndexed { index, it ->
                 val path = Path.fromLineStrip(it, corners[index], false)
@@ -74,7 +74,7 @@ class QualityLineDrawer {
                        corners: List<List<Boolean>>,
                        weights: List<Double>,
                        fringeWidth: Double) {
-        val fw = if (drawStyle.smooth) fringeWidth else 0.0
+        val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
             val expansions = strips.mapIndexed { index, it ->
                 val path = Path.fromLineStrip(it, corners[index], false)
@@ -111,7 +111,7 @@ class QualityLineDrawer {
                       fringeWidth: Double = 1.0,
                       asShape: Boolean = false,
                       bounds: Vector4? = null) {
-        val effectiveFringeWidth = if (drawStyle.smooth) fringeWidth else 0.0
+        val effectiveFringeWidth = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0) {
             if (!asShape && strips.size > 1 && drawStyle.strokeAlignment != StrokeAlignment.CENTER) {
                 // independent loops are clipped independently
@@ -135,7 +135,7 @@ class QualityLineDrawer {
             }
             expansionDrawer.renderStrokes(
                 drawContext, drawStyle, expansions, effectiveFringeWidth, bounds ?: expansionBounds(strips),
-                clip(drawStyle, strips, corners, effectiveFringeWidth)
+                clip(drawContext, drawStyle, strips, corners, effectiveFringeWidth)
             )
         }
     }
@@ -147,6 +147,7 @@ class QualityLineDrawer {
      * noticeably and are not clipped.
      */
     private fun clip(
+        drawContext: DrawContext,
         drawStyle: DrawStyle,
         strips: List<List<Vector2>>,
         corners: List<List<Boolean>>,
@@ -156,17 +157,39 @@ class QualityLineDrawer {
         if (drawStyle.strokeAlignment == StrokeAlignment.CENTER || strokeWeight < 2.0 * fringeWidth) {
             return null
         }
+        // the clip and its fringes are made in device pixels when possible, so that the fringes are a pixel wide
+        val pixels = if (fringeWidth > 0.0) devicePixelMap(drawContext) else null
+        val width = if (pixels != null) 1.0 else fringeWidth
         val path = Path()
         strips.forEachIndexed { index, strip ->
-            path.contours.addAll(Path.fromLineStrip(strip, corners[index], true).contours)
+            val points = if (pixels != null) {
+                val (a, b, c, d) = pixels
+                strip.map { Vector2(a * it.x + b * it.y, c * it.x + d * it.y) }
+            } else strip
+            path.contours.addAll(Path.fromLineStrip(points, corners[index], true).contours)
         }
         path.closed = true
         val inside = drawStyle.strokeAlignment == StrokeAlignment.INSIDE
-        return StrokeClip(
-            path.expandClip(if (inside) -fringeWidth * 0.5 else fringeWidth * 0.5),
-            if (fringeWidth > 0.0) path.expandClipFringe(fringeWidth, inside) else emptyList(),
-            inside
-        )
+        val polygons = path.expandClip(if (inside) -width * 0.5 else width * 0.5)
+        val fringes = if (width > 0.0) path.expandClipFringe(width, inside) else emptyList()
+        if (pixels != null) {
+            mapFromDevicePixels(polygons, pixels)
+            mapFromDevicePixels(fringes, pixels)
+        }
+        return StrokeClip(polygons, fringes, inside)
+    }
+
+    /**
+     * The width of the fringe of strokes: wide enough to be at least a pixel wide in every direction, the coverage of
+     * strokes is measured in device pixels by the shader
+     */
+    private fun strokeFringe(drawContext: DrawContext, drawStyle: DrawStyle, fringeWidth: Double): Double {
+        if (!drawStyle.smooth) {
+            return 0.0
+        }
+        val pixels = devicePixelMap(drawContext) ?: return fringeWidth
+        val scale = minimumScale(pixels)
+        return if (scale > 1E-12) 1.0 / scale else fringeWidth
     }
     /**
      * Draws a series of closed line loops with the specified drawing context, style, and parameters.
@@ -188,7 +211,7 @@ class QualityLineDrawer {
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
                       weights: List<Double>, fringeWidth: Double = 1.0) {
-        val fw = if (drawStyle.smooth) fringeWidth else 0.0
+        val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
             // independent loops are clipped independently
             val groups = if (drawStyle.strokeAlignment == StrokeAlignment.CENTER) listOf(strips.indices.toList()) else strips.indices.map { listOf(it) }
@@ -202,7 +225,7 @@ class QualityLineDrawer {
                 }
                 expansionDrawer.renderStrokes(
                     drawContext, drawStyle, expansions, fw, expansionBounds(group.map { strips[it] }),
-                    clip(drawStyle, group.map { strips[it] }, group.map { corners[it] }, fw, group.minOf { weights[it] })
+                    clip(drawContext, drawStyle, group.map { strips[it] }, group.map { corners[it] }, fw, group.minOf { weights[it] })
                 )
             }
         }

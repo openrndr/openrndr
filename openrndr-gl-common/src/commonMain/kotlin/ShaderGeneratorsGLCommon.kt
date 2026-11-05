@@ -685,6 +685,9 @@ uniform vec4 bounds;
 // 0: strokes and convex fills, the fringes of stenciled fills: 1 outside of the fill, 2 inside of the fill,
 // 3 inside on the left of the outline, 4 inside on the right of the outline
 uniform int fringeMode;
+// 1: the coverage of strokes is measured in device pixels, strokeEdge is |2u - 1| on the edge of the stroke
+uniform int strokeCoverage;
+uniform float strokeEdge;
 
 in vec3 v_objectPosition;
 in vec2 v_ftcoord;
@@ -696,6 +699,21 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 ${shadeStructure.fragmentPreamble ?: ""}
 
 float strokeMask() {
+    if (strokeCoverage == 1) {
+        // the coverage of the pixel by the stroke across it: the distance of the pixel to the center of the stroke
+        // and the half width of the stroke in device pixels, by the change of u across pixels
+        float across = 1.0;
+        float du = length(vec2(dFdx(v_ftcoord.x), dFdy(v_ftcoord.x)));
+        if (du > 1e-12) {
+            float center = abs(v_ftcoord.x * 2.0 - 1.0) / (2.0 * du);
+            float halfWidth = strokeEdge / (2.0 * du);
+            across = clamp(min(center + halfWidth, 0.5) - max(center - halfWidth, -0.5), 0.0, 1.0);
+        }
+        // caps and bevels: v is 0 a fringe outside of their edge, 0.5 on it
+        float dv = length(vec2(dFdx(v_ftcoord.y), dFdy(v_ftcoord.y)));
+        float along = dv > 1e-12 ? clamp((v_ftcoord.y - 0.5) / dv + 0.5, 0.0, 1.0) : min(1.0, v_ftcoord.y);
+        return across * along;
+    }
 	return min(1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * min(1.0, v_ftcoord.y);
 	//return pow(min(1.0, (1.0-abs(v_ftcoord.x*2.0-1.0)*strokeMult)) * min(1.0, v_ftcoord.y), 1.0);
     //return smoothstep(0.0, 1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * smoothstep(0.0, 1.0, v_ftcoord.y);
