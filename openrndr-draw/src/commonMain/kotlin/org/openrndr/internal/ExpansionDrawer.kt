@@ -97,6 +97,7 @@ internal class ExpansionDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         shader.uniform("bounds", bounds)
+        shader.uniform("fringeMode", 0)
 
         val localStyle = drawStyle.copy()
         val fs = fringeWidth
@@ -184,6 +185,7 @@ internal class ExpansionDrawer {
             shader.uniform("strokeFillFactor", 0.0)
 
             shader.uniform("bounds", bounds)
+            shader.uniform("fringeMode", 0)
 
             // -- clip, mark the clip polygons in the stencil buffer
             val clipped = clipCommands.isNotEmpty()
@@ -295,6 +297,7 @@ internal class ExpansionDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         shader.uniform("bounds", bounds)
+        shader.uniform("fringeMode", 0)
 
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
@@ -365,6 +368,7 @@ internal class ExpansionDrawer {
         val maxY = commands.maxByOrNull { it.maxY }?.maxY ?: error("no commands")
 
         shader.uniform("bounds", bounds)
+        shader.uniform("fringeMode", 0)
         localStyle.frontStencil = StencilStyle()
         localStyle.backStencil = StencilStyle()
 
@@ -404,31 +408,49 @@ internal class ExpansionDrawer {
         localStyle.frontStencil = localStyle.stencil
         localStyle.backStencil = localStyle.stencil
 
-        // -- pass 2: draw anti-aliased fringes
+        // -- pass 2: draw anti-aliased fringes. The fringes are centered on the outline, the stencil tells on which
+        // side of it a pixel is. Pixels inside of the fill are drawn by a fringe only where the other side of the
+        // outline is outside of the fill, outlines within the fill are not anti-aliased. Inside pixels drawn by a
+        // fringe are cleared in the stencil, so that pass 3 and other fringes do not draw them again.
         localStyle.channelWriteMask = ChannelMask.ALL
         shader.uniform("strokeThr", 0.0f)
         shader.uniform("strokeMult", 1.0)
-        // the fringes are drawn outside of the fill
-        localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, testMask = insideMask)
-        localStyle.stencil.stencilOp(
-            onStencilTestFail = StencilOperation.KEEP,
-            onDepthTestFail = StencilOperation.KEEP,
-            onDepthTestPass = StencilOperation.KEEP
-        )
 
-        Driver.instance.setState(localStyle)
-        for (c in commands) {
-            if (c.type == ExpansionType.FRINGE) {
-                Driver.instance.drawVertexBuffer(
-                    shader,
-                    listOf(c.vertexBuffer),
-                    DrawPrimitive.TRIANGLE_STRIP,
-                    c.vertexOffset,
-                    c.vertexCount,
-                    verticesPerPatch = 0
-                )
+        fun drawFringes(mode: Int, reference: Int, mask: Int, onPass: StencilOperation) {
+            shader.uniform("fringeMode", mode)
+            localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = reference, testMask = mask)
+            localStyle.stencil.stencilOp(
+                onStencilTestFail = StencilOperation.KEEP,
+                onDepthTestFail = StencilOperation.KEEP,
+                onDepthTestPass = onPass
+            )
+            Driver.instance.setState(localStyle)
+            for (c in commands) {
+                if (c.type == ExpansionType.FRINGE) {
+                    Driver.instance.drawVertexBuffer(
+                        shader,
+                        listOf(c.vertexBuffer),
+                        DrawPrimitive.TRIANGLE_STRIP,
+                        c.vertexOffset,
+                        c.vertexCount,
+                        verticesPerPatch = 0
+                    )
+                }
             }
         }
+        // the outside of the fill, where the other side of an outline is always inside
+        drawFringes(1, 0x00, insideMask, StencilOperation.KEEP)
+        when (drawStyle.fillRule) {
+            // the parity changes across every outline, the other side of the inside is outside
+            FillRule.EVEN_ODD -> drawFringes(2, 0x01, 0x01, StencilOperation.ZERO)
+            // the windings change by one across an outline, more on its left. The other side is outside where the
+            // windings are 1 on the left of the outline, or -1 on its right
+            FillRule.NON_ZERO -> {
+                drawFringes(3, 0x01, 0xff, StencilOperation.ZERO)
+                drawFringes(4, 0xff, 0xff, StencilOperation.ZERO)
+            }
+        }
+        shader.uniform("fringeMode", 0)
         Driver.instance.setState(localStyle)
 
         // -- pass 3: fill in stenciled area in pass 1

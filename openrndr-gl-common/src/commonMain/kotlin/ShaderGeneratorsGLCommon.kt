@@ -682,6 +682,9 @@ uniform float strokeThr;
 uniform float strokeFillFactor;
 uniform sampler2D tex;
 uniform vec4 bounds;
+// 0: strokes and convex fills, the fringes of stenciled fills: 1 outside of the fill, 2 inside of the fill,
+// 3 inside on the left of the outline, 4 inside on the right of the outline
+uniform int fringeMode;
 
 in vec3 v_objectPosition;
 in vec2 v_ftcoord;
@@ -708,6 +711,18 @@ ${
 
 void main(void) {
 	float strokeAlpha = strokeMask();
+    if (fringeMode != 0) {
+        // the fringe is centered on the outline, half of a pixel on both sides. The coverage of a pixel on the
+        // outside is a half minus its distance to the outline, on the inside a half plus its distance
+        float outside = 0.5 * (1.0 - abs(v_ftcoord.x * 2.0 - 1.0));
+        // the fringe of a side of the outline has v = 2 on the side its u = 0 is on, which is on the left of the
+        // outline when the strip faces the back. The windings on the left of the outline are one more than on the right
+        bool left = (v_ftcoord.y > 1.5) != gl_FrontFacing;
+        if ((fringeMode == 3 && !left) || (fringeMode == 4 && left)) {
+            discard;
+        }
+        strokeAlpha = fringeMode == 1 ? outside : 1.0 - outside;
+    }
 
     vec4 x_stroke = u_stroke;
     vec4 x_fill = u_fill;

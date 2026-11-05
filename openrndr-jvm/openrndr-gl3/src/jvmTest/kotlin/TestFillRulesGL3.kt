@@ -88,14 +88,71 @@ class TestFillRulesGL3 : AbstractApplicationTestFixture() {
         assertEquals(1.0f, fill(three, FillRule.EVEN_ODD)(150, 40), 1E-3f)
     }
 
+    /** asserts that the pixels at [points] are half covered: the outline crosses their centers */
+    private fun assertHalfCovered(alpha: (Int, Int) -> Float, points: List<Pair<Int, Int>>, name: String) {
+        for ((x, y) in points) {
+            assertTrue(alpha(x, y) in 0.35f..0.65f, "$name pixel ($x, $y): ${alpha(x, y)}")
+        }
+    }
+
     @Test
     fun theEdgesOfHolesAreAntiAliased() {
-        // the edges of the hole lie in the middle of pixels 30 and 50, the hole winds the other way than the outline
+        // the edges of the hole lie in the middle of pixels 30 and 50
+        val edges = listOf(30 to 40, 50 to 40, 40 to 30, 40 to 50)
         for (fillRule in FillRule.entries) {
-            val alpha = fill(Shape(listOf(outer, hole.reversed)), fillRule)
-            for ((x, y) in listOf(30 to 40, 50 to 40, 40 to 30, 40 to 50)) {
-                assertTrue(alpha(x, y) in 0.3f..0.7f, "$fillRule pixel ($x, $y): ${alpha(x, y)}")
+            assertHalfCovered(fill(Shape(listOf(outer, hole.reversed)), fillRule), edges, "$fillRule, opposite winding")
+        }
+        // a hole that winds the same way as the outline is a hole by the even-odd rule only
+        assertHalfCovered(fill(Shape(listOf(outer, hole)), FillRule.EVEN_ODD), edges, "EVEN_ODD, same winding")
+    }
+
+    @Test
+    fun theEdgesOfOverlapsAreAntiAliased() {
+        // the second rectangle starts in the middle of pixels 40 and ends in the middle of pixels 100
+        val overlapping = Shape(listOf(outer, Rectangle(40.5, 30.5, 60.0, 60.0).contour))
+        for (fillRule in FillRule.entries) {
+            val alpha = fill(overlapping, fillRule)
+            // the outlines outside of the overlap
+            assertHalfCovered(alpha, listOf(100 to 60, 80 to 90, 85 to 30), "$fillRule outline")
+            // the outlines within the overlap are not edges of the non-zero fill, there is no seam
+            val within = listOf(40 to 50, 60 to 30)
+            if (fillRule == FillRule.NON_ZERO) {
+                for ((x, y) in within) {
+                    assertEquals(1.0f, alpha(x, y), 1E-3f, "NON_ZERO pixel ($x, $y)")
+                }
+            } else {
+                assertHalfCovered(alpha, within, "EVEN_ODD overlap")
             }
         }
+    }
+
+    @Test
+    fun edgesAreCoveredByTheirDistanceToTheOutline() {
+        // outlines a quarter of a pixel from the centers of pixels: the pixels on the inside are covered for three
+        // quarters, those on the outside for a quarter, on both sides of holes that wind either way
+        val outer = Rectangle(10.25, 10.25, 60.0, 60.0).contour
+        val hole = Rectangle(30.25, 30.25, 20.0, 20.0).contour
+        val outline = listOf(Triple(10, 40, 0.75f), Triple(9, 40, 0.0f), Triple(70, 40, 0.25f), Triple(40, 10, 0.75f), Triple(40, 70, 0.25f))
+        val holeEdges = listOf(Triple(30, 40, 0.25f), Triple(29, 40, 1.0f), Triple(50, 40, 0.75f), Triple(49, 40, 0.0f))
+        val filledHole = listOf(Triple(30, 40, 1.0f), Triple(50, 40, 1.0f), Triple(49, 40, 1.0f))
+
+        fun assertCoverage(shape: Shape, fillRule: FillRule, expected: List<Triple<Int, Int, Float>>, name: String) {
+            val alpha = fill(shape, fillRule)
+            for ((x, y, coverage) in expected) {
+                assertEquals(coverage, alpha(x, y), 0.02f, "$name $fillRule pixel ($x, $y)")
+            }
+        }
+        for (fillRule in FillRule.entries) {
+            assertCoverage(Shape(listOf(outer, hole.reversed)), fillRule, outline + holeEdges, "opposite winding hole")
+        }
+        assertCoverage(Shape(listOf(outer, hole)), FillRule.EVEN_ODD, outline + holeEdges, "same winding hole")
+        // the inner contour does not make a hole by the non-zero rule, its outline is not anti-aliased
+        assertCoverage(Shape(listOf(outer, hole)), FillRule.NON_ZERO, outline + filledHole, "same winding hole")
+
+        // overlapping contours: the outlines within the overlap are edges of the even-odd fill only
+        val overlapping = Shape(listOf(outer, Rectangle(40.25, 30.25, 60.0, 60.0).contour))
+        val outside = listOf(Triple(100, 60, 0.25f), Triple(85, 30, 0.75f), Triple(85, 29, 0.0f))
+        assertCoverage(overlapping, FillRule.NON_ZERO, outside + listOf(Triple(40, 50, 1.0f), Triple(60, 30, 1.0f)), "overlap")
+        assertCoverage(overlapping, FillRule.EVEN_ODD, outside + listOf(Triple(40, 50, 0.25f), Triple(60, 30, 0.25f), Triple(39, 50, 1.0f)), "overlap")
     }
 }

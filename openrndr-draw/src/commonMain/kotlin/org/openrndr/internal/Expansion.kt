@@ -762,6 +762,49 @@ internal class Path {
         return Pair(point.dmx * scale, point.dmy * scale)
     }
 
+    /**
+     * The fringes of a stenciled fill of the outline [points]: two strips that are [w] wide, on both sides of the
+     * outline. Their vertices on the outline are those of the fill, so that a pixel exactly on the outline is drawn by
+     * the strip on the side of the outline that the fill counts it to. u is 0 on the side the miters of the points
+     * point to, 0.5 on the outline and 1 on the other side. v is 2 in the strip on the side of the miters, 1 in the
+     * other strip.
+     */
+    private fun centeredFringes(points: List<PathPoint>, w: Double, offset: Double): List<Expansion> {
+        var size = 2
+        for (point in points) {
+            size += if (point.flags and (BEVEL or INNER_BEVEL) != 0) 4 else 2
+        }
+        val inner = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
+        val outer = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
+
+        fun across(p: PathPoint, nx: Double, ny: Double) {
+            inner.addVertex(p.x + nx * w, p.y + ny * w, 0.0, 2.0, offset)
+            inner.addVertex(p.x, p.y, 0.5, 2.0, offset)
+            outer.addVertex(p.x, p.y, 0.5, 1.0, offset)
+            outer.addVertex(p.x - nx * w, p.y - ny * w, 1.0, 1.0, offset)
+        }
+
+        var p0 = points.last()
+        for (p1 in points) {
+            if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
+                // around the corner, from the normal of the incoming segment to that of the outgoing segment
+                across(p1, p0.dy, -p0.dx)
+                across(p1, p1.dy, -p1.dx)
+            } else {
+                across(p1, p1.dmx, p1.dmy)
+            }
+            p0 = p1
+        }
+        // close the strips
+        val i0 = inner.vertex(0)
+        val o1 = outer.vertex(1)
+        inner.addVertex(i0.x, i0.y, 0.0, 2.0, offset)
+        inner.addVertex(points[0].x, points[0].y, 0.5, 2.0, offset)
+        outer.addVertex(points[0].x, points[0].y, 0.5, 1.0, offset)
+        outer.addVertex(o1.x, o1.y, 1.0, 1.0, offset)
+        return listOf(inner, outer)
+    }
+
     fun expandFill(
         fringeWidth: Double,
         weight: Double,
@@ -796,6 +839,9 @@ internal class Path {
                     }
                 }
                 val fill = Expansion(ExpansionType.FILL, FloatArray(size * 5), 0)
+                // convex fills are inset by half of the fringe, their fringe fades from the inset outline. Other fills
+                // are stenciled on their outline, their fringes are centered on it, see ExpansionDrawer
+                val fillOffset = if (convex) woff else 0.0
                 if (generateFringe) {
                     var p0 = points.last()
                     var p1 = points[0]
@@ -804,23 +850,23 @@ internal class Path {
                     for (j in points.indices) {
                         if (p1.flags and BEVEL != 0) {
                             if (p1.flags and LEFT != 0) {
-                                fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, pathOffset)
+                                fill.addVertex(p1.x + p1.dmx * fillOffset, p1.y + p1.dmy * fillOffset, 0.5, 1.0, pathOffset)
                             } else {
                                 val dlx0 = p0.dy
                                 val dly0 = -p0.dx
                                 val dlx1 = p1.dy
                                 val dly1 = -p1.dx
 
-                                val lx0 = p1.x + dlx0 * woff
-                                val ly0 = p1.y + dly0 * woff
-                                val lx1 = p1.x + dlx1 * woff
-                                val ly1 = p1.y + dly1 * woff
+                                val lx0 = p1.x + dlx0 * fillOffset
+                                val ly0 = p1.y + dly0 * fillOffset
+                                val lx1 = p1.x + dlx1 * fillOffset
+                                val ly1 = p1.y + dly1 * fillOffset
 
                                 fill.addVertex(lx0, ly0, 0.5, 1.0, pathOffset)
                                 fill.addVertex(lx1, ly1, 0.5, 1.0, pathOffset)
                             }
                         } else {
-                            fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, pathOffset)
+                            fill.addVertex(p1.x + p1.dmx * fillOffset, p1.y + p1.dmy * fillOffset, 0.5, 1.0, pathOffset)
                         }
                         p0 = p1
                         p1ptr++
@@ -846,6 +892,11 @@ internal class Path {
                         continue
                     }
 
+                    if (!convex) {
+                        result.addAll(centeredFringes(points, woff, pathOffset))
+                        continue
+                    }
+
                     var size = 2
                     for (point in points) {
                         size += if (point.flags and (BEVEL or INNER_BEVEL) != 0) {
@@ -856,17 +907,12 @@ internal class Path {
                     }
                     val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
 
-                    var lw = weight + woff
-                    val rw = weight - woff
-                    var lu = 0.0
-                    val ru = 1.0
-
                     // Create only half a fringe for convex shapes so that
                     // the shape can be rendered without stenciling.
-                    if (convex) {
-                        lw = woff    // This should generate the same vertex as fill inset above.
-                        lu = 0.5    // Set outline fade at middle.
-                    }
+                    val lw = woff    // This should generate the same vertex as fill inset above.
+                    val rw = weight - woff
+                    val lu = 0.5    // Set outline fade at middle.
+                    val ru = 1.0
 
                     // Looping
                     var p0 = points[points.size - 1]
