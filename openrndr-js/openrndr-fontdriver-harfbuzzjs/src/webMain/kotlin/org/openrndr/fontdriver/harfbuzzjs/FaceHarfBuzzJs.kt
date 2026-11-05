@@ -2,6 +2,7 @@
 
 package org.openrndr.fontdriver.harfbuzzjs
 
+import org.openrndr.draw.font.DecorationMetrics
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
@@ -89,6 +90,20 @@ class FaceHarfBuzzJs internal constructor(
 
     override val lineGap: Double
         get() = height - ascent - descent.absoluteValue
+
+    override val decorationMetrics: DecorationMetrics
+        get() {
+            fun metric(tag: String): Double? {
+                val code = tag.fold(0) { code, c -> (code shl 8) or c.code }
+                return hbMetricPosition(hbFont, code).takeIf { !it.isNaN() }?.let { it * scale }
+            }
+            // the offsets of the post and OS/2 tables are those of the tops of the lines
+            val underlineThickness = metric("unds")
+            val underlinePosition = metric("undo")?.let { it - (underlineThickness ?: 0.0) / 2.0 }
+            val strikeoutThickness = metric("strs")
+            val strikeoutPosition = metric("stro")?.let { it - (strikeoutThickness ?: 0.0) / 2.0 }
+            return DecorationMetrics.of(this, underlinePosition, underlineThickness, strikeoutPosition, strikeoutThickness)
+        }
 
     override val xHeight: Double
         get() = glyphForCharacter('x').bounds().position(0.0, 0.0).y.absoluteValue

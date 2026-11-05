@@ -150,6 +150,13 @@ interface Face: AutoCloseable {
     val lineGap: Double
 
     /**
+     * The positions and thicknesses of underlines and strikeouts, from the font when it has them, a fallback
+     * otherwise
+     */
+    val decorationMetrics: DecorationMetrics
+        get() = DecorationMetrics.of(this)
+
+    /**
      * Calculates the horizontal kerning adjustment between two characters.
      *
      * The kerning adjustment is the additional or reduced horizontal spacing

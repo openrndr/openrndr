@@ -110,6 +110,13 @@ internal fun hbUpem(face: HarfBuzzObject): Int = js("face.upem")
 internal fun hbHorizontalExtents(font: HarfBuzzObject): Int32Array<*> =
     js("(() => { const e = font.hExtents(); return new Int32Array([e.ascender, e.descender, e.lineGap]); })()")
 
+/**
+ * The metric of the OpenType metrics tag [tag] in font units, with the variation of the font applied, NaN when the
+ * font has no value for it
+ */
+internal fun hbMetricPosition(font: HarfBuzzObject, tag: Int): Double =
+    js("(() => { const position = font.getMetricPosition(tag); return position === undefined ? NaN : position; })()")
+
 internal fun hbCollectUnicodes(face: HarfBuzzObject): Int32Array<*> = js("new Int32Array(face.collectUnicodes())")
 
 /** the glyph for a code point, -1 when the face has no glyph for it */

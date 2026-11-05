@@ -3,9 +3,11 @@ package org.openrndr.fontdriver.freetype
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.freetype.FT_Face
 import org.lwjgl.util.freetype.FT_MM_Var
+import org.lwjgl.util.freetype.TT_OS2
 import org.lwjgl.util.freetype.FreeType.*
 import org.lwjgl.util.harfbuzz.HarfBuzz.*
 import org.lwjgl.util.harfbuzz.hb_feature_t
+import org.openrndr.draw.font.DecorationMetrics
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
@@ -178,6 +180,20 @@ class FaceFreetype(
         get() {
             makeActive()
             return height - ascent - descent.absoluteValue
+        }
+
+    override val decorationMetrics: DecorationMetrics
+        get() {
+            makeActive()
+            val scale = ppyem / ftFace.units_per_EM().toDouble()
+            // FreeType makes the underline position that of the center of the line
+            val underlinePosition = ftFace.underline_position() * scale
+            val underlineThickness = ftFace.underline_thickness() * scale
+            // the strikeout position in the OS/2 table is that of the top of the line
+            val os2 = FT_Get_Sfnt_Table(ftFace, FT_SFNT_OS2).takeIf { it != 0L }?.let { TT_OS2.create(it) }
+            val strikeoutThickness = os2?.let { it.yStrikeoutSize() * scale }
+            val strikeoutPosition = os2?.let { it.yStrikeoutPosition() * scale - strikeoutThickness!! / 2.0 }
+            return DecorationMetrics.of(this, underlinePosition, underlineThickness, strikeoutPosition, strikeoutThickness)
         }
 
     override val xHeight: Double
