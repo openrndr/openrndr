@@ -1,4 +1,4 @@
-package org.openrndr.draw.font.webfont
+package org.openrndr.webfont
 
 /**
  * A decoder of Brotli compressed data, RFC 7932, as used by WOFF2. The tables are those of the reference decoder.

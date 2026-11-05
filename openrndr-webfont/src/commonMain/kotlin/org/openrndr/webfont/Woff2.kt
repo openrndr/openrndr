@@ -1,4 +1,4 @@
-package org.openrndr.draw.font.webfont
+package org.openrndr.webfont
 
 /**
  * Decodes WOFF 2.0 fonts, https://www.w3.org/TR/WOFF2/: the tables are compressed with Brotli, the glyf and loca

@@ -1,4 +1,4 @@
-package org.openrndr.draw.font.webfont
+package org.openrndr.webfont
 
 /**
  * An error in the data of a web font

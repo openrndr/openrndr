@@ -4,7 +4,7 @@ package org.openrndr.fontdriver.harfbuzzjs
 
 import js.typedarrays.Uint8Array
 import org.openrndr.draw.font.Face
-import org.openrndr.draw.font.webfont.sfntFontBytes
+import org.openrndr.webfont.sfntFontBytes
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.internal.FontDriver
 

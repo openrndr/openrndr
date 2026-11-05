@@ -1,4 +1,4 @@
-package org.openrndr.draw.font.webfont
+package org.openrndr.webfont
 
 /**
  * A decoder of zlib streams (RFC 1950) of Deflate compressed data (RFC 1951), as used by WOFF

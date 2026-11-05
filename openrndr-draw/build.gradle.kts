@@ -44,7 +44,12 @@ kotlin {
                 implementation(libs.kotlin.logging)
             }
         }
-        val commonJvmMain = getByName("commonJvmMain")
+        val commonJvmMain = getByName("commonJvmMain") {
+            dependencies {
+                // fonts loaded by the JVM font drivers can be WOFF and WOFF2 fonts
+                implementation(project(":openrndr-webfont"))
+            }
+        }
 
         if (platformConfiguration.android) {
             getByName("androidMain") {

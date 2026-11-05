@@ -1,8 +1,8 @@
 import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.internal.bytesOfDataUrl
 import org.openrndr.draw.font.loadFace
-import org.openrndr.draw.font.webfont.WebFontException
-import org.openrndr.draw.font.webfont.sfntFontBytes
+import org.openrndr.webfont.WebFontException
+import org.openrndr.webfont.sfntFontBytes
 import org.openrndr.resourceUrl
 import java.io.File
 import java.net.URI

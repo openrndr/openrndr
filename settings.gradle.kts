@@ -54,6 +54,7 @@ include(
         "openrndr-extensions",
         "openrndr-nullgl",
         "openrndr-utils",
+        "openrndr-webfont",
         "openrndr-dds",
         "openrndr-kartifex",
         "openrndr-ktessellation",

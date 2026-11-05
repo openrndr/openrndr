@@ -61,6 +61,7 @@ dependencies {
     nmcpAggregation(project(":openrndr-platform"))
     nmcpAggregation(project(":openrndr-shape"))
     nmcpAggregation(project(":openrndr-utils"))
+    nmcpAggregation(project(":openrndr-webfont"))
 }
 
 // Check that the list above matches the projects that are actually published. A project that

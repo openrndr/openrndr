@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.Base64
-import org.openrndr.draw.font.webfont.sfntFontBytes
+import org.openrndr.webfont.sfntFontBytes
 
 private val logger = KotlinLogging.logger { }
 

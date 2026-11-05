@@ -8,6 +8,7 @@ kotlin {
         getByName("webMain") {
             dependencies {
                 api(project(":openrndr-draw"))
+                implementation(project(":openrndr-webfont"))
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.web)

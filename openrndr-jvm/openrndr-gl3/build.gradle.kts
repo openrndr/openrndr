@@ -65,6 +65,7 @@ kotlin {
         getByName("jvmTest") {
             dependencies {
                 implementation(project(":openrndr-jvm:openrndr-application-glfw"))
+                implementation(project(":openrndr-webfont"))
             }
         }
 
