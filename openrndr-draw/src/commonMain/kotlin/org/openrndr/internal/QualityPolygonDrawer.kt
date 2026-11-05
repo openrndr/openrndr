@@ -5,6 +5,7 @@ import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.LineJoin
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
+import kotlin.math.abs
 
 /**
  * Class responsible for high-quality polygon rendering with support for advanced features such as
@@ -36,14 +37,45 @@ class QualityPolygonDrawer {
                     bounds: Vector4 = expansionBounds(loops)) {
 
         if (drawStyle.fill != null && loops.isNotEmpty()) {
-            val path = Path.fromLineLoops(loops, corners)
             // the fill is always anti-aliased, the stroke is drawn over it. A stroke does not necessarily cover the
             // edge of the fill: it can be thinner than a pixel, not be drawn at all (strokeWeight = 0), or lie
             // inside or outside of the outline
-            val fw = if (drawStyle.smooth) fringeWidth else 0.0
-            val fillExpansions = path.expandFill(fw, fw, LineJoin.BEVEL, 2.4)
-            expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw, bounds)
+            val pixels = if (drawStyle.smooth) devicePixelMap(drawContext) else null
+            if (pixels != null) {
+                // the fill is expanded in device pixels, so that its fringe is a pixel wide across every edge, however
+                // the geometry is scaled, skewed or rotated, and mapped back
+                val (a, b, c, d) = pixels
+                val path = Path.fromLineLoops(loops.map { loop -> loop.map { Vector2(a * it.x + b * it.y, c * it.x + d * it.y) } }, corners)
+                val fillExpansions = path.expandFill(1.0, 1.0, LineJoin.BEVEL, 2.4)
+                val determinant = a * d - b * c
+                for (expansion in fillExpansions) {
+                    expansion.mapPositions(d / determinant, -b / determinant, -c / determinant, a / determinant)
+                }
+                expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fringeWidth, bounds)
+            } else {
+                val path = Path.fromLineLoops(loops, corners)
+                val fw = if (drawStyle.smooth) fringeWidth else 0.0
+                val fillExpansions = path.expandFill(fw, fw, LineJoin.BEVEL, 2.4)
+                expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw, bounds)
+            }
         }
+    }
+
+    /**
+     * The linear part of the map from positions in the plane z = 0 to device pixels: (a, b, c, d), x' = a x + b y,
+     * y' = c x + d y, when the map is affine, as it is with orthographic projections, null otherwise
+     */
+    private fun devicePixelMap(drawContext: DrawContext): DoubleArray? {
+        val m = drawContext.projection * drawContext.view * drawContext.model
+        // the w of positions in the plane z = 0 must not depend on the position
+        if (abs(m.c0r3) > 1E-12 || abs(m.c1r3) > 1E-12 || abs(m.c3r3) < 1E-12) {
+            return null
+        }
+        val sx = 0.5 * drawContext.width * drawContext.contentScale / m.c3r3
+        val sy = 0.5 * drawContext.height * drawContext.contentScale / m.c3r3
+        val map = doubleArrayOf(m.c0r0 * sx, m.c1r0 * sx, m.c0r1 * sy, m.c1r1 * sy)
+        val determinant = map[0] * map[3] - map[1] * map[2]
+        return if (abs(determinant) > 1E-12 && map.all { it.isFinite() }) map else null
     }
 
 //    fun drawPolygons(drawContext: DrawContext,

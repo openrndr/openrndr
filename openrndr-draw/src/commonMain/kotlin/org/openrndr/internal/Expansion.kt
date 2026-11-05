@@ -329,6 +329,30 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         }
     }
 
+    /**
+     * Maps the positions of the vertices by the linear map ([a], [b], [c], [d]): x' = a x + b y, y' = c x + d y, the
+     * bounds are those of the mapped positions. Vertices with the same position have the same mapped position.
+     */
+    fun mapPositions(a: Double, b: Double, c: Double, d: Double) {
+        minx = Double.POSITIVE_INFINITY
+        maxx = Double.NEGATIVE_INFINITY
+        miny = Double.POSITIVE_INFINITY
+        maxy = Double.NEGATIVE_INFINITY
+        for (i in 0 until vertexCount) {
+            val index = bufferStart + i * 5
+            val x = fb[index].toDouble()
+            val y = fb[index + 1].toDouble()
+            val mx = a * x + b * y
+            val my = c * x + d * y
+            fb[index] = mx.toFloat()
+            fb[index + 1] = my.toFloat()
+            minx = min(minx, mx)
+            maxx = max(maxx, mx)
+            miny = min(miny, my)
+            maxy = max(maxy, my)
+        }
+    }
+
     fun vertex(idx: Int): Vector2 =
         Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
 

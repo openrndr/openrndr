@@ -21,6 +21,7 @@ import kotlin.contracts.contract
 import kotlin.jvm.JvmName
 import kotlin.math.abs
 import kotlin.math.log2
+import kotlin.math.sqrt
 import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
@@ -94,6 +95,26 @@ class Drawer(val driver: Driver) {
             return modelViewScalingFactor * RenderTarget.active.contentScale
         }
 
+    /**
+     * The scale of the plane z = 0 by the model and view matrices: the square root of the scale of areas, falls back
+     * to [modelViewScalingFactor] when the plane is seen edge-on
+     */
+    private var planeScalingFactor = 1.0
+
+    /**
+     * The scale of the plane z = 0 in device pixels, the fringes of shapes, contours and lines are a device pixel wide
+     * where their geometry is scaled uniformly
+     */
+    private val planeScaling: Double
+        get() = planeScalingFactor * RenderTarget.active.contentScale
+
+    private fun updateScalingFactors() {
+        val modelView = view * model
+        modelViewScalingFactor = (modelView.matrix33 * Vector3.UNIT_XYZ).length
+        val areaScale = abs(modelView.c0r0 * modelView.c1r1 - modelView.c1r0 * modelView.c0r1)
+        planeScalingFactor = if (areaScale > 1E-12) sqrt(areaScale) else modelViewScalingFactor
+    }
+
 
     /**
      * Represents the transformation matrix of a model.
@@ -111,7 +132,7 @@ class Drawer(val driver: Driver) {
     var model: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
+            updateScalingFactors()
         }
 
 
@@ -125,7 +146,7 @@ class Drawer(val driver: Driver) {
     var view: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
+            updateScalingFactors()
         }
 
 
@@ -916,8 +937,8 @@ class Drawer(val driver: Driver) {
      * @param shape The shape to be rendered. It contains the geometric data and topology information for rendering.
      */
     fun shape(shape: Shape) {
-        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
-        val fringeWidth = 1.0 / modelViewScaling
+        val distanceTolerance = 0.5 / (planeScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -977,8 +998,8 @@ class Drawer(val driver: Driver) {
      * Draws a single [ShapeContour] using [fill], [stroke] and [strokeWeight] settings
      */
     fun contour(contour: ShapeContour) {
-        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
-        val fringeWidth = 1.0 / modelViewScaling
+        val distanceTolerance = 0.5 / (planeScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1068,7 +1089,7 @@ class Drawer(val driver: Driver) {
      * Draws a line segment from [start] to [end] using 2d coordinates
      */
     fun lineSegment(start: Vector2, end: Vector2) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1096,7 +1117,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineSegments(segments: List<Vector2>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1122,7 +1143,7 @@ class Drawer(val driver: Driver) {
      * @param weights  A list of `Double` values representing the weights (thickness) of each line segment.
      */
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1176,7 +1197,7 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineSegmentsFromLineSegmentList")
     fun lineSegments(segments: List<LineSegment>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1205,7 +1226,7 @@ class Drawer(val driver: Driver) {
      * Each point in the list is connected sequentially, with the last point connecting back to the first.
      */
     fun lineLoop(points: List<Vector2>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1249,7 +1270,7 @@ class Drawer(val driver: Driver) {
      * @param loops A list of line loops, where each loop is represented as a list of Vector2 points.
      */
     fun lineLoops(loops: List<List<Vector2>>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1289,7 +1310,7 @@ class Drawer(val driver: Driver) {
      * @param weights A list of weights corresponding to each line in the loops, determining their thickness.
      */
     fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1329,7 +1350,7 @@ class Drawer(val driver: Driver) {
      * Draws a line strip with 2d coordinates
      */
     fun lineStrip(points: List<Vector2>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1361,7 +1382,7 @@ class Drawer(val driver: Driver) {
      * Draws line strips with 3d coordinates
      */
     fun lineStrips(strips: List<List<Vector2>>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1393,7 +1414,7 @@ class Drawer(val driver: Driver) {
      * Draws line strips with 2d coordinates and stroke weights per strip
      */
     fun lineStrips(strips: List<List<Vector2>>, weights: List<Double>) {
-        val fringeWidth = 1.0 / modelViewScaling
+        val fringeWidth = 1.0 / planeScaling
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1438,7 +1459,7 @@ class Drawer(val driver: Driver) {
      * @see contour
      */
     fun segment(segment: Segment2D) {
-        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        val distanceTolerance = 0.5 / (planeScaling * log2(strokeWeight).coerceAtLeast(1.0))
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
@@ -1457,7 +1478,7 @@ class Drawer(val driver: Driver) {
      */
     @JvmName("segments2d")
     fun segments(segments: List<Segment2D>) {
-        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        val distanceTolerance = 0.5 / (planeScaling * log2(strokeWeight).coerceAtLeast(1.0))
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
