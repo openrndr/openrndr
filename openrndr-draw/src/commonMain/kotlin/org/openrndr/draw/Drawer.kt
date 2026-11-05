@@ -562,6 +562,19 @@ class Drawer(val driver: Driver) {
         get() = drawStyle.fillRule
 
     /**
+     * The order in which the fill and the stroke of shapes, contours, circles, rectangles and text are painted, like
+     * the `paint-order` of SVG. With [PaintOrder.STROKE_FILL] the fill is painted over the stroke, a centered stroke
+     * shows outside of the outline only.
+     * @see fill
+     * @see stroke
+     */
+    var paintOrder: PaintOrder
+        set(value) {
+            drawStyle.paintOrder = value
+        }
+        get() = drawStyle.paintOrder
+
+    /**
      * The active line cap method
      * @see strokeWeight
      * @see stroke
@@ -949,11 +962,12 @@ class Drawer(val driver: Driver) {
                     val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
                     val closedP = closedPC.map { it.first }
                     val closedC = closedPC.map { it.second }
-                    qualityPolygonDrawer.drawPolygon(
-                        context, drawStyle,
-                        closedP, closedC, fringeWidth
+                    paintInOrder(
+                        fill = { qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth) },
+                        stroke = {
+                            qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true)
+                        }
                     )
-                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true)
                 }
 
                 ShapeTopology.OPEN -> {
@@ -972,9 +986,13 @@ class Drawer(val driver: Driver) {
                     val openC = openPC.map { it.second }
                     // the fill and the strokes have the bounds of the whole shape
                     val bounds = expansionBounds(closedP + openP)
-                    qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth, bounds)
-                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true, bounds = bounds)
-                    qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth, bounds)
+                    paintInOrder(
+                        fill = { qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth, bounds) },
+                        stroke = {
+                            qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth, asShape = true, bounds = bounds)
+                            qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth, bounds)
+                        }
+                    )
                 }
             }
         } else {
@@ -1005,43 +1023,64 @@ class Drawer(val driver: Driver) {
         }
 
         if (RenderTarget.active.hasStencilBuffer) {
-            if (drawStyle.fill != null && contour.closed) {
-                val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
-                val ap = listOf(apc.first)
-                val ac = listOf(apc.second)
+            paintInOrder(fill = { contourFill(contour, distanceTolerance, fringeWidth) }, stroke = {
+                contourStroke(contour, distanceTolerance, fringeWidth)
+            })
+        } else {
+            error("Drawing contours requires a render target with a stencil attachment")
+        }
+    }
 
-                qualityPolygonDrawer.drawPolygon(context, drawStyle, ap, ac, fringeWidth)
+    /** paints the fill and the stroke in the [paintOrder] */
+    private inline fun paintInOrder(fill: () -> Unit, stroke: () -> Unit) {
+        when (drawStyle.paintOrder) {
+            PaintOrder.FILL_STROKE -> {
+                fill(); stroke()
             }
 
-            if (drawStyle.stroke != null && drawStyle.strokeWeight > 1E-4) {
-                when (drawStyle.quality) {
-                    DrawQuality.PERFORMANCE -> when (contour.closed) {
-                        true -> fastLineDrawer.drawLineLoops(
-                            context,
-                            drawStyle,
-                            listOf(contour.adaptivePositions(distanceTolerance))
-                        )
+            PaintOrder.STROKE_FILL -> {
+                stroke(); fill()
+            }
+        }
+    }
 
-                        false -> fastLineDrawer.drawLineLoops(
-                            context,
-                            drawStyle,
-                            listOf(contour.adaptivePositions(distanceTolerance))
-                        )
-                    }
+    private fun contourFill(contour: ShapeContour, distanceTolerance: Double, fringeWidth: Double) {
+        if (drawStyle.fill != null && contour.closed) {
+            val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
+            val ap = listOf(apc.first)
+            val ac = listOf(apc.second)
 
-                    DrawQuality.QUALITY -> {
-                        val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
-                        val ap = listOf(apc.first)
-                        val ac = listOf(apc.second)
-                        when (contour.closed) {
-                            true -> qualityLineDrawer.drawLineLoops(context, drawStyle, ap, ac, fringeWidth)
-                            false -> qualityLineDrawer.drawLineStrips(context, drawStyle, ap, ac, fringeWidth)
-                        }
+            qualityPolygonDrawer.drawPolygon(context, drawStyle, ap, ac, fringeWidth)
+        }
+    }
+
+    private fun contourStroke(contour: ShapeContour, distanceTolerance: Double, fringeWidth: Double) {
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 1E-4) {
+            when (drawStyle.quality) {
+                DrawQuality.PERFORMANCE -> when (contour.closed) {
+                    true -> fastLineDrawer.drawLineLoops(
+                        context,
+                        drawStyle,
+                        listOf(contour.adaptivePositions(distanceTolerance))
+                    )
+
+                    false -> fastLineDrawer.drawLineLoops(
+                        context,
+                        drawStyle,
+                        listOf(contour.adaptivePositions(distanceTolerance))
+                    )
+                }
+
+                DrawQuality.QUALITY -> {
+                    val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
+                    val ap = listOf(apc.first)
+                    val ac = listOf(apc.second)
+                    when (contour.closed) {
+                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, ap, ac, fringeWidth)
+                        false -> qualityLineDrawer.drawLineStrips(context, drawStyle, ap, ac, fringeWidth)
                     }
                 }
             }
-        } else {
-            error("Drawing contours requires a render target with a stencil attachment")
         }
     }
 

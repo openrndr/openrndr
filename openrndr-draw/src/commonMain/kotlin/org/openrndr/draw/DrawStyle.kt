@@ -426,6 +426,17 @@ data class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, 
 }
 
 /**
+ * The order in which the fill and the stroke of geometry are painted, like the `paint-order` of SVG
+ */
+enum class PaintOrder {
+    /** the fill is painted first, the stroke over it */
+    FILL_STROKE,
+
+    /** the stroke is painted first, the fill over it: a centered stroke shows outside of the outline only */
+    STROKE_FILL
+}
+
+/**
  * Specifies if to optimize drawing for quality or performance.
  */
 enum class DrawQuality {
@@ -487,12 +498,18 @@ data class DrawStyle(
     var strokeAlignment: StrokeAlignment = StrokeAlignment.CENTER,
 
     /** The rule that determines which parts of shapes and contours that overlap themselves are filled */
-    var fillRule: FillRule = FillRule.NON_ZERO
+    var fillRule: FillRule = FillRule.NON_ZERO,
+
+    /** The order in which the fill and the stroke are painted */
+    var paintOrder: PaintOrder = PaintOrder.FILL_STROKE
 ) {
 
     fun applyToShader(shader: Shader) {
         if (shader.hasUniform("u_strokeAlignment")) {
             shader.uniform("u_strokeAlignment", strokeAlignment.outsideFraction)
+        }
+        if (shader.hasUniform("u_paintOrder")) {
+            shader.uniform("u_paintOrder", paintOrder.ordinal)
         }
         if (shader.hasUniform("u_smooth")) {
             shader.uniform("u_smooth", if (smooth) 1.0 else 0.0)

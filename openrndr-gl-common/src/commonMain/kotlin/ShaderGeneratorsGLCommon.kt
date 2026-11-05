@@ -353,6 +353,8 @@ in vec2 v_local;
 uniform float u_strokeAlignment;
 // 1.0 for anti-aliased edges, 0.0 for hard edges
 uniform float u_smooth;
+// 0: the stroke is painted over the fill, 1: the fill over the stroke
+uniform int u_paintOrder;
 ${
         fragmentMainConstants(
             boundsPosition = "vec3(va_texCoord0, 0.0)", boundsSize = "v_boundsSize"
@@ -389,12 +391,17 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         discard;
     }
 
-    // the stroke is painted over the fill
+    // the stroke is painted over the fill, or the fill over the stroke by the paint order
     float sa = strokeCoverage * x_stroke.a;
     float fa = fillCoverage * x_fill.a;
     vec4 final = vec4(0.0);
-    final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
-    final.a = sa + fa * (1.0 - sa);
+    if (u_paintOrder == 1) {
+        final.rgb = x_fill.rgb * fa + x_stroke.rgb * sa * (1.0 - fa);
+        final.a = fa + sa * (1.0 - fa);
+    } else {
+        final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
+        final.a = sa + fa * (1.0 - sa);
+    }
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
 """
@@ -543,6 +550,8 @@ uniform float u_strokeAlignment;
 uniform int u_lineJoin;
 // 1.0 for anti-aliased edges, 0.0 for hard edges
 uniform float u_smooth;
+// 0: the stroke is painted over the fill, 1: the fill over the stroke
+uniform int u_paintOrder;
 
 ${
         fragmentMainConstants(
@@ -609,12 +618,17 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         discard;
     }
 
-    // the stroke is painted over the fill
+    // the stroke is painted over the fill, or the fill over the stroke by the paint order
     float sa = strokeCoverage * x_stroke.a;
     float fa = fillCoverage * x_fill.a;
     vec4 final = vec4(0.0);
-    final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
-    final.a = sa + fa * (1.0 - sa);
+    if (u_paintOrder == 1) {
+        final.rgb = x_fill.rgb * fa + x_stroke.rgb * sa * (1.0 - fa);
+        final.a = fa + sa * (1.0 - fa);
+    } else {
+        final.rgb = x_stroke.rgb * sa + x_fill.rgb * fa * (1.0 - sa);
+        final.a = sa + fa * (1.0 - sa);
+    }
 
     ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -1091,6 +1105,8 @@ ${shadeStructure.uniforms ?: ""}
 uniform sampler2D u_slugCurves;
 uniform usampler2D u_slugBands;
 uniform float u_slugContrast;
+// 0: the stroke is painted over the fill, 1: the fill over the stroke
+uniform int u_paintOrder;
 uniform float u_slugMinification;
 
 ${drawerUniforms()}
@@ -1132,10 +1148,13 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float fillCoverage = slugContrastCoverage(slugCoverage, x_fill.rgb, u_slugContrast);
     float strokeCoverage = slugContrastCoverage(slugStrokeCoverage, x_stroke.rgb, u_slugContrast);
-    // the stroke over the fill, composited premultiplied, final holds the straight-alpha result
+    // the stroke over the fill, or the fill over the stroke by the paint order, composited premultiplied, final holds
+    // the straight-alpha result
     float fillAlpha = x_fill.a * fillCoverage;
     float strokeAlpha = x_stroke.a * strokeCoverage;
-    vec4 premultiplied = vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
+    vec4 premultiplied = u_paintOrder == 1
+        ? vec4(x_fill.rgb * fillAlpha, fillAlpha) + vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) * (1.0 - fillAlpha)
+        : vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
     vec4 final = vec4(premultiplied.rgb / max(premultiplied.a, 1e-6), premultiplied.a);
     ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -1207,6 +1226,8 @@ ${shadeStructure.uniforms ?: ""}
 uniform sampler2D u_windfoilCurves;
 uniform usampler2D u_windfoilRows;
 uniform float u_windfoilContrast;
+// 0: the stroke is painted over the fill, 1: the fill over the stroke
+uniform int u_paintOrder;
 uniform float u_windfoilMinification;
 uniform int u_windfoilExactSamples;
 
@@ -1298,10 +1319,13 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float fillCoverage = slugContrastCoverage(windfoilCoverage, x_fill.rgb, u_windfoilContrast);
     float strokeCoverage = slugContrastCoverage(windfoilStrokeCoverage, x_stroke.rgb, u_windfoilContrast);
-    // the stroke over the fill, composited premultiplied, final holds the straight-alpha result
+    // the stroke over the fill, or the fill over the stroke by the paint order, composited premultiplied, final holds
+    // the straight-alpha result
     float fillAlpha = x_fill.a * fillCoverage;
     float strokeAlpha = x_stroke.a * strokeCoverage;
-    vec4 premultiplied = vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
+    vec4 premultiplied = u_paintOrder == 1
+        ? vec4(x_fill.rgb * fillAlpha, fillAlpha) + vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) * (1.0 - fillAlpha)
+        : vec4(x_stroke.rgb * strokeAlpha, strokeAlpha) + vec4(x_fill.rgb * fillAlpha, fillAlpha) * (1.0 - strokeAlpha);
     vec4 final = vec4(premultiplied.rgb / max(premultiplied.a, 1e-6), premultiplied.a);
     ${
         if (!shadeStructure.suppressDefaultOutput) """
