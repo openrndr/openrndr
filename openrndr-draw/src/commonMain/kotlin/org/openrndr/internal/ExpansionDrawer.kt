@@ -3,6 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
+import org.openrndr.shape.FillRule
 import kotlin.jvm.JvmRecord
 
 /**
@@ -344,6 +345,13 @@ internal class ExpansionDrawer {
 
         val localStyle = drawStyle
 
+        // the windings of the fill are counted in the stencil buffer, the fill rule determines which counts are inside:
+        // all counts but zero for the non-zero rule, the odd counts for the even-odd rule
+        val insideMask = when (drawStyle.fillRule) {
+            FillRule.NON_ZERO -> 0xff
+            FillRule.EVEN_ODD -> 0x01
+        }
+
         // -- pass 1 : draw fill shapes in stencil only
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
@@ -400,7 +408,8 @@ internal class ExpansionDrawer {
         localStyle.channelWriteMask = ChannelMask.ALL
         shader.uniform("strokeThr", 0.0f)
         shader.uniform("strokeMult", 1.0)
-        localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, testMask = 0xff)
+        // the fringes are drawn outside of the fill
+        localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, testMask = insideMask)
         localStyle.stencil.stencilOp(
             onStencilTestFail = StencilOperation.KEEP,
             onDepthTestFail = StencilOperation.KEEP,
@@ -425,8 +434,7 @@ internal class ExpansionDrawer {
         // -- pass 3: fill in stenciled area in pass 1
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
-        localStyle.stencil.stencilFunc(stencilTest = StencilTest.NOT_EQUAL, testReference = 0x0, testMask = 0xff)
-        localStyle.stencil.stencilTestMask = 0x1
+        localStyle.stencil.stencilFunc(stencilTest = StencilTest.NOT_EQUAL, testReference = 0x0, testMask = insideMask)
         localStyle.stencil.stencilOp(
             onStencilTestFail = StencilOperation.ZERO,
             onDepthTestFail = StencilOperation.ZERO,

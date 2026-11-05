@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
+import org.openrndr.shape.FillRule
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmRecord
 import kotlin.math.sqrt
@@ -483,7 +484,10 @@ data class DrawStyle(
     var colorMatrix: Matrix55 = Matrix55.IDENTITY,
 
     /** The position of the stroke relative to the outline of closed geometry */
-    var strokeAlignment: StrokeAlignment = StrokeAlignment.CENTER
+    var strokeAlignment: StrokeAlignment = StrokeAlignment.CENTER,
+
+    /** The rule that determines which parts of shapes and contours that overlap themselves are filled */
+    var fillRule: FillRule = FillRule.NON_ZERO
 ) {
 
     fun applyToShader(shader: Shader) {

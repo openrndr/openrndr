@@ -529,6 +529,18 @@ class Drawer(val driver: Driver) {
         get() = drawStyle.strokeAlignment
 
     /**
+     * The rule that determines which parts of shapes and contours are filled where their contours overlap, or where a
+     * contour overlaps itself: [FillRule.NON_ZERO] fills where the contours wind around a point, [FillRule.EVEN_ODD]
+     * fills where an odd number of contours surround a point. Like the `fill-rule` of SVG.
+     * @see fill
+     */
+    var fillRule: FillRule
+        set(value) {
+            drawStyle.fillRule = value
+        }
+        get() = drawStyle.fillRule
+
+    /**
      * The active line cap method
      * @see strokeWeight
      * @see stroke
