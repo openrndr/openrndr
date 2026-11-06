@@ -12,11 +12,13 @@ import kotlin.math.min
 private val logger = KotlinLogging.logger {}
 
 /**
- * Wait for the GPU when a render target is unbound? This works around bugs in ANGLE on MoltenVK, other drivers do
- * not need it, and waiting for the GPU stalls the thread that draws.
+ * Wait for the GPU when a render target is unbound? Set the `org.openrndr.gl3.finish_on_unbind` system property to
+ * `true` to wait. This worked around bugs in ANGLE on MoltenVK, which current versions of ANGLE do not have: render to
+ * texture, filters, multisample resolves and render targets destroyed after use give the same results without it.
+ * Waiting for the GPU stalls the thread that draws.
  */
 private val finishOnUnbind by lazy {
-    Driver.glType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
+    System.getProperty("org.openrndr.gl3.finish_on_unbind") == "true"
 }
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
