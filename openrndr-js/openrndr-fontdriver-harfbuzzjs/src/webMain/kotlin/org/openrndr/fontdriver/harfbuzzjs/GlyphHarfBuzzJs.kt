@@ -22,6 +22,12 @@ class GlyphHarfBuzzJs internal constructor(
     override val code: Int
 ) : Glyph {
 
+    override val verticalAdvance: Double
+        get() = -hbGlyphVAdvance(face.verticalFont, index) * face.scale
+
+    override val verticalOrigin: Vector2
+        get() = hbGlyphVOrigin(face.verticalFont, index).let { Vector2(int32At(it, 0) * face.scale, -int32At(it, 1) * face.scale) }
+
     /** x bearing, y bearing, width and (negative) height in font units */
     private val extents by lazy { hbGlyphExtents(face.hbFont, index) }
 

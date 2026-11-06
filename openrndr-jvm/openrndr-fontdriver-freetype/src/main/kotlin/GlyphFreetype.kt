@@ -15,6 +15,10 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
 
     //val scale = face.sizeInPoints
 
+    override val verticalAdvance: Double get() = face.verticalAdvance(index)
+
+    override val verticalOrigin: Vector2 get() = face.verticalOrigin(index)
+
     override fun shape(): Shape {
         face.makeActive()
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)

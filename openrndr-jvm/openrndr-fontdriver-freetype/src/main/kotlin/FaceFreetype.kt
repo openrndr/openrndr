@@ -12,6 +12,8 @@ import org.openrndr.draw.font.Face
 import org.openrndr.draw.font.FaceMaster
 import org.openrndr.draw.font.Glyph
 import org.openrndr.shape.Rectangle
+import org.lwjgl.util.harfbuzz.OpenType.hb_ot_font_set_funcs
+import org.openrndr.math.Vector2
 import kotlin.math.absoluteValue
 
 
@@ -226,6 +228,38 @@ class FaceFreetype(
     }
     private val hbFont by hbFontDelegate
 
+    /**
+     * The HarfBuzz font of vertical text: a sub font of [hbFont] with HarfBuzz's OpenType font functions, FreeType
+     * synthesizes vertical metrics differently from HarfBuzz and the harfbuzzjs driver
+     */
+    private val verticalHbFontDelegate = lazy {
+        hb_font_create_sub_font(hbFont).also { hb_ot_font_set_funcs(it) }
+    }
+    private val verticalHbFont by verticalHbFontDelegate
+
+    /**
+     * Handles shaping of vertical text with this face's vertical HarfBuzz font, see [shaping]
+     */
+    fun <T> verticalShaping(shape: (hbFont: Long) -> T): T {
+        makeActive()
+        return shape(verticalHbFont)
+    }
+
+    /** the vertical advance of the glyph [index] in pixels, pointing down */
+    internal fun verticalAdvance(index: Int): Double = verticalShaping { font ->
+        -hb_font_get_glyph_v_advance(font, index) / 64.0
+    }
+
+    /** the vertical origin of the glyph [index] relative to its origin, in pixels with y pointing down */
+    internal fun verticalOrigin(index: Int): Vector2 = verticalShaping { font ->
+        MemoryStack.stackPush().use { stack ->
+            val x = stack.mallocInt(1)
+            val y = stack.mallocInt(1)
+            hb_font_get_glyph_v_origin(font, index, x, y)
+            Vector2(x[0] / 64.0, -y[0] / 64.0)
+        }
+    }
+
     private val hbBufferDelegate = lazy { hb_buffer_create() }
     private val hbBuffer by hbBufferDelegate
 
@@ -327,6 +361,9 @@ class FaceFreetype(
     override fun close() {
         if (activeFace == this) {
             activeFace = null
+        }
+        if (verticalHbFontDelegate.isInitialized()) {
+            hb_font_destroy(verticalHbFont)
         }
         if (hbFontDelegate.isInitialized()) {
             hb_font_destroy(hbFont)

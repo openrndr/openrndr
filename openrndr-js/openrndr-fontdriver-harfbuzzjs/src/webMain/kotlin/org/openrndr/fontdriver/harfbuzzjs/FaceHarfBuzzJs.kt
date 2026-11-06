@@ -46,7 +46,7 @@ class FaceHarfBuzzJs internal constructor(
      * The font of vertical text: harfbuzzjs does not read vertical metrics, this sub font of [hbFont] has the vertical
      * metrics of HarfBuzz's OpenType font functions, like the FreeType driver on the JVM
      */
-    private val verticalFont: HarfBuzzObject by lazy { hbVerticalFont(data.harfBuzz, hbFont, data.hbFace) }
+    internal val verticalFont: HarfBuzzObject by lazy { hbVerticalFont(data.harfBuzz, hbFont, data.hbFace) }
 
     /** pixels per font unit */
     val scale: Double get() = sizeInPoints / data.unitsPerEm
@@ -278,3 +278,10 @@ private fun hbShape(
         return result;
     })()"""
 )
+
+/** the vertical advance of [glyph] in font units, negative, y points up */
+internal fun hbGlyphVAdvance(font: HarfBuzzObject, glyph: Int): Int = js("font.glyphVAdvance(glyph)")
+
+/** the x and y of the vertical origin of [glyph] in font units, y points up */
+internal fun hbGlyphVOrigin(font: HarfBuzzObject, glyph: Int): js.typedarrays.Int32Array<*> =
+    js("(() => { const o = font.glyphVOrigin(glyph); return new Int32Array(o ? o : [0, 0]); })()")

@@ -82,21 +82,12 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
             }
 
             val vertical = hb_buffer_get_direction(buf).let { it == HB_DIRECTION_TTB || it == HB_DIRECTION_BTT }
-            face.shaping { hbFont ->
-                if (vertical) {
-                    // FreeType synthesizes vertical metrics differently from HarfBuzz, vertical text is shaped with
-                    // HarfBuzz's OpenType metrics, like the harfbuzzjs driver: vmtx, vhea and VORG, or ascender and
-                    // descender when the font has no vertical metrics. The sub font has the size and variation of the font
-                    val otFont = hb_font_create_sub_font(hbFont)
-                    try {
-                        hb_ot_font_set_funcs(otFont)
-                        hb_shape(otFont, buf, featureBuffer)
-                    } finally {
-                        hb_font_destroy(otFont)
-                    }
-                } else {
-                    hb_shape(hbFont, buf, featureBuffer)
-                }
+            if (vertical) {
+                // vertical text is shaped with HarfBuzz's OpenType metrics, like the harfbuzzjs driver: vmtx, vhea and
+                // VORG, or ascender and descender when the font has no vertical metrics
+                face.verticalShaping { hbFont -> hb_shape(hbFont, buf, featureBuffer) }
+            } else {
+                face.shaping { hbFont -> hb_shape(hbFont, buf, featureBuffer) }
             }
 
             val glyphInfo = hb_buffer_get_glyph_infos(buf) ?: error("No glyph info")

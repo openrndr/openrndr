@@ -71,4 +71,26 @@ class TestVerticalShapingHarfBuzzJs {
         val below = driver.shape(platypi, "x̣̣", direction = Direction.LEFT_TO_RIGHT, script = Script.LATIN)
         near(13.0625, below[2].offset.y, "stacked dot below")
     }
+
+    /** without vertical positioning in the font, a glyph is drawn at the pen minus its vertical origin */
+    private fun assertVerticalMetrics(face: Face, text: String, script: Script) {
+        for (result in driver.shape(face, text, direction = Direction.TOP_TO_BOTTOM, script = script)) {
+            val glyph = face.glyphForIndex(result.glyphIndex)
+            near(glyph.verticalAdvance, result.advance.y, "vertical advance of glyph ${result.glyphIndex}")
+            near(-glyph.verticalOrigin.x, result.offset.x, "vertical origin x of glyph ${result.glyphIndex}")
+            near(-glyph.verticalOrigin.y, result.offset.y, "vertical origin y of glyph ${result.glyphIndex}")
+        }
+    }
+
+    @Test
+    fun glyphsHaveTheVerticalMetricsOfTheShaper() = runTest {
+        val mongolian = face("data/fonts/NotoSansMongolian-Regular.ttf") ?: return@runTest
+        val roboto = face("openrndr-jvm/openrndr-gl3/src/jvmTest/resources/fonts/Roboto-Medium.ttf") ?: return@runTest
+        assertVerticalMetrics(mongolian, mongolianText, Script.MONGOLIAN)
+        assertVerticalMetrics(roboto, "Ab", Script.LATIN)
+        val a = roboto.glyphForCharacter('A')
+        near(75.0, a.verticalAdvance, "vertical advance of A")
+        near(21.296875, a.verticalOrigin.x, "vertical origin x of A")
+        near(-60.25, a.verticalOrigin.y, "vertical origin y of A")
+    }
 }

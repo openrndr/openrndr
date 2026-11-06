@@ -4,6 +4,7 @@ import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.Script
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.shape.IntRectangle
+import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
 import org.openrndr.utils.buffer.MPPBuffer
@@ -30,6 +31,25 @@ interface Glyph {
     fun leftSideBearing(): Double
 
     fun topSideBearing(): Double
+
+    /**
+     * The vertical advance of the glyph in vertical text, in pixels, the distance the pen moves down, like the advances
+     * of [org.openrndr.draw.font.internal.Direction.TOP_TO_BOTTOM] text shaping: from vmtx, or the ascender minus
+     * the descender of the face when the font has no vertical metrics
+     * @throws UnsupportedOperationException when the font driver does not support vertical metrics
+     */
+    val verticalAdvance: Double
+        get() = throw UnsupportedOperationException("vertical metrics are not supported by this font driver")
+
+    /**
+     * The vertical origin of the glyph relative to its origin, in pixels with y pointing down: the point of the glyph
+     * that is placed on the vertical line, centered on the glyph and usually above the baseline. In vertical text a
+     * glyph is drawn at the pen position minus its vertical origin. From VORG, or from vmtx and the bounds of the
+     * glyph, or, when the font has no vertical metrics, centered on the [verticalAdvance].
+     * @throws UnsupportedOperationException when the font driver does not support vertical metrics
+     */
+    val verticalOrigin: Vector2
+        get() = throw UnsupportedOperationException("vertical metrics are not supported by this font driver")
 
     /**
      * Compute the glyph bounds in up=+y space
