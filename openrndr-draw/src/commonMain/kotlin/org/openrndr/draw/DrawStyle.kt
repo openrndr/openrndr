@@ -14,7 +14,14 @@ import kotlin.math.sqrt
 enum class LineJoin {
     MITER,
     BEVEL,
-    ROUND
+    ROUND,
+
+    /**
+     * Like [MITER], but a miter longer than the miter limit is clipped instead of beveled: by a line perpendicular to
+     * the bisector of the join, at the miter limit times half the stroke weight from the vertex, like the
+     * `miter-clip` join of SVG 2
+     */
+    MITER_CLIP
 }
 
 /**
@@ -516,8 +523,15 @@ data class DrawStyle(
         }
         if (shader.hasUniform("u_lineJoin")) {
             // the right angled corners of rectangles have a miter ratio of sqrt(2)
-            val join = if (lineJoin == LineJoin.MITER && miterLimit < sqrt(2.0)) LineJoin.BEVEL else lineJoin
+            val join = when {
+                lineJoin == LineJoin.MITER && miterLimit < sqrt(2.0) -> LineJoin.BEVEL
+                lineJoin == LineJoin.MITER_CLIP && miterLimit >= sqrt(2.0) -> LineJoin.MITER
+                else -> lineJoin
+            }
             shader.uniform("u_lineJoin", join.ordinal)
+        }
+        if (shader.hasUniform("u_miterLimit")) {
+            shader.uniform("u_miterLimit", miterLimit)
         }
         if (!useStyleBlock) {
             if (shader.hasUniform("u_fill")) {

@@ -181,7 +181,8 @@ class TestStrokeWeightsGL3 : AbstractApplicationTestFixture() {
                 val inside = weight - outside
                 val band = (2.0 * (radius + outside)).let { it * it } - (2.0 * (radius - inside)).let { it * it }
                 val corners = when (join) {
-                    LineJoin.MITER -> 0.0
+                    // the right angled corners are within the miter limit of 4, clipped miters are miters
+                    LineJoin.MITER, LineJoin.MITER_CLIP -> 0.0
                     LineJoin.BEVEL -> 4.0 * outside * outside / 2.0
                     LineJoin.ROUND -> 4.0 * (outside * outside - PI * outside * outside / 4.0)
                 }

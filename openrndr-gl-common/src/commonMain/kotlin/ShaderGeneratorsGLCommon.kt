@@ -548,6 +548,7 @@ in vec2 v_local;
 uniform float u_strokeAlignment;
 // the join of the outer stroke corners: 0 miter, 1 bevel, 2 round
 uniform int u_lineJoin;
+uniform float u_miterLimit;
 // 1.0 for anti-aliased edges, 0.0 for hard edges
 uniform float u_smooth;
 // 0: the stroke is painted over the fill, 1: the fill over the stroke
@@ -590,6 +591,10 @@ float outsetCoverage(vec2 halfSize, float o, vec2 p, vec2 f, int lineJoin) {
     float pf = length(f) * 0.70710678;
     if (lineJoin == 2) {
         float d = length(max(c, vec2(0.0))) + min(max(c.x, c.y), 0.0) - o;
+        return min(box, edgeCoverage(d, pf));
+    } else if (lineJoin == 3) {
+        // the miter is clipped perpendicular to the diagonal, at the miter limit times the outset from the corner
+        float d = (c.x + c.y) * 0.70710678 - u_miterLimit * o;
         return min(box, edgeCoverage(d, pf));
     } else {
         float d = (c.x + c.y - o) * 0.70710678;

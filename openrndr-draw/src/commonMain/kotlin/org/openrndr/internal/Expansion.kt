@@ -5,6 +5,7 @@ import org.openrndr.draw.LineJoin
 import org.openrndr.internal.PathPoint.Companion.BEVEL
 import org.openrndr.internal.PathPoint.Companion.CORNER
 import org.openrndr.internal.PathPoint.Companion.INNER_BEVEL
+import org.openrndr.internal.PathPoint.Companion.CLIP
 import org.openrndr.internal.PathPoint.Companion.LEFT
 import org.openrndr.math.Vector2
 import kotlin.math.*
@@ -105,7 +106,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         lw: Double, rw: Double, lu: Double, ru: Double,
         offset: Double,
         aa: Double = 0.0,
-        mu: Double = 0.5
+        mu: Double = 0.5,
+        miterLimit: Double = Double.POSITIVE_INFINITY
     ) {
         val dlx0 = p0.dy
         val dly0 = -p0.dx
@@ -134,6 +136,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 
                 addVertex(lx1, ly1, lu, 1.0, offset)
                 addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
+            } else if (p1.flags and CLIP != 0) {
+                // the clipped miter on the right
+                clippedMiter(p0, p1, -1.0, rw, lx0, ly0, lx1, ly1, aa, miterLimit, offset)
             } else {
                 val rx0 = p1.x - p1.dmx * rw
                 val ry0 = p1.y - p1.dmy * rw
@@ -171,6 +176,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 
                 addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
                 addVertex(rx1, ry1, ru, 1.0, offset)
+            } else if (p1.flags and CLIP != 0) {
+                // the clipped miter on the left
+                clippedMiter(p0, p1, 1.0, lw, rx0, ry0, rx1, ry1, aa, miterLimit, offset)
             } else {
                 val lx0 = p1.x + p1.dmx * lw
                 val ly0 = p1.y + p1.dmy * lw
@@ -188,6 +196,64 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
             addVertex(rx1, ry1, ru, 1.0, offset)
         }
+    }
+
+    /**
+     * Emits a clipped miter: the polygon of the inner corners ([i0x], [i0y]) and ([i1x], [i1y]), the outer corners of
+     * the segments at [p1], and the points where their outer edges reach the clip line, perpendicular to the bisector
+     * of the join at the miter limit times the width of the stroke on that side from the vertex. [side] is 1 when the
+     * outer side is the left side, -1 when it is the right side, [w] is the width of that side including half of the
+     * fringe [aa].
+     *
+     * u runs from one outer edge to the other, so they fade like the sides of the stroke, and is 0.5 at the inner
+     * corners. v is the distance to the clip line in fringes, so the clip line fades like the edge of a bevel. The
+     * polygon is connected by degenerate triangles, the strip continues at the corners after the join.
+     */
+    private fun clippedMiter(
+        p0: PathPoint, p1: PathPoint, side: Double, w: Double,
+        i0x: Double, i0y: Double, i1x: Double, i1y: Double,
+        aa: Double, miterLimit: Double, offset: Double
+    ) {
+        val o0x = p1.x + side * p0.dy * w
+        val o0y = p1.y - side * p0.dx * w
+        val o1x = p1.x + side * p1.dy * w
+        val o1y = p1.y - side * p1.dx * w
+        // the outward bisector
+        var bx = side * p1.dmx
+        var by = side * p1.dmy
+        val bl = sqrt(bx * bx + by * by)
+        if (bl < 1E-12) return
+        bx /= bl
+        by /= bl
+        val clipDistance = miterLimit * (w - aa * 0.5) + aa * 0.5
+        fun distance(x: Double, y: Double) = clipDistance - ((x - p1.x) * bx + (y - p1.y) * by)
+        fun v(x: Double, y: Double) = if (aa > 0.0) distance(x, y) / aa else 1.0
+
+        // the outer edge before continues forwards, the outer edge after backwards, up to the clip line
+        val t0 = p0.dx * bx + p0.dy * by
+        val t1 = -(p1.dx * bx + p1.dy * by)
+        val d0 = distance(o0x, o0y)
+        val d1 = distance(o1x, o1y)
+        val clipped = t0 > 1E-12 && t1 > 1E-12 && d0 > 0.0 && d1 > 0.0
+        val c0x = if (clipped) o0x + p0.dx * d0 / t0 else o0x
+        val c0y = if (clipped) o0y + p0.dy * d0 / t0 else o0y
+        val c1x = if (clipped) o1x - p1.dx * d1 / t1 else o1x
+        val c1y = if (clipped) o1y - p1.dy * d1 / t1 else o1y
+
+        // the corners before the join, then the bevel
+        addVertex(i0x, i0y, 0.5, v(i0x, i0y), offset)
+        addVertex(o0x, o0y, 0.0, v(o0x, o0y), offset)
+        addVertex(i1x, i1y, 0.5, v(i1x, i1y), offset)
+        addVertex(o1x, o1y, 1.0, v(o1x, o1y), offset)
+        // the clipped miter beyond the bevel
+        addVertex(o1x, o1y, 1.0, v(o1x, o1y), offset)
+        addVertex(o0x, o0y, 0.0, v(o0x, o0y), offset)
+        addVertex(c1x, c1y, 1.0, v(c1x, c1y), offset)
+        addVertex(c0x, c0y, 0.0, v(c0x, c0y), offset)
+        // back to the outer corner after the join
+        addVertex(c0x, c0y, 0.0, v(c0x, c0y), offset)
+        addVertex(o1x, o1y, 1.0, v(o1x, o1y), offset)
+        addVertex(o1x, o1y, 1.0, v(o1x, o1y), offset)
     }
 
     fun roundJoin(
@@ -493,7 +559,9 @@ internal class Path {
 
             // Check to see if the corner needs to be beveled.
             if (p1.flags and CORNER != 0) {
-                if (dmr2 * miterLimit * miterLimit < 1.0f || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
+                if (lineJoin === LineJoin.MITER_CLIP && dmr2 * miterLimit * miterLimit < 1.0f) {
+                    p1.flags = p1.flags or CLIP
+                } else if (dmr2 * miterLimit * miterLimit < 1.0f || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
                     p1.flags = p1.flags or BEVEL
                 }
             } else if (dmr2 * miterLimit * miterLimit < 1.0f) {
@@ -503,8 +571,12 @@ internal class Path {
                 p1.flags = p1.flags or BEVEL
             }
 
-            if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
+            if (p1.flags and (BEVEL or INNER_BEVEL or CLIP) != 0) {
                 nbevel++
+            }
+            // clipped miters have a quad beyond their bevel
+            if (p1.flags and CLIP != 0) {
+                nbevel += 2
             }
 
             p0 = p1
@@ -681,11 +753,11 @@ internal class Path {
             // -- middle
             for (j in start until end) {
                 offset += p0.length
-                if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
+                if (p1.flags and (BEVEL or INNER_BEVEL or CLIP) != 0) {
                     if (lineJoin === LineJoin.ROUND) {
                         expansion.roundJoin(p0, p1, lw, rw, 0.0, 1.0, capSteps, offset, mu)
                     } else {
-                        expansion.bevelJoin(p0, p1, lw, rw, 0.0, 1.0, offset, aa, mu)
+                        expansion.bevelJoin(p0, p1, lw, rw, 0.0, 1.0, offset, aa, mu, miterLimit)
                     }
                 } else {
                     expansion.addVertex(p1.x + p1.dmx * lw, p1.y + p1.dmy * lw, 0.0, 1.0, offset)
@@ -994,6 +1066,9 @@ internal class PathPoint {
         const val LEFT = 0x02
         const val BEVEL = 0x04
         const val INNER_BEVEL = 0x08
+
+        /** the miter of the join is clipped, see [org.openrndr.draw.LineJoin.MITER_CLIP] */
+        const val CLIP = 0x10
     }
 
     override fun toString(): String {
