@@ -64,7 +64,7 @@ enum class Script(val tag: String) {
     HANGUL("Hang"),
     HAN("Hani"),
     HEBREW("Hebr"),
-    HIRIGANA("Hira"),
+    HIRAGANA("Hira"),
     KANNADA("Knda"),
     KATAKANA("Kana"),
     LAOTHIAN("Laoo"),
