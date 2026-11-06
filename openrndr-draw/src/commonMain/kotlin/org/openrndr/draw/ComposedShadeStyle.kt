@@ -113,7 +113,11 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
             val preambles = listOfNotNull(member.vertexPreamble, member.geometryPreamble, member.fragmentPreamble)
             val renames = buildMap {
                 for (name in preambles.flatMap { glslTopLevelNames(it) }) put(name, namespaced(index, name))
-                for (name in member.parameterTypes.keys) put("p_$name", "p_" + namespaced(index, name))
+                for ((name, type) in member.parameterTypes) {
+                    put("p_$name", "p_" + namespaced(index, name))
+                    // array parameters, of types like "float, 4", define the size macro p_<name>_SIZE
+                    if (',' in type) put("p_${name}_SIZE", "p_" + namespaced(index, name) + "_SIZE")
+                }
                 for (name in member.imageTypes.keys) put("p_$name", "p_" + namespaced(index, name))
                 for (name in member.bufferTypes.keys + member.buffers.keys) put("b_$name", "b_" + namespaced(index, name))
             }

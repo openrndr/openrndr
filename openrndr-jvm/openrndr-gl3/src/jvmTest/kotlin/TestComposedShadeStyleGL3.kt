@@ -125,4 +125,14 @@ class TestComposedShadeStyleGL3 : AbstractApplicationTestFixture() {
         source.destroy()
         target.destroy()
     }
+
+    @Test
+    fun arrayParametersKeepTheirSize() {
+        // array parameters define the size macro p_<name>_SIZE, it is namespaced like the parameter
+        fun last(channel: String, values: DoubleArray) = shadeStyle {
+            fragmentTransform = "x_fill.$channel = p_values[p_values_SIZE - 1];"
+            parameter("values", values)
+        }
+        assertColor(0.25, 0.5, 0.0, render(last("r", doubleArrayOf(0.0, 0.25)) + last("g", doubleArrayOf(0.0, 0.0, 0.5))))
+    }
 }
