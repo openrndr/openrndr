@@ -14,6 +14,12 @@ import kotlin.jvm.JvmRecord
  * during placement. This can be used to adjust its position for kerning or other layout needs.
  * @property advance A 2D vector representing the advance to apply after positioning the glyph.
  * This is used to determine the next position in the layout for rendering.
+ *
+ * Offsets and advances are in pixels at the size of the face, with y pointing down: the glyph is drawn with its
+ * origin at the pen position plus [offset], then the pen moves by [advance]. In horizontal text the advance points
+ * right, in vertical text ([Direction.TOP_TO_BOTTOM]) it points down and the offset is that of the origin of the
+ * glyph from its vertical origin, so glyphs are drawn at their origin like in horizontal text. Text in the backward
+ * directions, right to left and bottom to top, is in visual order, the advances point right or down.
  */
 @JvmRecord
 data class ShapeResult(val glyphIndex: Int, val offset: Vector2, val advance: Vector2)

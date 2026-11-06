@@ -15,8 +15,8 @@ import org.openrndr.math.Vector2
 private fun Direction.hbDirection() = when (this) {
     Direction.LEFT_TO_RIGHT -> HB_DIRECTION_LTR
     Direction.RIGHT_TO_LEFT -> HB_DIRECTION_RTL
-    Direction.TOP_TO_BOTTOM -> HB_DIRECTION_LTR
-    Direction.BOTTOM_TO_TOP -> HB_DIRECTION_RTL
+    Direction.TOP_TO_BOTTOM -> HB_DIRECTION_TTB
+    Direction.BOTTOM_TO_TOP -> HB_DIRECTION_BTT
 }
 
 private fun Script.hbScript(): Int {
@@ -81,15 +81,32 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
                 }
             }
 
-            face.shaping { hbFont -> hb_shape(hbFont, buf, featureBuffer) }
+            val vertical = hb_buffer_get_direction(buf).let { it == HB_DIRECTION_TTB || it == HB_DIRECTION_BTT }
+            face.shaping { hbFont ->
+                if (vertical) {
+                    // FreeType synthesizes vertical metrics differently from HarfBuzz, vertical text is shaped with
+                    // HarfBuzz's OpenType metrics, like the harfbuzzjs driver: vmtx, vhea and VORG, or ascender and
+                    // descender when the font has no vertical metrics. The sub font has the size and variation of the font
+                    val otFont = hb_font_create_sub_font(hbFont)
+                    try {
+                        hb_ot_font_set_funcs(otFont)
+                        hb_shape(otFont, buf, featureBuffer)
+                    } finally {
+                        hb_font_destroy(otFont)
+                    }
+                } else {
+                    hb_shape(hbFont, buf, featureBuffer)
+                }
+            }
 
             val glyphInfo = hb_buffer_get_glyph_infos(buf) ?: error("No glyph info")
             val glyphPosition = hb_buffer_get_glyph_positions(buf) ?: error("No glyph position")
 
+            // HarfBuzz positions in 26.6 pixels with y pointing up, results are in pixels with y pointing down
             return (0 until glyphInfo.count()).map {
                 val gp = glyphPosition[it] ?: error("No glyph position at index $it")
-                val position = Vector2(gp.x_offset() / 64.0, gp.y_offset() / 64.0)
-                val advance = Vector2(gp.x_advance() / 64.0, gp.y_advance() / 64.0)
+                val position = Vector2(gp.x_offset() / 64.0, -gp.y_offset() / 64.0)
+                val advance = Vector2(gp.x_advance() / 64.0, -gp.y_advance() / 64.0)
                 ShapeResult(glyphInfo.get(it)!!.codepoint(), position, advance)
             }
         } finally {

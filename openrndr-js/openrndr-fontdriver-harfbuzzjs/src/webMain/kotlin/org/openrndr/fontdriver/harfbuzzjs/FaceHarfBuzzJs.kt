@@ -42,6 +42,12 @@ class FaceHarfBuzzJs internal constructor(
         }
     }
 
+    /**
+     * The font of vertical text: harfbuzzjs does not read vertical metrics, this sub font of [hbFont] has the vertical
+     * metrics of HarfBuzz's OpenType font functions, like the FreeType driver on the JVM
+     */
+    private val verticalFont: HarfBuzzObject by lazy { hbVerticalFont(data.harfBuzz, hbFont, data.hbFace) }
+
     /** pixels per font unit */
     val scale: Double get() = sizeInPoints / data.unitsPerEm
 
@@ -138,7 +144,8 @@ class FaceHarfBuzzJs internal constructor(
         script: String = "",
         language: String = ""
     ): IntArray {
-        val shaped = hbShape(data.harfBuzz, hbFont, text, features.joinToString(","), direction, script, language)
+        val font = if (direction == 6 || direction == 7) verticalFont else hbFont
+        val shaped = hbShape(data.harfBuzz, font, text, features.joinToString(","), direction, script, language)
         return IntArray(int32Length(shaped)) { int32At(shaped, it) }
     }
 
@@ -177,6 +184,63 @@ class FaceHarfBuzzJs internal constructor(
         private val kerningFeatures = listOf("kern", "-liga", "-clig", "-dlig", "-calt", "-rlig")
     }
 }
+
+/**
+ * A sub font of [font] with the vertical metrics of HarfBuzz's OpenType font functions, in font units: advances from
+ * vmtx, origins from VORG, or from vmtx and the extents of the glyph, or, without vertical metrics, an advance of the
+ * ascender minus the descender with the glyph centered on it
+ */
+private fun hbVerticalFont(hb: HarfBuzzModule, font: HarfBuzzObject, face: HarfBuzzObject): HarfBuzzObject = js(
+    """(() => {
+        // the tables are copied, views of the memory of harfbuzz are detached when the memory grows
+        const view = (tag) => {
+            const table = face.referenceTable(tag);
+            return table && table.byteLength > 0 ? new DataView(table.slice().buffer) : null;
+        };
+        const vmtx = view('vmtx');
+        const vhea = view('vhea');
+        const vorg = view('VORG');
+        const longMetrics = vhea && vhea.byteLength >= 36 ? vhea.getUint16(34) : 0;
+        const hasVmtx = vmtx !== null && longMetrics > 0 && vmtx.byteLength >= longMetrics * 4;
+        const extents = font.hExtents();
+        const fallbackAdvance = extents.ascender - extents.descender;
+        const advance = (glyph) => hasVmtx ? vmtx.getUint16(Math.min(glyph, longMetrics - 1) * 4) : fallbackAdvance;
+        const topSideBearing = (glyph) => {
+            if (!hasVmtx) return null;
+            if (glyph < longMetrics) return vmtx.getInt16(glyph * 4 + 2);
+            const offset = longMetrics * 4 + (glyph - longMetrics) * 2;
+            return offset + 2 <= vmtx.byteLength ? vmtx.getInt16(offset) : null;
+        };
+        const vorgOrigin = (glyph) => {
+            let low = 0;
+            let high = vorg.getUint16(6) - 1;
+            while (low <= high) {
+                const middle = (low + high) >> 1;
+                const index = vorg.getUint16(8 + middle * 4);
+                if (index === glyph) return vorg.getInt16(10 + middle * 4);
+                if (index < glyph) low = middle + 1; else high = middle - 1;
+            }
+            return vorg.getInt16(4);
+        };
+        const funcs = new hb.FontFuncs();
+        // y points up in harfbuzz, vertical advances are negative
+        funcs.setGlyphVAdvanceFunc((f, glyph) => -advance(glyph));
+        funcs.setGlyphVOriginFunc((f, glyph) => {
+            const x = Math.trunc(font.glyphHAdvance(glyph) / 2);
+            if (vorg !== null) return [x, vorgOrigin(glyph)];
+            const glyphExtents = font.glyphExtents(glyph);
+            if (glyphExtents) {
+                const tsb = topSideBearing(glyph);
+                if (tsb !== null) return [x, glyphExtents.yBearing + tsb];
+                return [x, glyphExtents.yBearing + ((fallbackAdvance + glyphExtents.height) >> 1)];
+            }
+            return [x, extents.ascender];
+        });
+        const sub = font.subFont();
+        sub.setFuncs(funcs);
+        return sub;
+    })()"""
+)
 
 /**
  * Shapes text, returns the glyph index, cluster, x advance, y advance, x offset and y offset of each glyph

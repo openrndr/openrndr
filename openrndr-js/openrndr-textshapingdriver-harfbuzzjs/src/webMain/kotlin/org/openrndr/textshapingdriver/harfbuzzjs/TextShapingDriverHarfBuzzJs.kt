@@ -51,12 +51,13 @@ class TextShapingDriverHarfBuzzJs : TextShapingDriver {
         )
         val scale = hbFace.scale
         val stride = FaceHarfBuzzJs.SHAPED_STRIDE
+        // harfbuzz positions in font units with y pointing up, results are in pixels with y pointing down
         return (0 until shaped.size / stride).map { i ->
             val base = i * stride
             ShapeResult(
                 shaped[base],
-                Vector2(shaped[base + 4] * scale, shaped[base + 5] * scale),
-                Vector2(shaped[base + 2] * scale, shaped[base + 3] * scale)
+                Vector2(shaped[base + 4] * scale, -shaped[base + 5] * scale),
+                Vector2(shaped[base + 2] * scale, -shaped[base + 3] * scale)
             )
         }
     }
