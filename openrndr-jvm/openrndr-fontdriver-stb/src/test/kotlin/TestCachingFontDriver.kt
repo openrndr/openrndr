@@ -37,4 +37,24 @@ class TestCachingFontDriver {
         c.close()
         driver.clear()
     }
+
+    @Test
+    fun testDataUrlsAreLoadedOnce() {
+        val stb = FontDriverStbTt()
+        var loads = 0
+        val counting = object : FontDriver {
+            override fun loadFace(fileOrUrl: String): Face {
+                loads++
+                return stb.loadFace(fileOrUrl)
+            }
+        }
+        val driver = CachingFontDriver(counting)
+        val bytes = java.io.File("../../data/fonts/Platypi-Regular.ttf").readBytes()
+        val url = "data:font/ttf;base64," + java.util.Base64.getEncoder().encodeToString(bytes)
+        driver.loadFace(url).close()
+        driver.loadFace(String(url.toCharArray())).close()
+        assertEquals(1, loads)
+        assertEquals(1, driver.size)
+        driver.clear()
+    }
 }
