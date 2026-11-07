@@ -42,6 +42,7 @@ class ShaderGeneratorsGLCommon : ShaderGenerators {
 |
 |flat in int v_instance;
 |flat in float va_pointSize;
+|in vec3 v_objectPosition;
 |${fragmentMainConstants(element = "v_instance")}
 |${shadeStructure.fragmentPreamble ?: ""}
 |void main(void) {
@@ -71,6 +72,7 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 flat out float va_pointSize;
+out vec3 v_objectPosition;
 void main() {
     int instance = gl_InstanceID; // this will go use c_instance instead
 ${vertexMainConstants()}
@@ -79,6 +81,7 @@ ${shadeStructure.varyingBridge ?: ""}
     ${if (shadeStructure.attributes?.contains("vec3 a_normal;") == true) "x_normal = a_normal;" else ""}
     vec3 x_position = a_position.xyz;
     float x_pointSize = 1.0;
+    v_objectPosition = a_position.xyz;
 
     ${preVertexTransform}
     {

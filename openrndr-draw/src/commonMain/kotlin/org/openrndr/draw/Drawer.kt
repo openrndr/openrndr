@@ -1057,19 +1057,12 @@ class Drawer(val driver: Driver) {
     private fun contourStroke(contour: ShapeContour, distanceTolerance: Double, fringeWidth: Double) {
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 1E-4) {
             when (drawStyle.quality) {
-                DrawQuality.PERFORMANCE -> when (contour.closed) {
-                    true -> fastLineDrawer.drawLineLoops(
-                        context,
-                        drawStyle,
-                        listOf(contour.adaptivePositions(distanceTolerance))
-                    )
-
-                    false -> fastLineDrawer.drawLineLoops(
-                        context,
-                        drawStyle,
-                        listOf(contour.adaptivePositions(distanceTolerance))
-                    )
-                }
+                DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(
+                    context,
+                    drawStyle,
+                    listOf(contour.adaptivePositions(distanceTolerance)),
+                    listOf(contour.closed)
+                )
 
                 DrawQuality.QUALITY -> {
                     val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
@@ -1395,7 +1388,7 @@ class Drawer(val driver: Driver) {
         }
 
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(
                 context,
                 drawStyle,
@@ -1412,7 +1405,7 @@ class Drawer(val driver: Driver) {
     @JvmName("lineStrip3d")
     fun lineStrip(points: List<Vector3>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
         }
     }
@@ -1427,7 +1420,7 @@ class Drawer(val driver: Driver) {
         }
 
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(
                 context,
                 drawStyle,
@@ -1444,7 +1437,7 @@ class Drawer(val driver: Driver) {
     @JvmName("lineStrips3d")
     fun lineStrips(strips: List<List<Vector3>>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips)
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips)
         }
     }
@@ -1459,7 +1452,7 @@ class Drawer(val driver: Driver) {
         }
 
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(
                 context,
                 drawStyle,
@@ -1477,7 +1470,7 @@ class Drawer(val driver: Driver) {
     @JvmName("lineStrips3d")
     fun lineStrips(strips: List<List<Vector3>>, weights: List<Double>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips)
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights)
         }
     }
@@ -1488,8 +1481,28 @@ class Drawer(val driver: Driver) {
     @JvmName("lineStrips3d")
     fun lineStrips(strips: List<List<Vector3>>, weights: List<Double>, colors: List<ColorRGBa>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips)
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights, colors)
+        }
+    }
+
+    /**
+     * Draws line strips with 3d coordinates, a strip is closed when its entry in [closed] is true
+     * @param strips the points of the strips
+     * @param closed per strip whether the strip is closed, strips without an entry are open
+     * @param weights optional stroke weights per strip, only used for [DrawQuality.QUALITY]
+     * @param colors optional colors per strip, only used for [DrawQuality.QUALITY]
+     */
+    @JvmName("lineStrips3d")
+    fun lineStrips(
+        strips: List<List<Vector3>>,
+        closed: List<Boolean>,
+        weights: List<Double> = emptyList(),
+        colors: List<ColorRGBa> = emptyList()
+    ) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(context, drawStyle, strips, closed)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights, colors, closed)
         }
     }
 

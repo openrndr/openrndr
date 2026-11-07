@@ -80,8 +80,9 @@ class PerformanceLineDrawer {
         shader.end()
     }
 
+    /** a vertex buffer for [count] vertices */
     private fun vertices(count: Int): VertexBuffer {
-        return if (count < 64) {
+        return if (count <= 128) {
             counter++
             fewVertices[counter.mod(fewVertices.size)]
         } else {
@@ -142,36 +143,15 @@ class PerformanceLineDrawer {
      *              series of line segments to be drawn.
      */
     fun drawLineLoops(drawContext: DrawContext,
-                      drawStyle: DrawStyle, loops: List<List<Vector2>>) {
+                      drawStyle: DrawStyle, loops: List<List<Vector2>>) =
+        drawLineStrips(drawContext, drawStyle, loops, List(loops.size) { true })
 
-        val vertices = vertices(loops.sumOf { it.size })
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
-        shader.begin()
-        drawContext.applyToShader(shader)
-        drawStyle.applyToShader(shader)
-        val w = vertices.shadow.writer()
-        w.rewind()
-        var vertexCount = 0
-
-        loops.forEachIndexed { loopIndex, loop ->
-            //loop.forEachIndexed { index, it ->
-            for (i in 0 until loop.size - 1) {
-                w.write(loop[i]); w.write(0.0f)
-                w.write(loopIndex.toFloat())
-                w.write(1.0f)
-                w.write(loop[i + 1]); w.write(0.0f)
-                w.write(loopIndex.toFloat())
-                w.write(1.0f)
-
-                vertexCount += 2
-            }
-            //}
-        }
-        vertices.shadow.uploadElements(0, vertexCount)
-        Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
-        shader.end()
-    }
+    /**
+     * Draws line strips in 2D space, a strip is closed when its entry in [closed] is true
+     */
+    fun drawLineStrips(drawContext: DrawContext,
+                       drawStyle: DrawStyle, strips: List<List<Vector2>>, closed: List<Boolean> = emptyList()) =
+        drawStrips(drawContext, drawStyle, strips, closed) { write(it); write(0.0f) }
 
     /**
      * Draws a series of connected line loops in 3D space using the specified drawing context and style.
@@ -189,8 +169,30 @@ class PerformanceLineDrawer {
      */
     @JvmName("drawLineLoops3d")
     fun drawLineLoops(drawContext: DrawContext,
-                      drawStyle: DrawStyle, loops: List<List<Vector3>>) {
-        val vertices = vertices(loops.sumOf { it.size })
+                      drawStyle: DrawStyle, loops: List<List<Vector3>>) =
+        drawStrips(drawContext, drawStyle, loops, List(loops.size) { true }) { write(it) }
+
+    /**
+     * Draws line strips in 3D space, a strip is closed when its entry in [closed] is true
+     */
+    @JvmName("drawLineStrips3d")
+    fun drawLineStrips(drawContext: DrawContext,
+                       drawStyle: DrawStyle, strips: List<List<Vector3>>, closed: List<Boolean> = emptyList()) =
+        drawStrips(drawContext, drawStyle, strips, closed) { write(it) }
+
+    private inline fun <T> drawStrips(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        strips: List<List<T>>,
+        closed: List<Boolean>,
+        write: BufferWriter.(T) -> Unit
+    ) {
+        // a strip of n points has n - 1 segments, closed strips one more, every segment is 2 vertices
+        val count = strips.withIndex().sumOf { (index, strip) ->
+            if (strip.size < 2) 0 else 2 * (strip.size - 1) + (if (closed.getOrElse(index) { false }) 2 else 0)
+        }
+        if (count == 0) return
+        val vertices = vertices(count)
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -199,13 +201,15 @@ class PerformanceLineDrawer {
         w.rewind()
         var vertexCount = 0
 
-        loops.forEachIndexed { loopIndex, loop ->
-            for (i in 0 until loop.size - 1) {
-                w.write(loop[i])
-                w.write(loopIndex.toFloat())
+        strips.forEachIndexed { index, strip ->
+            if (strip.size < 2) return@forEachIndexed
+            val segments = strip.size - 1 + (if (closed.getOrElse(index) { false }) 1 else 0)
+            for (i in 0 until segments) {
+                write(w, strip[i])
+                w.write(index.toFloat())
                 w.write(1.0f)
-                w.write(loop[i + 1])
-                w.write(loopIndex.toFloat())
+                write(w, strip[(i + 1) % strip.size])
+                w.write(index.toFloat())
                 w.write(1.0f)
                 vertexCount += 2
             }
