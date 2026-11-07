@@ -503,18 +503,21 @@ class ColorBufferGL3(
         // color buffers are stored bottom-up, the rectangles are top-down
         val sourceHeight = effectiveHeight / fromDiv
         val targetHeight = target.effectiveHeight / toDiv
-        glBlitFramebuffer(
-            sourceRectangle.x,
-            sourceHeight - sourceRectangle.y,
-            sourceRectangle.x + sourceRectangle.width,
-            sourceHeight - sourceRectangle.y - sourceRectangle.height,
-            targetRectangle.x,
-            targetHeight - targetRectangle.y,
-            targetRectangle.x + targetRectangle.width,
-            targetHeight - targetRectangle.y - targetRectangle.height,
-            GL_COLOR_BUFFER_BIT,
-            GL_NEAREST
-        )
+        // blits are scissored, the scissor of the last draw style must not cut the copy
+        (Driver.instance as DriverGL3).withoutScissor {
+            glBlitFramebuffer(
+                sourceRectangle.x,
+                sourceHeight - sourceRectangle.y,
+                sourceRectangle.x + sourceRectangle.width,
+                sourceHeight - sourceRectangle.y - sourceRectangle.height,
+                targetRectangle.x,
+                targetHeight - targetRectangle.y,
+                targetRectangle.x + targetRectangle.width,
+                targetHeight - targetRectangle.y - targetRectangle.height,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            )
+        }
         debugGLErrors {
             logger.error {
                 """failed to copy ${this@ColorBufferGL3} to $target, source rect: $sourceRectangle, target rect: $targetRectangle"""

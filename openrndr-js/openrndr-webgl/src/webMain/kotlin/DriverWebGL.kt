@@ -235,14 +235,10 @@ class DriverWebGL(var context: GL) : Driver, ShareGroups {
         context.checkErrors("clearColor")
         context.clearDepth(1.0f)
         context.checkErrors("clearDepth")
-        context.disable(SCISSOR_TEST)
-        context.checkErrors("disable(SCISSOR_TEST")
-        context.depthMask(true)
-        context.checkErrors("depthMask(true)")
-        context.clear(COLOR_BUFFER_BIT + DEPTH_BUFFER_BIT + STENCIL_BUFFER_BIT)
-        context.checkErrors("clear")
-        context.depthMask(false)
-        context.checkErrors("depthMask(false)")
+        withOpenWriteMasks {
+            context.clear(COLOR_BUFFER_BIT + DEPTH_BUFFER_BIT + STENCIL_BUFFER_BIT)
+            context.checkErrors("clear")
+        }
     }
 
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session?): VertexBuffer {
@@ -519,6 +515,40 @@ class DriverWebGL(var context: GL) : Driver, ShareGroups {
 
     private val cached = DrawStyle()
     private var dirty = true
+
+    /**
+     * Runs [function] without the scissor test, which clears and blits honor, and restores the scissor test afterwards
+     */
+    internal fun withoutScissor(function: () -> Unit) {
+        val scissorTestEnabled = context.isEnabled(SCISSOR_TEST)
+        if (scissorTestEnabled) {
+            context.disable(SCISSOR_TEST)
+        }
+        function()
+        if (scissorTestEnabled) {
+            context.enable(SCISSOR_TEST)
+        }
+    }
+
+    /**
+     * Runs [clear] without the scissor test and with all color, depth and stencil write masks open, clears are
+     * scissored and masked like draws. The masks of the cached draw style are restored afterwards, the masks of the
+     * first draw style otherwise.
+     */
+    internal fun withOpenWriteMasks(clear: () -> Unit) = withoutScissor {
+        context.colorMask(true, true, true, true)
+        context.depthMask(true)
+        context.stencilMask(0xff.toJsUInt())
+        clear()
+        if (!dirty) {
+            val mask = cached.channelWriteMask
+            context.colorMask(mask.red, mask.green, mask.blue, mask.alpha)
+            context.depthMask(cached.depthWrite)
+            context.stencilMaskSeparate(FRONT, cached.frontStencil.stencilWriteMask.toJsUInt())
+            context.stencilMaskSeparate(BACK, cached.backStencil.stencilWriteMask.toJsUInt())
+        }
+        context.checkErrors("withOpenWriteMasks")
+    }
     override fun setState(drawStyle: DrawStyle) {
         if (dirty || cached.clip != drawStyle.clip) {
             if (drawStyle.clip != null) {

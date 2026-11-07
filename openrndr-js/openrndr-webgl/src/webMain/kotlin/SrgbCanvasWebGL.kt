@@ -127,6 +127,8 @@ internal class SrgbCanvasFallbackWebGL(private val context: GL) {
     fun present() {
         context.bindFramebuffer(READ_FRAMEBUFFER, framebuffer)
         context.bindFramebuffer(DRAW_FRAMEBUFFER, resolveFramebuffer)
+        // the resolve is scissored, the driver sets the scissor test again before drawing
+        context.disable(SCISSOR_TEST)
         context.blitFramebuffer(0, 0, width, height, 0, 0, width, height, COLOR_BUFFER_BIT, NEAREST)
         context.checkErrors("SrgbCanvasFallbackWebGL.present(), resolve")
 

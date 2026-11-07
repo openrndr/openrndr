@@ -398,18 +398,21 @@ class ColorBufferWebGL(
         // color buffers are stored bottom-up, the rectangles are top-down
         val sourceHeight = effectiveHeight / (1 shl fromLevel)
         val targetHeight = target.effectiveHeight / (1 shl toLevel)
-        context.blitFramebuffer(
-            sourceRectangle.x,
-            sourceHeight - sourceRectangle.y,
-            sourceRectangle.x + sourceRectangle.width,
-            sourceHeight - sourceRectangle.y - sourceRectangle.height,
-            targetRectangle.x,
-            targetHeight - targetRectangle.y,
-            targetRectangle.x + targetRectangle.width,
-            targetHeight - targetRectangle.y - targetRectangle.height,
-            COLOR_BUFFER_BIT,
-            NEAREST
-        )
+        // blits are scissored, the scissor of the last draw style must not cut the copy
+        (Driver.instance as DriverWebGL).withoutScissor {
+            context.blitFramebuffer(
+                sourceRectangle.x,
+                sourceHeight - sourceRectangle.y,
+                sourceRectangle.x + sourceRectangle.width,
+                sourceHeight - sourceRectangle.y - sourceRectangle.height,
+                targetRectangle.x,
+                targetHeight - targetRectangle.y,
+                targetRectangle.x + targetRectangle.width,
+                targetHeight - targetRectangle.y - targetRectangle.height,
+                COLOR_BUFFER_BIT,
+                NEAREST
+            )
+        }
         context.checkErrors("blitFramebuffer from $sourceRectangle of $this to $targetRectangle of $target")
         context.bindFramebuffer(READ_FRAMEBUFFER, null)
         writeTarget.unbind()

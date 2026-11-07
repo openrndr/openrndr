@@ -769,28 +769,15 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             targetColor.alpha.toFloat()
         )
         glClearDepth(1.0)
-        val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
-        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
-        if (scissorTestEnabled) {
-            glDisable(GL_SCISSOR_TEST)
-        }
-
         debugGLErrors()
-        glDepthMask(true)
-        debugGLErrors()
-
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
-        debugGLErrors()
-
-        debugGLErrors {
-            when (it) {
-                GL_INVALID_VALUE -> "any bit other than the three defined bits is set in mask."
-                else -> null
+        withOpenWriteMasks {
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
+            debugGLErrors {
+                when (it) {
+                    GL_INVALID_VALUE -> "any bit other than the three defined bits is set in mask."
+                    else -> null
+                }
             }
-        }
-        glDepthMask(depthWriteMask)
-        if (scissorTestEnabled) {
-            glEnable(GL_SCISSOR_TEST)
         }
     }
 
@@ -1520,6 +1507,44 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
     private val dirtyPerContext = mutableMapOf<Long, Boolean>()
     private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
+
+    /**
+     * Runs [function] without the scissor test, which clears and blits honor, and restores the scissor test afterwards
+     */
+    internal fun withoutScissor(function: () -> Unit) {
+        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
+        if (scissorTestEnabled) {
+            glDisable(GL_SCISSOR_TEST)
+        }
+        function()
+        if (scissorTestEnabled) {
+            glEnable(GL_SCISSOR_TEST)
+        }
+    }
+
+    /**
+     * Runs [clear] without the scissor test and with all color, depth and stencil write masks open, clears are
+     * scissored and masked like draws. The masks of the cached draw style are restored afterwards, the masks of the
+     * first draw style otherwise.
+     */
+    internal fun withOpenWriteMasks(clear: () -> Unit) = withoutScissor {
+        glColorMask(true, true, true, true)
+        glDepthMask(true)
+        glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xff)
+        clear()
+        val cached = cachedPerContext[contextID]
+        if (cached != null && !dirtyPerContext.getOrDefault(contextID, true)) {
+            val mask = cached.channelWriteMask
+            glColorMask(mask.red, mask.green, mask.blue, mask.alpha)
+            glDepthMask(cached.depthWrite)
+            if (cached.frontStencil === cached.backStencil) {
+                glStencilMaskSeparate(GL_FRONT_AND_BACK, cached.stencil.stencilWriteMask)
+            } else {
+                glStencilMaskSeparate(GL_FRONT, cached.frontStencil.stencilWriteMask)
+                glStencilMaskSeparate(GL_BACK, cached.backStencil.stencilWriteMask)
+            }
+        }
+    }
 
     override fun setState(drawStyle: DrawStyle) {
         if (Driver.glType == DriverTypeGL.GL) {

@@ -522,36 +522,33 @@ open class RenderTargetGL3(
                 targetColor.b.toFloat(),
                 targetColor.alpha.toFloat()
             )
-            glClearBufferfv(GL_COLOR, index, ca)
+            (Driver.instance as DriverGL3).withOpenWriteMasks {
+                glClearBufferfv(GL_COLOR, index, ca)
+            }
         }
     }
 
     override fun clearDepth(depth: Double, stencil: Int) {
         require(!destroyed)
         bufferBound {
-            val mask = glGetBoolean(GL_DEPTH_WRITEMASK)
-            if (!mask) {
-                glDepthMask(true)
-            }
-            if (hasDepthBuffer && hasStencilBuffer) {
-                glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
-            } else if (hasDepthBuffer) {
-                MemoryStack.stackPush().use { stack ->
-                    val fb = stack.mallocFloat(1)
-                    fb.put(depth.toFloat())
-                    fb.flip()
-                    glClearBufferfv(GL_DEPTH, 0, fb)
+            (Driver.instance as DriverGL3).withOpenWriteMasks {
+                if (hasDepthBuffer && hasStencilBuffer) {
+                    glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+                } else if (hasDepthBuffer) {
+                    MemoryStack.stackPush().use { stack ->
+                        val fb = stack.mallocFloat(1)
+                        fb.put(depth.toFloat())
+                        fb.flip()
+                        glClearBufferfv(GL_DEPTH, 0, fb)
+                    }
+                } else if (hasStencilBuffer) {
+                    MemoryStack.stackPush().use { stack ->
+                        val ib = stack.mallocInt(1)
+                        ib.put(stencil)
+                        ib.flip()
+                        glClearBufferiv(GL_STENCIL, 0, ib)
+                    }
                 }
-            } else if (hasStencilBuffer) {
-                MemoryStack.stackPush().use { stack ->
-                    val ib = stack.mallocInt(1)
-                    ib.put(stencil)
-                    ib.flip()
-                    glClearBufferiv(GL_STENCIL, 0, ib)
-                }
-            }
-            if (!mask) {
-                glDepthMask(false)
             }
             checkGLErrors()
         }

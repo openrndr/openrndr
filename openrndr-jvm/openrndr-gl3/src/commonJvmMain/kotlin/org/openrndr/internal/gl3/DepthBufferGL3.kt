@@ -182,7 +182,10 @@ class DepthBufferGL3(
 
         writeTarget.bind()
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+        // blits are scissored, the scissor of the last draw style must not cut the copy
+        (Driver.instance as DriverGL3).withoutScissor {
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+        }
         writeTarget.unbind()
 
         writeTarget.detachColorAttachments()

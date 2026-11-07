@@ -243,11 +243,13 @@ open class RenderTargetWebGL(
                 values[0].toJsFloat(),
                 values[1].toJsFloat(), values[2].toJsFloat(), values[3].toJsFloat()
             )
-            context.clearBufferfv(
-                COLOR,
-                index,
-                v2 as Float32Array<ArrayBufferLike>,
+            (Driver.instance as DriverWebGL).withOpenWriteMasks {
+                context.clearBufferfv(
+                    COLOR,
+                    index,
+                    v2 as Float32Array<ArrayBufferLike>,
                 )
+            }
             context.checkErrors("RenderTargetWebGL.clearColor(), clearBufferfv")
 
         }
@@ -255,7 +257,9 @@ open class RenderTargetWebGL(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         bound {
-            context.clearBufferfi(DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            (Driver.instance as DriverWebGL).withOpenWriteMasks {
+                context.clearBufferfi(DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            }
             context.checkErrors("RenderTargetWebGL.clearDepth(), clearBufferfi")
         }
     }
