@@ -444,6 +444,17 @@ enum class PaintOrder {
 }
 
 /**
+ * How the stroke weight of 3D lines ([DrawQuality.QUALITY]) translates to their width on screen
+ */
+enum class LineWidthMode {
+    /** the stroke weight is the width in pixels at w = 1, lines get thinner with distance */
+    PERSPECTIVE,
+
+    /** the stroke weight is the width in pixels at any distance, the model and view transforms do not scale it */
+    SCREEN
+}
+
+/**
  * Specifies if to optimize drawing for quality or performance.
  */
 enum class DrawQuality {
@@ -508,7 +519,17 @@ data class DrawStyle(
     var fillRule: FillRule = FillRule.NON_ZERO,
 
     /** The order in which the fill and the stroke are painted */
-    var paintOrder: PaintOrder = PaintOrder.FILL_STROKE
+    var paintOrder: PaintOrder = PaintOrder.FILL_STROKE,
+
+    /**
+     * Blend every pixel of a draw of 3D lines ([DrawQuality.QUALITY]) once, translucent lines that cross themselves or
+     * each other within the draw are not drawn twice where they overlap. It uses the stencil buffer of the render
+     * target, without a stencil buffer lines are drawn as when false. Joins are drawn once either way.
+     */
+    var lineBlendOnce: Boolean = false,
+
+    /** How the stroke weight of 3D lines translates to their width on screen */
+    var lineWidthMode: LineWidthMode = LineWidthMode.PERSPECTIVE
 ) {
 
     fun applyToShader(shader: Shader) {

@@ -23,6 +23,14 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 """.trimIndent()
 
 
+/** the uniforms of the joins and caps of mesh lines */
+private const val meshLineUniforms = """uniform highp int u_meshLineJoin;
+uniform highp int u_meshLineCap;
+uniform highp int u_meshLineWidthMode;
+uniform highp float u_miterLimit;
+uniform highp float u_smooth;
+uniform highp float u_meshLineCoverageThreshold;"""
+
 class ShaderGeneratorsGLCommon : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|
 |${primitiveTypes("d_vertex_buffer")}
@@ -898,11 +906,66 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
         |flat in int v_instance;
+        |$meshLineUniforms
+        |flat in vec4 v_meshLineSegment;
+        |flat in vec4 v_meshLineWidths;
+        |flat in vec4 v_meshLineStartJoin;
+        |flat in vec4 v_meshLineStartShape;
+        |flat in vec4 v_meshLineEndJoin;
+        |flat in vec4 v_meshLineEndShape;
         |#ifndef OUTPUT_color
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
         |#endif
         |   ${fragmentMainConstants()}
+        |
+        |// the signed distance in pixels of x to the outline at the end j of the segment, outward points away from the
+        |// segment and normal is the normal of the segment; returns false when the segment does not own x
+        |bool meshLineEnd(vec2 x, vec2 j, vec2 outward, vec2 normal, float hw, vec4 join, vec4 shape, bool isEnd, out float distance) {
+        |    float beyond = dot(x - j, outward);
+        |    float roundDistance = beyond > 0.0 ? length(x - j) - hw : -1e20;
+        |    if (shape.x < 0.5) {
+        |        // a cap
+        |        distance = u_meshLineCap == 0 ? roundDistance : (u_meshLineCap == 1 ? beyond : beyond - hw);
+        |        return true;
+        |    }
+        |    if (shape.x > 1.5) {
+        |        // a butt or round end
+        |        distance = shape.x < 2.5 ? beyond : roundDistance;
+        |        return true;
+        |    }
+        |    distance = u_meshLineJoin == 2 ? roundDistance : dot(x - j, join.zw) - shape.z;
+        |    if (shape.w > 0.5 && dot(x - j, normal) * shape.y > 0.0) {
+        |        // the inner side of a sharp turn: the segments overlap up to their ends
+        |        return beyond <= 0.0;
+        |    }
+        |    // the segments meet at the bisector of the join, the segment before the join owns the pixels before it
+        |    float s = dot(x - j, join.xy);
+        |    return isEnd ? s < 0.0 : s >= 0.0;
+        |}
+        |
         |void main(void) {
+        |   vec2 ml_x = gl_FragCoord.xy;
+        |   vec2 ml_start = v_meshLineSegment.xy;
+        |   vec2 ml_end = v_meshLineSegment.zw;
+        |   float ml_length = length(ml_end - ml_start);
+        |   vec2 ml_direction = ml_length > 1e-4 ? (ml_end - ml_start) / ml_length : vec2(1.0, 0.0);
+        |   vec2 ml_normal = vec2(-ml_direction.y, ml_direction.x);
+        |   float ml_along = ml_length > 1e-4 ? clamp(dot(ml_x - ml_start, ml_direction) / ml_length, 0.0, 1.0) : 0.0;
+        |   float ml_lateral = abs(dot(ml_x - ml_start, ml_normal)) - mix(v_meshLineWidths.x, v_meshLineWidths.y, ml_along);
+        |   float ml_startDistance;
+        |   float ml_endDistance;
+        |   bool ml_ownsStart = meshLineEnd(ml_x, ml_start, -ml_direction, ml_normal, v_meshLineWidths.x, v_meshLineStartJoin, v_meshLineStartShape, false, ml_startDistance);
+        |   bool ml_ownsEnd = meshLineEnd(ml_x, ml_end, ml_direction, ml_normal, v_meshLineWidths.y, v_meshLineEndJoin, v_meshLineEndShape, true, ml_endDistance);
+        |   if (!ml_ownsStart || !ml_ownsEnd) {
+        |       discard;
+        |   }
+        |   float ml_distance = max(ml_lateral, max(ml_startDistance, ml_endDistance));
+        |   float ml_coverage = u_smooth > 0.5 ? clamp(0.5 - ml_distance, 0.0, 1.0) : (ml_distance <= 0.0 ? 1.0 : 0.0);
+        |   // lines thinner than a pixel are drawn a pixel wide and fade with their width
+        |   ml_coverage *= clamp(2.0 * mix(v_meshLineWidths.z, v_meshLineWidths.w, ml_along), 0.0, 1.0);
+        |   if (ml_coverage <= 0.0 || ml_coverage < u_meshLineCoverageThreshold) {
+        |       discard;
+        |   }
         |   vec4 x_fill = u_fill;
         |   vec4 x_stroke = va_color;
         |   {
@@ -912,6 +975,7 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         if (!shadeStructure.suppressDefaultOutput) """
             |o_color = x_stroke;
             |o_color.rgb *= o_color.a;
+            |o_color *= ml_coverage;
             """.trimMargin() else ""
     }
         |}
@@ -930,11 +994,82 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |${vertexMainConstants(element = "int(a_element)")}
         |${shadeStructure.vertexPreamble ?: ""}
         |flat out int v_instance;
+        |$meshLineUniforms
+        |flat out vec4 v_meshLineSegment;
+        |flat out vec4 v_meshLineWidths;
+        |flat out vec4 v_meshLineStartJoin;
+        |flat out vec4 v_meshLineStartShape;
+        |flat out vec4 v_meshLineEndJoin;
+        |flat out vec4 v_meshLineEndShape;
         |
-        |vec2 fix(vec4 i, float aspect) {
-        |   vec2 res = i.xy / i.w;
-        |   res.x *= aspect;
-        |   return res;
+        |vec2 meshLinePixels(vec4 c, vec2 viewport) {
+        |    return (c.xy / c.w * 0.5 + 0.5) * viewport;
+        |}
+        |
+        |// moves the end points of the segment from a to b that lie behind the near plane onto it, returns false when
+        |// the whole segment lies behind it
+        |bool meshLineNearClip(inout vec4 a, inout vec4 b) {
+        |    float da = a.z + a.w;
+        |    float db = b.z + b.w;
+        |    if (da < 0.0 && db < 0.0) {
+        |        return false;
+        |    }
+        |    if (da < 0.0) {
+        |        a = mix(a, b, da / (da - db));
+        |    } else if (db < 0.0) {
+        |        b = mix(a, b, da / (da - db));
+        |    }
+        |    return true;
+        |}
+        |
+        |// the join at j between the segment from p to j and the segment from j to n, in pixels, hw is the half width at j.
+        |// join.xy is the direction of the line, the segment before j owns the pixels x with dot(x - j, join.xy) < 0,
+        |// join.zw is the outward miter direction. shape is (1 for a join, 2 for a butt end, 3 for a round end; the inner side;
+        |// the distance of the miter clip line; 1 when the inner side falls back to overlapping segments).
+        |// Both segments compute the join from the same values, they agree on it. Returns the reach of the join along the segments.
+        |float meshLineJoin(vec2 p, vec2 j, vec2 n, float hw, out vec4 join, out vec4 shape) {
+        |    vec2 e1 = j - p;
+        |    vec2 e2 = n - j;
+        |    float l1 = length(e1);
+        |    float l2 = length(e2);
+        |    if (l1 < 1e-4 || l2 < 1e-4) {
+        |        vec2 t = l1 >= 1e-4 ? e1 / l1 : (l2 >= 1e-4 ? e2 / l2 : vec2(1.0, 0.0));
+        |        join = vec4(t, -t.y, t.x);
+        |        shape = vec4(1.0, 1.0, 1e20, 0.0);
+        |        return hw;
+        |    }
+        |    vec2 d1 = e1 / l1;
+        |    vec2 d2 = e2 / l2;
+        |    if (dot(d1, d2) < -0.9999) {
+        |        // the line turns back, the segments end
+        |        join = vec4(d1, -d1.y, d1.x);
+        |        shape = vec4(u_meshLineJoin == 2 ? 3.0 : 2.0, 1.0, 1e20, 0.0);
+        |        return hw;
+        |    }
+        |    vec2 n1 = vec2(-d1.y, d1.x);
+        |    vec2 n2 = vec2(-d2.y, d2.x);
+        |    vec2 m = normalize(n1 + n2);
+        |    float cosHalf = max(dot(n1, m), 1e-4);
+        |    float tanHalf = sqrt(max(1.0 - cosHalf * cosHalf, 0.0)) / cosHalf;
+        |    float side = d1.x * d2.y - d1.y * d2.x > 0.0 ? 1.0 : -1.0;
+        |    // the inner corner lies a distance hw * tanHalf before and after the joint
+        |    float inner = hw * tanHalf;
+        |    float fallback = inner > min(l1, l2) ? 1.0 : 0.0;
+        |    float clip = 1e20;
+        |    float outer = hw * tanHalf;
+        |    bool overLimit = 1.0 / cosHalf > u_miterLimit;
+        |    if (u_meshLineJoin == 1 || (u_meshLineJoin == 0 && overLimit)) {
+        |        clip = hw * cosHalf;
+        |        outer = hw;
+        |    } else if (u_meshLineJoin == 3 && overLimit) {
+        |        clip = u_miterLimit * hw;
+        |        outer = clip;
+        |    } else if (u_meshLineJoin == 2) {
+        |        outer = hw;
+        |    }
+        |    join = vec4(normalize(d1 + d2), -m * side);
+        |    shape = vec4(1.0, side, clip, fallback);
+        |    return max(hw, max(outer, fallback > 0.5 ? 0.0 : inner));
         |}
         |
         |void main() {
@@ -942,39 +1077,92 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |   ${shadeStructure.varyingBridge ?: ""}
         |   $preVertexTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
-        |   vec3 x_position = a_position.xyz;
+        |   vec3 x_position = a_corner.x < 0.5 ? a_position : a_end;
         |   {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |   }
         |   $postVertexTransform
-        |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
-        |   vec2 pixelWidthRatio = 1.0 / (u_viewDimensions);
+        |   vec2 viewport = u_viewDimensions * u_contentScale;
         |   mat4 pvm = x_projectionMatrix * x_viewMatrix * x_modelMatrix;
-        |   vec4 finalPosition = pvm * vec4(a_position, 1.0);
-        |   vec4 prevPosition = pvm * vec4(a_previous, 1.0);
-        |   vec4 nextPosition = pvm * vec4(a_next, 1.0);
-        |   vec2 currentP = fix(finalPosition, aspect);
-        |   vec2 prevP = fix(prevPosition, aspect);
-        |   vec2 nextP = fix(nextPosition, aspect);
-        |
-        |   vec2 w = max(pixelWidthRatio*finalPosition.w, (pixelWidthRatio) * a_width);
-        |   vec2 dir;
-        |   if (nextP == currentP) {
-        |       dir = normalize(currentP - prevP);
-        |   } else if(prevP == currentP) {
-        |       dir = normalize( nextP - currentP );
-        |   } else {
-        |       vec2 dir1 = normalize(currentP - prevP);
-        |       vec2 dir2 = normalize(nextP - currentP);
-        |       dir = normalize(dir1 + dir2);
+        |   vec4 cPrevious = pvm * vec4(a_previous, 1.0);
+        |   vec4 cStart = pvm * vec4(a_position, 1.0);
+        |   vec4 cEnd = pvm * vec4(a_end, 1.0);
+        |   vec4 cNext = pvm * vec4(a_next, 1.0);
+        |   bool startInFront = cStart.z + cStart.w >= 0.0;
+        |   bool endInFront = cEnd.z + cEnd.w >= 0.0;
+        |   vec4 s = cStart;
+        |   vec4 e = cEnd;
+        |   if (!meshLineNearClip(s, e)) {
+        |       gl_Position = vec4(0.0);
+        |       v_clipPosition = gl_Position;
+        |       return;
         |   }
-        |   x_normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) );
-        |   vec2 normal = vec2(-dir.y, dir.x) * w;
-        |   vec4 offset = vec4(normal * a_side, 0.0, 1.0);
+        |   vec2 S = meshLinePixels(s, viewport);
+        |   vec2 E = meshLinePixels(e, viewport);
+        |   // perspective widths are the stroke weight in pixels at w = 1, screen widths at any w
+        |   bool screenWidth = u_meshLineWidthMode == 1;
+        |   float rawStart = a_width * u_contentScale * 0.5 / (screenWidth ? 1.0 : max(s.w, 1e-6));
+        |   float rawEnd = a_width * u_contentScale * 0.5 / (screenWidth ? 1.0 : max(e.w, 1e-6));
+        |   float hwStart = max(rawStart, 0.5);
+        |   float hwEnd = max(rawEnd, 0.5);
+        |   float capReach = u_meshLineCap == 1 ? 0.0 : 1.0;
         |
-        |   finalPosition.xy += offset.xy;
-        |   v_clipPosition = finalPosition;
-        |   gl_Position = finalPosition;
+        |   vec4 startJoin = vec4(0.0);
+        |   vec4 startShape;
+        |   float reachStart;
+        |   if (!startInFront) {
+        |       // the near plane cuts the segment
+        |       startShape = vec4(2.0, 1.0, 1e20, 0.0);
+        |       reachStart = 0.0;
+        |   } else if (a_previous == a_position) {
+        |       startShape = vec4(0.0, 1.0, 1e20, 0.0);
+        |       reachStart = capReach * hwStart;
+        |   } else {
+        |       vec4 p = cPrevious;
+        |       vec4 j = cStart;
+        |       meshLineNearClip(p, j);
+        |       reachStart = meshLineJoin(meshLinePixels(p, viewport), S, E, hwStart, startJoin, startShape);
+        |   }
+        |
+        |   vec4 endJoin = vec4(0.0);
+        |   vec4 endShape;
+        |   float reachEnd;
+        |   if (!endInFront) {
+        |       endShape = vec4(2.0, 1.0, 1e20, 0.0);
+        |       reachEnd = 0.0;
+        |   } else if (a_next == a_end) {
+        |       endShape = vec4(0.0, 1.0, 1e20, 0.0);
+        |       reachEnd = capReach * hwEnd;
+        |   } else {
+        |       vec4 j = cEnd;
+        |       vec4 n = cNext;
+        |       meshLineNearClip(j, n);
+        |       reachEnd = meshLineJoin(S, E, meshLinePixels(n, viewport), hwEnd, endJoin, endShape);
+        |   }
+        |
+        |   v_meshLineSegment = vec4(S, E);
+        |   v_meshLineWidths = vec4(hwStart, hwEnd, rawStart, rawEnd);
+        |   v_meshLineStartJoin = startJoin;
+        |   v_meshLineStartShape = startShape;
+        |   v_meshLineEndJoin = endJoin;
+        |   v_meshLineEndShape = endShape;
+        |
+        |   // a quad around the segment, its joins and caps, with a pixel to spare for anti-aliasing
+        |   float segmentLength = length(E - S);
+        |   vec2 direction = segmentLength > 1e-4 ? (E - S) / segmentLength : vec2(1.0, 0.0);
+        |   vec2 normal = vec2(-direction.y, direction.x);
+        |   float halfWidth = max(hwStart, hwEnd) + 1.0;
+        |   bool atStart = a_corner.x < 0.5;
+        |   float along = atStart ? -(reachStart + 1.0) : reachEnd + 1.0;
+        |   vec2 pixel = (atStart ? S : E) + direction * along + normal * a_corner.y * halfWidth;
+        |   vec4 c = atStart ? s : e;
+        |   gl_Position = vec4((pixel / viewport * 2.0 - 1.0) * c.w, c.z, c.w);
+        |   v_clipPosition = gl_Position;
+        |
+        |   // the attributes of the corner of the quad
+        |   float t = (atStart ? 0.0 : 1.0) + (segmentLength > 1e-4 ? along / segmentLength : 0.0);
+        |   va_position = mix(a_position, a_end, t);
+        |   va_texCoord0 = vec2(0.5 + 0.5 * a_corner.y * halfWidth / max(hwStart, hwEnd), mix(a_texCoord0.x, a_texCoord0.y, t));
         |}
         """.trimMargin()
 
