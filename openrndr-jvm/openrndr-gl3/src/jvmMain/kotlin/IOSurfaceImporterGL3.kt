@@ -23,9 +23,9 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.IOSurfaceImporter
 import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.angle.angleEGLLibrary
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
-import java.io.File
 
 private val logger = KotlinLogging.logger { }
 
@@ -254,7 +254,7 @@ internal class IOSurfaceImporterGL3 private constructor(
         }
 
         /**
-         * Loads ANGLE's libEGL, which the application extracted to the working directory
+         * Loads ANGLE's libEGL, which the application extracted to [angleEGLLibrary]
          */
         private fun ensureEGL(): Boolean {
             val created = try {
@@ -264,9 +264,9 @@ internal class IOSurfaceImporterGL3 private constructor(
                 false
             }
             if (!created) {
-                val library = File("libEGL.dylib")
-                if (!library.exists()) {
-                    logger.debug { "ANGLE's libEGL.dylib not found in the working directory" }
+                val library = angleEGLLibrary
+                if (library == null || !library.exists()) {
+                    logger.debug { "ANGLE's libEGL.dylib was not extracted" }
                     return false
                 }
                 EGL.create(library.absolutePath)

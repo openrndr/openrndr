@@ -11,6 +11,7 @@ import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
+import java.io.File
 import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 import org.openrndr.biditextdriver.BidiTextDriverUax9
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
@@ -25,7 +26,8 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
         }
 
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
-            extractAngleLibraries()
+            // GLFW loads libEGL by name from the working directory, LWJGL's GLFWNativeEGL.setEGLPath crashes on macOS
+            extractAngleLibraries(File("."))
         }
 
         if (!glfwInit()) {

@@ -27,6 +27,8 @@ import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.GlesBackend
 import org.openrndr.internal.gl3.ImageDriverStbImage
+import org.openrndr.internal.gl3.angle.angleEGLLibrary
+import org.openrndr.internal.gl3.angle.angleGLESLibrary
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -76,6 +78,9 @@ class ApplicationBaseSDL : ApplicationBase() {
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
             extractAngleLibraries()
             SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1")
+            // SDL loads the libraries by their absolute paths, not from the working directory
+            SDL_SetHint(SDL_HINT_EGL_LIBRARY, angleEGLLibrary!!.absolutePath)
+            SDL_SetHint(SDL_HINT_OPENGL_LIBRARY, angleGLESLibrary!!.absolutePath)
         }
 
         if (Platform.type == PlatformType.GENERIC && Platform.property("org.openrndr.sdl.egl") != "false" &&
