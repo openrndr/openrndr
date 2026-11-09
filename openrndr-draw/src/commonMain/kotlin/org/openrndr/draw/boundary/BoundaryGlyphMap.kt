@@ -24,6 +24,27 @@ open class BoundaryGlyphMap(val map: BoundaryMap, val glyphs: MutableMap<Int, In
         map.endBatch()
     }
 
+    /**
+     * Increased by [clear], boundary indices returned in an earlier generation are no longer valid
+     */
+    var generation = 0
+        private set
+
+    /**
+     * The number of glyphs in this map
+     */
+    val glyphCount: Int get() = glyphs.size
+
+    /**
+     * Removes all glyphs and clears [map], the textures are kept. Increases [generation], boundary indices returned
+     * before are no longer valid and draw commands prepared with them must be prepared again.
+     */
+    fun clear() {
+        map.clear()
+        glyphs.clear()
+        generation++
+    }
+
     private fun hash(face: Face, index: Int): Int {
         return face.hashCode() * 31 + index.hashCode()
     }

@@ -20,6 +20,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TestWindfoilDrawerGL3 : AbstractApplicationTestFixture() {
 
@@ -91,5 +92,38 @@ class TestWindfoilDrawerGL3 : AbstractApplicationTestFixture() {
         // the ink of the stroke is close to its area
         val ink = (0 until 32 * 32).sumOf { pixels[it * 4 + 3].toDouble() }
         assertEquals(2.0 * Math.PI * 10.0 * 1.5, ink, 2.0 * Math.PI * 10.0 * 1.5 * 0.03)
+    }
+
+    @Test
+    fun `full color buffers grow while shapes are added`() {
+        val map = WindfoilMap(
+            colorBuffer(16, 1, type = ColorType.FLOAT32, format = ColorFormat.RG),
+            colorBuffer(16, 1, type = ColorType.UINT32_INT, format = ColorFormat.RGBa)
+        )
+        val first = map.addShape(Rectangle(2.25, 1.5, 4.5, 2.0).shape)
+        for (i in 0 until 4) {
+            map.addShape(Rectangle(i.toDouble(), 0.0, 1.0, 1.0).shape)
+        }
+        map.startBatch()
+        for (i in 0 until 4) {
+            map.addShape(Rectangle(i.toDouble(), 0.0, 1.0, 1.0).shape)
+        }
+        map.endBatch()
+        // a circle of many pieces grows the color buffers more than once
+        map.addShape(Circle(20.0, 20.0, 10.0).shape)
+        val last = map.addShape(Rectangle(10.25, 1.5, 4.5, 2.0).shape)
+        assertEquals(16, map.curves.width)
+        assertTrue(map.curves.height > 1 && map.curves.height and (map.curves.height - 1) == 0, "curves height ${map.curves.height}")
+        assertTrue(map.rows.height > 1 && map.rows.height and (map.rows.height - 1) == 0, "rows height ${map.rows.height}")
+
+        val pixels = draw(map, listOf(first, last).map { SlugCommand(it, Matrix44.IDENTITY, ColorRGBa.WHITE, null, 0.0) }, 17, 5)
+        fun coverage(x: Int, y: Int) = pixels[(y * 17 + x) * 4 + 3]
+        for (x0 in listOf(0, 8)) {
+            assertEquals(0.0f, coverage(x0 + 1, 2), 1E-4f)
+            assertEquals(0.75f, coverage(x0 + 2, 2), 1E-4f)
+            assertEquals(1.0f, coverage(x0 + 4, 2), 1E-4f)
+            assertEquals(0.75f, coverage(x0 + 6, 2), 1E-4f)
+            assertEquals(0.5f, coverage(x0 + 4, 1), 1E-4f)
+        }
     }
 }

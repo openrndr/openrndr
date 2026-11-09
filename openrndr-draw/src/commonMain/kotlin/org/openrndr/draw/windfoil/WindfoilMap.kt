@@ -5,6 +5,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.MagnifyingFilter
 import org.openrndr.draw.MinifyingFilter
+import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.boundary.BoundaryMap
 import org.openrndr.math.Vector2
 import org.openrndr.shape.FillRule
@@ -47,9 +48,18 @@ class WindfoilShape(
  * [curves] holds three texels per piece (start, control and end point) and must be an RG FLOAT32 color buffer.
  * [rows] holds two texels per band and must be an RGBa UINT32_INT color buffer, with the first piece and the number
  * of pieces of the band, and the ink profile of the band: its winding density and the x range of its pieces.
- * Both are addressed as flat arrays in rows of the width of the color buffer.
+ * Both are addressed as flat arrays in rows of the width of the color buffer. When [addShape] runs out of space in
+ * [curves] or [rows], the color buffer is replaced by one of double the height and destroyed.
  */
-class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap {
+class WindfoilMap(curves: ColorBuffer, rows: ColorBuffer) : BoundaryMap {
+    /** the pieces of the shapes, replaced by a larger color buffer when it runs full */
+    var curves: ColorBuffer = curves
+        private set
+
+    /** the bands of the shapes, replaced by a larger color buffer when it runs full */
+    var rows: ColorBuffer = rows
+        private set
+
     init {
         require(curves.format == ColorFormat.RG && curves.type == ColorType.FLOAT32) {
             "curves must be an RG FLOAT32 color buffer"
@@ -63,8 +73,8 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
 
     val shapes = mutableListOf<WindfoilShape>()
 
-    private val pieceData = mutableListOf<Float>()
-    private val rowData = mutableListOf<Int>()
+    private val pieceData = FloatBuilder(6 * 256)
+    private val rowData = IntBuilder(8 * 64)
     private var uploadedPieceTexels = 0
     private var uploadedRowTexels = 0
     private var batching = false
@@ -81,6 +91,19 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
         require(batching)
         batching = false
         upload()
+    }
+
+    override val shapeCount: Int get() = shapes.size
+
+    /** 8 bytes per texel of [curves] and 16 bytes per texel of [rows] */
+    override val usedBytes: Long get() = (pieceData.size / 2) * 8L + (rowData.size / 4) * 16L
+
+    override fun clear() {
+        shapes.clear()
+        pieceData.clear()
+        rowData.clear()
+        uploadedPieceTexels = 0
+        uploadedRowTexels = 0
     }
 
     /**
@@ -104,6 +127,7 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
         }
         val windfoilShape = bandPieces(pieces, bounds, fillRule)
         shapes.add(windfoilShape)
+        reserve()
         if (!batching) {
             upload()
         }
@@ -153,6 +177,41 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
         return WindfoilShape(bounds, rowBase, bandCount, bandHeight, inverseBandHeight, fillRule)
     }
 
+    /**
+     * Doubles the height of [curves] and [rows] until they hold all pieces and bands, all texels are uploaded to grown
+     * color buffers again
+     */
+    private fun reserve() {
+        val pieceTexels = pieceData.size / 2
+        if (pieceTexels > curves.width * curves.height) {
+            curves = grown(curves, pieceTexels)
+            uploadedPieceTexels = 0
+        }
+        val rowTexels = rowData.size / 4
+        if (rowTexels > rows.width * rows.height) {
+            rows = grown(rows, rowTexels)
+            uploadedRowTexels = 0
+        }
+    }
+
+    /**
+     * A color buffer like [colorBuffer] of at least [texels] texels, of double the height of [colorBuffer] or more.
+     * [colorBuffer] is destroyed.
+     */
+    private fun grown(colorBuffer: ColorBuffer, texels: Int): ColorBuffer {
+        var height = colorBuffer.height
+        while (texels.toLong() > colorBuffer.width.toLong() * height) {
+            height *= 2
+        }
+        val grown = colorBuffer(
+            colorBuffer.width, height, colorBuffer.contentScale, colorBuffer.format, colorBuffer.type,
+            session = colorBuffer.session
+        )
+        grown.filter(MinifyingFilter.NEAREST, MagnifyingFilter.NEAREST)
+        colorBuffer.destroy()
+        return grown
+    }
+
     private fun upload() {
         val pieceTexels = pieceData.size / 2
         if (pieceTexels > uploadedPieceTexels) {
@@ -175,7 +234,7 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
     /**
      * Writes texels [from] until [to] of the flat array in [colorBuffer], one texture row at a time
      */
-    private fun writeTexels(colorBuffer: ColorBuffer, from: Int, to: Int, bytesPerTexel: Int, put: (MPPBuffer, Int) -> Unit) {
+    private inline fun writeTexels(colorBuffer: ColorBuffer, from: Int, to: Int, bytesPerTexel: Int, put: (MPPBuffer, Int) -> Unit) {
         var texel = from
         while (texel < to) {
             val x = texel % colorBuffer.width
@@ -195,6 +254,46 @@ class WindfoilMap(val curves: ColorBuffer, val rows: ColorBuffer) : BoundaryMap 
         internal const val TARGET_PER_BAND = 10
         internal const val MAX_BANDS = 64
         internal const val SORT_MIN = 4
+    }
+}
+
+/**
+ * A growable array of floats, unboxed
+ */
+private class FloatBuilder(capacity: Int) {
+    private var data = FloatArray(capacity)
+    var size = 0
+        private set
+
+    fun add(value: Float) {
+        if (size == data.size) data = data.copyOf(data.size * 2)
+        data[size++] = value
+    }
+
+    operator fun get(index: Int) = data[index]
+
+    fun clear() {
+        size = 0
+    }
+}
+
+/**
+ * A growable array of ints, unboxed
+ */
+private class IntBuilder(capacity: Int) {
+    private var data = IntArray(capacity)
+    var size = 0
+        private set
+
+    fun add(value: Int) {
+        if (size == data.size) data = data.copyOf(data.size * 2)
+        data[size++] = value
+    }
+
+    operator fun get(index: Int) = data[index]
+
+    fun clear() {
+        size = 0
     }
 }
 

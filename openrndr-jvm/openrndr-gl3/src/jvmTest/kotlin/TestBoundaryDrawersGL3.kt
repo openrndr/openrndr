@@ -154,4 +154,46 @@ class TestBoundaryDrawersGL3 : AbstractApplicationTestFixture() {
         slug.close()
         windfoil.close()
     }
+
+    @Test
+    fun `cleared maps are empty and are filled again`() {
+        for (useSlug in listOf(true, false)) {
+            val boundaryDrawer: BoundaryDrawer = if (useSlug) SlugDrawer() else WindfoilDrawer()
+            boundaryDrawer.contrast = 0.0
+            val name = boundaryDrawer::class.simpleName
+            val map = boundaryDrawer.createMap()
+            map.addShape(star)
+            map.startBatch()
+            map.addShape(star)
+            map.endBatch()
+            assertEquals(2, map.shapeCount, "$name shapes")
+            assertTrue(map.usedBytes > 0L, "$name used bytes")
+
+            map.clear()
+            assertEquals(0, map.shapeCount, "$name shapes after clear")
+            assertEquals(0L, map.usedBytes, "$name used bytes after clear")
+
+            // the first shape after a clear has index 0 and is drawn without the data of before
+            val index = map.addShape(Rectangle(4.0, 8.0, 20.0, 12.0).shape)
+            assertEquals(0, index, "$name index after clear")
+            val pixels = render(boundaryDrawer, map, listOf(BoundaryCommand(index, Matrix44.IDENTITY, ColorRGBa.WHITE, null, 0.0)))
+            assertEquals(20.0 * 12.0, pixels.sumOf { it.toDouble() }, 0.5, "$name coverage after clear")
+            boundaryDrawer.close()
+        }
+    }
+
+    @Test
+    fun `cleared glyph maps start a new generation`() {
+        val face = org.openrndr.draw.font.loadFace(resourceUrl("/fonts/Roboto-Medium.ttf"))
+        val glyphMap = BoundaryGlyphMap(WindfoilDrawer().createMap())
+        glyphMap.getGlyph(face, 'a')
+        glyphMap.getGlyph(face, 'b')
+        assertEquals(2, glyphMap.glyphCount)
+        assertEquals(0, glyphMap.generation)
+        glyphMap.clear()
+        assertEquals(0, glyphMap.glyphCount)
+        assertEquals(0, glyphMap.map.shapeCount)
+        assertEquals(1, glyphMap.generation)
+        assertEquals(0, glyphMap.getGlyph(face, 'b'))
+    }
 }

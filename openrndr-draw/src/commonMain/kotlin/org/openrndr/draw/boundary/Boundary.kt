@@ -61,6 +61,22 @@ interface BoundaryMap {
     fun startBatch()
 
     fun endBatch()
+
+    /**
+     * The number of boundaries in this map
+     */
+    val shapeCount: Int
+
+    /**
+     * The number of bytes of the textures of this map that hold boundaries
+     */
+    val usedBytes: Long
+
+    /**
+     * Removes all boundaries, the textures are kept. Indices of boundaries added before are no longer valid, draw
+     * commands prepared with them must be prepared again.
+     */
+    fun clear()
 }
 
 /**

@@ -80,6 +80,27 @@ class SlugMap(val curves: ColorBuffer, val bands: ColorBuffer) : BoundaryMap {
         flushBands()
     }
 
+    override val shapeCount: Int get() = shapes
+
+    /** 8 bytes per texel of [curves] and of [bands] */
+    override val usedBytes: Long
+        get() = totalSegments * 3 * 8L + (bandIndex + bandRowBuffer.position() / 8) * 8L
+
+    override fun clear() {
+        totalSegments = 0
+        shapes = 0
+        bandCounts.clear()
+        bounds.clear()
+        bandIndices.clear()
+        fillRules.clear()
+        curveIndex = 0
+        curveRowBuffer.rewind()
+        curveRowBuffer.limit(curves.width * 8)
+        bandIndex = 0
+        bandRowBuffer.rewind()
+        bandRowBuffer.limit(bands.width * 8)
+    }
+
     private fun writeCoordinates(buffer: MPPBuffer, point: Int) {
         if (curveRowBuffer.position() == curves.width * 8) {
             flushCurves()
