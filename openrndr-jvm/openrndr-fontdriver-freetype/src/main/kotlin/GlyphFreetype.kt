@@ -11,6 +11,12 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 
+/**
+ * Outlines and metrics are loaded unhinted, hinting fits them to the pixel grid of the face size, which distorts them
+ * when they are drawn at other sizes
+ */
+internal const val OUTLINE_LOAD_FLAGS = FT_LOAD_NO_HINTING or FT_LOAD_NO_BITMAP
+
 class GlyphFreetype(private val face: FaceFreetype, private val character: Char, override val index: Int, override val code: Int) : Glyph {
 
     //val scale = face.sizeInPoints
@@ -21,7 +27,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
 
     override fun shape(): Shape {
         face.makeActive()
-        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, OUTLINE_LOAD_FLAGS)
         val glyph = PointerBuffer.allocateDirect(1)
         FT_Get_Glyph(face.ftFace.glyph() ?: error("no slot"), glyph)
         val realGlyph = FT_Glyph.create(glyph.get(0))
@@ -155,26 +161,26 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
      */
     override fun advanceWidth(): Double {
         face.makeActive()
-        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, OUTLINE_LOAD_FLAGS)
         // linearHoriAdvance is in 16.16 fixed point
         return (face.ftFace.glyph()?.linearHoriAdvance() ?: 0L) / 65536.0
     }
 
     override fun leftSideBearing(): Double {
         face.makeActive()
-        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, OUTLINE_LOAD_FLAGS)
         return (face.ftFace.glyph()?.metrics()?.horiBearingX() ?: 0L) / 64.0
     }
 
     override fun topSideBearing(): Double {
         face.makeActive()
-        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, OUTLINE_LOAD_FLAGS)
         return (face.ftFace.glyph()?.metrics()?.vertBearingY() ?: 0L) / 64.0
     }
 
     override fun bounds(): Rectangle {
         face.makeActive()
-        FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(face.ftFace, index, OUTLINE_LOAD_FLAGS)
         val metrics = face.ftFace.glyph()?.metrics() ?: error("no metrics")
         val x = metrics.horiBearingX() / 64.0
         val y = -metrics.horiBearingY() / 64.0
@@ -187,6 +193,7 @@ class GlyphFreetype(private val face: FaceFreetype, private val character: Char,
      * Load and render the glyph into the face's glyph slot, must be called inside [FaceFreetype.rasterizing]
      */
     private fun renderGlyph(): FT_GlyphSlot {
+        // bitmaps are hinted, they are drawn at the size they are rasterized at
         FT_Load_Glyph(face.ftFace, index, FT_LOAD_DEFAULT)
         val slot = face.ftFace.glyph() ?: error("no glyph slot")
         FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL)

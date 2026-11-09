@@ -303,20 +303,20 @@ class FaceFreetype(
     override fun glyphForCharacter(character: Char): GlyphFreetype {
         makeActive()
         val index = FT_Get_Char_Index(ftFace, character.code.toLong())
-        FT_Load_Glyph(ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(ftFace, index, OUTLINE_LOAD_FLAGS)
         return GlyphFreetype(this, character, index, character.code)
     }
 
     override fun glyphForCodePoint(codePoint: Int): Glyph {
         makeActive()
         val index = FT_Get_Char_Index(ftFace, codePoint.toLong())
-        FT_Load_Glyph(ftFace, index, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(ftFace, index, OUTLINE_LOAD_FLAGS)
         return GlyphFreetype(this, Char(codePoint), index, codePoint)
     }
 
     override fun glyphForIndex(glyphIndex: Int): Glyph {
         makeActive()
-        FT_Load_Glyph(ftFace, glyphIndex, FT_LOAD_DEFAULT)
+        FT_Load_Glyph(ftFace, glyphIndex, OUTLINE_LOAD_FLAGS)
         return GlyphFreetype(this, Char(0xffff), glyphIndex, -1)
     }
 
