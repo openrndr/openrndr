@@ -243,7 +243,7 @@ class Segment3D(
         }
 
     override fun derivative(t: Double): Vector3 = when {
-        linear -> start - end
+        linear -> end - start
         control.size == 1 -> derivative(start, control[0], end, t)
         control.size == 2 -> derivative(start, control[0], control[1], end, t)
         else -> throw RuntimeException("not implemented")
