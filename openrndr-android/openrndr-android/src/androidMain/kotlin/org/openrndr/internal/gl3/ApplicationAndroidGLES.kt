@@ -41,6 +41,7 @@ class ApplicationAndroidGLES(
     private var driver = DriverAndroidGLES(DriverVersionGL.GLES_VERSION_3_1)
 
     private var initialized = false
+    private var defaultRenderTarget: ProgramRenderTargetGL3? = null
 
     //    private var exitRequested = false
     private var startTime = 0L
@@ -56,11 +57,15 @@ class ApplicationAndroidGLES(
     override fun onSurfaceCreated() {
         logger.info { "onSurfaceCreated" }
 
+        driver.destroyContext(driver.contextID)
+
         // GL state that must happen on the GL thread:
         glGenVertexArrays(vaos)
         glBindVertexArray(vaos[0])
 
-        startTime = System.currentTimeMillis()
+        if (startTime == 0L) {
+            startTime = System.currentTimeMillis()
+        }
 
         Animatable.clock(object : Clock {
             override val time: Long
@@ -73,19 +78,20 @@ class ApplicationAndroidGLES(
 
         program.drawer = Drawer(driver)
         program.driver = driver
-
-        // TODO: need to handle app foreground after going background
     }
 
     /** Called from Renderer.onSurfaceChanged (GL thread). */
     override fun onSurfaceChanged(width: Int, height: Int) {
-        logger.info { "onSurfaceChanged" }
+        logger.info { "onSurfaceChanged - width: $width, height: $height" }
         driver.onSurfaceChanged(width, height)
         program.width = width
         program.height = height
 
-        val defaultRenderTarget = ProgramRenderTargetGL3(program)
-        defaultRenderTarget.bind()
+        val target = defaultRenderTarget ?: ProgramRenderTargetGL3(program).also {
+            defaultRenderTarget = it
+            it.bind()
+        }
+        target.bindTarget()
 
         if (!initialized) {
             runBlocking { program.setup() }
@@ -95,6 +101,7 @@ class ApplicationAndroidGLES(
 
     /** Called every frame from Renderer.onDrawFrame (GL thread). */
     override fun onDrawFrame() {
+        defaultRenderTarget?.bindTarget()
         glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
         program.drawer.reset()

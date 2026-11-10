@@ -27,23 +27,25 @@ fun androidApplication(
 
     val surfaceView = GLSurfaceView(context).apply {
         setEGLContextClientVersion(3)
+        preserveEGLContextOnPause = true
         setRenderer(renderer)
         renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         setOnTouchListener { view, event -> surfaceViewListener.onTouch(view, event) }
     }
 
-    val lifecycle = (context as LifecycleOwner).lifecycle
-    AndroidAppLifecycleHandler(lifecycle, object : AndroidAppLifecycleListener {
-        override fun onResume() {
-            builder.onResume()
-            surfaceView.onResume()
-        }
+    (context as? LifecycleOwner)?.lifecycle?.let { lifecycle ->
+        AndroidAppLifecycleHandler(lifecycle, object : AndroidAppLifecycleListener {
+            override fun onResume() {
+                builder.onResume()
+                surfaceView.onResume()
+            }
 
-        override fun onPause() {
-            builder.onPause()
-            surfaceView.onPause()
-        }
-    })
+            override fun onPause() {
+                builder.onPause()
+                surfaceView.onPause()
+            }
+        })
+    }
 
     return surfaceView
 }

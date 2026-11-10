@@ -1197,6 +1197,8 @@ class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, Version
         destroyAllVAOs()
 
         dirtyPerContext.remove(context)
+        cachedPerContext.remove(context)
+        fontImageMapManagerInstance = null
     }
 
     fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) {
