@@ -20,6 +20,8 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_CreateContext
 import org.lwjgl.sdl.SDLVideo.SDL_GL_DOUBLEBUFFER
 import org.lwjgl.sdl.SDLVideo.SDL_GL_DestroyContext
 import org.lwjgl.sdl.SDLVideo.SDL_GL_GREEN_SIZE
+import org.lwjgl.sdl.SDLVideo.SDL_GL_GetCurrentContext
+import org.lwjgl.sdl.SDLVideo.SDL_GL_GetCurrentWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GL_MakeCurrent
 import org.lwjgl.sdl.SDLVideo.SDL_GL_RED_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ResetAttributes
@@ -79,10 +81,14 @@ class ResourceThreadSDL : ResourceThread {
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
             }
 
+            // creating a context makes it current, the calling thread keeps its own context
+            val currentWindow = SDL_GL_GetCurrentWindow()
+            val currentContext = SDL_GL_GetCurrentContext()
             val window = SDL_CreateWindow("Resource Thread", 640, 480, SDL_WINDOW_OPENGL or SDL_WINDOW_HIDDEN)
             require(window != MemoryUtil.NULL) { "Failed to create window. ${SDL_GetError()}" }
             val context = SDL_GL_CreateContext(window)
             require(context != MemoryUtil.NULL) { "Failed to create OpenGL context. ${SDL_GetError()}" }
+            SDL_GL_MakeCurrent(currentWindow, currentContext)
 
             thread(isDaemon = true, name = "ResourceThread") {
                 logger.debug { "Context thread starting" }

@@ -19,9 +19,25 @@ import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
+import kotlin.math.ceil
 
 
 private val logger = KotlinLogging.logger { }
+
+/**
+ * The SDL system cursors, created once for each [CursorType] that is used
+ */
+private val systemCursors = mutableMapOf<CursorType, Long>()
+
+/**
+ * Destroys the SDL system cursors, before SDL shuts down
+ */
+internal fun destroySystemCursors() {
+    for (cursor in systemCursors.values) {
+        SDL_DestroyCursor(cursor)
+    }
+    systemCursors.clear()
+}
 
 class ApplicationWindowSDL(
     val application: ApplicationSDL,
@@ -105,6 +121,16 @@ class ApplicationWindowSDL(
         }
 
     var closeRequested = false
+
+    /**
+     * Is the window minimized? Set by the minimized and restored events
+     */
+    internal var minimized = false
+
+    /**
+     * Was the window drawn by the event watch, while the events were polled?
+     */
+    internal var drawnByEventWatch = false
 
     override fun minimize() {
         if (!SDL_MinimizeWindow(window)) {
@@ -192,7 +218,9 @@ class ApplicationWindowSDL(
                     CursorType.CROSSHAIR_CURSOR -> SDL_SYSTEM_CURSOR_CROSSHAIR
                     CursorType.IBEAM_CURSOR -> SDL_SYSTEM_CURSOR_TEXT
                 }
-                val systemCursor = SDL_CreateSystemCursor(sdlCursor)
+                val systemCursor = systemCursors[value] ?: SDL_CreateSystemCursor(sdlCursor).also {
+                    if (it != 0L) systemCursors[value] = it
+                }
                 if (systemCursor == 0L) {
                     logger.warn { "failed to create system cursor: ${SDL_GetError()}" }
                 } else if (!SDL_SetCursor(systemCursor)) {
@@ -274,7 +302,16 @@ class ApplicationWindowSDL(
     }
 
     internal fun setupSizes() {
+        val (width, height) = updateProgramSize()
+        glViewport(0, 0, width, height)
+    }
 
+    /**
+     * Sets the content scale and the size of the program from the size of the window in pixels, without touching the
+     * OpenGL context, which may belong to another window
+     * @return the size of the window in pixels
+     */
+    internal fun updateProgramSize(): Pair<Int, Int> {
         require(!destroyed) { "window destroyed" }
         stackPush().use { stack ->
             program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
@@ -283,10 +320,11 @@ class ApplicationWindowSDL(
             val fbh = stack.mallocInt(1)
 
             SDL_GetWindowSizeInPixels(window, fbw, fbh)
-            glViewport(0, 0, fbw[0], fbh[0])
 
-            program.width = (fbw[0] / program.window.contentScale).toInt()
-            program.height = (fbh[0] / program.window.contentScale).toInt()
+            // rounded up, like the GLFW backend, so the drawable area covers the whole framebuffer
+            program.width = ceil(fbw[0] / program.window.contentScale).toInt()
+            program.height = ceil(fbh[0] / program.window.contentScale).toInt()
+            return fbw[0] to fbh[0]
         }
     }
 
@@ -317,10 +355,14 @@ class ApplicationWindowSDL(
         program.gestures.deliver()
     }
 
-    fun update() {
+    /**
+     * Delivers the events of the window and draws it, unless it is minimized or unfocused and throttled
+     * @return true when the window was drawn
+     */
+    fun update(): Boolean {
 
         if (destroyed)
-            return
+            return false
 
         Program.active = program
         SDL_GL_MakeCurrent(window, glContext)
@@ -330,7 +372,7 @@ class ApplicationWindowSDL(
         deliverEvents()
 
         if (destroyed)
-            return
+            return false
 
 
         @Suppress("DEPRECATION")
@@ -342,8 +384,9 @@ class ApplicationWindowSDL(
         val draw =  windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
 
         val surfaceArea = program.width * program.height
-        val minimized = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
-        if (draw && surfaceArea > 0 && !minimized) {
+        val iconified = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
+        val drawn = draw && surfaceArea > 0 && !iconified
+        if (drawn) {
             program.drawImpl()
             SDL_GL_SwapWindow(window)
             lastUpdate = ct
@@ -351,6 +394,7 @@ class ApplicationWindowSDL(
         if (!shown) {
             show()
         }
+        return drawn
     }
 
     /**

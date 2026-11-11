@@ -18,7 +18,7 @@ import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLMouse.*
-import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
+import org.lwjgl.sdl.SDLTimer.SDL_GetTicksNS
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
 import org.lwjgl.system.MemoryStack.stackPush
@@ -169,7 +169,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
             val windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
             primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
-            require(primaryWindow != 0L) { "failed to create primary window" }
+            require(primaryWindow != 0L) { "failed to create primary window: ${SDL_GetError()}" }
 
             primaryGlContext = SDL_GL_CreateContext(primaryWindow)
             if (primaryGlContext != 0L) {
@@ -197,8 +197,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
             val extensions = IntArray(1)
             glGetIntegerv(GL_NUM_EXTENSIONS, extensions)
-            for (i in 0 until extensions[0]) {
-                println(GLES30.glGetStringi(GL_EXTENSIONS, i))
+            logger.debug {
+                "OpenGL ES extensions: ${(0 until extensions[0]).joinToString(" ") { GLES30.glGetStringi(GL_EXTENSIONS, it) ?: "" }}"
             }
 
         }
@@ -216,13 +216,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
 
         Driver.driver = object : DriverGL3(driverVersion) {
-            override fun createDrawThread(session: Session?): DrawThread {
-                TODO("Not yet implemented")
-            }
+            override fun createDrawThread(session: Session?): DrawThread = DrawThreadSDL.create()
 
-            override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
-                return ResourceThreadSDL()
-            }
+            override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread =
+                ResourceThreadSDL.create(f)
 
             override val contextID: Long
                 get() = SDL_GL_GetCurrentContext()
@@ -280,30 +277,50 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     private var focusedWindowId = -1
     private fun handleSDLEvent(event: SDL_Event) {
         when (event.type()) {
-            SDL_EVENT_WINDOW_FOCUS_GAINED -> {
-                val windowId = event.window().windowID()
-                focusedWindowId = windowId
-            }
             SDL_EVENT_QUIT -> {
                 logger.debug { "Received quit event" }
                 exitRequested = true
             }
 
-            SDL_EVENT_WINDOW_RESIZED -> {
-                val windowId = event.window().windowID()
-                val eventWindow = windowById(windowId)
-                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
-            }
-
-            SDL_EVENT_WINDOW_EXPOSED -> {
-                val windowId = event.window().windowID()
-                val eventWindow = windowById(windowId)
-                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
-                eventWindow.update()
-            }
-
+            // the size in pixels changes when the window is resized and when its content scale changes
             SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED -> {
-//                println("pixel size changed")
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId) ?: return
+                eventWindow.updateProgramSize()
+                eventWindow.program.window.sized.trigger(
+                    WindowEvent(
+                        WindowEventType.RESIZED,
+                        eventWindow.windowPosition,
+                        Vector2(eventWindow.program.width.toDouble(), eventWindow.program.height.toDouble()),
+                        eventWindow.windowFocused
+                    )
+                )
+            }
+
+            SDL_EVENT_WINDOW_MINIMIZED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId) ?: return
+                eventWindow.minimized = true
+                eventWindow.program.window.minimized.trigger(
+                    WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false)
+                )
+            }
+
+            // SDL also sends this when a maximized window is restored, only a minimized window triggers restored
+            SDL_EVENT_WINDOW_RESTORED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId) ?: return
+                if (eventWindow.minimized) {
+                    eventWindow.minimized = false
+                    eventWindow.program.window.restored.trigger(
+                        WindowEvent(
+                            WindowEventType.RESTORED,
+                            eventWindow.windowPosition,
+                            Vector2(eventWindow.program.width.toDouble(), eventWindow.program.height.toDouble()),
+                            true
+                        )
+                    )
+                }
             }
 
             // a window gets the color profile of the display it is on. SDL also sends these events to the hidden
@@ -355,14 +372,13 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId)
                     ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_FOCUS_GAINED) for unknown window id (=${windowId}): " }; return };
 
-
-                SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
+                focusedWindowId = windowId
                 eventWindow.let {
                     it.windowFocused = true
-                    program.window.focused.trigger(
+                    it.program.window.focused.trigger(
                         WindowEvent(
                             WindowEventType.FOCUSED,
-                            getMousePosition(),
+                            getMousePosition(it),
                             Vector2.ZERO,
                             true
                         )
@@ -380,7 +396,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     it.program.window.unfocused.trigger(
                         WindowEvent(
                             WindowEventType.UNFOCUSED,
-                            getMousePosition(),
+                            getMousePosition(it),
                             Vector2.ZERO,
                             true
                         )
@@ -395,7 +411,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
                 eventWindow.program.mouse.entered.trigger(
                     MouseEvent(
-                        getMousePosition(),
+                        getMousePosition(eventWindow),
                         Vector2.ZERO,
                         Vector2.ZERO,
                         MouseEventType.ENTERED,
@@ -412,7 +428,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
                 eventWindow.program.mouse.exited.trigger(
                     MouseEvent(
-                        getMousePosition(),
+                        getMousePosition(eventWindow),
                         Vector2.ZERO,
                         Vector2.ZERO,
                         MouseEventType.EXITED,
@@ -568,10 +584,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     ?: run { logger.warn { "got event (=SDL_EVENT_MOUSE_WHEEL) for unknown window id (=${windowId}): " }; return };
 
                 val mouseEvent = event.wheel()
-                cursorPosition = Vector2(
+                val cursorPosition = Vector2(
                     mouseEvent.mouse_x().toDouble(),
                     mouseEvent.mouse_y().toDouble()
                 ).toDisplayUnits(eventWindow.windowContentScale)
+                eventWindow.cursorPosition = cursorPosition
                 val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
                 eventWindow.program.mouse.scrolled.trigger(
                     MouseEvent(
@@ -617,8 +634,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 eventWindow.program.pointers.pointerDown.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
-                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * eventWindow.program.window.size,
+                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * eventWindow.program.window.size,
                         fingerEvent.pressure().toDouble()
                     )
                 )
@@ -649,8 +666,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 eventWindow.program.pointers.moved.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
-                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * eventWindow.program.window.size,
+                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * eventWindow.program.window.size,
                         fingerEvent.pressure().toDouble()
                     )
                 )
@@ -678,10 +695,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
 
-                val textEvent = event.text()
-                eventWindow.program.keyboard.character.trigger(
-                    CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
-                )
+                // a text event can hold more than one character, from an input method or as a surrogate pair
+                val text = event.text().textString() ?: return
+                for (character in text) {
+                    eventWindow.program.keyboard.character.trigger(CharacterEvent(character, emptySet()))
+                }
             }
 
             SDL_EVENT_KEY_UP -> {
@@ -766,14 +784,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     }
 
     /**
-     * Query SDL for the current mouse position
+     * Query SDL for the current mouse position, in the units of [window]
      */
-    private fun getMousePosition(): Vector2 {
+    private fun getMousePosition(window: ApplicationWindowSDL): Vector2 {
         stackPush().use { stack ->
             val mouseX = stack.mallocFloat(1)
             val mouseY = stack.mallocFloat(1)
             SDL_GetMouseState(mouseX, mouseY)
-            return Vector2(mouseX[0].toDouble(), mouseY[0].toDouble())
+            return Vector2(mouseX[0].toDouble(), mouseY[0].toDouble()).toDisplayUnits(window.windowContentScale)
         }
     }
 
@@ -795,10 +813,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
         if (System.getProperty("org.openrndr.application.eventwatch") != "false") {
             // https://wiki.libsdl.org/SDL3/AppFreezeDuringDrag
-            SDL_AddEventWatch({ p0: Long, p1: Long ->
+            // the watch draws exposed windows while the event loop is blocked, during a live resize on macOS for
+            // example. The poll loop ignores exposed events, a window that was drawn by the watch is not drawn again
+            SDL_AddEventWatch({ _: Long, p1: Long ->
                 val event = SDL_Event.create(p1)
                 if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
-                    handleSDLEvent(event)
+                    val eventWindow = windowById(event.window().windowID())
+                    if (eventWindow != null && eventWindow.update()) {
+                        eventWindow.drawnByEventWatch = true
+                    }
                 }
                 true
 
@@ -807,11 +830,19 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
         val event = SDL_Event.create()
 
+        fun update(window: ApplicationWindowSDL): Boolean {
+            if (window.drawnByEventWatch) {
+                window.drawnByEventWatch = false
+                return true
+            }
+            return window.update()
+        }
+
         while (!exitRequested && !window.closeRequested) {
             while (SDL_PollEvent(event)) {
                 handleSDLEvent(event)
             }
-            window.update()
+            var drawn = update(window)
 
             val closeWindows = windows.filter { it.closeRequested }
             for (window in closeWindows) {
@@ -820,7 +851,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.close()
             }
             for (window in windows) {
-                window.update()
+                drawn = update(window) or drawn
+            }
+            // no window was drawn: they are minimized, or unfocused and throttled. Wait for events instead of spinning
+            if (!drawn && !exitRequested && SDL_WaitEventTimeout(event, 10)) {
+                handleSDLEvent(event)
             }
         }
         window.destroy()
@@ -840,6 +875,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_DestroyWindow(primaryWindow)
         primaryGlContext = 0L
         primaryWindow = 0L
+        destroySystemCursors()
         SDL_Quit()
     }
 
@@ -862,7 +898,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override var cursorHideMode by Proxy { window::cursorHideMode }
     override var cursorType by Proxy { window::cursorType }
     override val seconds: Double
-        get() = SDL_GetTicks() / 1000.0
+        get() = SDL_GetTicksNS() / 1E9
     override var presentationMode by Proxy { window::presentationMode }
     override var windowContentScale by Proxy { window::windowContentScale }
     override val windowColorProfile: ColorProfile
