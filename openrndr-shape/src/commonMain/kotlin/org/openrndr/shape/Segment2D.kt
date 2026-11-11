@@ -8,6 +8,7 @@ import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import org.openrndr.shape.internal.arcLength
 import org.openrndr.shape.internal.flattenSegment
 import org.openrndr.shape.internal.flattenSegmentWithT
+import org.openrndr.shape.internal.unitIntervalRoots
 import kotlin.math.*
 
 /**
@@ -292,6 +293,24 @@ data class Segment2D(
         return Pair(closestIndex, closestValue)
     }
 
+    private fun nearestT(point: Vector2, projection: DoubleArray): Double {
+        var bestT = 0.0
+        var bestDistance = start.squaredDistanceTo(point)
+        val endDistance = end.squaredDistanceTo(point)
+        if (endDistance < bestDistance) {
+            bestT = 1.0
+            bestDistance = endDistance
+        }
+        for (t in unitIntervalRoots(projection)) {
+            val distance = position(t).squaredDistanceTo(point)
+            if (distance < bestDistance) {
+                bestT = t
+                bestDistance = distance
+            }
+        }
+        return bestT
+    }
+
     /**
      * Find point on segment nearest to given [point].
      * @param point The query point.
@@ -305,94 +324,31 @@ data class Segment2D(
             }
 
             SegmentType.QUADRATIC -> {
+                // the nearest point is an end point or a root of (position(t) - point) . derivative(t)
                 val qa = start - point
                 val ab = control[0] - start
-                val bc = end - control[0]
-                val qc = end - point
-                val ac = end - start
                 val br = start + end - control[0] - control[0]
-
-                var minDistance = sign(ab cross qa) * qa.length
-                var param = -(qa dot ab) / (ab dot ab)
-
-                val distance = sign(bc cross qc) * qc.length
-                if (abs(distance) < abs(minDistance)) {
-                    minDistance = distance
-                    param =
-                        max(1.0, ((point - control[0]) dot bc) / (bc dot bc))
-                }
-
-                val a = br dot br
-                val b = 3.0 * (ab dot br)
-                val c = (2.0 * (ab dot ab)) + (qa dot br)
-                val d = qa dot ab
-                val ts = solveCubic(a, b, c, d)
-
-                for (t in ts) {
-                    if (t > 0 && t < 1) {
-                        val endpoint = position(t)
-                        val distance2 = sign(ac cross (endpoint - point)) * (endpoint - point).length
-                        if (abs(distance2) < abs(minDistance)) {
-                            minDistance = distance2
-                            param = t
-                        }
-                    }
-                }
-                param.coerceIn(0.0, 1.0)
+                nearestT(point, doubleArrayOf(qa dot ab, (qa dot br) + 2.0 * (ab dot ab), 3.0 * (ab dot br), br dot br))
             }
 
             SegmentType.CUBIC -> {
-                fun sign(n: Double): Double {
-                    val s = n.sign
-                    return if (s == 0.0) -1.0 else s
-                }
-
+                // the nearest point is an end point or a root of (position(t) - point) . derivative(t), a quintic
                 val qa = start - point
                 val ab = control[0] - start
                 val bc = control[1] - control[0]
                 val cd = end - control[1]
-                val qd = end - point
                 val br = bc - ab
                 val ax = (cd - bc) - br
-
-                var minDistance = sign(ab cross qa) * qa.length
-                var param = -(qa dot ab) / (ab dot ab)
-
-                var distance = sign(cd cross qd) * qd.length
-                if (abs(distance) < abs(minDistance)) {
-                    minDistance = distance
-                    param = max(1.0, (point - control[1] dot cd) / (cd dot cd))
-                }
-                val searchStarts = 4
-                val searchSteps = 8
-
-                for (i in 0 until searchStarts) {
-                    var t = i.toDouble() / (searchStarts - 1)
-                    var step = 0
-                    while (true) {
-                        val qpt = position(t) - point
-                        distance = sign(direction(t) cross qpt) * qpt.length
-                        if (abs(distance) < abs(minDistance)) {
-                            minDistance = distance
-                            param = t
-                        }
-                        if (step == searchSteps) {
-                            break
-                        }
-                        val d1 = (ax * (3 * t * t)) + br * (6 * t) + ab * 3.0
-                        val d2 = (ax * (6 * t)) + br * 6.0
-                        val dt = (qpt dot d1) / ((d1 dot d1) + (qpt dot d2))
-                        if (abs(dt) < 1e-14) {
-                            break
-                        }
-                        t -= dt
-                        if (t < 0 || t > 1) {
-                            break
-                        }
-                        step++
-                    }
-                }
-                param.coerceIn(0.0, 1.0)
+                nearestT(
+                    point, doubleArrayOf(
+                        qa dot ab,
+                        3.0 * (ab dot ab) + 2.0 * (qa dot br),
+                        9.0 * (br dot ab) + (qa dot ax),
+                        4.0 * (ax dot ab) + 6.0 * (br dot br),
+                        5.0 * (ax dot br),
+                        ax dot ax
+                    )
+                )
             }
         }
         val closest = position(t)
