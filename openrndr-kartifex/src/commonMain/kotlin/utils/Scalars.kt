@@ -115,7 +115,7 @@ fun clamp(min: Double, n: Double, max: Double): Double = if (n <= min) {
  * @return A double representing the normalization factor.
  */
 fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
-    val maxValue = max(max(a, b), max(c, d))
+    val maxValue = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
     return if (maxValue == 0.0) {
         1.0
     } else {
@@ -134,7 +134,7 @@ fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
  * @return the computed normalization factor
  */
 fun normalizationFactor(a: Double, b: Double, c: Double): Double {
-    val maxValue = max(a, b, c)
+    val maxValue = max(abs(a), abs(b), abs(c))
     return if (maxValue == 0.0) {
         1.0
     } else {
