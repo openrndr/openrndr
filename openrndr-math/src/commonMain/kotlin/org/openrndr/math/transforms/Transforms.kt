@@ -4,7 +4,9 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
 import org.openrndr.math.asRadians
+import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.sin
 import kotlin.math.tan
 
@@ -178,11 +180,34 @@ fun lookAt(eye: Vector3, target: Vector3, up: Vector3 = Vector3.UNIT_Y): Matrix4
  * [axis] the axis to rotate around
  * [angle] the angle in degrees
  */
+/**
+ * The number of quarter turns in [degrees] from 0 until 4, -1 when [degrees] is not a multiple of 90
+ */
+private fun quarterTurns(degrees: Double): Int {
+    val turns = degrees / 90.0
+    return if (turns == floor(turns) && abs(turns) < 1E15) (turns.toLong() and 3L).toInt() else -1
+}
+
+/** the cosine of [degrees], exact for multiples of 90 degrees */
+internal fun cosDegrees(degrees: Double): Double = when (quarterTurns(degrees)) {
+    0 -> 1.0
+    1, 3 -> 0.0
+    2 -> -1.0
+    else -> cos(degrees.asRadians)
+}
+
+/** the sine of [degrees], exact for multiples of 90 degrees */
+internal fun sinDegrees(degrees: Double): Double = when (quarterTurns(degrees)) {
+    0, 2 -> 0.0
+    1 -> 1.0
+    3 -> -1.0
+    else -> sin(degrees.asRadians)
+}
+
 fun Matrix44.Companion.rotate(axis: Vector3, angle: Double): Matrix44 {
 
-    val r = angle.asRadians
-    val cosa = cos(r)
-    val sina = sin(r)
+    val cosa = cosDegrees(angle)
+    val sina = sinDegrees(angle)
     val _axis = axis.normalized
 
     return Matrix44(
@@ -215,10 +240,8 @@ fun Matrix44.Companion.rotate(axis: Vector3, angle: Double): Matrix44 {
  * [angle] the angle in degrees
  */
 fun Matrix44.Companion.rotateX(angle: Double): Matrix44 {
-    val r = angle.asRadians
-
-    val cr = cos(r)
-    val sr = sin(r)
+    val cr = cosDegrees(angle)
+    val sr = sinDegrees(angle)
     return Matrix44(
             1.0, 0.0, 0.0, 0.0,
             0.0, cr, -sr, 0.0,
@@ -233,10 +256,8 @@ fun Matrix44.Companion.rotateX(angle: Double): Matrix44 {
  * [angle] the angle in degrees
  */
 fun Matrix44.Companion.rotateY(angle: Double): Matrix44 {
-    val r = angle.asRadians
-
-    val cr = cos(r)
-    val sr = sin(r)
+    val cr = cosDegrees(angle)
+    val sr = sinDegrees(angle)
     return Matrix44(
             cr, 0.0, sr, 0.0,
             0.0, 1.0, 0.0, 0.0,
@@ -250,9 +271,8 @@ fun Matrix44.Companion.rotateY(angle: Double): Matrix44 {
  * [angle] the angle in degrees
  */
 fun Matrix44.Companion.rotateZ(angle: Double): Matrix44 {
-    val r = angle.asRadians
-    val cr = cos(r)
-    val sr = sin(r)
+    val cr = cosDegrees(angle)
+    val sr = sinDegrees(angle)
     return Matrix44(
             cr, -sr, 0.0, 0.0,
             sr, cr, 0.0, 0.0,
@@ -337,13 +357,19 @@ fun unproject(point: Vector3, projection: Matrix44, view: Matrix44, width: Int, 
  * Construct a normal matrix from the give view matrix
  */
 fun normalMatrix(view: Matrix44): Matrix44 {
-
-    val subView = Matrix44(
-            view.c0r0, view.c1r0, view.c2r0, 0.0,
-            view.c0r1, view.c1r1, view.c2r1, 0.0,
-            view.c0r2, view.c1r2, view.c2r2, 0.0,
-            0.0, 0.0, 0.0, 1.0)
-
-    return subView.inversed.transposed.copy(c3r3 = 0.0)
+    // the inverse transpose of the upper 3x3 of the view matrix: its cofactors divided by its determinant
+    val m00 = view.c0r0; val m01 = view.c1r0; val m02 = view.c2r0
+    val m10 = view.c0r1; val m11 = view.c1r1; val m12 = view.c2r1
+    val m20 = view.c0r2; val m21 = view.c1r2; val m22 = view.c2r2
+    val c00 = m11 * m22 - m12 * m21
+    val c01 = m12 * m20 - m10 * m22
+    val c02 = m10 * m21 - m11 * m20
+    val id = 1.0 / (m00 * c00 + m01 * c01 + m02 * c02)
+    return Matrix44(
+        c00 * id, c01 * id, c02 * id, 0.0,
+        (m02 * m21 - m01 * m22) * id, (m00 * m22 - m02 * m20) * id, (m01 * m20 - m00 * m21) * id, 0.0,
+        (m01 * m12 - m02 * m11) * id, (m02 * m10 - m00 * m12) * id, (m00 * m11 - m01 * m10) * id, 0.0,
+        0.0, 0.0, 0.0, 0.0
+    )
 }
 

@@ -10,6 +10,9 @@ import kotlin.jvm.JvmName
  * Performs a fused multiply-add operation, which computes `(a * b) + c` with only one rounding step.
  * This provides better precision compared to performing the operations separately.
  *
+ * On JVMs on processors without fused multiply-add instructions it is computed as `a * b + c`, with two rounding
+ * steps: `Math.fma` in software is about a thousand times slower. In JavaScript it is always `a * b + c`.
+ *
  * @param a The first operand to be multiplied.
  * @param b The second operand to be multiplied.
  * @param c The operand to be added.

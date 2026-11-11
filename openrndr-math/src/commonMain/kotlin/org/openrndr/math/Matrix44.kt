@@ -82,52 +82,50 @@ data class Matrix44(
         }
 
     /**
-     * Inversed version of the 4x4 matrix
+     * Inversed version of the 4x4 matrix.
+     *
+     * The inverse is the adjugate divided by the determinant, both computed from the same 2x2 minors. A singular
+     * matrix, with a determinant of 0, has no inverse: its elements are infinite or NaN.
      */
     val inversed: Matrix44
         get() {
             if (this === IDENTITY) {
                 return this
             }
-            val n00 =
-                fmaDot3(c1r2, c2r3, c3r1,-c1r3, c2r2, c3r1, c1r3, c2r1, c3r2 ,- c1r1 , c2r3 , c3r2 ,- c1r2 , c2r1 , c3r3 , c1r1 , c2r2 , c3r3)
-            val n01 =
-                fmaDot3(c0r3,c2r2,c3r1 ,-c0r2,c2r3,c3r1 ,-c0r3,c2r1,c3r2 , c0r1,c2r3,c3r2 , c0r2,c2r1,c3r3 ,- c0r1,c2r2,c3r3)
-            val n02 =
-                fmaDot3(c0r2, c1r3, c3r1, -c0r3, c1r2, c3r1, c0r3, c1r1, c3r2, -c0r1, c1r3, c3r2, - c0r2, c1r1, c3r3, c0r1, c1r2, c3r3)
-            val n03 =
-                fmaDot3(c0r3,c1r2,c2r1,-c0r2,c1r3,c2r1,-c0r3,c1r1,c2r2,c0r1,c1r3,c2r2,c0r2,c1r1,c2r3,-c0r1,c1r2,c2r3)
-            val n10 =
-                fmaDot3(c1r3,c2r2,c3r0,-c1r2,c2r3,c3r0,-c1r3,c2r0,c3r2,c1r0,c2r3,c3r2,c1r2,c2r0,c3r3,-c1r0,c2r2,c3r3)
-            val n11 =
-                fmaDot3(c0r2,c2r3,c3r0, -c0r3,c2r2,c3r0, c0r3,c2r0,c3r2, -c0r0,c2r3,c3r2, -c0r2,c2r0,c3r3, c0r0,c2r2,c3r3)
-            val n12 =
-                fmaDot3(c0r3, c1r2, c3r0, -c0r2, c1r3, c3r0, -c0r3, c1r0, c3r2, c0r0, c1r3, c3r2, c0r2, c1r0, c3r3, -c0r0, c1r2, c3r3)
-            val n13 =
-                fmaDot3(c0r2, c1r3, c2r0, -c0r3, c1r2, c2r0, c0r3, c1r0, c2r2, -c0r0, c1r3, c2r2, -c0r2, c1r0, c2r3, c0r0, c1r2, c2r3)
-            val n20 =
-                fmaDot3(c1r1, c2r3, c3r0, -c1r3, c2r1, c3r0, c1r3, c2r0, c3r1, -c1r0, c2r3, c3r1, -c1r1, c2r0, c3r3, c1r0, c2r1, c3r3)
-            val n21 =
-                fmaDot3(c0r3, c2r1, c3r0, -c0r1, c2r3, c3r0, -c0r3, c2r0, c3r1, c0r0, c2r3, c3r1, c0r1, c2r0, c3r3, -c0r0, c2r1, c3r3)
-            val n22 =
-                fmaDot3(c0r1, c1r3, c3r0, -c0r3, c1r1, c3r0, c0r3, c1r0, c3r1, -c0r0, c1r3, c3r1, -c0r1, c1r0, c3r3, c0r0, c1r1, c3r3)
-            val n23 =
-                fmaDot3(c0r3, c1r1, c2r0, -c0r1, c1r3, c2r0, -c0r3, c1r0, c2r1, c0r0, c1r3, c2r1, c0r1, c1r0, c2r3, -c0r0, c1r1, c2r3)
-            val n30 =
-                fmaDot3(c1r2, c2r1, c3r0, -c1r1, c2r2, c3r0, -c1r2, c2r0, c3r1, c1r0, c2r2, c3r1, c1r1, c2r0, c3r2, -c1r0, c2r1, c3r2)
-            val n31 =
-                fmaDot3(c0r1, c2r2, c3r0, -c0r2, c2r1, c3r0, c0r2, c2r0, c3r1, -c0r0, c2r2, c3r1, -c0r1, c2r0, c3r2, c0r0, c2r1, c3r2)
-            val n32 =
-                fmaDot3(c0r2, c1r1, c3r0, -c0r1, c1r2, c3r0, -c0r2, c1r0, c3r1, c0r0, c1r2, c3r1, c0r1, c1r0, c3r2, -c0r0, c1r1, c3r2)
-            val n33 =
-                fmaDot3(c0r1, c1r2, c2r0, -c0r2, c1r1, c2r0, c0r2, c1r0, c2r1, -c0r0, c1r2, c2r1, -c0r1, c1r0, c2r2, c0r0, c1r1, c2r2)
-
-            val d = determinant
+            // the 2x2 minors of the upper two rows (b00..b05) and of the lower two rows (b06..b11)
+            val b00 = c0r0 * c1r1 - c1r0 * c0r1
+            val b01 = c0r0 * c2r1 - c2r0 * c0r1
+            val b02 = c0r0 * c3r1 - c3r0 * c0r1
+            val b03 = c1r0 * c2r1 - c2r0 * c1r1
+            val b04 = c1r0 * c3r1 - c3r0 * c1r1
+            val b05 = c2r0 * c3r1 - c3r0 * c2r1
+            val b06 = c0r2 * c1r3 - c1r2 * c0r3
+            val b07 = c0r2 * c2r3 - c2r2 * c0r3
+            val b08 = c0r2 * c3r3 - c3r2 * c0r3
+            val b09 = c1r2 * c2r3 - c2r2 * c1r3
+            val b10 = c1r2 * c3r3 - c3r2 * c1r3
+            val b11 = c2r2 * c3r3 - c3r2 * c2r3
+            val id = 1.0 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06)
             return Matrix44(
-                n00 / d, n10 / d, n20 / d, n30 / d,
-                n01 / d, n11 / d, n21 / d, n31 / d,
-                n02 / d, n12 / d, n22 / d, n32 / d,
-                n03 / d, n13 / d, n23 / d, n33 / d
+                (c1r1 * b11 - c2r1 * b10 + c3r1 * b09) * id,
+                (c2r0 * b10 - c1r0 * b11 - c3r0 * b09) * id,
+                (c1r3 * b05 - c2r3 * b04 + c3r3 * b03) * id,
+                (c2r2 * b04 - c1r2 * b05 - c3r2 * b03) * id,
+
+                (c2r1 * b08 - c0r1 * b11 - c3r1 * b07) * id,
+                (c0r0 * b11 - c2r0 * b08 + c3r0 * b07) * id,
+                (c2r3 * b02 - c0r3 * b05 - c3r3 * b01) * id,
+                (c0r2 * b05 - c2r2 * b02 + c3r2 * b01) * id,
+
+                (c0r1 * b10 - c1r1 * b08 + c3r1 * b06) * id,
+                (c1r0 * b08 - c0r0 * b10 - c3r0 * b06) * id,
+                (c0r3 * b04 - c1r3 * b02 + c3r3 * b00) * id,
+                (c1r2 * b02 - c0r2 * b04 - c3r2 * b00) * id,
+
+                (c1r1 * b07 - c0r1 * b09 - c2r1 * b06) * id,
+                (c0r0 * b09 - c1r0 * b07 + c2r0 * b06) * id,
+                (c1r3 * b01 - c0r3 * b03 - c2r3 * b00) * id,
+                (c0r2 * b03 - c1r2 * b01 + c2r2 * b00) * id
             )
         }
 
@@ -136,13 +134,25 @@ data class Matrix44(
      */
     val trace: Double get() = c0r0 + c1r1 + c2r2 + c3r3
 
+    /**
+     * The determinant of the 4x4 matrix, from the 2x2 minors of its upper and lower two rows
+     */
     val determinant: Double
-        get() = fmaDot4(c0r3, c1r2, c2r1, c3r0, -c0r2, c1r3, c2r1, c3r0, -c0r3, c1r1, c2r2, c3r0,c0r1, c1r3, c2r2, c3r0) +
-                fmaDot4(c0r2, c1r1, c2r3, c3r0, -c0r1, c1r2, c2r3, c3r0, -c0r3, c1r2, c2r0, c3r1,c0r2, c1r3, c2r0, c3r1) +
-                fmaDot4(c0r3, c1r0, c2r2, c3r1, -c0r0, c1r3, c2r2, c3r1, -c0r2, c1r0, c2r3, c3r1,c0r0, c1r2, c2r3, c3r1) +
-                fmaDot4(c0r3, c1r1, c2r0, c3r2, -c0r1, c1r3, c2r0, c3r2, -c0r3, c1r0, c2r1, c3r2,c0r0, c1r3, c2r1, c3r2) +
-                fmaDot4(c0r1, c1r0, c2r3, c3r2, -c0r0, c1r1, c2r3, c3r2, -c0r2, c1r1, c2r0, c3r3,c0r1, c1r2, c2r0, c3r3) +
-                fmaDot4(c0r2, c1r0, c2r1, c3r3, -c0r0, c1r2, c2r1, c3r3, -c0r1, c1r0, c2r2, c3r3,c0r0, c1r1, c2r2, c3r3)
+        get() {
+            val b00 = c0r0 * c1r1 - c1r0 * c0r1
+            val b01 = c0r0 * c2r1 - c2r0 * c0r1
+            val b02 = c0r0 * c3r1 - c3r0 * c0r1
+            val b03 = c1r0 * c2r1 - c2r0 * c1r1
+            val b04 = c1r0 * c3r1 - c3r0 * c1r1
+            val b05 = c2r0 * c3r1 - c3r0 * c2r1
+            val b06 = c0r2 * c1r3 - c1r2 * c0r3
+            val b07 = c0r2 * c2r3 - c2r2 * c0r3
+            val b08 = c0r2 * c3r3 - c3r2 * c0r3
+            val b09 = c1r2 * c2r3 - c2r2 * c1r3
+            val b10 = c1r2 * c3r3 - c3r2 * c1r3
+            val b11 = c2r2 * c3r3 - c3r2 * c2r3
+            return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06
+        }
 
     /**
      * Matrix addition
@@ -189,13 +199,14 @@ data class Matrix44(
         )
 
     /**
-     * Multiplies the 4x4 matrix with a vector 4
+     * Multiplies the 4x4 matrix with a vector 4. Plain multiplications and additions, which are as precise here as fused
+     * multiply-adds and have shorter dependency chains.
      */
     operator fun times(v: Vector4) = Vector4(
-        fmaDot(v.x, c0r0, v.y, c1r0, v.z, c2r0, v.w, c3r0),
-        fmaDot(v.x, c0r1, v.y, c1r1, v.z, c2r1, v.w, c3r1),
-        fmaDot(v.x, c0r2, v.y, c1r2, v.z, c2r2, v.w, c3r2),
-        fmaDot(v.x, c0r3, v.y, c1r3, v.z, c2r3, v.w, c3r3)
+        c0r0 * v.x + c1r0 * v.y + c2r0 * v.z + c3r0 * v.w,
+        c0r1 * v.x + c1r1 * v.y + c2r1 * v.z + c3r1 * v.w,
+        c0r2 * v.x + c1r2 * v.y + c2r2 * v.z + c3r2 * v.w,
+        c0r3 * v.x + c1r3 * v.y + c2r3 * v.z + c3r3 * v.w
     )
 
     /**
@@ -217,7 +228,8 @@ data class Matrix44(
 
 
     /**
-     * Multiplies this 4x4 matrix with another 4x4 matrix.
+     * Multiplies this 4x4 matrix with another 4x4 matrix. With fused multiply-adds: the products are bound by the
+     * number of instructions, fused multiply-adds halve them.
      *
      * @param mat the matrix to multiply with
      * @return the result of the matrix multiplication
