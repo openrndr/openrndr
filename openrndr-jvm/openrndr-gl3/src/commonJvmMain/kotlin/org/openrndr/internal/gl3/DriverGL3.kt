@@ -273,16 +273,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
                 val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
 
-                fun setAdvancedEq(buf: Int, eq: Int) {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(buf, eq)
-                        glBlendFunci(buf, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquation(eq)
-                        glBlendFunc(GL_ONE, GL_ONE)
-                    }
-                }
 
                 when (blendMode) {
                     BlendMode.OVER -> {
@@ -409,20 +399,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
                         }
                     }
 
-                    BlendMode.SCREEN -> setAdvancedEq(i, GL_SCREEN_KHR)
-                    BlendMode.OVERLAY -> setAdvancedEq(i, GL_OVERLAY_KHR)
-                    BlendMode.DARKEN -> setAdvancedEq(i, GL_DARKEN_KHR)
-                    BlendMode.LIGHTEN -> setAdvancedEq(i, GL_LIGHTEN_KHR)
-                    BlendMode.COLOR_DODGE -> setAdvancedEq(i, GL_COLORDODGE_KHR)
-                    BlendMode.COLOR_BURN -> setAdvancedEq(i, GL_COLORBURN_KHR)
-                    BlendMode.HARD_LIGHT -> setAdvancedEq(i, GL_HARDLIGHT_KHR)
-                    BlendMode.SOFT_LIGHT -> setAdvancedEq(i, GL_SOFTLIGHT_KHR)
-                    BlendMode.DIFFERENCE -> setAdvancedEq(i, GL_DIFFERENCE_KHR)
-                    BlendMode.EXCLUSION -> setAdvancedEq(i, GL_EXCLUSION_KHR)
-                    BlendMode.HSL_HUE -> setAdvancedEq(i, GL_HSL_HUE_KHR)
-                    BlendMode.HSL_SATURATION -> setAdvancedEq(i, GL_HSL_SATURATION_KHR)
-                    BlendMode.HSL_COLOR -> setAdvancedEq(i, GL_HSL_COLOR_KHR)
-                    BlendMode.HSL_LUMINOSITY -> setAdvancedEq(i, GL_HSL_LUMINOSITY_KHR)
                 }
             }
             //cached.blendMode = drawStyle.blendMode
@@ -643,16 +619,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         } else {
             ""
         }
-    }
-        ${
-        if (type == ShaderType.FRAGMENT) {
-            """#extension GL_KHR_blend_equation_advanced : enable
-            |#ifdef GL_KHR_blend_equation_advanced
-            |layout(blend_support_all_equations) out;
-            |#endif
-            |
-        """.trimMargin()
-        } else ""
     }
         
         ${

@@ -380,22 +380,7 @@ enum class BlendMode {
     REPLACE,
     REMOVE,
     MIN,
-    MAX,
-    // advanced blend modes
-    SCREEN,
-    OVERLAY,
-    DARKEN,
-    LIGHTEN,
-    COLOR_DODGE,
-    COLOR_BURN,
-    HARD_LIGHT,
-    SOFT_LIGHT,
-    DIFFERENCE,
-    EXCLUSION,
-    HSL_HUE,
-    HSL_SATURATION,
-    HSL_COLOR,
-    HSL_LUMINOSITY
+    MAX
 }
 
 
