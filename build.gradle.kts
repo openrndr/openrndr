@@ -41,6 +41,7 @@ dependencies {
     nmcpAggregation(project(":openrndr-js:openrndr-image-driver-browser"))
     nmcpAggregation(project(":openrndr-js:openrndr-textshapingdriver-harfbuzzjs"))
     nmcpAggregation(project(":openrndr-js:openrndr-webgl"))
+    nmcpAggregation(project(":openrndr-jvm:openrndr-application-awt"))
     nmcpAggregation(project(":openrndr-jvm:openrndr-application-egl"))
     nmcpAggregation(project(":openrndr-jvm:openrndr-application-glfw"))
     nmcpAggregation(project(":openrndr-jvm:openrndr-application-sdl"))

@@ -14,6 +14,7 @@ catalog {
         library("animatable", "org.openrndr:openrndr-animatable:$version")
         library("application-core", "org.openrndr:openrndr-application:$version")
         library("application-glfw", "org.openrndr:openrndr-application-glfw:$version")
+        library("application-awt", "org.openrndr:openrndr-application-awt:$version")
         library("application-egl", "org.openrndr:openrndr-application-egl:$version")
         library("application-sdl", "org.openrndr:openrndr-application-sdl:$version")
         library("bidi-text-driver", "org.openrndr:openrndr-bidi-text-driver:$version")
