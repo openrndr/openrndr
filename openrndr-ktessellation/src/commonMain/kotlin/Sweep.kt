@@ -405,11 +405,15 @@ internal object Sweep {
  */ {
         val t1: Double = Geom.VertL1dist(org, isect)
         val t2: Double = Geom.VertL1dist(dst, isect)
-        weights[0] = (0.5 * t2 / (t1 + t2)).toFloat()
-        weights[1] = (0.5 * t1 / (t1 + t2)).toFloat()
-        isect.coords[0] += weights[0] * org.coords[0] + weights[1] * dst.coords[0]
-        isect.coords[1] += weights[0] * org.coords[1] + weights[1] * dst.coords[1]
-        isect.coords[2] += weights[0] * org.coords[2] + weights[1] * dst.coords[2]
+        // the coordinates are interpolated with double weights, the float weights are only passed to the combine
+        // callback: float weights put the intersection off by 1e-8 times the magnitude of the coordinates
+        val w0 = 0.5 * t2 / (t1 + t2)
+        val w1 = 0.5 * t1 / (t1 + t2)
+        weights[0] = w0.toFloat()
+        weights[1] = w1.toFloat()
+        isect.coords[0] += w0 * org.coords[0] + w1 * dst.coords[0]
+        isect.coords[1] += w0 * org.coords[1] + w1 * dst.coords[1]
+        isect.coords[2] += w0 * org.coords[2] + w1 * dst.coords[2]
     }
 
     fun GetIntersectData(

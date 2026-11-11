@@ -7,10 +7,33 @@ import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 private const val subEpsilon = 1E-6
-private const val closeEpsilon = 1E-6
+/**
+ * The squared distance below which the last point of a contour closes it, for points spread over [extent]: at most
+ * 0.001, and 1e-5 times the extent for small contours, whose points can be closer than 0.001
+ */
+private fun closeEpsilon(extent: Double): Double {
+    val distance = min(1E-3, 1E-5 * extent)
+    return distance * distance
+}
+
+/** the larger of the width and height of the bounding box of [points] */
+private fun extentOf(points: List<Vector2>): Double {
+    var minX = Double.POSITIVE_INFINITY
+    var minY = Double.POSITIVE_INFINITY
+    var maxX = Double.NEGATIVE_INFINITY
+    var maxY = Double.NEGATIVE_INFINITY
+    for (p in points) {
+        if (p.x < minX) minX = p.x
+        if (p.x > maxX) maxX = p.x
+        if (p.y < minY) minY = p.y
+        if (p.y > maxY) maxY = p.y
+    }
+    return max(maxX - minX, maxY - minY)
+}
 private const val consecutiveEpsilon = 1E-6
 
 /**
@@ -87,7 +110,7 @@ data class ShapeContour(
                 }, closed, polarity)
             } else {
                 val d = (points.last() - points.first()).squaredLength
-                val usePoints = if (d > closeEpsilon) points else points.dropLast(1)
+                val usePoints = if (d > closeEpsilon(extentOf(points))) points else points.dropLast(1)
                 ShapeContour((usePoints.indices).map {
                     Segment2D(
                         usePoints[it],
@@ -457,11 +480,12 @@ data class ShapeContour(
      *
      * The path is closed by creating a new connecting [Segment2D]
      * between the first and last [Segment2D] in the contour.
-     * If the distance between the beginning of the first and the finish of the last point is negligible (`<0.001`),
-     * then no new [Segment2D]s are added.
+     * If the distance between the beginning of the first and the finish of the last point is negligible (`<0.001`,
+     * or less than 1e-5 times the size of small contours), then no new [Segment2D]s are added.
      */
     fun close() = if (empty) EMPTY else {
-        if ((segments.last().end - segments.first().start).squaredLength < closeEpsilon)
+        if ((segments.last().end - segments.first().start).squaredLength <
+            closeEpsilon(extentOf(segments.map { it.start } + segments.last().end)))
             ShapeContour(segments, true, polarity)
         else
             ShapeContour(

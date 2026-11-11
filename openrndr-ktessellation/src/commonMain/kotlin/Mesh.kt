@@ -103,15 +103,20 @@ internal object Mesh {
  * a place to insert the new face in the global face list.  We insert
  * the new face *before* fNext so that algorithms which walk the face
  * list will not see the newly created faces.
+ *
+ * When a face is split in two, eOther is an edge of the other loop, which keeps fNext. Both loops are walked in
+ * lockstep and only the smaller one is relabeled: relabeling the loop of eOrig costs the size of that loop, which
+ * makes repeated splits of a large face quadratic. When the other loop is smaller, it is labeled with the new face
+ * object, and the state of the two face objects is swapped, so the loop of eOrig still has the state of a new face
+ * and the other loop keeps the state of fNext. Faces are only reached through their edges and the face list.
  */
     fun MakeFace(
         newFace: GLUface,
         eOrig: GLUhalfEdge,
-        fNext: GLUface
+        fNext: GLUface,
+        eOther: GLUhalfEdge? = null
     ) {
-        var e: GLUhalfEdge
         val fNew: GLUface = newFace
-        require(fNew != null)
 
         /* insert in circular doubly-linked list before fNext */
         val fPrev: GLUface = fNext.prev ?: error("fNext.prev == null")
@@ -128,9 +133,39 @@ internal object Mesh {
          * convenience for the common case where a face has been split in two.
          */fNew.inside = fNext.inside
 
-        /* fix other edges on this face loop */e = eOrig
+        if (eOther != null) {
+            var a: GLUhalfEdge = eOrig
+            var b: GLUhalfEdge = eOther
+            while (true) {
+                a = a.Lnext ?: error("e.Lnext == null")
+                if (a === eOrig) break
+                b = b.Lnext ?: error("e.Lnext == null")
+                // before the split both loops are labeled fNext, otherwise the loop of eOrig is relabeled
+                if (b.Lface !== fNext) break
+                if (b === eOther) {
+                    /* the other loop is smaller: it takes the new face object, with the state of fNext */
+                    relabel(eOther, fNew)
+                    fNew.anEdge = eOther
+                    fNew.data = fNext.data
+                    fNew.trail = fNext.trail
+                    fNew.marked = fNext.marked
+                    fNext.anEdge = eOrig
+                    fNext.data = null
+                    fNext.trail = null
+                    fNext.marked = false
+                    return
+                }
+            }
+        }
+        /* fix other edges on this face loop */
+        relabel(eOrig, fNew)
+    }
+
+    /** makes [face] the left face of the edges of the loop of [eOrig] */
+    private fun relabel(eOrig: GLUhalfEdge, face: GLUface) {
+        var e: GLUhalfEdge = eOrig
         do {
-            e.Lface = fNew
+            e.Lface = face
             e = e.Lnext ?: error("e.Lnext == null")
         } while (e !== eOrig)
     }
@@ -175,15 +210,47 @@ internal object Mesh {
     /* KillFace( fDel ) destroys a face and removes it from the global face
  * list.  It updates the face loop to point to a given new face.
  */
-    fun KillFace(fDel: GLUface, newLface: GLUface?) {
-        var e: GLUhalfEdge
+    fun KillFace(fDel: GLUface, newLface: GLUface?, allowSwap: Boolean = false) {
+        var fDel = fDel
         val eStart: GLUhalfEdge = fDel.anEdge ?: error("fDel.anEdge == null")
+        var relabelStart = eStart
+        var label = newLface
 
-        /* change the left face of all affected edges */e = eStart
+        /* When two loops are joined, only the smaller one is relabeled: relabeling the loop of fDel costs the size of
+         * that loop, which makes repeated joins with a large face quadratic. When the loop of newLface is smaller, it
+         * is labeled with the fDel object, which takes the state of newLface, and the newLface object is deleted
+         * instead. Callers that hold a face object across the call, like walks of the face list, must not allow it.
+         */
+        if (allowSwap && newLface != null && newLface !== fDel) {
+            val eOther: GLUhalfEdge = newLface.anEdge ?: error("newLface.anEdge == null")
+            var a = eStart
+            var b = eOther
+            while (true) {
+                a = a.Lnext ?: error("e.Lnext == null")
+                if (a === eStart) break
+                b = b.Lnext ?: error("e.Lnext == null")
+                // a loop that is not labeled newLface falls back to relabeling the loop of fDel
+                if (b.Lface !== newLface) break
+                if (b === eOther) {
+                    fDel.anEdge = newLface.anEdge
+                    fDel.data = newLface.data
+                    fDel.trail = newLface.trail
+                    fDel.marked = newLface.marked
+                    fDel.inside = newLface.inside
+                    relabelStart = eOther
+                    label = fDel
+                    fDel = newLface
+                    break
+                }
+            }
+        }
+
+        /* change the left face of all affected edges */
+        var e = relabelStart
         do {
-            e.Lface = newLface
+            e.Lface = label
             e = e.Lnext ?: error("e.Lnext == null")
-        } while (e !== eStart)
+        } while (e !== relabelStart)
 
         /* delete from circular doubly-linked list */
         val fPrev: GLUface = fDel.prev ?: error("fDel.prev == null")
@@ -245,7 +312,7 @@ internal object Mesh {
         if (eDst.Lface !== eOrg.Lface) {
             /* We are connecting two disjoint loops -- destroy eDst.Lface */
             joiningLoops = true
-            KillFace(eDst.Lface ?: error("eDst.Lface == null"), eOrg.Lface ?: error("eOrg.Lface == null"))
+            KillFace(eDst.Lface ?: error("eDst.Lface == null"), eOrg.Lface ?: error("eOrg.Lface == null"), allowSwap = true)
         }
 
         /* Change the edge structure */Splice(eDst, eOrg)
@@ -262,7 +329,7 @@ internal object Mesh {
 
             /* We split one loop into two -- the new loop is eDst.Lface.
              * Make sure the old face points to a valid half-edge.
-             */MakeFace(newFace, eDst, eOrg.Lface ?: error("eOrg.Lface == null"))
+             */MakeFace(newFace, eDst, eOrg.Lface ?: error("eOrg.Lface == null"), eOrg)
             eOrg.Lface!!.anEdge = eOrg
         }
         return true
@@ -293,16 +360,18 @@ internal object Mesh {
             KillVertex(eDel.Org ?: error("eDel.Org == null"), null)
         } else {
             /* Make sure that eDel.Org and eDel.Sym.Lface point to valid half-edges */
-            eDel.Sym!!.Lface!!.anEdge = eDel.Sym!!.Lnext
+            val eOther = eDel.Sym!!.Lnext!!
+            eDel.Sym!!.Lface!!.anEdge = eOther
             eDel.Org!!.anEdge = eDel.Onext
-            Splice(eDel, eDel.Sym!!.Lnext!!)
+            Splice(eDel, eOther)
             if (!joiningLoops) {
                 val newFace = GLUface()
 
                 /* We are splitting one loop into two -- create a new loop for eDel. */MakeFace(
                     newFace,
                     eDel,
-                    eDel.Lface ?: error("eDel.Lface == null")
+                    eDel.Lface ?: error("eDel.Lface == null"),
+                    eOther
                 )
             }
         }
@@ -393,7 +462,7 @@ internal object Mesh {
         if (eDst.Lface !== eOrg.Lface) {
             /* We are connecting two disjoint loops -- destroy eDst.Lface */
             joiningLoops = true
-            KillFace(eDst.Lface ?: error("eDst.Lface == null"), eOrg.Lface)
+            KillFace(eDst.Lface ?: error("eDst.Lface == null"), eOrg.Lface, allowSwap = true)
         }
 
         /* Connect the new edge appropriately */
@@ -412,7 +481,7 @@ internal object Mesh {
             val newFace = GLUface()
 
             /* We split one loop into two -- the new loop is eNew.Lface */
-            MakeFace(newFace, eNew, eOrg.Lface ?: error("eOrg.Lface == null"))
+            MakeFace(newFace, eNew, eOrg.Lface ?: error("eOrg.Lface == null"), eNewSym)
         }
         return eNew
     }

@@ -47,10 +47,7 @@ class Tessellator : GLUtessellatorImpl() {
 
                     coords ?: error("coords == null")
                     outData ?: error("outData == null")
-                    val result = DoubleArray(3)
-                    result[0] = coords[0]
-                    result[1] = coords[1]
-                    result[2] = coords[2]
+                    // the tessellator passes a copy of the coordinates of the new vertex
                     outData[0] = coords
                 }
             }
@@ -63,28 +60,18 @@ class Tessellator : GLUtessellatorImpl() {
 
 
 /**
- * A class that extends the functionality of `GLUtessellatorImpl` to construct
- * tessellated geometric primitives with indexed vertex data.
+ * A tessellator that outputs triangles as indices of vertices, the vertex data of each vertex passed to
+ * `gluTessVertex` is its index.
  *
- * The `IndexedTessellator` collects tessellated primitives in the form of
- * `IndexedPrimitive` instances, where each instance represents a tessellated
- * piece of geometry (such as triangles or polygons) along with the indices of
- * the vertices used to define the geometry.
- *
- * This class utilizes a customized `GLUtessellatorCallback` implementation
- * to handle tessellation events. The supported callback methods include:
- * - `begin`: Called at the start of a new geometric primitive definition.
- * - `vertexData`: Processes vertex data during tessellation and stores
- *   indices into the current geometric primitive.
- * - `error`: Raises an exception on tessellation errors with a human-readable
- *   GLU error message.
- * - `combine`: Handles vertex combination in the tessellation process.
- *
- * The tessellation callbacks are registered internally during the initialization
- * of this class to handle specific stages of the tessellation process.
+ * Coincident vertices are merged into the vertex with the first index. Intersections of edges need new vertices:
+ * they are added to [newVertices], their index in the primitives is the negative number `-1 - i` for the `i`-th new
+ * vertex, which the caller maps to an index after its own vertices.
  */
 class IndexedTessellator : GLUtessellatorImpl() {
     var primitives = mutableListOf<IndexedPrimitive>()
+
+    /** the coordinates (x, y, z) of the vertices at intersections of edges */
+    val newVertices = mutableListOf<DoubleArray>()
 
     init {
         val callback: GLUtessellatorCallbackAdapter =
@@ -102,23 +89,23 @@ class IndexedTessellator : GLUtessellatorImpl() {
                     throw RuntimeException("GLU Error " + gluErrorString(errnum))
                 }
 
-
                 override fun combine(
                     coords: DoubleArray?,
                     data: Array<Any?>?,
                     weight: FloatArray?,
                     outData: Array<Any?>?
                 ) {
-
                     coords ?: error("coords == null")
                     outData ?: error("outData == null")
-                    val result = DoubleArray(3)
-                    result[0] = coords[0]
-                    result[1] = coords[1]
-                    result[2] = coords[2]
-                    data!!
-
-                    outData[0] = data[0]
+                    data ?: error("data == null")
+                    if (data[2] == null) {
+                        // two coincident vertices are merged, the first one is kept
+                        outData[0] = data[0]
+                    } else {
+                        // the intersection of two edges, the tessellator passes a copy of its coordinates
+                        newVertices.add(coords)
+                        outData[0] = -newVertices.size
+                    }
                 }
             }
         gluTessCallback(GLU.GLU_TESS_BEGIN, callback)
@@ -127,4 +114,3 @@ class IndexedTessellator : GLUtessellatorImpl() {
         gluTessCallback(GLU.GLU_TESS_COMBINE, callback)
     }
 }
-
