@@ -250,12 +250,7 @@ internal class ExpansionDrawer {
                 localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x00, 0xff)
                 localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INVERT)
                 Driver.instance.setState(localStyle)
-                for (clip in clipCommands) {
-                    Driver.instance.drawVertexBuffer(
-                        shader, listOf(clip.vertexBuffer), DrawPrimitive.TRIANGLES,
-                        clip.vertexOffset, clip.vertexCount, verticesPerPatch = 0
-                    )
-                }
+                drawMerged(shader, clipCommands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
                 localStyle.stencil.stencilWriteMask = 0xff
             }
             // strokes are drawn where the stencil buffer holds this value, drawn pixels are increased to prevent
@@ -300,12 +295,7 @@ internal class ExpansionDrawer {
                 localStyle.stencil.stencilFunc(StencilTest.EQUAL, if (clipInside) 0x00 else CLIP_BIT, 0xff)
                 localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
                 Driver.instance.setState(localStyle)
-                for (fringe in fringeCommands) {
-                    Driver.instance.drawVertexBuffer(
-                        shader, listOf(fringe.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP,
-                        fringe.vertexOffset, fringe.vertexCount, verticesPerPatch = 0
-                    )
-                }
+                drawMerged(shader, fringeCommands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
             }
 
             // -- reset stencil
@@ -322,18 +312,8 @@ internal class ExpansionDrawer {
                 verticesPerPatch = 0
             )
             // the clip bit is also set outside of the strokes and fringes
-            for (fringe in fringeCommands) {
-                Driver.instance.drawVertexBuffer(
-                    shader, listOf(fringe.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP,
-                    fringe.vertexOffset, fringe.vertexCount, verticesPerPatch = 0
-                )
-            }
-            for (clip in clipCommands) {
-                Driver.instance.drawVertexBuffer(
-                    shader, listOf(clip.vertexBuffer), DrawPrimitive.TRIANGLES,
-                    clip.vertexOffset, clip.vertexCount, verticesPerPatch = 0
-                )
-            }
+            drawMerged(shader, fringeCommands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
+            drawMerged(shader, clipCommands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
             localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
@@ -361,30 +341,8 @@ internal class ExpansionDrawer {
         shader.uniform("strokeMult", 1.0)
 
         shader.uniform("strokeFillFactor", 1.0)
-        commands.forEach { command ->
-            if (command.type == ExpansionType.FILL) {
-                Driver.instance.drawVertexBuffer(
-                    shader,
-                    listOf(command.vertexBuffer),
-                    DrawPrimitive.TRIANGLES,
-                    command.vertexOffset,
-                    command.vertexCount,
-                    verticesPerPatch = 0
-                )
-            }
-        }
-        commands.forEach { command ->
-            if (command.type == ExpansionType.FRINGE) {
-                Driver.instance.drawVertexBuffer(
-                    shader,
-                    listOf(command.vertexBuffer),
-                    DrawPrimitive.TRIANGLE_STRIP,
-                    command.vertexOffset,
-                    command.vertexCount,
-                    verticesPerPatch = 0
-                )
-            }
-        }
+        // the fill and its fringe are lists of triangles that follow each other, drawn with a single draw call
+        drawMerged(shader, commands, setOf(ExpansionType.FILL, ExpansionType.FRINGE), DrawPrimitive.TRIANGLES)
     }
 
     private fun renderFillCommands(
@@ -451,18 +409,7 @@ internal class ExpansionDrawer {
         localStyle.cullTestPass = CullTestPass.ALWAYS
         Driver.instance.setState(localStyle)
 
-        for (c in commands) {
-            if (c.type == ExpansionType.FILL) {
-                Driver.instance.drawVertexBuffer(
-                    shader,
-                    listOf(c.vertexBuffer),
-                    DrawPrimitive.TRIANGLES,
-                    c.vertexOffset,
-                    c.vertexCount,
-                    verticesPerPatch = 0
-                )
-            }
-        }
+        drawMerged(shader, commands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
 
         localStyle.frontStencil = localStyle.stencil
         localStyle.backStencil = localStyle.stencil
@@ -484,18 +431,7 @@ internal class ExpansionDrawer {
                 onDepthTestPass = onPass
             )
             Driver.instance.setState(localStyle)
-            for (c in commands) {
-                if (c.type == ExpansionType.FRINGE) {
-                    Driver.instance.drawVertexBuffer(
-                        shader,
-                        listOf(c.vertexBuffer),
-                        DrawPrimitive.TRIANGLE_STRIP,
-                        c.vertexOffset,
-                        c.vertexCount,
-                        verticesPerPatch = 0
-                    )
-                }
-            }
+            drawMerged(shader, commands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
         }
         // the outside of the fill, where the other side of an outline is always inside
         drawFringes(1, 0x00, insideMask, StencilOperation.KEEP)
@@ -545,10 +481,15 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): ExpansionCommand {
+    private fun toCommand(
+        vertices: VertexBuffer,
+        expansion: Expansion,
+        vertexOffset: Int,
+        stripsAsTriangles: Boolean
+    ): ExpansionCommand {
         if (expansion.vertexCount > 0) {
-
-            if (expansion.type == ExpansionType.FILL) {
+            val vertexSize = (expansion.bufferPosition - expansion.bufferStart) / expansion.vertexCount
+            if (expansion.type == ExpansionType.FILL || stripsAsTriangles) {
                 if (expansion.vertexCount < 3) {
                     return ExpansionCommand(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
                 }
@@ -558,39 +499,56 @@ internal class ExpansionDrawer {
                     vertices, expansion.type, vertexOffset, vertexCount,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
-                val vertexSize = (expansion.bufferPosition - expansion.bufferStart) / expansion.vertexCount
                 vertices.shadow.writer().apply {
                     fun writeVertex(i: Int) {
                         write(expansion.fb, expansion.bufferStart + i * vertexSize, vertexSize)
                     }
 
                     positionElements = vertexOffset
-                    for (i in 1 until expansion.vertexCount - 1) {
-                        writeVertex(0)
-                        writeVertex(i)
-                        writeVertex(i + 1)
+                    if (expansion.type == ExpansionType.FILL) {
+                        // a fan around the first vertex
+                        for (i in 1 until expansion.vertexCount - 1) {
+                            writeVertex(0)
+                            writeVertex(i)
+                            writeVertex(i + 1)
+                        }
+                    } else {
+                        // the triangles of a strip, in the orientation they have in the strip
+                        for (i in 0 until expansion.vertexCount - 2) {
+                            if (i % 2 == 0) {
+                                writeVertex(i)
+                                writeVertex(i + 1)
+                            } else {
+                                writeVertex(i + 1)
+                                writeVertex(i)
+                            }
+                            writeVertex(i + 2)
+                        }
                     }
                 }
                 return command
 
             } else {
                 val command = ExpansionCommand(
-                    vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
+                    vertices, expansion.type, vertexOffset, stripVertexCount(expansion.vertexCount),
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
                 val w = vertices.shadow.writer().apply {
                     positionElements = vertexOffset
                 }
 
-                val vertexSize = (expansion.bufferPosition - expansion.bufferStart) / expansion.vertexCount
-
                 // insert leading degenerate triangles
                 w.write(expansion.fb, expansion.bufferStart, vertexSize)
 
                 w.write(expansion.fb, expansion.bufferStart, expansion.bufferPosition - expansion.bufferStart)
 
-                // insert trailing degenerate triangles
-                w.write(expansion.fb, expansion.bufferStart + vertexSize * (expansion.vertexCount - 1), vertexSize)
+                // insert trailing degenerate triangles. Strips have an even number of vertices, so that strips that
+                // follow each other keep their facing when they are drawn with a single draw call
+                val last = expansion.bufferStart + vertexSize * (expansion.vertexCount - 1)
+                w.write(expansion.fb, last, vertexSize)
+                if ((expansion.vertexCount + 2) % 2 == 1) {
+                    w.write(expansion.fb, last, vertexSize)
+                }
 
                 return command
             }
@@ -601,6 +559,55 @@ internal class ExpansionDrawer {
         }
     }
 
+    /** the number of vertices of a strip of [vertexCount] vertices with degenerate ends, made even */
+    private fun stripVertexCount(vertexCount: Int): Int {
+        val count = vertexCount + 2
+        return if (count % 2 == 1) count + 1 else count
+    }
+
+    /** the number of vertices the command of [expansion] takes in the vertex buffer */
+    private fun commandVertexCount(expansion: Expansion, stripsAsTriangles: Boolean = false): Int =
+        if (expansion.type == ExpansionType.FILL || stripsAsTriangles) {
+            (expansion.vertexCount - 2).coerceAtLeast(0) * 3
+        } else {
+            stripVertexCount(expansion.vertexCount)
+        }
+
+    /**
+     * Draws the [commands] of [types] as [primitive]. Commands that follow each other in a vertex buffer are drawn with
+     * a single draw call: lists of triangles join as they are, strips join by their degenerate ends.
+     */
+    private fun drawMerged(
+        shader: Shader,
+        commands: List<ExpansionCommand>,
+        types: Set<ExpansionType>,
+        primitive: DrawPrimitive
+    ) {
+        var first: ExpansionCommand? = null
+        var count = 0
+        fun flush() {
+            first?.let {
+                Driver.instance.drawVertexBuffer(
+                    shader, listOf(it.vertexBuffer), primitive, it.vertexOffset, count, verticesPerPatch = 0
+                )
+            }
+            first = null
+            count = 0
+        }
+        for (command in commands) {
+            if (command.type !in types) continue
+            val f = first
+            if (f != null && f.vertexBuffer === command.vertexBuffer && f.vertexOffset + count == command.vertexOffset) {
+                count += command.vertexCount
+            } else {
+                flush()
+                first = command
+                count = command.vertexCount
+            }
+        }
+        flush()
+    }
+
     /**
      * Converts a list of geometry expansions into a series of commands using the provided vertex buffer.
      *
@@ -608,11 +615,15 @@ internal class ExpansionDrawer {
      * @param expansions A list of expansions that define the geometry to be processed into commands.
      * @return A list of commands resulting from converting the geometry expansions.
      */
-    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<ExpansionCommand> {
+    private fun toCommands(
+        vertices: VertexBuffer,
+        expansions: List<Expansion>,
+        stripsAsTriangles: Boolean = false
+    ): List<ExpansionCommand> {
         var vertexOffset = 0
         val commands = mutableListOf<ExpansionCommand>()
         expansions.forEach {
-            val command = toCommand(vertices, it, vertexOffset)
+            val command = toCommand(vertices, it, vertexOffset, stripsAsTriangles)
             if (command.type != ExpansionType.SKIP) {
                 commands.add(command)
                 vertexOffset += command.vertexCount
@@ -651,7 +662,7 @@ internal class ExpansionDrawer {
         fringeScale: Double,
         bounds: Vector4
     ) {
-        val vertexCount = expansion.vertexCount + 2
+        val vertexCount = commandVertexCount(expansion)
         renderStrokeCommands(
             drawContext, drawStyle, toCommands(vertices(vertexCount), listOf(expansion)), fringeScale, bounds
         )
@@ -674,9 +685,7 @@ internal class ExpansionDrawer {
         clip: StrokeClip? = null
     ) {
         val clipExpansions = clip?.let { it.polygons + it.fringes } ?: emptyList()
-        val vertexCount = expansions.sumOf { it.vertexCount + 2 } + clipExpansions.sumOf {
-            if (it.type == ExpansionType.FILL) (it.vertexCount - 2).coerceAtLeast(0) * 3 else it.vertexCount + 2
-        }
+        val vertexCount = expansions.sumOf { commandVertexCount(it) } + clipExpansions.sumOf { commandVertexCount(it) }
         // the strokes come first in the vertex buffer, they are drawn with a single draw call
         val commands = toCommands(vertices(vertexCount), expansions + clipExpansions)
         renderStrokeCommandsInterleaved(
@@ -708,16 +717,15 @@ internal class ExpansionDrawer {
         fringeScale: Double,
         bounds: Vector4
     ) {
-        val vertexCount = expansions.sumOf {
-            if (it.type == ExpansionType.FILL) {
-                (it.vertexCount - 2).coerceAtLeast(0) * 3
-            } else {
-                it.vertexCount + 2
-            }
-        }
         if (convex) {
-            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
+            // convex fills are drawn with a single draw call, their fringes are written as triangles
+            val vertexCount = expansions.sumOf { commandVertexCount(it, stripsAsTriangles = true) }
+            renderConvexFillCommands(
+                drawContext, drawStyle, toCommands(vertices(vertexCount), expansions, stripsAsTriangles = true),
+                fringeScale, bounds
+            )
         } else {
+            val vertexCount = expansions.sumOf { commandVertexCount(it) }
             renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
         }
     }
@@ -737,13 +745,7 @@ internal class ExpansionDrawer {
         fringeScale: Double,
         bounds: Vector4
     ) {
-        val vertexCount = expansions.sumOf {
-            if (it.type == ExpansionType.FILL) {
-                (it.vertexCount - 2).coerceAtLeast(0) * 3
-            } else {
-                it.vertexCount + 2
-            }
-        }
+        val vertexCount = expansions.sumOf { commandVertexCount(it) }
         renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
     }
 }
