@@ -5,9 +5,14 @@ import kotlinx.serialization.Transient
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
-import org.openrndr.shape.internal.arcLength
 import org.openrndr.shape.internal.flattenSegment
 import org.openrndr.shape.internal.flattenSegmentWithT
+import org.openrndr.shape.internal.numQuadratics
+import org.openrndr.shape.internal.Speed
+import org.openrndr.shape.internal.arcLengthTable
+import org.openrndr.shape.internal.cubicSpeed
+import org.openrndr.shape.internal.quadraticSpeed
+import org.openrndr.shape.internal.tsForLengths
 import org.openrndr.shape.internal.unitIntervalRoots
 import kotlin.math.*
 
@@ -124,32 +129,23 @@ interface BezierSegment<T : EuclideanVector<T>> {
     fun tForLength(length: Double): Double
 
     /**
+     * Estimate the [t](https://pomax.github.io/bezierinfo/#explanation) values for ascending [lengths], faster than
+     * calling [tForLength] for each of them
+     * @return values between `0.0` and `1.0`.
+     */
+    fun tForLengths(lengths: List<Double>): List<Double> = lengths.map { tForLength(it) }
+
+    /**
      * Calculates the point at a given distance along this [Segment2D].
      * @param length the distance along the [Segment2D].
-     * @param distanceTolerance the tolerance used for simplifying the [Segment2D], lower values
-     * result in more accurate results, but slower calculation.
-     *
-     * @see [Segment2D.adaptivePositions]
+     * @param distanceTolerance not used, the point is found on the curve itself
      */
     fun pointAtLength(length: Double, distanceTolerance: Double): T {
-        when {
-            length <= 0.0 -> return start
-            length >= this.length -> return end
+        return when {
+            length <= 0.0 -> start
+            length >= this.length -> end
+            else -> position(tForLength(length))
         }
-        var remainingLength = length
-        var currentPoint = start
-        val points = adaptivePositions(distanceTolerance)
-        for (point in points) {
-            val segmentLength = currentPoint.distanceTo(point)
-            if (remainingLength <= segmentLength) {
-                val currentVector = point - currentPoint
-                val tangent = currentVector / segmentLength
-                return currentPoint + tangent * remainingLength
-            }
-            remainingLength -= segmentLength
-            currentPoint = point
-        }
-        return end
     }
 
     @Transient
@@ -177,15 +173,20 @@ interface BezierSegment<T : EuclideanVector<T>> {
     }
 
     /**
-     * Samples specified amount of points on the [Segment2D].
+     * Samples specified amount of points on the [Segment2D], spaced evenly by arc length, from start to end.
      * @param pointCount The number of points to sample.
+     * @param distanceTolerance not used, the points are found on the curve itself
      */
     fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<T> {
-        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
+        return equidistantPositionsWithT(pointCount, distanceTolerance).map { it.first }
     }
 
     fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<T, Double>> {
-        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
+        if (pointCount <= 0) return emptyList()
+        if (pointCount == 1) return listOf(start to 0.0)
+        val total = length
+        val ts = tForLengths(List(pointCount) { total * it / (pointCount - 1) })
+        return ts.mapIndexed { i, t -> (if (i == pointCount - 1) end else position(t)) to t }
     }
 }
 
@@ -217,17 +218,14 @@ data class Segment2D(
         return super.sub(t0, t1) as Segment2D
     }
 
+    /**
+     * Checks if [point] lies on the segment
+     * @return the [t](https://pomax.github.io/bezierinfo/#explanation) of the point on the segment nearest to
+     * [point] when it is closer than [error], null otherwise
+     */
     fun on(point: Vector2, error: Double = 5.0): Double? {
-        val lut = lut()
-        var hits = 0
-        var t = 0.0
-        for (i in lut.indices) {
-            if ((lut[i] - point).squaredLength < error * error) {
-                hits++
-                t += i.toDouble() / lut.size
-            }
-        }
-        return if (hits > 0) t / hits else null
+        val nearest = nearest(point)
+        return if (nearest.position.squaredDistanceTo(point) < error * error) nearest.segmentT else null
     }
 
     override fun adaptivePositions(distanceTolerance: Double): List<Vector2> {
@@ -242,38 +240,35 @@ data class Segment2D(
         if (type == SegmentType.LINEAR) {
             return (length / this.length).coerceIn(0.0, 1.0)
         }
-
-        val segmentLength = this.length
-        val cLength = length.coerceIn(0.0, segmentLength)
-
-        if (cLength == 0.0) {
-            return 0.0
-        }
-        if (cLength >= segmentLength) {
-            return 1.0
-        }
-        var summedLength = 0.0
-        lut(100)
-        val cLut = lut ?: error("no lut")
-        val partitionCount = cLut.size - 1
-
-        val dt = 1.0 / partitionCount
-        for ((index, _ /*point*/) in lut!!.withIndex()) {
-            if (index < lut!!.size - 1) {
-                val p0 = cLut[index]
-                val p1 = cLut[index + 1]
-                val partitionLength = p0.distanceTo(p1)
-                summedLength += partitionLength
-                if (summedLength >= length) {
-                    val localT = index.toDouble() / partitionCount
-                    val overshoot = summedLength - length
-                    // overshoot is the distance past [length], so the target lies that far before the partition end
-                    return localT + (1.0 - overshoot / partitionLength) * dt
-                }
-            }
-        }
-        return 1.0
+        return tsForLengths(doubleArrayOf(length), arcLengthTable, polygonLength, speed)[0]
     }
+
+    override fun tForLengths(lengths: List<Double>): List<Double> {
+        if (type == SegmentType.LINEAR) {
+            return lengths.map { (it / this.length).coerceIn(0.0, 1.0) }
+        }
+        return tsForLengths(lengths.toDoubleArray(), arcLengthTable, polygonLength, speed).asList()
+    }
+
+    /** Cumulative arc lengths, built with the [length] of a curved segment */
+    @kotlinx.serialization.Transient
+    private val arcLengthTable by lazy { arcLengthTable(polygonLength, speed) }
+
+    /** The length of the control polygon, a measure of the size of the segment */
+    private val polygonLength: Double
+        get() = when (control.size) {
+            0 -> start.distanceTo(end)
+            1 -> start.distanceTo(control[0]) + control[0].distanceTo(end)
+            else -> start.distanceTo(control[0]) + control[0].distanceTo(control[1]) + control[1].distanceTo(end)
+        }
+
+    /** The length of the derivative */
+    private val speed: Speed
+        get() = when (control.size) {
+            0 -> Speed { start.distanceTo(end) }
+            1 -> quadraticSpeed(start, control[0], end)
+            else -> cubicSpeed(start, control[0], control[1], end)
+        }
 
 
     @Suppress("unused")
@@ -377,14 +372,7 @@ data class Segment2D(
     override val length by lazy {
         when (control.size) {
             0 -> (end - start).length
-            1 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(end)) {
-                derivative(start, control[0], end, it).length
-            }
-
-            2 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(control[1]) + control[1].distanceTo(end)) {
-                derivative(start, control[0], control[1], end, it).length
-            }
-
+            1, 2 -> arcLengthTable.total
             else -> throw RuntimeException("unsupported number of control points")
         }
     }
@@ -432,9 +420,11 @@ data class Segment2D(
      * straight line between the two anchor points.
      */
     fun extrema(): List<Double> {
+        if (linear) {
+            return emptyList()
+        }
         val dPoints = dPoints()
         return when {
-            linear -> emptyList()
             control.size == 1 -> {
                 val xRoots = roots(dPoints[0].map { it.x })
                 val yRoots = roots(dPoints[0].map { it.y })
@@ -457,7 +447,11 @@ data class Segment2D(
 
     /** Returns the bounding box. */
     val bounds by lazy {
-        (listOf(start, end) + extremaPoints()).bounds
+        if (linear) {
+            Rectangle(min(start.x, end.x), min(start.y, end.y), abs(end.x - start.x), abs(end.y - start.y))
+        } else {
+            (listOf(start, end) + extremaPoints()).bounds
+        }
     }
 
     private fun dPoints(): List<List<Vector2>> {
@@ -668,13 +662,12 @@ data class Segment2D(
 
     override fun split(t: Double): Array<Segment2D> {
         val u = t.clamp(0.0, 1.0)
-        val splitSigma = 10E-6
 
-        if (u < splitSigma) {
+        if (u <= 0.0) {
             return arrayOf(Segment2D(start, start), this)
         }
 
-        if (u >= 1.0 - splitSigma) {
+        if (u >= 1.0) {
             return arrayOf(this, Segment2D(end, end))
         }
 
@@ -765,20 +758,6 @@ data class Segment2D(
 
                     val prx = rsm * px
                     val pry = rsm * py
-
-                    val rdx0 = prx.y - prx.x
-                    val rdy0 = pry.y - pry.x
-
-                    val rdx1 = prx.z - prx.y
-                    val rdy1 = pry.z - pry.y
-
-
-                    require(rdx0 * rdx0 + rdy0 * rdy0 > 0.0) {
-                        "Q start/c0 overlap after split on $t $this"
-                    }
-                    require(rdx1 * rdx1 + rdy1 * rdy1 > 0.0) {
-                        "Q end/c0 overlap after split on $t $this"
-                    }
 
                     val right = Segment2D(
                         Vector2(prx.x, pry.x),
@@ -1045,23 +1024,3 @@ fun Segment2D.clip(mask: Rectangle): List<Segment2D> {
     return result
 }
 
-
-internal fun Segment2D.cubicError(): Double {
-    val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
-    val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
-    return x * x + y * y
-}
-
-
-
-internal fun Segment2D.numQuadratics(tolerance: Double): Int {
-    return if (this.control.size == 2) {
-        val x = start.x - 3.0 * control[0].x + 3.0 * control[1].x - end.x
-        val y = start.y - 3.0 * control[0].y + 3.0 * control[1].y - end.y
-        val err = cubicError()
-        val result = err / (432.0 * tolerance * tolerance)
-        ceil(result.pow(1.0 / 6.0)).coerceAtLeast(1.0).toInt()
-    } else {
-        1
-    }
-}

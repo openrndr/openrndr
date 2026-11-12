@@ -2,9 +2,14 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.*
-import org.openrndr.shape.internal.arcLength
 import org.openrndr.shape.internal.flattenSegment
 import org.openrndr.shape.internal.flattenSegmentWithT
+import org.openrndr.shape.internal.Speed
+import org.openrndr.shape.internal.arcLengthTable
+import org.openrndr.shape.internal.cubicSpeed
+import org.openrndr.shape.internal.quadraticSpeed
+import org.openrndr.shape.internal.tsForLengths
+import org.openrndr.shape.internal.unitIntervalRoots
 import kotlin.math.pow
 
 class SegmentProjection3D(val segment: Segment3D, val projection: Double, val distance: Double, val point: Vector3)
@@ -37,34 +42,15 @@ class Segment3D(
         return super.sub(t0, t1) as Segment3D
     }
 
+    /**
+     * Checks if [point] lies on the segment
+     * @return the t of the point on the segment nearest to [point] when it is closer than [error], null otherwise
+     */
     fun on(point: Vector3, error: Double = 5.0): Double? {
-        val lut = lut()
-        var hits = 0
-        var t = 0.0
-        for (i in lut.indices) {
-            if ((lut[i] - point).squaredLength < error * error) {
-                hits++
-                t += i.toDouble() / lut.size
-            }
-        }
-        return if (hits > 0) t / hits else null
+        val projection = project(point)
+        return if (projection.distance < error * error) projection.projection else null
     }
 
-    private fun closest(points: List<Vector3>, query: Vector3): Pair<Int, Vector3> {
-        var closestIndex = 0
-        var closestValue = points[0]
-
-        var closestDistance = Double.POSITIVE_INFINITY
-        for (i in points.indices) {
-            val distance = (points[i] - query).squaredLength
-            if (distance < closestDistance) {
-                closestIndex = i
-                closestValue = points[i]
-                closestDistance = distance
-            }
-        }
-        return Pair(closestIndex, closestValue)
-    }
 
     /**
      * Projects a given point onto the segment, calculating the closest position on the segment
@@ -75,36 +61,54 @@ class Segment3D(
      *         between the point and the projected position, and the projected position itself.
      */
     fun project(point: Vector3): SegmentProjection3D {
-        // based on bezier.js
-        val lut = lut()
-        val l = (lut.size - 1).toDouble()
-        val closest = closest(lut, point)
-
-        var closestDistance = (point - closest.second).squaredLength
-
-        if (closest.first == 0 || closest.first == lut.size - 1) {
-            val t = closest.first.toDouble() / l
-            return SegmentProjection3D(this, t, closestDistance, closest.second)
-        } else {
-            val t1 = (closest.first - 1) / l
-            val t2 = (closest.first + 1) / l
-            val step = 0.1 / l
-
-            var t = t1
-            var ft = t1
-
-            while (t < t2 + step) {
-                val p = position(t)
-                val d = (p - point).squaredLength
-                if (d < closestDistance) {
-                    closestDistance = d
-                    ft = t
-                }
-                t += step
+        // the nearest point is an end point or a root of (position(t) - point) . derivative(t)
+        val projection = when (control.size) {
+            0 -> null
+            1 -> {
+                val qa = start - point
+                val ab = control[0] - start
+                val br = start + end - control[0] - control[0]
+                doubleArrayOf(qa dot ab, (qa dot br) + 2.0 * (ab dot ab), 3.0 * (ab dot br), br dot br)
             }
-            val p = position(ft)
-            return SegmentProjection3D(this, ft, closestDistance, p)
+
+            else -> {
+                val qa = start - point
+                val ab = control[0] - start
+                val bc = control[1] - control[0]
+                val cd = end - control[1]
+                val br = bc - ab
+                val ax = (cd - bc) - br
+                doubleArrayOf(
+                    qa dot ab,
+                    3.0 * (ab dot ab) + 2.0 * (qa dot br),
+                    9.0 * (br dot ab) + (qa dot ax),
+                    4.0 * (ax dot ab) + 6.0 * (br dot br),
+                    5.0 * (ax dot br),
+                    ax dot ax
+                )
+            }
         }
+        val t = if (projection == null) {
+            val dir = end - start
+            if (dir.squaredLength == 0.0) 0.0 else ((dir dot (point - start)) / dir.squaredLength).coerceIn(0.0, 1.0)
+        } else {
+            var bestT = 0.0
+            var bestDistance = start.squaredDistanceTo(point)
+            if (end.squaredDistanceTo(point) < bestDistance) {
+                bestT = 1.0
+                bestDistance = end.squaredDistanceTo(point)
+            }
+            for (root in unitIntervalRoots(projection)) {
+                val distance = position(root).squaredDistanceTo(point)
+                if (distance < bestDistance) {
+                    bestT = root
+                    bestDistance = distance
+                }
+            }
+            bestT
+        }
+        val p = position(t)
+        return SegmentProjection3D(this, t, p.squaredDistanceTo(point), p)
     }
 
     /**
@@ -128,17 +132,30 @@ class Segment3D(
     override val length: Double by lazy {
         when (control.size) {
             0 -> (end - start).length
-            1 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(end)) {
-                derivative(start, control[0], end, it).length
-            }
-
-            2 -> arcLength(start.distanceTo(control[0]) + control[0].distanceTo(control[1]) + control[1].distanceTo(end)) {
-                derivative(start, control[0], control[1], end, it).length
-            }
-
+            1, 2 -> arcLengthTable.total
             else -> throw RuntimeException("unsupported number of control points")
         }
     }
+
+    /** Cumulative arc lengths, built with the [length] of a curved segment */
+    @kotlinx.serialization.Transient
+    private val arcLengthTable by lazy { arcLengthTable(polygonLength, speed) }
+
+    /** The length of the control polygon, a measure of the size of the segment */
+    private val polygonLength: Double
+        get() = when (control.size) {
+            0 -> start.distanceTo(end)
+            1 -> start.distanceTo(control[0]) + control[0].distanceTo(end)
+            else -> start.distanceTo(control[0]) + control[0].distanceTo(control[1]) + control[1].distanceTo(end)
+        }
+
+    /** The length of the derivative */
+    private val speed: Speed
+        get() = when (control.size) {
+            0 -> Speed { start.distanceTo(end) }
+            1 -> quadraticSpeed(start, control[0], end)
+            else -> cubicSpeed(start, control[0], control[1], end)
+        }
 
     override fun position(ut: Double): Vector3 {
         val t = ut.coerceIn(0.0, 1.0)
@@ -432,37 +449,14 @@ class Segment3D(
         if (type == SegmentType.LINEAR) {
             return (length / this.length).coerceIn(0.0, 1.0)
         }
+        return tsForLengths(doubleArrayOf(length), arcLengthTable, polygonLength, speed)[0]
+    }
 
-        val segmentLength = this.length
-        val cLength = length.coerceIn(0.0, segmentLength)
-
-        if (cLength == 0.0) {
-            return 0.0
+    override fun tForLengths(lengths: List<Double>): List<Double> {
+        if (type == SegmentType.LINEAR) {
+            return lengths.map { (it / this.length).coerceIn(0.0, 1.0) }
         }
-        if (cLength >= segmentLength) {
-            return 1.0
-        }
-        var summedLength = 0.0
-        lut(100)
-        val cLut = lut ?: error("no lut")
-        val partitionCount = cLut.size - 1
-
-        val dt = 1.0 / partitionCount
-        for ((index, _ /*point*/) in lut!!.withIndex()) {
-            if (index < lut!!.size - 1) {
-                val p0 = cLut[index]
-                val p1 = cLut[index + 1]
-                val partitionLength = p0.distanceTo(p1)
-                summedLength += partitionLength
-                if (summedLength >= length) {
-                    val localT = index.toDouble() / partitionCount
-                    val overshoot = summedLength - length
-                    // overshoot is the distance past [length], so the target lies that far before the partition end
-                    return localT + (1.0 - overshoot / partitionLength) * dt
-                }
-            }
-        }
-        return 1.0
+        return tsForLengths(lengths.toDoubleArray(), arcLengthTable, polygonLength, speed).asList()
     }
 
     override operator fun times(scale: Double): Segment3D {

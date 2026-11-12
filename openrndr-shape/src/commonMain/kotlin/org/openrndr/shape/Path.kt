@@ -132,8 +132,7 @@ interface Path<T : EuclideanVector<T>> {
     /**
      * Calculates the point at a given distance along this [ShapeContour].
      * @param length the distance along the [ShapeContour]
-     * @param distanceTolerance the tolerance used for simplifying the [ShapeContour], lower values
-     * result in more accurate results, but slower calculation
+     * @param distanceTolerance not used, the point is found on the curves themselves
      *
      * @return Resulting [Vector2] or [Vector2.INFINITY] for an empty [ShapeContour].
      *
@@ -182,28 +181,58 @@ interface Path<T : EuclideanVector<T>> {
     }
 
     /**
-     * Returns specified amount of points of equal distance from each other.
+     * Returns specified amount of points of equal distance from each other, measured along the path. The first point
+     * is the start of the path, the last point is the end of an open path.
+     *
+     * @param distanceTolerance not used, the points are found on the curves themselves
      */
-    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5) : List<T> {
-        return if (empty) {
-            emptyList()
-        } else {
-            sampleEquidistant(
-                adaptivePositions(distanceTolerance),
-                pointCount + if (closed) 1 else 0
-            ).take(pointCount)
-        }
+    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<T> =
+        equidistantPositionsWithT(pointCount, distanceTolerance).map { it.first }
 
-    }
-    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5) : List<Pair<T, Double>> =
-        if (empty) {
-            emptyList()
-        } else {
-            sampleEquidistantWithT(
-                adaptivePositionsWithT(distanceTolerance),
-                pointCount + if (closed) 1 else 0
-            ).take(pointCount)
+    /**
+     * Returns specified amount of points of equal distance from each other, measured along the path, with their
+     * path parameter. The first point is the start of the path, the last point is the end of an open path.
+     *
+     * @param distanceTolerance not used, the points are found on the curves themselves
+     */
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<T, Double>> {
+        if (empty || pointCount <= 0) {
+            return emptyList()
         }
+        val lengths = segments.map { it.length }
+        val total = lengths.sum()
+        val intervals = if (closed) pointCount else pointCount - 1
+        fun target(i: Int) = if (intervals == 0) 0.0 else total * i / intervals
+
+        val result = ArrayList<Pair<T, Double>>(pointCount)
+        var segmentIndex = 0
+        var segmentStart = 0.0
+        var i = 0
+        while (i < pointCount) {
+            while (segmentIndex < segments.size - 1 && target(i) > segmentStart + lengths[segmentIndex]) {
+                segmentStart += lengths[segmentIndex]
+                segmentIndex++
+            }
+            // all targets on this segment are found in one ascending search
+            val local = mutableListOf<Double>()
+            var j = i
+            while (j < pointCount &&
+                (segmentIndex == segments.size - 1 || target(j) <= segmentStart + lengths[segmentIndex])
+            ) {
+                local.add(target(j) - segmentStart)
+                j++
+            }
+            val segment = segments[segmentIndex]
+            for (t in segment.tForLengths(local)) {
+                result.add(segment.position(t) to (segmentIndex + t) / segments.size)
+            }
+            i = j
+        }
+        if (!closed && pointCount >= 2) {
+            result[result.lastIndex] = segments.last().end to 1.0
+        }
+        return result
+    }
 
     fun sub(t0: Double, t1: Double): Path<T>
 }

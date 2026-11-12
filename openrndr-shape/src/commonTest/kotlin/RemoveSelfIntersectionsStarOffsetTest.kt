@@ -48,11 +48,9 @@ class RemoveSelfIntersectionsStarOffsetTest {
                 assertTrue(contour.shape.area > 1000.0)
             }
 
-            // the star is mirror-symmetric, so the four off-axis pieces come in equal-area pairs. All five
-            // small pieces have nearly the same area, so match pairs instead of relying on sort order.
+            // the star has five-fold symmetry, so the five small pieces have the same area
             val areas = resolved.contours.map { it.shape.area }.sorted().take(5)
-            val paired = areas.count { a -> areas.count { b -> abs(a - b) < 1e-5 } == 2 }
-            assertEquals(4, paired)
+            assertTrue(areas.max() - areas.min() < 1e-5)
         }
     }
 }

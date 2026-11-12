@@ -5,6 +5,7 @@ import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Path2
 import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
+import org.openrndr.shape.internal.signedArea
 import org.openrndr.utils.resettableLazy
 import kotlin.math.abs
 import kotlin.math.max
@@ -61,9 +62,9 @@ data class ShapeContour(
          * @param segments A list of Segment2D objects representing the segments of the contour.
          * @param closed A boolean indicating whether the contour is closed (true) or open (false).
          * @param polarity The YPolarity of the contour, defaulting to YPolarity.CW_NEGATIVE_Y.
-         * @param distanceTolerance The maximum allowable distance between the end of one segment and the start of the next, defaulting to 1E-3.
+         * @param distanceTolerance The maximum allowable squared distance between the end of one segment and the start of the next, defaulting to 1E-3.
          * @return A ShapeContour object constructed from the provided segments, adhering to the closure and polarity settings.
-         * @throws IllegalArgumentException If the distance between the end of one segment and the start of the next exceeds the distanceTolerance.
+         * @throws IllegalArgumentException If the squared distance between the end of one segment and the start of the next exceeds the distanceTolerance.
          */
         fun fromSegments(
             segments: List<Segment2D>,
@@ -138,35 +139,32 @@ data class ShapeContour(
     override val infinity: Vector2 = Vector2.INFINITY
 
 
-    /** Calculates the bounding box of the contour as [Rectangle]. */
+    /** Calculates the bounding box of the contour as [Rectangle], the union of the exact bounds of its segments. */
     val bounds by lazy {
-        sampleLinear().segments.flatMap {
-            listOf(
-                it.start,
-                it.end
-            )
-        }.bounds
+        if (segments.isEmpty()) {
+            emptyList<Vector2>().bounds
+        } else {
+            segments.map { it.bounds }.bounds
+        }
     }
 
-    /** Determines the winding order of the [ShapeContour]. */
+    /**
+     * The signed area enclosed by the contour, closed by a line from its end to its start. It is positive for
+     * contours that turn clockwise on a screen, whose y-axis points down.
+     */
+    internal val signedArea: Double by lazy { signedArea(segments) }
+
+    /** Determines the winding order of the [ShapeContour], from the sign of the area it encloses. */
     val winding: Winding by lazy {
-        var sum = 0.0
-        segments.forEach { s ->
-            (listOf(s.start) + s.control + listOf(s.end)).zipWithNext { a, b ->
-                sum += (b.x - a.x) * (b.y + a.y)
-            }
-        }
-        val start = segments.first().start
-        val end = segments.last().end
-        sum += (start.x - end.x) * (start.y + end.y)
+        val area = signedArea
         when (polarity) {
-            YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
+            YPolarity.CCW_POSITIVE_Y -> if (area > 0) {
                 Winding.COUNTER_CLOCKWISE
             } else {
                 Winding.CLOCKWISE
             }
 
-            YPolarity.CW_NEGATIVE_Y -> if (sum < 0) {
+            YPolarity.CW_NEGATIVE_Y -> if (area > 0) {
                 Winding.CLOCKWISE
             } else {
                 Winding.COUNTER_CLOCKWISE
@@ -460,9 +458,19 @@ data class ShapeContour(
      * @return a projected point that lies on the [ShapeContour].
      */
     fun nearest(point: Vector2): ContourPoint {
-        val n = segments.map { it.nearest(point) }.minByOrNull { it.position.distanceTo(point) }
-            ?: error("no segments")
-        val segmentIndex = segments.indexOf(n.segment)
+        require(segments.isNotEmpty()) { "no segments" }
+        var segmentIndex = 0
+        var n = segments[0].nearest(point)
+        var distance = n.position.squaredDistanceTo(point)
+        for (i in 1 until segments.size) {
+            val candidate = segments[i].nearest(point)
+            val candidateDistance = candidate.position.squaredDistanceTo(point)
+            if (candidateDistance < distance) {
+                segmentIndex = i
+                n = candidate
+                distance = candidateDistance
+            }
+        }
         val t = (segmentIndex + n.segmentT) / segments.size
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
     }

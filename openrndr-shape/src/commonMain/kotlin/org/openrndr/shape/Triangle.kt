@@ -6,6 +6,7 @@ import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -24,8 +25,10 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
         val x31 = x3 - x1
         val x13 = x1 - x3
         val det = x23.y * x13.x - x32.x * x31.y
-        val minD = min(det, 0.0) - 10E-6
-        val maxD = max(det, 0.0) + 10E-6
+        // a tolerance relative to the size of the triangle keeps points on its edges inside
+        val epsilon = abs(det) * 1E-9
+        val minD = min(det, 0.0) - epsilon
+        val maxD = max(det, 0.0) + epsilon
 
         val d = v - x3
         val a = x23.y * d.x + x32.x * d.y

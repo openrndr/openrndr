@@ -117,10 +117,42 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider, GeometricPrimitiv
 
     @Transient
     private val areaDelegate = resettableLazy {
-        triangulation.sumOf { it.area }
+        val closed = closedContours.filter { !it.empty }
+        when {
+            topology == ShapeTopology.OPEN || closed.isEmpty() -> 0.0
+            !isSelfIntersecting() ->
+                nestedArea(closed, if (topology == ShapeTopology.CLOSED) FillRule.NON_ZERO else FillRule.EVEN_ODD)
+            // intersecting contours are resolved into the contours of the region they fill first
+            topology == ShapeTopology.CLOSED -> resolvedArea()
+            else -> triangulation.sumOf { it.area }
+        }
     }
 
-    /** Calculates approximate area for this shape (through triangulation). */
+    /**
+     * The area of a closed shape with intersecting contours, exact from the contours of the region they fill, or
+     * through triangulation when that region cannot be found
+     */
+    private fun resolvedArea(): Double {
+        val resolved = try {
+            removeSelfIntersections(FillRule.NON_ZERO)
+        } catch (e: Throwable) {
+            null
+        }
+        val contours = resolved?.closedContours?.filter { !it.empty }
+        return when {
+            resolved == null || contours == null -> triangulation.sumOf { it.area }
+            contours.isEmpty() -> 0.0
+            resolved.isSelfIntersecting() -> triangulation.sumOf { it.area }
+            // the resolved contours bound the filled region, which every second contour enters
+            else -> nestedArea(contours, FillRule.EVEN_ODD)
+        }
+    }
+
+    /**
+     * Calculates the area of this shape, of the regions its closed contours fill by the [FillRule.NON_ZERO] rule, or
+     * by [FillRule.EVEN_ODD] when it also has open contours, the rules its [triangulation] uses. The area is exact,
+     * only a shape with open contours whose closed contours intersect is measured through triangulation.
+     */
     val area by areaDelegate
 
     @Transient
@@ -227,3 +259,44 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider, GeometricPrimitiv
 val List<Shape>.compound
     get() = Shape.compound(this)
 
+/**
+ * The area filled by [contours], which do not intersect, by the [fillRule]. A contour lies inside another when it is
+ * smaller and its start lies inside it, the face of a contour is the region inside it and outside the contours it
+ * directly holds. A face is filled by the winding numbers of the contours around it.
+ */
+private fun nestedArea(contours: List<ShapeContour>, fillRule: FillRule): Double {
+    val areas = contours.map { it.signedArea }
+    // from large to small, so the contours around a contour come before it
+    val order = contours.indices.sortedByDescending { kotlin.math.abs(areas[it]) }
+    val parent = IntArray(contours.size) { -1 }
+    val winding = IntArray(contours.size)
+    val depth = IntArray(contours.size)
+    val faceArea = DoubleArray(contours.size)
+    for ((k, j) in order.withIndex()) {
+        val start = contours[j].segments[0].start
+        // the smallest contour around contour j
+        for (m in k - 1 downTo 0) {
+            val i = order[m]
+            if (kotlin.math.abs(areas[i]) > kotlin.math.abs(areas[j]) && start in contours[i]) {
+                parent[j] = i
+                break
+            }
+        }
+        val sign = if (areas[j] > 0.0) 1 else if (areas[j] < 0.0) -1 else 0
+        winding[j] = sign + (if (parent[j] >= 0) winding[parent[j]] else 0)
+        depth[j] = 1 + (if (parent[j] >= 0) depth[parent[j]] else 0)
+        faceArea[j] += kotlin.math.abs(areas[j])
+        if (parent[j] >= 0) {
+            faceArea[parent[j]] -= kotlin.math.abs(areas[j])
+        }
+    }
+    var sum = 0.0
+    for (j in contours.indices) {
+        val filled = when (fillRule) {
+            FillRule.NON_ZERO -> winding[j] != 0
+            FillRule.EVEN_ODD -> depth[j] % 2 == 1
+        }
+        if (filled) sum += faceArea[j]
+    }
+    return sum
+}

@@ -583,18 +583,26 @@ class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position
 
 /** Calculates a [List] of all points where two [Segment2D]s intersect. */
 fun intersections(a: Segment2D, b: Segment2D, vertexThreshold: Double = 1E-5): List<SegmentIntersection> {
+    // Test if checking against self. This test should be improved such that it is not based on object identity
+    if (a === b) {
+        // Here we should handle self-intersections properly
+        return emptyList()
+    }
+    return segmentIntersections(a, b, a.toCurve2(), b.toCurve2(), vertexThreshold)
+}
 
+/** The intersections of [a] and [b], whose kartifex curves are [ca] and [cb] */
+private fun segmentIntersections(
+    a: Segment2D,
+    b: Segment2D,
+    ca: Curve2,
+    cb: Curve2,
+    vertexThreshold: Double
+): List<SegmentIntersection> {
     if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {
         return emptyList()
     }
-
-
-    // Test if checking against self. This test should be improved such that it is not based on object identity
-    val selfTest = a === b
-    val ca = a.toCurve2()
-    val cb = b.toCurve2()
-
-    return if (!selfTest) {
+    return run {
         Intersections.intersections(ca, cb).map {
             val at = when {
                 it.x < vertexThreshold -> 0.0
@@ -610,11 +618,29 @@ fun intersections(a: Segment2D, b: Segment2D, vertexThreshold: Double = 1E-5): L
             val pointB = SegmentPoint(b, bt, pointA.position)
             SegmentIntersection(pointA, pointB, pointA.position)
         }
-    } else {
-        // Here we should handle self-intersections properly
-        emptyList()
     }
 }
+
+/**
+ * Can this segment loop back on itself? Only a cubic can, and only when neither its x nor its y is monotone: the
+ * derivative of a coordinate keeps its sign when the differences of its control points do.
+ */
+private fun Segment2D.canLoop(): Boolean {
+    if (control.size != 2) return false
+    fun monotone(a: Double, b: Double, c: Double, d: Double): Boolean {
+        val d0 = b - a
+        val d1 = c - b
+        val d2 = d - c
+        return (d0 >= 0.0 && d1 >= 0.0 && d2 >= 0.0) || (d0 <= 0.0 && d1 <= 0.0 && d2 <= 0.0)
+    }
+    return !monotone(start.x, control[0].x, control[1].x, end.x) &&
+            !monotone(start.y, control[0].y, control[1].y, end.y)
+}
+
+/** Do [a] and [b] overlap, or lie closer than [epsilon] to each other? */
+private fun boundsOverlap(a: Rectangle, b: Rectangle, epsilon: Double): Boolean =
+    a.x <= b.x + b.width + epsilon && b.x <= a.x + a.width + epsilon &&
+            a.y <= b.y + b.height + epsilon && b.y <= a.y + a.height + epsilon
 
 @JvmRecord
 data class ContourIntersection(val a: ContourPoint, val b: ContourPoint, val position: Vector2)
@@ -632,13 +658,20 @@ fun intersections(a: ShapeContour, b: ShapeContour, vertexThreshold: Double = 1E
 
     val lastA = a.segments.lastIndex
     val lastB = b.segments.lastIndex
+    val curvesA = a.segments.map { it.toCurve2() }
+    val curvesB = if (selfTest) curvesA else b.segments.map { it.toCurve2() }
+    // segments whose bounds are apart cannot intersect, the margin covers the tolerance of kartifex
+    val margin = Intersections.SPATIAL_EPSILON * 10.0
     // this is where we should use a sweepline approach
     for ((ia, sa) in a.segments.withIndex()) {
         for ((ib, sb) in b.segments.withIndex()) {
             if (selfTest && ib > ia) {
                 continue
             }
-            val segmentIntersections = intersections(sa, sb, vertexThreshold).let {
+            if (sa === sb || !boundsOverlap(sa.bounds, sb.bounds, margin)) {
+                continue
+            }
+            val segmentIntersections = segmentIntersections(sa, sb, curvesA[ia], curvesB[ib], vertexThreshold).let {
                 if (selfTest) {
                     it.filterNot { intersection -> intersection.a.segmentT == 1.0 && intersection.b.segmentT == 0.0 || intersection.a.segmentT == 0.0 && intersection.b.segmentT == 1.0 }
                 } else {
@@ -661,12 +694,20 @@ fun intersections(a: ShapeContour, b: ShapeContour, vertexThreshold: Double = 1E
     }
 
 
-    return result.let {
-        if (selfTest) {
-            it.distinctBy { intersection -> Pair(intersection.a.contourT.toString().take(7), intersection.b.contourT.toString().take(7)) }
-        } else {
-            it
+    return if (selfTest) {
+        // the same intersection is found from both segments that meet at it
+        val unique = mutableListOf<ContourIntersection>()
+        for (intersection in result) {
+            if (unique.none {
+                    abs(it.a.contourT - intersection.a.contourT) < 1E-5 &&
+                            abs(it.b.contourT - intersection.b.contourT) < 1E-5
+                }) {
+                unique.add(intersection)
+            }
         }
+        unique
+    } else {
+        result
     }
 }
 
@@ -732,16 +773,19 @@ private fun Curve2.hasSelfIntersection(maxDepth: Int = 6): Boolean =
  */
 val ShapeContour.isSelfIntersecting: Boolean
     get() {
-        val curves = segments
-            .filterNot { it.linear && it.length == 0.0 }
-            .map { it.toCurve2() }
+        val nonEmpty = segments.filterNot { it.linear && it.length == 0.0 }
+        val curves = nonEmpty.map { it.toCurve2() }
 
-        if (curves.any { it.hasSelfIntersection() }) {
+        if (nonEmpty.indices.any { nonEmpty[it].canLoop() && curves[it].hasSelfIntersection() }) {
             return true
         }
 
+        val margin = Intersections.SPATIAL_EPSILON * 10.0
         for (ia in curves.indices) {
             for (ib in (ia + 1) until curves.size) {
+                if (!boundsOverlap(nonEmpty[ia].bounds, nonEmpty[ib].bounds, margin)) {
+                    continue
+                }
                 val hits = Intersections.intersections(curves[ia], curves[ib])
                 val genuine = hits.any { (ta, tb) ->
                     !((ta > 1.0 - Intersections.PARAMETRIC_EPSILON && tb < Intersections.PARAMETRIC_EPSILON) ||
