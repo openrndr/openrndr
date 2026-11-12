@@ -61,10 +61,13 @@ class DrawThreadGLFWGL3(private val contextWindow: Long) : DrawThread {
     private lateinit var realDrawer: Drawer
     private lateinit var realDispatcher: Dispatcher
 
-    override val dispatcher get() = realDispatcher
+    /** Counted down when the thread created its dispatcher and drawer */
+    private val ready = java.util.concurrent.CountDownLatch(1)
+
+    override val dispatcher get() = ready.await().let { realDispatcher }
 
     override val drawer: Drawer
-        get() = realDrawer
+        get() = ready.await().let { realDrawer }
 
     init {
         thread(isDaemon = true, name = "DrawThreadGL3") {
@@ -82,9 +85,20 @@ class DrawThreadGLFWGL3(private val contextWindow: Long) : DrawThread {
             glBindVertexArray(vaos[0])
             val renderTarget = NullRenderTargetGL3()
             renderTarget.bind()
+            // the thread waits for dispatched work or the next delay instead of polling
+            val signal = Object()
+            realDispatcher.onWorkQueued = { synchronized(signal) { signal.notifyAll() } }
+            ready.countDown()
             while (true) {
-                dispatcher.execute()
-                Thread.sleep(1)
+                realDispatcher.execute()
+                synchronized(signal) {
+                    if (!realDispatcher.shouldExecute) {
+                        val due = realDispatcher.millisUntilNextDelay()
+                        if (due == null || due > 0L) {
+                            signal.wait(due?.coerceAtMost(1000L) ?: 1000L)
+                        }
+                    }
+                }
             }
         }
     }

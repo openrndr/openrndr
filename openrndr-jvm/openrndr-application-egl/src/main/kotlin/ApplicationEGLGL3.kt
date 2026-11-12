@@ -30,6 +30,9 @@ private const val EGL_PLATFORM_SURFACELESS_MESA = 0x31DD
 /** EGL_PLATFORM_DEVICE_EXT, a display on a device, a GPU without a window system */
 private const val EGL_PLATFORM_DEVICE_EXT = 0x313F
 
+/** The longest a loop waits without work, in milliseconds, in case work is queued without waking it */
+private const val IDLE_TIMEOUT = 1000L
+
 /** The attribute of the profile of an OpenGL context, EGL_CONTEXT_OPENGL_PROFILE_MASK */
 private const val EGL_CONTEXT_OPENGL_PROFILE_MASK_ATTRIBUTE = 0x30FD
 
@@ -110,6 +113,17 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
 
     @Volatile
     private var drawRequested = false
+
+    /** Is there work for the loop, queued in the dispatcher or for the main thread? Guarded by [drawLock] */
+    private var workQueued = false
+
+    /** Wakes the loop when it waits in [PresentationMode.MANUAL] */
+    private fun wake() {
+        synchronized(drawLock) {
+            workQueued = true
+            drawLock.notifyAll()
+        }
+    }
 
     override fun requestDraw() {
         synchronized(drawLock) {
@@ -277,6 +291,8 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             val contextVersion = DriverVersionGL.find(DriverTypeGL.GL, glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION)) ?: version
             driver = createDriver(contextVersion)
             Driver.driver = driver
+            driver.onMainThreadWork = ::wake
+            program.dispatcher.onWorkQueued = ::wake
 
             glGenVertexArrays(vaos)
             glBindVertexArray(vaos[0])
@@ -346,12 +362,17 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             driver.processMainThreadExecutables()
             program.dispatcher.execute()
 
-            // in manual presentation the loop waits for requestDraw, it still runs the dispatcher every 10 ms
+            // in manual presentation the loop waits for requestDraw, for work queued in the dispatcher or for the main
+            // thread, or until the next delay of a coroutine is due
             if (presentationMode == PresentationMode.MANUAL) {
                 synchronized(drawLock) {
-                    if (!drawRequested && !exitRequested) {
-                        drawLock.wait(10)
+                    if (!drawRequested && !exitRequested && !workQueued) {
+                        val due = program.dispatcher.millisUntilNextDelay()
+                        if (due == null || due > 0L) {
+                            drawLock.wait(due?.coerceAtMost(IDLE_TIMEOUT) ?: IDLE_TIMEOUT)
+                        }
                     }
+                    workQueued = false
                 }
                 if (!drawRequested) {
                     continue

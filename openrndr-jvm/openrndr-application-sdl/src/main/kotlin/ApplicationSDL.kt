@@ -76,6 +76,32 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     private var drawRequested = false
 
+    /** The type of the event that wakes the loop when it waits for events, 0 when it could not be registered */
+    private val wakeEventType = SDL_RegisterEvents(1)
+
+    /** Is the loop waiting for events? */
+    @Volatile
+    private var waiting = false
+
+    /** Was work queued for the loop, in a dispatcher or for the main thread, since it last looked? */
+    @Volatile
+    private var workQueued = false
+
+    /**
+     * Wakes the loop for work queued from any thread, an event is only pushed while it waits, so dispatching many
+     * tasks does not fill the event queue
+     */
+    private fun wake() {
+        workQueued = true
+        if (waiting && wakeEventType != 0) {
+            stackPush().use {
+                val event = SDL_Event.calloc(it)
+                event.type(wakeEventType)
+                SDL_PushEvent(event)
+            }
+        }
+    }
+
     private var exitRequested = false
 
     override fun exit() {
@@ -224,6 +250,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             override val contextID: Long
                 get() = SDL_GL_GetCurrentContext()
         }
+        (Driver.driver as DriverGL3).onMainThreadWork = ::wake
         logger.debug { "Created primary window with id ${SDL_GetWindowID(primaryWindow)}" }
     }
 
@@ -829,6 +856,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         }
 
         val event = SDL_Event.create()
+        program.dispatcher.onWorkQueued = ::wake
 
         fun update(window: ApplicationWindowSDL): Boolean {
             if (window.drawnByEventWatch) {
@@ -842,6 +870,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             while (SDL_PollEvent(event)) {
                 handleSDLEvent(event)
             }
+            // the functions resource threads leave for the main thread, such as destroying their contexts
+            (Driver.instance as DriverGL3).processMainThreadExecutables()
             var drawn = update(window)
 
             val closeWindows = windows.filter { it.closeRequested }
@@ -853,16 +883,36 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             for (window in windows) {
                 drawn = update(window) or drawn
             }
-            // no window was drawn: they are minimized, or unfocused and throttled. Wait for events instead of spinning
-            if (!drawn && !exitRequested && SDL_WaitEventTimeout(event, 10)) {
-                handleSDLEvent(event)
+            // no window was drawn: they are minimized, or unfocused and throttled. Wait for an event, for work queued
+            // from another thread, or until a window or a delayed coroutine is due, instead of spinning
+            if (!drawn && !exitRequested) {
+                val timeout = idleTimeout()
+                waiting = true
+                if (!workQueued && timeout > 0 && SDL_WaitEventTimeout(event, timeout.toInt())) {
+                    handleSDLEvent(event)
+                }
+                waiting = false
             }
+            workQueued = false
         }
         window.destroy()
         for (window in windows) {
             window.destroy()
         }
         shutdown()
+    }
+
+    /**
+     * The number of milliseconds the loop can wait for events: until the next window is drawn or the next delay of a
+     * coroutine is due, at most a second in case work is queued without waking it
+     */
+    private fun idleTimeout(): Long {
+        var timeout = 1000L
+        for (w in listOf(window) + windows) {
+            w.millisUntilNextDraw()?.let { timeout = minOf(timeout, it) }
+            w.program.dispatcher.millisUntilNextDelay()?.let { timeout = minOf(timeout, it) }
+        }
+        return timeout
     }
 
     /**
@@ -934,6 +984,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         }
         windows.add(childWindow)
         windowsById[SDL_GetWindowID(childWindow.window)] = childWindow
+        program.dispatcher.onWorkQueued = ::wake
 
         if (oldContext != primaryGlContext) {
             SDL_GL_MakeCurrent(primaryWindow, oldContext)

@@ -358,6 +358,20 @@ class ApplicationWindowSDL(
     }
 
     /**
+     * The number of milliseconds until the window is drawn again without an event, 0 when it can be drawn now, null
+     * when it is minimized or destroyed
+     */
+    internal fun millisUntilNextDraw(): Long? {
+        if (destroyed || (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L) {
+            return null
+        }
+        if (windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL) {
+            return 0L
+        }
+        return (lastUpdate + 100 - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
+
+    /**
      * Delivers the events of the window and draws it, unless it is minimized or unfocused and throttled
      * @return true when the window was drawn
      */

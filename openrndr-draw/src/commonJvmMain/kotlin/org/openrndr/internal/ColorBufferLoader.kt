@@ -1,13 +1,15 @@
 package org.openrndr.internal
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBufferProxy
 import org.openrndr.draw.loadImage
 import java.io.IOException
 import java.util.WeakHashMap
 
 private val logger = KotlinLogging.logger {}
+
+/** The number of milliseconds after which proxies that are not persistent and not touched are unloaded */
+private const val UNLOAD_DELAY = 5000L
 
 val colorBufferLoader by lazy {
     ColorBufferLoader.create()
@@ -24,9 +26,17 @@ class ColorBufferLoader {
 
     private val urlItems = WeakHashMap<String, ColorBufferProxy>()
 
+    /** The loader thread waits on this until a proxy is queued or an unload is due */
+    private val signal = Object()
+
+    private fun wake() {
+        synchronized(signal) { signal.notifyAll() }
+    }
+
     fun queue(colorBufferProxy: ColorBufferProxy) {
         synchronized(loadQueue) { loadQueue.add(colorBufferProxy) }
         synchronized(unloadQueue) { unloadQueue.remove(colorBufferProxy) }
+        wake()
     }
 
     fun loadFromUrl(url: String, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy =
@@ -63,6 +73,30 @@ class ColorBufferLoader {
                 unloadQueue.add(proxy)
             }
         }
+        wake()
+    }
+
+    /**
+     * Unloads the proxies that were not touched for [UNLOAD_DELAY] milliseconds
+     * @return the number of milliseconds until the next unload is due, null when nothing is waiting to be unloaded
+     */
+    private fun unloadUntouched(): Long? {
+        synchronized(unloadQueue) {
+            while (unloadQueue.isNotEmpty()) {
+                val proxy = unloadQueue.minWith(compareBy { it.lastTouched })
+                val remaining = proxy.lastTouched + UNLOAD_DELAY - System.currentTimeMillis()
+                if (remaining >= 0) {
+                    return remaining + 1
+                }
+                unloadQueue.remove(proxy)
+                proxy.colorBuffer?.destroy()
+                proxy.colorBuffer = null
+                proxy.state = ColorBufferProxy.State.NOT_LOADED
+                proxy.events.unloaded.trigger(ColorBufferProxy.ProxyEvent())
+                logger.debug { "unloaded $proxy" }
+            }
+            return null
+        }
     }
 
     companion object {
@@ -71,15 +105,21 @@ class ColorBufferLoader {
             Driver.instance.createResourceThread {
                 logger.debug { "ColorBufferLoader thread started" }
                 while (true) {
-                    if (loader.loadQueue.isNotEmpty()) {
-                        val proxy = synchronized(loader.loadQueue) {
+                    val proxy = synchronized(loader.loadQueue) {
+                        if (loader.loadQueue.isEmpty()) {
+                            null
+                        } else {
                             loader.loadQueue.forEach { it.lastTouchedShadow = it.lastTouched }
                             val best = loader.loadQueue.minWith(compareBy({ it.priority }, { -it.lastTouchedShadow }))
                             loader.loadQueue.remove(best)
                             best
                         }
+                    }
+                    if (proxy != null) {
                         try {
                             val cb = loadImage(proxy.url)//ColorBuffer.fromUrl(proxy.url)
+                            // the upload is complete before other contexts use the color buffer
+                            Driver.instance.finish()
                             proxy.colorBuffer = cb
                             proxy.state = ColorBufferProxy.State.LOADED
                             if (!proxy.persistent) {
@@ -102,22 +142,15 @@ class ColorBufferLoader {
                         }
                     }
 
-                    synchronized(loader.unloadQueue) {
-                        if (loader.unloadQueue.isNotEmpty()) {
-                            val proxy = loader.unloadQueue.minWith(compareBy { it.lastTouched })
-                            val dt = System.currentTimeMillis() - proxy.lastTouched
-                            if (dt > 5000) {
-                                loader.unloadQueue.remove(proxy)
-                                proxy.colorBuffer?.destroy()
-                                proxy.colorBuffer = null
-                                proxy.state = ColorBufferProxy.State.NOT_LOADED
-                                proxy.events.unloaded.trigger(ColorBufferProxy.ProxyEvent())
-                                logger.debug { "unloaded $proxy" }
-                            }
+                    val untilUnload = loader.unloadUntouched()
+
+                    // wait for a proxy to be queued or for the next unload, instead of polling
+                    synchronized(loader.signal) {
+                        val idle = synchronized(loader.loadQueue) { loader.loadQueue.isEmpty() }
+                        if (idle) {
+                            loader.signal.wait(untilUnload ?: 0L)
                         }
                     }
-                    Driver.instance.clear(ColorRGBa.BLACK)
-                    Thread.sleep(5)
                 }
             }
             return loader

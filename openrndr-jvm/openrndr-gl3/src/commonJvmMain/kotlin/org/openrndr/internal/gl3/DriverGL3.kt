@@ -384,10 +384,18 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
     private val executionQueue = mutableListOf<() -> Unit>()
 
+    /**
+     * Called on the thread that queues a function for the main thread, so that a main loop that waits can wake up and
+     * [processMainThreadExecutables]
+     */
+    @Volatile
+    var onMainThreadWork: (() -> Unit)? = null
+
     fun executeOnMainThread(f: () -> Unit) {
         synchronized(executionQueue) {
             executionQueue.add(f)
         }
+        onMainThreadWork?.invoke()
     }
 
     fun processMainThreadExecutables() {

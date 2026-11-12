@@ -30,6 +30,24 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
     private val toRunAfterLock = SynchronizedObject()
     private val toRunLock = SynchronizedObject()
 
+    /**
+     * Called on the thread that queues work, after a task is dispatched or a delay is scheduled, so that a loop that
+     * waits while it has nothing to draw can wake up and [execute] it
+     */
+    @kotlin.concurrent.Volatile
+    var onWorkQueued: (() -> Unit)? = null
+
+    /**
+     * The number of milliseconds until the first delayed task is due, 0 when one is due, null when there are none
+     */
+    fun millisUntilNextDelay(): Long? {
+        val first = minOf(
+            synchronized(toContinueAfterLock) { toContinueAfter.minOfOrNull { it.first } } ?: Long.MAX_VALUE,
+            synchronized(toRunAfterLock) { toRunAfter.minOfOrNull { it.first } } ?: Long.MAX_VALUE
+        )
+        return if (first == Long.MAX_VALUE) null else (first - currentTimeMillis()).coerceAtLeast(0L)
+    }
+
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
     override fun toString(): String {
         return "MainCoroutineDispatcher"
@@ -40,6 +58,7 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
             logger.trace { "scheduleResume $timeMillis $continuation" }
             toContinueAfter.add(Pair(currentTimeMillis() + timeMillis, continuation))
         }
+        onWorkQueued?.invoke()
     }
 
 
@@ -51,6 +70,7 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
             logger.trace { "dispatching $block" }
             toRun.add(block)
         }
+        onWorkQueued?.invoke()
     }
 
     val shouldExecute : Boolean
