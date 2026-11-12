@@ -9,10 +9,15 @@ import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.draw.font.internal.TextShapingDriver
 import org.openrndr.fontdriver.freetype.FontDriverFreetype
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.gl3.angle.extractAngleLibraries
 import org.openrndr.textshapingdriver.harfbuzz.TextShapingDriverHarfBuzz
 
 class ApplicationBaseEGLGL3 : ApplicationBase() {
     init {
+        // OpenGL ES on macOS is rendered by ANGLE, its libraries are extracted before EGL is first used
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
+            extractAngleLibraries()
+        }
         // the same drivers as the GLFW and SDL backends
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = CachingFontDriver(FontDriverFreetype())

@@ -65,6 +65,7 @@ kotlin {
         getByName("jvmTest") {
             dependencies {
                 implementation(project(":openrndr-jvm:openrndr-application-glfw"))
+                implementation(project(":openrndr-jvm:openrndr-application-egl"))
                 implementation(project(":openrndr-webfont"))
             }
         }
@@ -78,6 +79,10 @@ kotlin {
 }
 tasks.withType<Test>().configureEach {
     outputs.cacheIf { false }
+    // -Popenrndr.test.backend=egl runs the tests headless with EGL instead of GLFW
+    val backend = providers.gradleProperty("openrndr.test.backend").orElse("glfw")
+    inputs.property("openrndr.test.backend", backend)
+    systemProperty("org.openrndr.test.backend", backend.get())
 }
 
 kotlin {

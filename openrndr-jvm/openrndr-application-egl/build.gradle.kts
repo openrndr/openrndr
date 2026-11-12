@@ -63,5 +63,6 @@ dependencies {
     implementation(libs.kotlin.coroutines)
     implementation(libs.lwjgl.egl)
     implementation(libs.lwjgl.opengl)
+    implementation(libs.lwjgl.opengles)
 
 }

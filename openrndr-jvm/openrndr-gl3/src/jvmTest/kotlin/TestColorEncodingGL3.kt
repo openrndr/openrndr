@@ -97,9 +97,31 @@ class TestColorEncodingGL3 : AbstractApplicationTestFixture() {
         return results
     }
 
+    /**
+     * Does the default framebuffer hold sRGB colors? Windows do, the pbuffer of the headless EGL backend does when the
+     * driver supports sRGB surfaces, Mesa's surfaceless platform does not
+     */
+    private fun defaultFramebufferIsSRGB(): Boolean {
+        val encoding = IntArray(1)
+        if (Driver.glType == DriverTypeGL.GL) {
+            org.lwjgl.opengl.GL33C.glBindFramebuffer(0x8CA9, 0)
+            org.lwjgl.opengl.GL33C.glGetFramebufferAttachmentParameteriv(0x8CA9, 0x0402, 0x8210, encoding)
+        } else {
+            org.lwjgl.opengles.GLES30.glBindFramebuffer(0x8CA9, 0)
+            org.lwjgl.opengles.GLES30.glGetFramebufferAttachmentParameteriv(0x8CA9, 0x0405, 0x8210, encoding)
+        }
+        return encoding[0] == 0x8C40
+    }
+
     @Test
     fun `the window holds sRGB colors`() {
-        assertColorValues(windowExpectations, measure(null))
+        val window = measure(null)
+        if (defaultFramebufferIsSRGB()) {
+            assertColorValues(windowExpectations, window)
+        } else {
+            // a linear default framebuffer holds the colors of a linear render target
+            assertColorValues(linearTargetExpectations - setOf("clearColor linear", "clearColor srgb"), window)
+        }
     }
 
     @Test

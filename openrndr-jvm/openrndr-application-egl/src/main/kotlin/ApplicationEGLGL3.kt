@@ -6,7 +6,7 @@ import org.lwjgl.egl.EGL
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.egl.EXTDeviceEnumeration.eglQueryDevicesEXT
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengles.GLES
 import org.lwjgl.system.JNI
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
@@ -17,6 +17,7 @@ import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
 import org.openrndr.draw.renderTarget
+import org.openrndr.draw.tearDownFontImageMaps
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
 import org.openrndr.math.Vector2
@@ -32,6 +33,9 @@ private const val EGL_PLATFORM_DEVICE_EXT = 0x313F
 
 /** The longest a loop waits without work, in milliseconds, in case work is queued without waking it */
 private const val IDLE_TIMEOUT = 1000L
+
+/** EGL_OPENGL_ES3_BIT, configs that render with OpenGL ES 3 */
+private const val EGL_OPENGL_ES3_BIT_VALUE = 0x40
 
 /** The attribute of the profile of an OpenGL context, EGL_CONTEXT_OPENGL_PROFILE_MASK */
 private const val EGL_CONTEXT_OPENGL_PROFILE_MASK_ATTRIBUTE = 0x30FD
@@ -55,7 +59,7 @@ private class EGLContextFactory(val display: Long, val config: Long, val version
 
     fun makeCurrent(surface: Long, context: Long) {
         // the client API is bound per thread, eglGetCurrentContext returns the context of the bound API
-        eglBindAPI(EGL_OPENGL_API)
+        eglBindAPI(clientApi(version.type))
         require(eglMakeCurrent(display, surface, surface, context)) {
             "failed to make the EGL context current (EGL error ${eglGetError()})"
         }
@@ -69,12 +73,34 @@ private class EGLContextFactory(val display: Long, val config: Long, val version
     }
 }
 
-private fun contextAttributes(stack: org.lwjgl.system.MemoryStack, version: DriverVersionGL) = stack.ints(
-    EGL_CONTEXT_MAJOR_VERSION, version.majorVersion,
-    EGL_CONTEXT_MINOR_VERSION, version.minorVersion,
-    EGL_CONTEXT_OPENGL_PROFILE_MASK_ATTRIBUTE, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-    EGL_NONE
-)
+private fun contextAttributes(stack: org.lwjgl.system.MemoryStack, version: DriverVersionGL) = when (version.type) {
+    DriverTypeGL.GL -> stack.ints(
+        EGL_CONTEXT_MAJOR_VERSION, version.majorVersion,
+        EGL_CONTEXT_MINOR_VERSION, version.minorVersion,
+        EGL_CONTEXT_OPENGL_PROFILE_MASK_ATTRIBUTE, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+        EGL_NONE
+    )
+
+    DriverTypeGL.GLES -> stack.ints(
+        EGL_CONTEXT_MAJOR_VERSION, version.majorVersion,
+        EGL_CONTEXT_MINOR_VERSION, version.minorVersion,
+        EGL_NONE
+    )
+}
+
+/** The EGL client API of a driver type */
+private fun clientApi(type: DriverTypeGL) = when (type) {
+    DriverTypeGL.GL -> EGL_OPENGL_API
+    DriverTypeGL.GLES -> EGL_OPENGL_ES_API
+}
+
+/** Creates the LWJGL capabilities of the current context, of OpenGL or of OpenGL ES */
+private fun createCapabilities(type: DriverTypeGL) {
+    when (type) {
+        DriverTypeGL.GL -> GL.createCapabilities()
+        DriverTypeGL.GLES -> GLES.createCapabilities()
+    }
+}
 
 @Suppress("UNUSED_PARAMETER")
 class ApplicationEGLGL3(override var program: Program, override var configuration: Configuration) : Application() {
@@ -239,6 +265,8 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     }
 
     override suspend fun setup() {
+        // OpenGL ES on macOS is rendered by ANGLE, whose EGL only supports OpenGL ES, see ApplicationBaseEGLGL3
+        val glType = DriverGL3Configuration.driverType
         val display = openDisplay()
 
         stackPush().use {
@@ -251,27 +279,42 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
                 EGL_RED_SIZE, 8,
                 EGL_DEPTH_SIZE, 24,
                 EGL_STENCIL_SIZE, 8,
-                EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+                EGL_RENDERABLE_TYPE, if (glType == DriverTypeGL.GLES) EGL_OPENGL_ES3_BIT_VALUE else EGL_OPENGL_BIT,
                 EGL_NONE
             )
 
+            val api = if (glType == DriverTypeGL.GLES) "OpenGL ES 3" else "OpenGL"
             if (!eglChooseConfig(display, attributes, null, configCount) || configCount[0] == 0) {
-                error("no EGL config with an OpenGL pbuffer of 8 bit colors, 24 bit depth and 8 bit stencil (EGL error ${eglGetError()})")
+                error(
+                    "no EGL config with an $api pbuffer of 8 bit colors, 24 bit depth and 8 bit stencil " +
+                            "(EGL error 0x${eglGetError().toString(16)}, client APIs ${eglQueryString(display, EGL_CLIENT_APIS)}), " +
+                            "-Dorg.openrndr.gl3.gl_type=gl or gles selects the API"
+                )
             }
 
             logger.debug { "number of EGL configs found: ${configCount[0]}" }
             val configs = it.mallocPointer(configCount[0])
             eglChooseConfig(display, attributes, configs, configCount)
 
-            // a pbuffer surface takes its size, not the attributes of the config
-            val surfaceAttributes = it.ints(EGL_WIDTH, configuration.width, EGL_HEIGHT, configuration.height, EGL_NONE)
-            surface = eglCreatePbufferSurface(display, configs[0], surfaceAttributes)
+            // a pbuffer surface takes its size, not the attributes of the config. It holds sRGB colors, like the windows
+            // of the GLFW and SDL backends, when the driver supports sRGB surfaces
+            surface = eglCreatePbufferSurface(
+                display, configs[0], it.ints(
+                    EGL_WIDTH, configuration.width, EGL_HEIGHT, configuration.height,
+                    EGL_GL_COLORSPACE, EGL_GL_COLORSPACE_SRGB, EGL_NONE
+                )
+            )
+            if (surface == EGL_NO_SURFACE) {
+                logger.warn { "no sRGB pbuffer surface (EGL error 0x${eglGetError().toString(16)}), the surface holds linear colors" }
+                val surfaceAttributes = it.ints(EGL_WIDTH, configuration.width, EGL_HEIGHT, configuration.height, EGL_NONE)
+                surface = eglCreatePbufferSurface(display, configs[0], surfaceAttributes)
+            }
 
-            eglBindAPI(EGL_OPENGL_API)
+            eglBindAPI(clientApi(glType))
 
-            // the most recent OpenGL version the driver supports
+            // the most recent version the driver supports
             var version: DriverVersionGL? = null
-            for (candidate in DriverGL3.candidateVersions(DriverTypeGL.GL)) {
+            for (candidate in DriverGL3.candidateVersions(glType)) {
                 context = eglCreateContext(display, configs[0], EGL_NO_CONTEXT, contextAttributes(it, candidate))
                 if (context != EGL_NO_CONTEXT) {
                     version = candidate
@@ -279,16 +322,16 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
                 }
             }
             require(version != null && context != EGL_NO_CONTEXT) {
-                "failed to create an OpenGL core context of version 3.3 or later (EGL error ${eglGetError()})"
+                "failed to create an $api context (EGL error ${eglGetError()})"
             }
             logger.debug { "client APIs: ${eglQueryString(display, EGL_CLIENT_APIS)}" }
             factory = EGLContextFactory(display, configs[0], version)
             factory.mainContext = context
             factory.makeCurrent(surface, context)
-            GL.createCapabilities()
-            logger.info { "OpenGL ${glGetString(GL_VERSION)}, renderer ${glGetString(GL_RENDERER)}, vendor ${glGetString(GL_VENDOR)}" }
+            createCapabilities(glType)
+            logger.info { "${glGetString(GL_VERSION)}, renderer ${glGetString(GL_RENDERER)}, vendor ${glGetString(GL_VENDOR)}" }
 
-            val contextVersion = DriverVersionGL.find(DriverTypeGL.GL, glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION)) ?: version
+            val contextVersion = DriverVersionGL.find(glType, glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION)) ?: version
             driver = createDriver(contextVersion)
             Driver.driver = driver
             driver.onMainThreadWork = ::wake
@@ -328,7 +371,7 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             val (threadSurface, threadContext) = factory.createShared()
             thread(isDaemon = true, name = "ResourceThread") {
                 factory.makeCurrent(threadSurface, threadContext)
-                GL.createCapabilities()
+                createCapabilities(factory.version.type)
                 NullRenderTargetGL3().bind()
                 Driver.instance.clear(ColorRGBa.BLACK)
                 try {
@@ -389,13 +432,28 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             program.drawer.ortho()
             program.drawImpl()
         }
-        for (extension in program.extensions) {
-            extension.shutdown(program)
+        // the session destroys the render target, it can't be destroyed while it is active
+        defaultRenderTarget.unbind()
+        postLoop()
+    }
+
+    /**
+     * Shuts the program down and releases its EGL context, surface and display. [loop] calls it when it ends, tests that
+     * drive the program without [loop] call it after [setup].
+     */
+    fun postLoop() {
+        synchronized(program.extensions) {
+            for (extension in program.extensions) {
+                extension.shutdown(program)
+            }
+            program.extensions.clear()
         }
 
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
 
         driver.processMainThreadExecutables()
+        Session.root.end()
+        tearDownFontImageMaps()
         Driver.instance.destroyContext(context)
         eglMakeCurrent(factory.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)
         factory.destroy(surface, context)
@@ -466,17 +524,27 @@ private class DrawThreadEGL(factory: EGLContextFactory, surface: Long, context: 
     init {
         thread(isDaemon = true, name = "DrawThreadEGL") {
             factory.makeCurrent(surface, context)
-            GL.createCapabilities()
+            createCapabilities(factory.version.type)
             realDispatcher = Dispatcher()
             realDrawer = Drawer(Driver.instance)
             val vaos = IntArray(1)
             glGenVertexArrays(vaos)
             glBindVertexArray(vaos[0])
             NullRenderTargetGL3().bind()
+            // the thread waits for dispatched work or the next delay instead of polling
+            val signal = Object()
+            realDispatcher.onWorkQueued = { synchronized(signal) { signal.notifyAll() } }
             ready.countDown()
             while (true) {
                 realDispatcher.execute()
-                Thread.sleep(1)
+                synchronized(signal) {
+                    if (!realDispatcher.shouldExecute) {
+                        val due = realDispatcher.millisUntilNextDelay()
+                        if (due == null || due > 0L) {
+                            signal.wait(due?.coerceAtMost(IDLE_TIMEOUT) ?: IDLE_TIMEOUT)
+                        }
+                    }
+                }
             }
         }
     }
