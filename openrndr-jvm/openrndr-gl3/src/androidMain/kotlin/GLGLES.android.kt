@@ -18,6 +18,8 @@ import android.opengl.GLES32 as GLES
 actual inline fun glEnable(target: Int) = GLES.glEnable(target)
 actual inline fun glIsEnabled(cap: Int): Boolean = GLES.glIsEnabled(cap)
 actual inline fun glDisable(target: Int) = GLES.glDisable(target)
+actual inline fun glEnablei(target: Int, index: Int) = GLES.glEnablei(target, index)
+actual inline fun glDisablei(target: Int, index: Int) = GLES.glDisablei(target, index)
 
 //actual inline fun glGenBuffers(): Int {
 //

@@ -34,6 +34,20 @@ actual inline fun glIsEnabled(cap: Int): Boolean {
 }
 
 // --- [ glDisable ] ---
+actual inline fun glEnablei(target: Int, index: Int) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glEnablei(target, index)
+        DriverTypeGL.GLES -> GLES.glEnablei(target, index)
+    }
+}
+
+actual inline fun glDisablei(target: Int, index: Int) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glDisablei(target, index)
+        DriverTypeGL.GLES -> GLES.glDisablei(target, index)
+    }
+}
+
 actual inline fun glDisable(target: Int) {
     return when (driverType) {
         DriverTypeGL.GL -> GL.glDisable(target)
@@ -1998,18 +2012,20 @@ actual inline fun glMultiDrawElements(mode: Int, count: IntArray, type: Int, ind
     }
 }
 
+/** [indirect] is the byte offset of the first command in the bound draw indirect buffer */
 actual inline fun glMultiDrawArraysIndirect(mode: Int, indirect: Any, drawcount: Int, stride: Int) {
-
+    val offset = indirect as Long
     when (driverType) {
-        DriverTypeGL.GL -> GL.glMultiDrawArraysIndirect(mode, 0L, drawcount, stride)
-        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawArraysIndirectEXT(mode, 0L, drawcount, stride)
+        DriverTypeGL.GL -> GL.glMultiDrawArraysIndirect(mode, offset, drawcount, stride)
+        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawArraysIndirectEXT(mode, offset, drawcount, stride)
     }
 }
 
+/** [indirect] is the byte offset of the first command in the bound draw indirect buffer */
 actual inline fun glMultiDrawElementsIndirect(mode: Int, type: Int, indirect: Any, drawcount: Int, stride: Int) {
-    (indirect as IntArray)
+    val offset = indirect as Long
     when (driverType) {
-        DriverTypeGL.GL -> GL.glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride)
-        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride)
+        DriverTypeGL.GL -> GL.glMultiDrawElementsIndirect(mode, type, offset, drawcount, stride)
+        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawElementsIndirectEXT(mode, type, offset, drawcount, stride)
     }
 }

@@ -292,7 +292,9 @@ class ApplicationWindowSDL(
             extension.shutdown(program)
         }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
-        Driver.instance.destroyContext(window)
+        // the driver keys its state by GL context, it deletes the VAOs of the context when it is current
+        SDL_GL_MakeCurrent(window, glContext)
+        Driver.instance.destroyContext(glContext)
         SDL_GL_DestroyContext(glContext)
 
         application.windowsById.remove(SDL_GetWindowID(window))

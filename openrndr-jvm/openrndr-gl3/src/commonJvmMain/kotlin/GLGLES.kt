@@ -9,6 +9,8 @@ import java.nio.IntBuffer
 expect inline fun glEnable(target: Int)
 expect inline fun glIsEnabled(cap: Int): Boolean
 expect inline fun glDisable(target: Int)
+expect inline fun glEnablei(target: Int, index: Int)
+expect inline fun glDisablei(target: Int, index: Int)
 expect inline fun glGenBuffers(): Int
 
 expect inline fun glBindBuffer(target: Int, buffer: Int)

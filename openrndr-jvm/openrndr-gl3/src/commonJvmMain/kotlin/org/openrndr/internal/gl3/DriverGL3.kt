@@ -21,7 +21,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.jvm.JvmRecord
 
 private val logger = KotlinLogging.logger {}
@@ -122,7 +124,51 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     }
 }
 
-private class CacheState(val cachedTextureBindings: LongArray = LongArray(32) { -1 })
+/**
+ * The GL state [DriverGL3] last set in a context, to skip calls that would not change it
+ */
+private class ContextState {
+    /** resource ids of the textures bound to the texture units */
+    val cachedTextureBindings = LongArray(32) { -1 }
+
+    /** is nothing known about the state of the context yet? */
+    var dirty = true
+
+    /** the draw style last applied */
+    val cached = DrawStyle()
+
+    /** the blend modes of the draw buffers, null when unknown */
+    val blendModes = arrayOfNulls<BlendMode>(MAX_DRAW_BUFFERS)
+
+    /** is blending turned off for alpha to coverage? */
+    var blendOffForAlphaToCoverage = false
+
+    /** the scissor box, valid while [scissorEnabled] */
+    var scissorEnabled = false
+    val scissor = IntArray(4)
+
+    /** are the context wide capabilities enabled, sRGB framebuffers and point sizes from shaders */
+    var capabilitiesEnabled = false
+}
+
+private const val MAX_DRAW_BUFFERS = 16
+
+/** Byte sizes of the commands in a draw indirect buffer */
+private const val DRAW_ARRAYS_INDIRECT_COMMAND_SIZE = 4 * 4
+private const val DRAW_ELEMENTS_INDIRECT_COMMAND_SIZE = 5 * 4
+
+/** The equations and factors of a blend mode, null for [BlendMode.REPLACE], which does not blend */
+private fun blendFactors(blendMode: BlendMode): IntArray? = when (blendMode) {
+    BlendMode.OVER -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    BlendMode.BLEND -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    BlendMode.ADD -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+    BlendMode.REPLACE -> null
+    BlendMode.SUBTRACT -> intArrayOf(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+    BlendMode.MULTIPLY -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+    BlendMode.REMOVE -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+    BlendMode.MIN -> intArrayOf(GL_MIN, GL_MIN, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+    BlendMode.MAX -> intArrayOf(GL_MAX, GL_MAX, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+}
 abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImporterFactory,
     D3D11TextureImporterFactory, DmaBufImporterFactory {
 
@@ -182,14 +228,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
 
         // -- find or create a VAO for our shader + vertex buffers combination
-        val shaderVertexDescription = ShaderVertexDescription(
-            Driver.instance.contextID,
-            shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(0)
-        )
-
-        val vao = getVao(shaderVertexDescription, vertexBuffers, instanceAttributes, shader)
+        val context = contextID
+        val vao = getVao(context, vertexBuffers, instanceAttributes, shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -199,23 +239,28 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
 
-
-        glMultiDrawArraysIndirect(drawPrimitive.glType(), 0L, commandCount, 4 * 4)
+        glMultiDrawArraysIndirect(
+            drawPrimitive.glType(),
+            commandBufferIndex.toLong() * DRAW_ARRAYS_INDIRECT_COMMAND_SIZE,
+            commandCount,
+            DRAW_ARRAYS_INDIRECT_COMMAND_SIZE
+        )
 
         debugGLErrors {
             when (it) {
                 else -> null
             }
         }
-        Driver.instance.finish()
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
 
-    private val cacheStates = mutableMapOf<Long, CacheState>()
-    private val cacheState: CacheState
-        get() = synchronized(cacheStates) { cacheStates.getOrPut(contextID) { CacheState() } }
+    private val contextStates = HashMap<Long, ContextState>()
+
+    /** The state of the [context] */
+    private fun contextState(context: Long = contextID): ContextState =
+        synchronized(contextStates) { contextStates.getOrPut(context) { ContextState() } }
 
     override fun drawIndexedCommandBuffer(
         shader: Shader,
@@ -234,14 +279,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
 
         // -- find or create a VAO for our shader + vertex buffers combination
-        val shaderVertexDescription = ShaderVertexDescription(
-            Driver.instance.contextID,
-            shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(0)
-        )
-
-        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+        val context = contextID
+        val vao = getVao(context, vertexBuffers, instanceAttributes, shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -252,224 +291,93 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         (indexBuffer as IndexBufferGL3).bind()
-        glMultiDrawElementsIndirect(primitiveType.glType(), indexBuffer.type.glType(), IntArray(1), commandCount, 4 * 4)
+        glMultiDrawElementsIndirect(
+            primitiveType.glType(),
+            indexBuffer.type.glType(),
+            commandBufferIndex.toLong() * DRAW_ELEMENTS_INDIRECT_COMMAND_SIZE,
+            commandCount,
+            DRAW_ELEMENTS_INDIRECT_COMMAND_SIZE
+        )
 
         debugGLErrors {
             when (it) {
                 else -> null
             }
         }
-        Driver.instance.finish()
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
-    fun applyBlendMode(drawStyle: DrawStyle) {
-        if (true) {
-            // TODO introduce caching
+    /**
+     * Applies the blend mode of [drawStyle], or the blend modes of the attachments of the active render target, for
+     * each draw buffer whose blend mode changed. Each draw buffer is blended by its own mode when the driver supports
+     * indexed blend state, otherwise all are blended by the mode of the last one.
+     */
+    fun applyBlendMode(drawStyle: DrawStyle) = applyBlendMode(drawStyle, contextState())
 
-            val rt = RenderTarget.active
-            for (i in 0 until rt.blendModes.size) {
-
-                val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
-
-
-                when (blendMode) {
-                    BlendMode.OVER -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_FUNC_ADD)
-                            glBlendFunci(i, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.BLEND -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_FUNC_ADD)
-                            glBlendFunci(i, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.ADD -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_FUNC_ADD)
-                            glBlendFunci(i, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.REPLACE -> {
-                        glDisable(GL_BLEND)
-                    }
-
-                    BlendMode.SUBTRACT -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationSeparatei(i, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparatei(i, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.MULTIPLY -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_FUNC_ADD)
-                            glBlendFunci(i, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.REMOVE -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_FUNC_ADD)
-                            glBlendFunci(i, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.MIN -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_MIN)
-                            glBlendFunci(i, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_MIN)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.MAX -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(i, GL_MAX)
-                            glBlendFunci(i, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_MAX)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
+    private fun applyBlendMode(drawStyle: DrawStyle, state: ContextState) {
+        val blendModes = RenderTarget.active.blendModes
+        if (blendModes.isEmpty()) {
+            return
+        }
+        if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
+            for (i in 0 until min(blendModes.size, MAX_DRAW_BUFFERS)) {
+                val blendMode = drawStyle.blendMode ?: blendModes[i]
+                if (state.blendModes[i] == blendMode) {
+                    continue
                 }
+                val factors = blendFactors(blendMode)
+                if (factors == null) {
+                    glDisablei(GL_BLEND, i)
+                } else {
+                    glEnablei(GL_BLEND, i)
+                    glBlendEquationSeparatei(i, factors[0], factors[1])
+                    glBlendFuncSeparatei(i, factors[2], factors[3], factors[4], factors[5])
+                }
+                state.blendModes[i] = blendMode
             }
-            //cached.blendMode = drawStyle.blendMode
+        } else {
+            val blendMode = drawStyle.blendMode ?: blendModes.last()
+            if (state.blendModes[0] == blendMode) {
+                return
+            }
+            val factors = blendFactors(blendMode)
+            if (factors == null) {
+                glDisable(GL_BLEND)
+            } else {
+                glEnable(GL_BLEND)
+                glBlendEquationSeparate(factors[0], factors[1])
+                glBlendFuncSeparate(factors[2], factors[3], factors[4], factors[5])
+            }
+            state.blendModes[0] = blendMode
         }
     }
 
-    fun applyTextureBindings(bindings: TextureBindings) {
+    fun applyTextureBindings(bindings: TextureBindings) = applyTextureBindings(bindings, contextState())
+
+    private fun applyTextureBindings(bindings: TextureBindings, state: ContextState) {
         debugGLErrors { "Pre-existing error" }
-        val cachedTextureBindings = cacheState.cachedTextureBindings
+        val cachedTextureBindings = state.cachedTextureBindings
         bindings.binding.forEach { i, texture ->
-            glActiveTexture(GL_TEXTURE0 + i)
-            debugGLErrors { "Failed to set active texture unit $i" }
-            when (texture) {
-                is ColorBufferGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        require(!texture.destroyed)
-                        glBindTexture(texture.target, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is DepthBufferGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(texture.target, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is BufferTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(GL_TEXTURE_BUFFER, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is ArrayTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(texture.target, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is ArrayCubemapGL4 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(texture.target, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is VolumeTextureGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(GL_TEXTURE_3D, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
-                is CubemapGL3 -> {
-                    if (cachedTextureBindings[i] != texture.resourceId) {
-                        glBindTexture(GL_TEXTURE_CUBE_MAP, texture.texture)
-                        debugGLErrors { "Failed to bind $texture to unit $i" }
-                        cachedTextureBindings[i] = texture.resourceId
-                    }
-                }
-
+            val (resourceId, target, name) = when (texture) {
+                is ColorBufferGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
+                is DepthBufferGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
+                is BufferTextureGL3 -> Triple(texture.resourceId, GL_TEXTURE_BUFFER, texture.texture)
+                is ArrayTextureGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
+                is ArrayCubemapGL4 -> Triple(texture.resourceId, texture.target, texture.texture)
+                is VolumeTextureGL3 -> Triple(texture.resourceId, GL_TEXTURE_3D, texture.texture)
+                is CubemapGL3 -> Triple(texture.resourceId, GL_TEXTURE_CUBE_MAP, texture.texture)
                 else -> error("unsupported texture type $texture")
+            }
+            if (cachedTextureBindings[i] != resourceId) {
+                if (texture is ColorBufferGL3) {
+                    require(!texture.destroyed)
+                }
+                glActiveTexture(GL_TEXTURE0 + i)
+                debugGLErrors { "Failed to set active texture unit $i" }
+                glBindTexture(target, name)
+                debugGLErrors { "Failed to bind $texture to unit $i" }
+                cachedTextureBindings[i] = resourceId
             }
         }
     }
@@ -681,14 +589,17 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
     private val defaultVAOs = HashMap<Long, Int>()
     private val defaultVAO: Int
-        get() = defaultVAOs.getOrPut(contextID) {
-            val vaos = IntArray(1)
-            synchronized(Driver.instance) {
-                logger.debug { "[context=$contextID] creating default VAO" }
-                glGenVertexArrays(vaos)
-            }
-            vaos[0]
+        get() = defaultVAO(contextID)
+
+    /** The VAO bound between draws in [context], which must be current */
+    private fun defaultVAO(context: Long): Int = defaultVAOs.getOrPut(context) {
+        val vaos = IntArray(1)
+        synchronized(Driver.instance) {
+            logger.debug { "[context=$context] creating default VAO" }
+            glGenVertexArrays(vaos)
         }
+        vaos[0]
+    }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGLCommon()
     private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
@@ -972,15 +883,34 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
     }
 
+    /**
+     * VAOs to delete in a context, which was not current when their shader or vertex buffer was destroyed. VAOs
+     * belong to the context they were created in.
+     */
+    private val pendingVaoDeletions = HashMap<Long, MutableList<Int>>()
+
+    /**
+     * Finds or creates the VAO for [shader] and the [vertexBuffers] and [instanceAttributeBuffers] in [context],
+     * which must be current
+     */
     private fun getVao(
-        shaderVertexDescription: ShaderVertexDescription,
+        context: Long,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributeBuffers: List<VertexBuffer>,
         shader: ShaderGL3
     ): Int {
+        if (pendingVaoDeletions.isNotEmpty()) {
+            pendingVaoDeletions.remove(context)?.forEach { glDeleteVertexArrays(it) }
+        }
+        val shaderVertexDescription = ShaderVertexDescription(
+            context,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(instanceAttributeBuffers.size) { (instanceAttributeBuffers[it] as VertexBufferGL3).buffer }
+        )
         return vaos.getOrPut(shaderVertexDescription) {
             logger.debug {
-                "[context=$contextID] creating new VAO for hash $shaderVertexDescription"
+                "[context=$context] creating new VAO for hash $shaderVertexDescription"
             }
 
             val arrays = IntArray(1)
@@ -988,7 +918,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, instanceAttributeBuffers, shader)
-                glBindVertexArray(defaultVAO)
+                debugGLErrors()
+                glBindVertexArray(defaultVAO(context))
             }
             arrays[0]
         }
@@ -1006,7 +937,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
 
-        applyTextureBindings(shader.textureBindings)
+        val context = contextID
+        applyTextureBindings(shader.textureBindings, contextState(context))
         debugGLErrors {
             "an error occurred while applying texture bindings to the shader: $it"
         }
@@ -1018,14 +950,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val shaderVertexDescription = ShaderVertexDescription(
-            Driver.instance.contextID,
-            shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(0)
-        )
-
-        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+        val vao = getVao(context, vertexBuffers, emptyList(), shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -1035,7 +960,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
 
-        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
 
         debugGLErrors {
@@ -1047,7 +971,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
     @JvmRecord
@@ -1091,7 +1015,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     ) {
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
-        applyTextureBindings(shader.textureBindings)
+        val context = contextID
+        applyTextureBindings(shader.textureBindings, contextState(context))
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
@@ -1100,28 +1025,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
 
         // -- find or create a VAO for our shader + vertex buffers combination
-        val shaderVertexDescription =
-            ShaderVertexDescription(
-                contextID,
-                shader.programObject,
-                IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-                IntArray(0)
-            )
-
-        val vao =
-            vaos.getOrPut(shaderVertexDescription) {
-                logger.debug {
-                    "creating new VAO for hash $shaderVertexDescription"
-                }
-                val arrays = IntArray(1)
-                synchronized(Driver.instance) {
-                    glGenVertexArrays(arrays)
-                    glBindVertexArray(arrays[0])
-                    setupFormat(vertexBuffers, emptyList(), shader)
-                    glBindVertexArray(defaultVAO)
-                }
-                arrays[0]
-            }
+        val vao = getVao(context, vertexBuffers, emptyList(), shader)
 
 
         glBindVertexArray(vao)
@@ -1144,7 +1048,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
     @Suppress("DuplicatedCode")
@@ -1162,7 +1066,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         require(instanceOffset == 0 || Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_2)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
-        applyTextureBindings(shader.textureBindings)
+        val context = contextID
+        applyTextureBindings(shader.textureBindings, contextState(context))
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
@@ -1171,34 +1076,12 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val hash = ShaderVertexDescription(
-            contextID,
-            (shader as ShaderGL3).programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
-        )
-
-        val vao = vaos.getOrPut(hash) {
-            logger.trace {
-                "creating new instances VAO for hash $hash"
-            }
-            val arrays = IntArray(1)
-            synchronized(Driver.instance) {
-                glGenVertexArrays(arrays)
-                glBindVertexArray(arrays[0])
-                setupFormat(vertexBuffers, instanceAttributes, shader)
-                debugGLErrors()
-                glBindVertexArray(defaultVAO)
-                debugGLErrors()
-            }
-            arrays[0]
-        }
+        val vao = getVao(context, vertexBuffers, instanceAttributes, shader as ShaderGL3)
 
         debugGLErrors()
         glBindVertexArray(vao)
         debugGLErrors()
 
-        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         if (instanceOffset == 0) {
             glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
         } else {
@@ -1220,7 +1103,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore default VAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
     @Suppress("DuplicatedCode")
@@ -1236,7 +1119,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
-        applyTextureBindings(shader.textureBindings)
+        val context = contextID
+        applyTextureBindings(shader.textureBindings, contextState(context))
         require(instanceOffset == 0 || (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
@@ -1249,32 +1133,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val shaderVertexDescription = ShaderVertexDescription(
-            contextID,
-            (shader as ShaderGL3).programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
-        )
-
-        val vao = vaos.getOrPut(shaderVertexDescription) {
-            logger.trace {
-                "creating new instances VAO for hash $shaderVertexDescription"
-            }
-            val arrays = IntArray(1)
-            synchronized(Driver.instance) {
-                glGenVertexArrays(arrays)
-                glBindVertexArray(arrays[0])
-                setupFormat(vertexBuffers, instanceAttributes, shader)
-                glBindVertexArray(defaultVAO)
-            }
-            arrays[0]
-        }
+        val vao = getVao(context, vertexBuffers, instanceAttributes, shader as ShaderGL3)
 
         glBindVertexArray(vao)
         indexBuffer as IndexBufferGL3
         indexBuffer.bind()
-
-        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
 
         if (instanceOffset == 0) {
             glDrawElementsInstanced(
@@ -1304,7 +1167,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore default VAO binding
-        glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO(context))
     }
 
     private fun setupFormat(
@@ -1398,7 +1261,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
                                             else -> null
                                         }
                                     }
-                                    glVertexAttribDivisor(attributeIndex, divisor)
+                                    glVertexAttribDivisor(attributeIndex + i, divisor)
                                     attributeBindings++
                                 }
                             }
@@ -1471,9 +1334,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
     }
 
-    private val dirtyPerContext = mutableMapOf<Long, Boolean>()
-    private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
-
     /**
      * Runs [function] without the scissor test, which clears and blits honor, and restores the scissor test afterwards
      */
@@ -1498,8 +1358,9 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         glDepthMask(true)
         glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xff)
         clear()
-        val cached = cachedPerContext[contextID]
-        if (cached != null && !dirtyPerContext.getOrDefault(contextID, true)) {
+        val state = contextState()
+        if (!state.dirty) {
+            val cached = state.cached
             val mask = cached.channelWriteMask
             glColorMask(mask.red, mask.green, mask.blue, mask.alpha)
             glDepthMask(cached.depthWrite)
@@ -1513,32 +1374,69 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     }
 
     override fun setState(drawStyle: DrawStyle) {
-        if (Driver.glType == DriverTypeGL.GL) {
-            glEnable(GL_FRAMEBUFFER_SRGB)
-        }
-        applyBlendMode(drawStyle)
+        val state = contextState()
+        val dirty = state.dirty
+        val cached = state.cached
 
-        val dirty = dirtyPerContext.getOrDefault(contextID, true)
-        val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
-
-        if (dirty || cached.clip != drawStyle.clip) {
-            if (drawStyle.clip != null) {
-                drawStyle.clip?.let { it: Rectangle ->
-                    val target = RenderTarget.active
-                    glEnable(GL_SCISSOR_TEST)
-                    glScissor(
-                        (it.x * target.contentScale).toInt(),
-                        (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
-                        (it.width * target.contentScale).toInt(),
-                        (it.height * target.contentScale).toInt()
-                    )
-
-                }
-            } else {
-                glDisable(GL_SCISSOR_TEST)
+        if (dirty || !state.capabilitiesEnabled) {
+            if (Driver.glType == DriverTypeGL.GL) {
+                glEnable(GL_FRAMEBUFFER_SRGB)
+                glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
             }
-            cached.clip = drawStyle.clip
+            state.capabilitiesEnabled = true
         }
+
+        if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
+            if (drawStyle.alphaToCoverage) {
+                glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE)
+            } else {
+                glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE)
+            }
+            cached.alphaToCoverage = drawStyle.alphaToCoverage
+        }
+        // alpha to coverage replaces blending
+        if (drawStyle.alphaToCoverage) {
+            if (dirty || !state.blendOffForAlphaToCoverage) {
+                glDisable(GL_BLEND)
+                state.blendModes.fill(null)
+                state.blendOffForAlphaToCoverage = true
+            }
+        } else {
+            if (dirty) {
+                state.blendModes.fill(null)
+            }
+            state.blendOffForAlphaToCoverage = false
+            applyBlendMode(drawStyle, state)
+        }
+
+        // the scissor box depends on the size and content scale of the render target, not only on the clip
+        val clip = drawStyle.clip
+        if (clip != null) {
+            val target = RenderTarget.active
+            val scale = target.contentScale
+            // the pixels whose centers lie inside the clip
+            val x0 = (min(clip.x, clip.x + clip.width) * scale).roundToInt()
+            val x1 = (max(clip.x, clip.x + clip.width) * scale).roundToInt()
+            val top = (min(clip.y, clip.y + clip.height) * scale).roundToInt()
+            val bottom = (max(clip.y, clip.y + clip.height) * scale).roundToInt()
+            val y0 = target.effectiveHeight - bottom
+            val scissor = state.scissor
+            if (dirty || !state.scissorEnabled) {
+                glEnable(GL_SCISSOR_TEST)
+                state.scissorEnabled = true
+            }
+            if (dirty || scissor[0] != x0 || scissor[1] != y0 || scissor[2] != x1 - x0 || scissor[3] != bottom - top) {
+                glScissor(x0, y0, x1 - x0, bottom - top)
+                scissor[0] = x0
+                scissor[1] = y0
+                scissor[2] = x1 - x0
+                scissor[3] = bottom - top
+            }
+        } else if (dirty || state.scissorEnabled) {
+            glDisable(GL_SCISSOR_TEST)
+            state.scissorEnabled = false
+        }
+        cached.clip = clip
 
         if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
             glColorMask(
@@ -1620,16 +1518,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
 
-        if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
-            if (drawStyle.alphaToCoverage) {
-                glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE)
-                glDisable(GL_BLEND)
-            } else {
-                glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE)
-            }
-            cached.alphaToCoverage = drawStyle.alphaToCoverage
-        }
-
         if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
             when (drawStyle.depthTestPass) {
                 DepthTestPass.ALWAYS -> {
@@ -1688,28 +1576,41 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             cached.cullTestPass = drawStyle.cullTestPass
         }
 
-        if (Driver.glType == DriverTypeGL.GL) {
-            glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
-        }
-
-        dirtyPerContext[contextID] = false
+        state.dirty = false
         debugGLErrors()
 
     }
 
+    /**
+     * Forgets the VAOs and state of [context]. Its VAOs are deleted when it is current, otherwise they go with it.
+     */
     override fun destroyContext(context: Long) {
         logger.debug { "destroying context: $context" }
+        val current = contextID == context
         styleBlocks.remove(context)
         contextBlocks.remove(context)
-        defaultVAOs[context]?.let {
-            glDeleteVertexArrays(it)
-            debugGLErrors()
-            defaultVAOs.remove(context)
+        defaultVAOs.remove(context)?.let {
+            if (current) {
+                glDeleteVertexArrays(it)
+                debugGLErrors()
+            }
         }
-
-        destroyAllVAOs()
-
-        dirtyPerContext.remove(context)
+        val keys = vaos.keys.filter { it.context == context }
+        for (key in keys) {
+            val vao = vaos.remove(key) ?: continue
+            if (current) {
+                glDeleteVertexArrays(vao)
+                debugGLErrors()
+            }
+        }
+        pendingVaoDeletions.remove(context)?.let { pending ->
+            if (current) {
+                pending.forEach { glDeleteVertexArrays(it) }
+            }
+        }
+        synchronized(contextStates) {
+            contextStates.remove(context)
+        }
     }
 
     override val activeRenderTarget: RenderTarget
@@ -1721,48 +1622,29 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         glFinish()
     }
 
-    @Suppress("DuplicatedCode")
-    fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) {
-        val candidates = vaos.keys.filter {
-            it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(vertexBuffer.buffer)
-        }
+    /**
+     * Deletes the VAOs whose keys match [predicate], those of other contexts when that context is next used
+     */
+    private fun destroyVAOs(predicate: (ShaderVertexDescription) -> Boolean) {
+        val context = contextID
+        val candidates = vaos.keys.filter(predicate)
         for (candidate in candidates) {
-            val value = vaos[candidate] ?: error("no vao found")
+            val value = vaos.remove(candidate) ?: continue
             logger.debug { "removing VAO $value for $candidate" }
-            glDeleteVertexArrays(value)
-            debugGLErrors()
-            vaos.remove(candidate)
+            if (candidate.context == context) {
+                glDeleteVertexArrays(value)
+                debugGLErrors()
+            } else {
+                pendingVaoDeletions.getOrPut(candidate.context) { mutableListOf() }.add(value)
+            }
         }
     }
 
-    fun destroyVAOsForShader(shader: ShaderGL3) {
-        val candidates = vaos.keys.filter {
-            it.vertexBuffers.contains(shader.programObject) || it.instanceAttributeBuffers.contains(shader.programObject)
-        }
-        for (candidate in candidates) {
-            val value = vaos[candidate] ?: error("no vao found")
-            logger.debug { "removing VAO $value for $candidate" }
-            glDeleteVertexArrays(value)
-            debugGLErrors()
-            vaos.remove(candidate)
-        }
+    fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) = destroyVAOs {
+        it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(vertexBuffer.buffer)
     }
 
-    private fun destroyAllVAOs() {
-        defaultVAOs.keys.forEach {
-            val value = defaultVAOs[it]!!
-            glDeleteVertexArrays(value)
-            debugGLErrors()
-        }
-        defaultVAOs.clear()
-
-        vaos.keys.forEach {
-            val value = vaos[it]!!
-            glDeleteVertexArrays(value)
-            debugGLErrors()
-        }
-        vaos.clear()
-    }
+    fun destroyVAOsForShader(shader: ShaderGL3) = destroyVAOs { it.shader == shader.programObject }
 }
 
 private fun IndexType.glType(): Int {
