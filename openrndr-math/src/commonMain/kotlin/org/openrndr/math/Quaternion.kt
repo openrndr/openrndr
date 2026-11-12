@@ -44,13 +44,14 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
          * @param m a [Matrix33] that describes an ortho-normal basis
          */
         fun fromMatrix(m: Matrix33): Quaternion {
-            val t = m.trace + 1.0
+            val trace = m.trace
             val x: Double
             val y: Double
             val z: Double
             val w: Double
-            if (t > 0) {
-                val s = 0.5 / sqrt(t)
+            // the first branch divides by w, which is small for traces close to -1
+            if (trace > 0) {
+                val s = 0.5 / sqrt(trace + 1.0)
                 w = 0.25 / s
                 x = (m.c1r2 - m.c2r1) * s
                 y = (m.c2r0 - m.c0r2) * s
@@ -64,7 +65,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
             } else if (m.c1r1 > m.c2r2) {
                 val s = 0.5f / sqrt(1.0 + m.c1r1 - m.c0r0 - m.c2r2) // S=4*qy
                 w = (m.c2r0 - m.c0r2) * s
-                x = (m.c0r2 + m.c1r0) * s
+                x = (m.c0r1 + m.c1r0) * s
                 y = 0.25f / s
                 z = (m.c1r2 + m.c2r1) * s
             } else {
@@ -190,7 +191,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
 
 @Suppress("unused")
 fun dot(q1: Quaternion, q2: Quaternion): Double {
-    return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q2.z * q2.z
+    return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z
 }
 
 @Suppress("unused")
@@ -211,7 +212,9 @@ fun slerp(q1: Quaternion, q2: Quaternion, x: Double): Quaternion {
     // Set the first and second scale for the interpolation
     var scale0 = 1 - x
     var scale1 = x
-    if (1 - result > 0.1) {
+    // only quaternions that are nearly equal are interpolated linearly, the result is normalized then
+    val linear = 1 - result <= 1E-6
+    if (!linear) {
         // Get the angle between the 2 quaternions, and then store the sin()
         // of that angle
         val theta = acos(result)
@@ -222,9 +225,10 @@ fun slerp(q1: Quaternion, q2: Quaternion, x: Double): Quaternion {
         scale1 = sin(x * theta) * invSinTheta
     }
 
-    return Quaternion(
+    val result2 = Quaternion(
             scale0 * q1.x + scale1 * q2e.x,
             scale0 * q1.y + scale1 * q2e.y,
             scale0 * q1.z + scale1 * q2e.z,
             scale0 * q1.w + scale1 * q2e.w)
+    return if (linear) result2.normalized else result2
 }

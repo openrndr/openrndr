@@ -42,7 +42,7 @@ data class Matrix55(
             this.c0r0 * mat.c1r0 + this.c1r0 * mat.c1r1 + this.c2r0 * mat.c1r2 + this.c3r0 * mat.c1r3 + this.c4r0 * mat.c1r4,
             this.c0r0 * mat.c2r0 + this.c1r0 * mat.c2r1 + this.c2r0 * mat.c2r2 + this.c3r0 * mat.c2r3 + this.c4r0 * mat.c2r4,
             this.c0r0 * mat.c3r0 + this.c1r0 * mat.c3r1 + this.c2r0 * mat.c3r2 + this.c3r0 * mat.c3r3 + this.c4r0 * mat.c3r4,
-            this.c0r0 * mat.c4r0 + this.c1r0 * mat.c4r1 + this.c2r0 * mat.c4r2 + this.c3r0 * mat.c3r3 + this.c4r0 * mat.c4r4,
+            this.c0r0 * mat.c4r0 + this.c1r0 * mat.c4r1 + this.c2r0 * mat.c4r2 + this.c3r0 * mat.c4r3 + this.c4r0 * mat.c4r4,
 
             this.c0r1 * mat.c0r0 + this.c1r1 * mat.c0r1 + this.c2r1 * mat.c0r2 + this.c3r1 * mat.c0r3 + this.c4r1 * mat.c0r4,
             this.c0r1 * mat.c1r0 + this.c1r1 * mat.c1r1 + this.c2r1 * mat.c1r2 + this.c3r1 * mat.c1r3 + this.c4r1 * mat.c1r4,

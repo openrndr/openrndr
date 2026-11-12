@@ -1,5 +1,6 @@
 package org.openrndr.math
 
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -13,7 +14,7 @@ import kotlin.math.pow
  * @return A normalization factor that is either 1.0 or a power of 2, determined by the input values.
  */
 fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
-    val exponent = max(max(a, b), max(c, d)).asExponent.toDouble()
+    val exponent = max(max(abs(a), abs(b)), max(abs(c), abs(d))).asExponent.toDouble()
     return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
 }
 
@@ -28,11 +29,11 @@ fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
  * @return the computed normalization factor
  */
 fun normalizationFactor(a: Double, b: Double, c: Double): Double {
-    val exponent = max(max(a, b), c).asExponent.toDouble()
+    val exponent = max(max(abs(a), abs(b)), abs(c)).asExponent.toDouble()
     return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
 }
 
 fun normalizationFactor(a: Double, b: Double): Double {
-    val exponent = max(a, b).asExponent.toDouble()
+    val exponent = max(abs(a), abs(b)).asExponent.toDouble()
     return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
 }

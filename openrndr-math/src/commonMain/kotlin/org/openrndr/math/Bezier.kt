@@ -122,7 +122,7 @@ fun roots(p: List<Double>): List<Double> {
             val v2 = -(-m1 + m2) / d
             return listOf(v1, v2)
         } else if (b != c && d == 0.0) {
-            return listOf((2 * b * c) / (2 * (b - c)))
+            return listOf((2 * b - c) / (2 * (b - c)))
         }
         return emptyList()
     } else if (p.size == 2) {

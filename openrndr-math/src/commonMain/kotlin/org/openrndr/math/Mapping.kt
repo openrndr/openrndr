@@ -152,7 +152,7 @@ fun smoothstepIn(edge0: Double, edge1: Double, x: Double): Double {
     val u = saturate((x - edge0) / (edge1 - edge0))
     // Evaluate polynomial
 
-    return if (x < 0.5)
+    return if (u < 0.5)
         u * u * (3 - 2 * u)
     else {
         u

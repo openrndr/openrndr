@@ -2,6 +2,8 @@ package org.openrndr.math
 
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmRecord
+import org.openrndr.math.transforms.cosDegrees
+import org.openrndr.math.transforms.sinDegrees
 import kotlin.math.*
 
 /**
@@ -92,14 +94,10 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
      */
     fun rotate(degrees: Double, origin: Vector2 = ZERO): Vector2 {
         val p = this - origin
-        val a = degrees.asRadians
-
-        val w = Vector2(
-            p.x * cos(a) - p.y * sin(a),
-            p.y * cos(a) + p.x * sin(a)
-        )
-
-        return w + origin
+        // exact for multiples of 90 degrees
+        val c = cosDegrees(degrees)
+        val s = sinDegrees(degrees)
+        return Vector2(p.x * c - p.y * s + origin.x, p.y * c + p.x * s + origin.y)
     }
 
     val yx: Vector2 get() = Vector2(y, x)

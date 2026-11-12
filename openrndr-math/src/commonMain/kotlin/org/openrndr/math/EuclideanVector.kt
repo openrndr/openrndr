@@ -1,7 +1,7 @@
 package org.openrndr.math
 
-import kotlin.math.pow
 import kotlin.math.sqrt
+
 
 interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : LinearType<T> {
 
@@ -45,7 +45,19 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
 
     /** returns the area of the parallelogram formed by extruding this over [other] */
     fun areaBetween(other: T): Double {
-        return sqrt(squaredLength * other.squaredLength - dot(other).pow(2.0))
+        val lengths2 = squaredLength * other.squaredLength
+        val dot2 = dot(other).let { it * it }
+        // the Lagrange identity loses at most a bit between 45 and 135 degrees
+        if (dot2 <= 0.5 * lengths2) {
+            return sqrt(lengths2 - dot2)
+        }
+        // it cancels for nearly parallel vectors: |a| |b| sin(angle), the sine from the unit vectors u and v as
+        // |u - v| |u + v| / 2, which is exact for parallel and opposite vectors
+        val la = length
+        val lb = other.length
+        val u = this / la
+        val v = other / lb
+        return la * lb * (u - v).length * (u + v).length * 0.5
     }
 
     /**
@@ -69,9 +81,11 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
     fun atan2(other: T) : Double {
         val u = this.normalized
         val v = other.normalized
-        val x = u dot v
-        val y = sqrt(1.0 - x * x)
-        return kotlin.math.atan2(y, x)
+        if (u.squaredLength == 0.0 || v.squaredLength == 0.0) {
+            return kotlin.math.atan2(1.0, 0.0)
+        }
+        // the angle from the lengths of the difference and sum of the unit vectors is accurate for all angles
+        return 2.0 * kotlin.math.atan2((u - v).length, (u + v).length)
     }
 
     /**

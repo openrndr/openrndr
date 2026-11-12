@@ -56,7 +56,7 @@ fun Vector2.clamp(min : Vector2, max : Vector2) =
 fun Vector3.clamp(min : Vector3, max : Vector3) =
         Vector3(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),
-                z.clamp(min.y, max.z))
+                z.clamp(min.z, max.z))
 
 /** Returns [Vector4] whose value is limited between [min] and [max] per vector component. */
 fun Vector4.clamp(min : Vector4, max : Vector4) =
@@ -74,7 +74,7 @@ fun IntVector2.clamp(min : IntVector2, max : IntVector2) =
 fun IntVector3.clamp(min : IntVector3, max : IntVector3) =
         IntVector3(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),
-                z.clamp(min.y, max.z))
+                z.clamp(min.z, max.z))
 
 /** Returns [IntVector4] whose value is limited between [min] and [max] per vector component. */
 fun IntVector4.clamp(min : IntVector4, max : IntVector4) =

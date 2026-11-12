@@ -28,9 +28,14 @@ value class Float16(val v: UShort) {
                 }
                 m = m or 0x800000
                 val shift = 14 - e
-                val add = 1 shl (shift - 1)
-                m = (m + add) shr shift
-                return Float16(((s and 0x8000) or m).toUShort())
+                // rounded to the nearest subnormal, ties to even
+                val halfway = 1 shl (shift - 1)
+                val rest = m and ((1 shl shift) - 1)
+                var r = m shr shift
+                if (rest > halfway || (rest == halfway && (r and 1) == 1)) {
+                    r++
+                }
+                return Float16(((s and 0x8000) or r).toUShort())
             } else if (e >= 31) {
                 if (e == 31 + (127 - 15) && m != 0) {
                     // NaN
@@ -40,7 +45,8 @@ value class Float16(val v: UShort) {
                 return Float16(((s and 0x8000) or 0x7c00).toUShort())
             }
 
-            m = m + 0x00001000 + ((m shr 13) and 1)
+            // rounded to the nearest half, ties to even
+            m = m + 0x00000fff + ((m shr 13) and 1)
             if (m and 0x00800000 != 0) {
                 m = 0
                 e++

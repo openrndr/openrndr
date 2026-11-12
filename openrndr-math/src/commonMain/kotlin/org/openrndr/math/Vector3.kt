@@ -80,6 +80,9 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
         x * v.y - y * v.x
     )
 
+    /** The area of the parallelogram spanned by this vector and [other], the length of their cross product */
+    override fun areaBetween(other: Vector3): Double = (this cross other).length
+
 
     /** The Euclidean length of the vector. */
     override val length: Double get() = sqrt(x * x + y * y + z * z)

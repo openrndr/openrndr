@@ -2,8 +2,8 @@ package org.openrndr.math
 
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmRecord
-import kotlin.math.acos
 import kotlin.math.atan2
+import kotlin.math.sqrt
 
 
 private const val EPS = 0.000001
@@ -49,7 +49,8 @@ data class Spherical(
             val r = vector.length
             return Spherical(
                     if (r == 0.0) 0.0 else atan2(vector.x, vector.z).asDegrees,
-                    if (r == 0.0) 0.0 else acos(clamp(vector.y / r, -1.0, 1.0)).asDegrees,
+                    // atan2 keeps the angle from the y-axis accurate near the poles, where acos loses digits
+                    if (r == 0.0) 0.0 else atan2(sqrt(vector.x * vector.x + vector.z * vector.z), vector.y).asDegrees,
                     r)
         }
     }
