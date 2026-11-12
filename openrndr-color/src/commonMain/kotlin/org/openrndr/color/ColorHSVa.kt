@@ -106,7 +106,7 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, override val a
         val p = hsv.v * (1 - hsv.s)
         val q = hsv.v * (1 - hsv.s * f)
         val t = hsv.v * (1 - hsv.s * (1 - f))
-        if (s > 0.00001) {
+        if (s != 0.0) {
             when (i) {
                 0 -> {
                     r = hsv.v

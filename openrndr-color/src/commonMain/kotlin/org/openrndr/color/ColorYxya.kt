@@ -37,9 +37,10 @@ data class ColorYxya(
      * @return A new instance of `ColorXYZa` representing the color in the XYZ color space.
      */
     fun toXYZa(): ColorXYZa {
-        val X = (yy / y) * x
+        // black has no chromaticity
+        val X = if (y != 0.0) (yy / y) * x else 0.0
         val Y = yy
-        val Z = if (yy > 0) ((1.0 - x - y) * yy) / y else 0.0
+        val Z = if (y != 0.0) ((1.0 - x - y) * yy) / y else 0.0
         return ColorXYZa(X, Y, Z, alpha)
     }
 

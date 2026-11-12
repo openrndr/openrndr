@@ -30,8 +30,8 @@ class ColorLUVaTest {
         // these values are very close to the conversions provided by http://colormine.org/convert/rgb-to-luv
         // differences are due to differing reference white points
         val luvRed = ColorRGBa.RED.toLUVa(ref = ColorXYZa.NEUTRAL)
-        assertEquals(53.23288178584245, luvRed.l, 0.0)
-        assertEquals(175.05256160740132, luvRed.u, 0.0)
-        assertEquals(37.759612089002886, luvRed.v, 0.0)
+        assertEquals(53.23711559542936, luvRed.l, 1e-9)
+        assertEquals(175.00982216288486, luvRed.u, 1e-9)
+        assertEquals(37.76509362555977, luvRed.v, 1e-9)
     }
 }

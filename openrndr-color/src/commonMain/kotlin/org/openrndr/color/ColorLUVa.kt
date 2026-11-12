@@ -2,6 +2,7 @@ package org.openrndr.color
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
+import kotlin.math.cbrt
 import kotlin.math.pow
 import kotlin.jvm.JvmRecord
 
@@ -33,7 +34,7 @@ data class ColorLUVa(
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLUVa {
             val y = if (ref.y != 0.0) xyz.y / ref.y else 0.0
             val l = if (y <= (6.0 / 29.0).pow(3.0)) (29.0 / 3.0).pow(3.0) * y else
-                116.0 * y.pow(1.0 / 3.0) - 16.0
+                116.0 * cbrt(y) - 16.0
 
 
             val div0 = (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)

@@ -26,9 +26,11 @@ class ColorLABaTest {
         assertEquals(0.0, labBlack.a, 0.0)
         assertEquals(0.0, labBlack.b, 0.0)
 
+        // the sRGB matrices are derived from the chromaticities of the primaries and of D65 (0.3127, 0.3290),
+        // http://www.brucelindbloom.com/ gives (53.2408, 80.0925, 67.2032) for the white point of ASTM E308
         val labRed = ColorRGBa.RED.toLABa(ref = ColorXYZa.NEUTRAL)
-        assertEquals(53.23288178584245, labRed.l, 0.0)
-        assertEquals(80.1053270902018, labRed.a, 0.0)
-        assertEquals(67.22278194543621, labRed.b, 0.0)
+        assertEquals(53.23711559542936, labRed.l, 1e-9)
+        assertEquals(80.09011352310385, labRed.a, 1e-9)
+        assertEquals(67.20326351172214, labRed.b, 1e-9)
     }
 }

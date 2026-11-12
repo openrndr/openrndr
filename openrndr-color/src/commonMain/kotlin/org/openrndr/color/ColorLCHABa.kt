@@ -92,6 +92,10 @@ data class ColorLCHABa(
         fun fromLABa(laba: ColorLABa): ColorLCHABa {
             val l = laba.l
             val c = sqrt(laba.a * laba.a + laba.b * laba.b)
+            // grays keep a chroma of rounding errors through conversions, their hue would follow those errors
+            if (c < GRAY_CHROMA) {
+                return ColorLCHABa(l, 0.0, 0.0, laba.alpha, laba.ref)
+            }
             var h = atan2(laba.b, laba.a)
 
             if (h < 0) {

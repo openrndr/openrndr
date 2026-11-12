@@ -41,6 +41,10 @@ data class ColorLCHUVa(
         fun fromLUVa(luva: ColorLUVa): ColorLCHUVa {
             val l = luva.l
             val c = sqrt(luva.u * luva.u + luva.v * luva.v)
+            // grays keep a chroma of rounding errors through conversions, their hue would follow those errors
+            if (c < GRAY_CHROMA) {
+                return ColorLCHUVa(l, 0.0, 0.0, luva.alpha, luva.ref)
+            }
             var h = atan2(luva.v, luva.u)
 
             if (h < 0) {

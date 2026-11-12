@@ -119,9 +119,8 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, override val a
 }
 
 internal fun hue2rgb(p: Double, q: Double, ut: Double): Double {
-    var t = ut
-    while (t < 0) t += 1.0
-    while (t > 1) t -= 1.0
+    // mod keeps the cost independent of the hue
+    val t = ut.mod(1.0)
     if (t < 1.0 / 6.0) return p + (q - p) * 6.0 * t
     if (t < 1.0 / 2.0) return q
     return if (t < 2.0 / 3.0) p + (q - p) * (2.0 / 3.0 - t) * 6.0 else p

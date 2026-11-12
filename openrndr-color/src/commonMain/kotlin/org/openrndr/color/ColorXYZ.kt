@@ -22,26 +22,26 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val a
         // White points of standard illuminants as per the CIE 1931 2° Standard Observer
         // Also see: https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_standard_observer,
         // https://en.wikipedia.org/wiki/Standard_illuminant#White_points_of_standard_illuminants
-        val SO2_A = ColorXYZa(109.83 / 100.0, 1.0, 35.55 / 100.0)
-        val SO2_C = ColorXYZa(98.04 / 100.0, 1.0, 118.11 / 100.0)
-        val SO2_F2 = ColorXYZa(98.09 / 100.0, 1.0, 67.53 / 100.0)
+        val SO2_A = ColorXYZa(109.850 / 100.0, 1.0, 35.585 / 100.0)
+        val SO2_C = ColorXYZa(98.074 / 100.0, 1.0, 118.232 / 100.0)
+        val SO2_F2 = ColorXYZa(99.187 / 100.0, 1.0, 67.395 / 100.0)
         val SO2_TL4 = ColorXYZa(101.40 / 100.0, 1.0, 65.90 / 100.0)
         val SO2_UL3000 = ColorXYZa(107.99 / 100.0, 1.0, 33.91 / 100.0)
-        val SO2_D50 = ColorXYZa(107.99 / 100.0, 1.0, 82.45 / 100.0)
-        val SO2_D60 = ColorXYZa(107.99 / 100.0, 1.0, 100.86 / 100.0)
-        val SO2_D65 = ColorXYZa(95.02 / 100.0, 1.0, 108.82 / 100.0)
-        val SO2_D75 = ColorXYZa(107.99 / 100.0, 1.0, 122.53 / 100.0)
+        val SO2_D50 = ColorXYZa(96.422 / 100.0, 1.0, 82.521 / 100.0)
+        val SO2_D60 = ColorXYZa(0.32168 / 0.33767, 1.0, (1.0 - 0.32168 - 0.33767) / 0.33767)
+        val SO2_D65 = ColorXYZa(95.047 / 100.0, 1.0, 108.883 / 100.0)
+        val SO2_D75 = ColorXYZa(94.972 / 100.0, 1.0, 122.638 / 100.0)
 
         // White points of standard illuminants as per the CIE 1963 10° Standard Observer
-        val SO10_A = ColorXYZa(111.16 / 100.0, 1.0, 35.19 / 100.0)
-        val SO10_C = ColorXYZa(97.30 / 100.0, 1.0, 116.14 / 100.0)
-        val SO10_F2 = ColorXYZa(102.12 / 100.0, 1.0, 69.37 / 100.0)
+        val SO10_A = ColorXYZa(111.144 / 100.0, 1.0, 35.200 / 100.0)
+        val SO10_C = ColorXYZa(97.285 / 100.0, 1.0, 116.145 / 100.0)
+        val SO10_F2 = ColorXYZa(103.280 / 100.0, 1.0, 69.026 / 100.0)
         val SO10_TL4 = ColorXYZa(103.82 / 100.0, 1.0, 66.90 / 100.0)
         val SO10_UL3000 = ColorXYZa(111.12 / 100.0, 1.0, 35.21 / 100.0)
-        val SO10_D50 = ColorXYZa(96.72 / 100.0, 1.0, 81.45 / 100.0)
+        val SO10_D50 = ColorXYZa(96.720 / 100.0, 1.0, 81.427 / 100.0)
         val SO10_D60 = ColorXYZa(95.21 / 100.0, 1.0, 99.60 / 100.0)
-        val SO10_D65 = ColorXYZa(94.83 / 100.0, 1.0, 107.38 / 100.0)
-        val SO10_D75 = ColorXYZa(94.45 / 100.0, 1.0, 120.70 / 100.0)
+        val SO10_D65 = ColorXYZa(94.811 / 100.0, 1.0, 107.304 / 100.0)
+        val SO10_D75 = ColorXYZa(94.416 / 100.0, 1.0, 120.641 / 100.0)
 
         val NEUTRAL = fromRGBa(ColorRGBa(1.0, 1.0, 1.0, linearity = Linearity.LINEAR))
 
@@ -53,9 +53,10 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val a
          */
         fun fromRGBa(rgba: ColorRGBa): ColorXYZa {
             val linear = rgba.toLinear()
-            val x = 0.4124 * linear.r + 0.3576 * linear.g + 0.1805 * linear.b
-            val y = 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
-            val z = 0.0193 * linear.r + 0.1192 * linear.g + 0.9505 * linear.b
+            val m = RgbMatrices.SRGB_TO_XYZ
+            val x = m[0] * linear.r + m[1] * linear.g + m[2] * linear.b
+            val y = m[3] * linear.r + m[4] * linear.g + m[5] * linear.b
+            val z = m[6] * linear.r + m[7] * linear.g + m[8] * linear.b
             return ColorXYZa(x, y, z, linear.alpha)
         }
     }
@@ -68,9 +69,10 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val a
     fun toLABa(ref: ColorXYZa) = ColorLABa.fromXYZa(this, ref)
     fun toLUVa(ref: ColorXYZa) = ColorLUVa.fromXYZa(this, ref)
     override fun toRGBa(): ColorRGBa {
-        val r = 3.2406 * x - 1.5372 * y - 0.4986 * z
-        val g = -0.9689 * x + 1.8758 * y + 0.0415 * z
-        val b = 0.0557 * x - 0.2040 * y + 1.0570 * z
+        val m = RgbMatrices.XYZ_TO_SRGB
+        val r = m[0] * x + m[1] * y + m[2] * z
+        val g = m[3] * x + m[4] * y + m[5] * z
+        val b = m[6] * x + m[7] * y + m[8] * z
         return ColorRGBa(r, g, b, alpha, Linearity.LINEAR)
     }
 

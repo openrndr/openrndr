@@ -3,7 +3,7 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmRecord
-import kotlin.math.pow
+import kotlin.math.cbrt
 
 /**
  * The [CIELAB color space](https://en.wikipedia.org/wiki/CIELAB_color_space),
@@ -75,22 +75,22 @@ data class ColorLABa(
         val fx = lab.a / 500.0 + fy
         val fz = fy - lab.b / 200.0
 
-        x = if (fx * fx * fx > 0.008856) {
+        x = if (fx * fx * fx > LAB_EPSILON) {
             fx * fx * fx
         } else {
-            (116 * fx - 16) / 903.3
+            (116 * fx - 16) / LAB_KAPPA
         }
 
-        y = if (lab.l > 903.3 * 0.008856) {
-            ((lab.l + 16) / 116.0).pow(3.0)
+        y = if (lab.l > LAB_KAPPA * LAB_EPSILON) {
+            fy * fy * fy
         } else {
-            lab.l / 903.3
+            lab.l / LAB_KAPPA
         }
 
-        z = if (fz * fz * fz > 0.008856) {
+        z = if (fz * fz * fz > LAB_EPSILON) {
             fz * fz * fz
         } else {
-            (116.0 * fz - 16.0) / 903.3
+            (116.0 * fz - 16.0) / LAB_KAPPA
         }
 
         x *= ref.x
@@ -125,10 +125,14 @@ data class ColorLABa(
         get() = l
 }
 
+/** The exact constants of CIE 15:2004, (6/29)^3 and (29/3)^3, with which the two pieces of [f] join continuously */
+private const val LAB_EPSILON = 216.0 / 24389.0
+private const val LAB_KAPPA = 24389.0 / 27.0
+
 private fun f(t: Double): Double {
-    return if (t > 0.008856) {
-        t.pow(1.0 / 3.0)
+    return if (t > LAB_EPSILON) {
+        cbrt(t)
     } else {
-        (903.3 * t + 16.0) / 116.0
+        (LAB_KAPPA * t + 16.0) / 116.0
     }
 }

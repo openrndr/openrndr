@@ -317,11 +317,11 @@ data class ColorRGBa(
                 val lr = decodeSRGB(r)
                 val lg = decodeSRGB(g)
                 val lb = decodeSRGB(b)
-                // the linear P3 to linear sRGB matrix of CSS Color 4
+                val m = RgbMatrices.P3_TO_SRGB
                 ColorRGBa(
-                    1.2249401762805598 * lr - 0.22494017628055996 * lg,
-                    -0.042056954709688163 * lr + 1.0420569547096881 * lg,
-                    -0.019637554590334432 * lr - 0.07863604555063189 * lg + 1.0982736001409663 * lb,
+                    m[0] * lr + m[1] * lg + m[2] * lb,
+                    m[3] * lr + m[4] * lg + m[5] * lb,
+                    m[6] * lr + m[7] * lg + m[8] * lb,
                     alpha,
                     Linearity.LINEAR
                 )
@@ -351,11 +351,11 @@ data class ColorRGBa(
             Linearity.DISPLAY_P3 -> this
             else -> {
                 val linear = toLinear()
-                // the linear sRGB to linear P3 matrix of CSS Color 4
+                val m = RgbMatrices.SRGB_TO_P3
                 ColorRGBa(
-                    encodeSRGB(0.8224619687143623 * linear.r + 0.17753803128563775 * linear.g),
-                    encodeSRGB(0.03319419885096161 * linear.r + 0.9668058011490384 * linear.g),
-                    encodeSRGB(0.017082630235101 * linear.r + 0.07239744066396346 * linear.g + 0.9105199291009355 * linear.b),
+                    encodeSRGB(m[0] * linear.r + m[1] * linear.g + m[2] * linear.b),
+                    encodeSRGB(m[3] * linear.r + m[4] * linear.g + m[5] * linear.b),
+                    encodeSRGB(m[6] * linear.r + m[7] * linear.g + m[8] * linear.b),
                     alpha,
                     Linearity.DISPLAY_P3
                 )
@@ -511,13 +511,30 @@ operator fun Matrix55.times(color: ColorRGBa): ColorRGBa {
 /**
  * The sRGB transfer function, also used by Display P3
  */
-private fun encodeSRGB(x: Double): Double {
+private fun encodeSRGBFormula(x: Double): Double {
     return if (x <= 0.0031308) 12.92 * x else (1 + 0.055) * x.pow(1.0 / 2.4) - 0.055
 }
 
 /**
+ * The linear values of the 8-bit sRGB values k / 255, the components of colors from hex codes, `rgb(Int, ...)` and the
+ * named colors
+ */
+private val DECODED_8_BIT = DoubleArray(256) { decodeSRGBFormula(it / 255.0) }
+
+private fun encodeSRGB(x: Double): Double = encodeSRGBFormula(x)
+
+/**
  * The inverse of the sRGB transfer function, also used by Display P3
  */
-private fun decodeSRGB(x: Double): Double {
+private fun decodeSRGBFormula(x: Double): Double {
     return if (x <= 0.04045) x / 12.92 else ((x + 0.055) / (1 + 0.055)).pow(2.4)
+}
+
+private fun decodeSRGB(x: Double): Double {
+    // 8-bit sRGB values are decoded from the table
+    val k = (x * 255.0 + 0.5).toInt()
+    if (k in 0..255 && k / 255.0 == x) {
+        return DECODED_8_BIT[k]
+    }
+    return decodeSRGBFormula(x)
 }
