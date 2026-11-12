@@ -18,6 +18,12 @@ kotlin {
         }
     }
     sourceSets {
+        getByName("commonMain") {
+            dependencies {
+                // the suspending awaits of EventAwait.kt
+                implementation(libs.kotlin.coroutines)
+            }
+        }
 //        val commonMain = getByName("commonMain")
         val commonJvmMain = getByName("commonJvmMain")
 //
