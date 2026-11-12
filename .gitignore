@@ -15,4 +15,4 @@ openrndr-jvm/openrndr-gl3/*.dylib
 
 .DS_Store
 
-/.kotlin
+.kotlin/
