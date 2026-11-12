@@ -16,11 +16,32 @@ import kotlin.jvm.JvmName
  * and stroke weight to be written to the buffer
  */
 fun BufferWriter.write(drawStyle: DrawStyle) {
-    write(drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
-    write(drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
-    val weight = if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else
-        drawStyle.strokeWeight
-    write(weight.toFloat())
+    write(DrawStyleAttributes(drawStyle))
+}
+
+/**
+ * The per instance attributes of a [DrawStyle] in a batch, its colors converted to linear once for all instances
+ */
+internal class DrawStyleAttributes(drawStyle: DrawStyle) {
+    val fill = drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT
+    val stroke = drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT
+    val strokeWeight = (if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else drawStyle.strokeWeight).toFloat()
+}
+
+internal fun BufferWriter.write(attributes: DrawStyleAttributes) {
+    write(attributes.fill)
+    write(attributes.stroke)
+    write(attributes.strokeWeight)
+}
+
+/** The largest number of elements drawn from a pooled batch, larger lists are drawn from a batch of their own */
+internal const val POOLED_BATCH_SIZE = 1024
+
+/** The capacity of a pooled batch for [size] elements: a power of two of at least 16 */
+internal fun pooledBatchCapacity(size: Int): Int {
+    var capacity = 16
+    while (capacity < size) capacity *= 2
+    return capacity
 }
 
 val drawStyleFormat = vertexFormat {

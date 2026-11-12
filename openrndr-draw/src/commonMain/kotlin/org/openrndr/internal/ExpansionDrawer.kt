@@ -152,14 +152,14 @@ internal class ExpansionDrawer {
         shader.uniform("fringeMode", 0)
         shader.uniform("strokeCoverage", 0)
 
-        val localStyle = drawStyle.copy()
+        val localStyle = passStyle(drawStyle)
         val fs = fringeWidth
         shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
         shader.uniform("strokeFillFactor", 0.0)
         strokeCoverage(shader, drawStyle, fs)
         commands.forEach { command ->
 
-            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
+            localStyle.channelWriteMask = drawStyle.channelWriteMask
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
             localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
@@ -203,7 +203,7 @@ internal class ExpansionDrawer {
             )
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
-            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
+            localStyle.channelWriteMask = drawStyle.channelWriteMask
             Driver.instance.setState(localStyle)
         }
         shader.end()
@@ -223,7 +223,8 @@ internal class ExpansionDrawer {
         bounds: Vector4,
         clipCommands: List<ExpansionCommand> = emptyList(),
         fringeCommands: List<ExpansionCommand> = emptyList(),
-        clipInside: Boolean = true
+        clipInside: Boolean = true,
+        singlePass: Boolean = false
     ) {
         if (commands.isNotEmpty()) {
             val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
@@ -232,7 +233,7 @@ internal class ExpansionDrawer {
             drawStyle.applyToShader(shader)
             Driver.instance.setState(drawStyle)
 
-            val localStyle = drawStyle
+            val localStyle = passStyle(drawStyle)
             val vertexCount = commands.last().let { it.vertexOffset + it.vertexCount }
             val fs = fringeScale
             shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
@@ -241,6 +242,23 @@ internal class ExpansionDrawer {
 
             shader.uniform("bounds", bounds)
             shader.uniform("fringeMode", 0)
+
+            // -- a stroke that cannot overlap itself is drawn in a single pass, without the stencil buffer
+            if (singlePass && clipCommands.isEmpty() && fringeCommands.isEmpty()) {
+                val singleStyle = passStyle(drawStyle)
+                singleStyle.stencil.stencilTest = StencilTest.DISABLED
+                shader.uniform("strokeThr", 0.0f)
+                Driver.instance.setState(singleStyle)
+                Driver.instance.drawVertexBuffer(
+                    shader,
+                    listOf(commands[0].vertexBuffer),
+                    DrawPrimitive.TRIANGLE_STRIP,
+                    commands[0].vertexOffset,
+                    vertexCount,
+                    verticesPerPatch = 0
+                )
+                return
+            }
 
             // -- clip, mark the clip polygons in the stencil buffer
             val clipped = clipCommands.isNotEmpty()
@@ -257,7 +275,7 @@ internal class ExpansionDrawer {
             // blending twice
             val reference = if (clipped && clipInside) CLIP_BIT else 0x00
 
-            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
+            localStyle.channelWriteMask = drawStyle.channelWriteMask
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
             localStyle.stencil.stencilFunc(StencilTest.EQUAL, reference, 0xff)
@@ -316,7 +334,7 @@ internal class ExpansionDrawer {
             drawMerged(shader, clipCommands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
-            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
+            localStyle.channelWriteMask = drawStyle.channelWriteMask
             Driver.instance.setState(localStyle)
         }
     }
@@ -362,7 +380,7 @@ internal class ExpansionDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
 
-        val localStyle = drawStyle
+        val localStyle = passStyle(drawStyle)
 
         // the windings of the fill are counted in the stencil buffer, the fill rule determines which counts are inside:
         // all counts but zero for the non-zero rule, the odd counts for the even-odd rule
@@ -418,7 +436,7 @@ internal class ExpansionDrawer {
         // side of it a pixel is. Pixels inside of the fill are drawn by a fringe only where the other side of the
         // outline is outside of the fill, outlines within the fill are not anti-aliased. Inside pixels drawn by a
         // fringe are cleared in the stencil, so that pass 3 and other fringes do not draw them again.
-        localStyle.channelWriteMask = ChannelMask.ALL
+        localStyle.channelWriteMask = drawStyle.channelWriteMask
         shader.uniform("strokeThr", 0.0f)
         shader.uniform("strokeMult", 1.0)
 
@@ -457,7 +475,7 @@ internal class ExpansionDrawer {
             onDepthTestFail = StencilOperation.ZERO,
             onDepthTestPass = StencilOperation.ZERO
         )
-        localStyle.channelWriteMask = ChannelMask.ALL
+        localStyle.channelWriteMask = drawStyle.channelWriteMask
         localStyle.cullTestPass = CullTestPass.ALWAYS
 
         val quad = quads[quadCounter.mod(quads.size)]
@@ -682,7 +700,8 @@ internal class ExpansionDrawer {
         expansions: List<Expansion>,
         fringeScale: Double,
         bounds: Vector4,
-        clip: StrokeClip? = null
+        clip: StrokeClip? = null,
+        singlePass: Boolean = false
     ) {
         val clipExpansions = clip?.let { it.polygons + it.fringes } ?: emptyList()
         val vertexCount = expansions.sumOf { commandVertexCount(it) } + clipExpansions.sumOf { commandVertexCount(it) }
@@ -696,7 +715,8 @@ internal class ExpansionDrawer {
             bounds,
             commands.filter { it.type == ExpansionType.FILL },
             commands.filter { it.type == ExpansionType.FRINGE },
-            clip?.inside ?: true
+            clip?.inside ?: true,
+            singlePass
         )
     }
 
@@ -748,4 +768,13 @@ internal class ExpansionDrawer {
         val vertexCount = expansions.sumOf { commandVertexCount(it) }
         renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
     }
+}
+
+/**
+ * A copy of [drawStyle] for the passes of a draw, with a stencil of its own: the passes change its stencil and write
+ * mask, not those of [drawStyle]
+ */
+private fun passStyle(drawStyle: DrawStyle): DrawStyle {
+    val stencil = drawStyle.stencil.copy()
+    return drawStyle.copy(stencil = stencil, frontStencil = stencil, backStencil = stencil)
 }

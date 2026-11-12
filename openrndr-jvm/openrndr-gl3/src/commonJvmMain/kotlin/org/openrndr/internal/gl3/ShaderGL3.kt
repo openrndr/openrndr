@@ -112,6 +112,7 @@ class ShaderGL3(
     private var destroyed = false
     private var running = false
     override var uniforms: MutableMap<String, Int> = hashMapOf()
+    override val uniformValues: MutableMap<Int, Any> = HashMap()
     private var attributes: MutableMap<String, Int> = hashMapOf()
     private var blockBindings = hashMapOf<String, Int>()
     private val blocks: MutableMap<String, Int> = hashMapOf()

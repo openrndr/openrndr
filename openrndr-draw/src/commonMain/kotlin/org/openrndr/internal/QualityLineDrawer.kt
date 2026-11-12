@@ -49,7 +49,9 @@ class QualityLineDrawer {
                     drawStyle.miterLimit
                 )
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, bounds)
+            // a single straight segment cannot overlap itself
+            val singlePass = strips.size == 1 && strips[0].size == 2
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, bounds, singlePass = singlePass)
         }
     }
 

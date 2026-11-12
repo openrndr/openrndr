@@ -16,6 +16,29 @@ class PointDrawer {
     }, 1)
 
     internal var batch = PointBatch.create(10_000, session = Session.root)
+
+    /**
+     * Batches for lists of up to [POOLED_BATCH_SIZE] elements. Each call writes the next one, so it does not wait for
+     * the GPU to finish reading a batch an earlier call in the frame wrote.
+     */
+    private val pooledBatches = arrayOfNulls<PointBatch>(DrawerConfiguration.vertexBufferMultiBufferCount)
+    private var pooledBatchIndex = 0
+
+    /** A batch to write [size] elements into */
+    internal fun batchFor(size: Int): PointBatch {
+        if (size > POOLED_BATCH_SIZE) {
+            ensureBatchSize(size)
+            return batch
+        }
+        val index = pooledBatchIndex
+        pooledBatchIndex = (pooledBatchIndex + 1) % pooledBatches.size
+        val pooled = pooledBatches[index]
+        if (pooled != null && pooled.size >= size) {
+            return pooled
+        }
+        pooled?.destroy()
+        return PointBatch.create(pooledBatchCapacity(size), session = Session.root).also { pooledBatches[index] = it }
+    }
     private var count = 0
 
 
@@ -58,7 +81,8 @@ class PointDrawer {
      */
     @JvmName("drawPoints2D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.put {
             for (i in positions.indices) {
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
@@ -66,7 +90,7 @@ class PointDrawer {
         }
         batch.drawStyle.put {
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         drawPoints(drawContext, drawStyle, batch, positions.size)
@@ -81,7 +105,8 @@ class PointDrawer {
      */
     @JvmName("drawPoints3D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector3>) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.put {
             for (i in positions.indices) {
                 write(positions[i])
@@ -89,7 +114,7 @@ class PointDrawer {
         }
         batch.drawStyle.put {
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         drawPoints(drawContext, drawStyle, batch, positions.size)
@@ -106,8 +131,6 @@ class PointDrawer {
      */
     fun drawPoint(drawContext: DrawContext,
                   drawStyle: DrawStyle, x: Double, y: Double, z: Double) {
-        ensureBatchSize(1)
-
         val batch = singleBatches[count.mod(singleBatches.size)]
 
         batch.geometry.put {
@@ -117,6 +140,7 @@ class PointDrawer {
             write(drawStyle)
         }
         drawPoints(drawContext, drawStyle, batch, 1)
+        count++
     }
 
 

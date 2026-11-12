@@ -18,6 +18,23 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     val name: String
     val uniforms: MutableMap<String, Int>
 
+    /**
+     * The values last set at the uniform locations, values of immutable types that are set again are not uploaded
+     */
+    val uniformValues: MutableMap<Int, Any>
+
+    /**
+     * Is [value] different from the value last set at uniform location [index]? It is recorded when it is.
+     */
+    fun uniformChanged(index: Int, value: Any): Boolean {
+        val values = uniformValues
+        if (values[index] == value) {
+            return false
+        }
+        values[index] = value
+        return true
+    }
+
     val useProgramUniform: Boolean
 
     fun uniformIndex(uniform: String, query: Boolean = false): Int =
@@ -34,9 +51,9 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: ColorRGBa) {
-        val linearValue = value.toLinear()
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
+            val linearValue = value.toLinear()
             if (useProgramUniform) {
                 glProgramUniform4f(
                     programObject,
@@ -63,7 +80,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Vector3) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform3f(programObject, index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             } else {
@@ -78,7 +95,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: Vector4) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform4f(
                     programObject,
@@ -100,6 +117,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             if (useProgramUniform) {
                 glProgramUniform4f(programObject, index, x, y, z, w)
             } else {
@@ -113,6 +132,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, x: Float, y: Float, z: Float) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             if (useProgramUniform) {
                 glProgramUniform3f(programObject, index, x, y, z)
             } else {
@@ -126,6 +147,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, x: Float, y: Float) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             if (useProgramUniform) {
                 glProgramUniform2f(programObject, index, x, y)
             }
@@ -137,7 +160,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Int) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1i(programObject, index, value)
             } else {
@@ -163,7 +186,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector2) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform2i(programObject, index, value.x, value.y)
             } else {
@@ -177,7 +200,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector3) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform3i(programObject, index, value.x, value.y, value.z)
             } else {
@@ -191,7 +214,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector4) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform4i(programObject, index, value.x, value.y, value.z, value.w)
             } else {
@@ -205,7 +228,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Boolean) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1i(programObject, index, if (value) 1 else 0)
             }
@@ -218,7 +241,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Vector2) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform2f(programObject, index, value.x.toFloat(), value.y.toFloat())
             } else {
@@ -232,7 +255,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Float) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1f(programObject, index, value)
             } else {
@@ -247,7 +270,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Double) {
 
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1f(programObject, index, value.toFloat())
             } else {
@@ -261,7 +284,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Matrix33) {
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniformMatrix3fv(programObject, index, false, value.toFloatArray())
             } else {
@@ -278,7 +301,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Matrix44) {
 
         val index = uniformIndex(name)
-        if (index != -1) {
+        if (index != -1 && uniformChanged(index, value)) {
             if (useProgramUniform) {
                 glProgramUniformMatrix4fv(programObject, index, false, value.toFloatArray())
             } else {
@@ -295,6 +318,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
             val intValues = IntArray(value.size * 4)
@@ -319,6 +344,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
             val intValues = IntArray(value.size * 3)
@@ -342,6 +369,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
             val intValues = IntArray(value.size * 3)
@@ -363,6 +392,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Vector2>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             val floatValues = FloatArray(value.size * 2)
             for (i in value.indices) {
@@ -383,6 +414,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Vector3>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             val floatValues = FloatArray(value.size * 3)
             for (i in value.indices) {
@@ -404,6 +437,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Vector4>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
             val floatValues = FloatArray(value.size * 4)
@@ -428,6 +463,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             if (useProgramUniform) {
                 glProgramUniform1fv(programObject, index, value)
@@ -443,6 +480,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: IntArray) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             if (useProgramUniform) {
                 glProgramUniform1iv(programObject, index, value)
@@ -458,6 +497,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Double>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             @Suppress("SpellCheckingInspection") val fvalue = value.map { it.toFloat() }.toFloatArray()
             if (useProgramUniform) {
@@ -475,6 +516,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<ColorRGBa>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
 
@@ -500,6 +543,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Matrix33>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
             MemoryStack.stackPush().use { stack ->
                 val floatValues = stack.mallocFloat(value.size * 3 * 3)
@@ -522,6 +567,8 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     override fun uniform(name: String, value: Array<Matrix44>) {
         val index = uniformIndex(name)
         if (index != -1) {
+            // values of this type are not compared, the next value of another type is uploaded
+            uniformValues.remove(index)
             logger.trace { "Setting uniform '$name' to $value" }
 
             MemoryStack.stackPush().use { stack ->

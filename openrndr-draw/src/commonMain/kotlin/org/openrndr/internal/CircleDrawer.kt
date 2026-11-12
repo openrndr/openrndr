@@ -29,6 +29,29 @@ class CircleDrawer {
     }, 6, Session.root)
 
     internal var batch = CircleBatch.create(10_000)
+
+    /**
+     * Batches for lists of up to [POOLED_BATCH_SIZE] elements. Each call writes the next one, so it does not wait for
+     * the GPU to finish reading a batch an earlier call in the frame wrote.
+     */
+    private val pooledBatches = arrayOfNulls<CircleBatch>(DrawerConfiguration.vertexBufferMultiBufferCount)
+    private var pooledBatchIndex = 0
+
+    /** A batch to write [size] elements into */
+    internal fun batchFor(size: Int): CircleBatch {
+        if (size > POOLED_BATCH_SIZE) {
+            ensureBatchSize(size)
+            return batch
+        }
+        val index = pooledBatchIndex
+        pooledBatchIndex = (pooledBatchIndex + 1) % pooledBatches.size
+        val pooled = pooledBatches[index]
+        if (pooled != null && pooled.size >= size) {
+            return pooled
+        }
+        pooled?.close()
+        return CircleBatch.create(pooledBatchCapacity(size), session = Session.root).also { pooledBatches[index] = it }
+    }
     private var count = 0
 
     private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { CircleBatch.create(1) }
@@ -78,7 +101,8 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radii: List<Double>) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
@@ -91,15 +115,16 @@ class CircleDrawer {
         batch.drawStyle.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         batch.drawStyle.shadow.uploadElements(0, positions.size)
-        drawCircles(drawContext, drawStyle, positions.size)
+        drawCircles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radius: Double) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
@@ -112,15 +137,16 @@ class CircleDrawer {
         batch.drawStyle.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         batch.drawStyle.shadow.uploadElements(0, positions.size)
-        drawCircles(drawContext, drawStyle, positions.size)
+        drawCircles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circles: List<Circle>) {
-        ensureBatchSize(circles.size)
+        val batch = batchFor(circles.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in circles.indices) {
@@ -133,12 +159,12 @@ class CircleDrawer {
         batch.drawStyle.shadow.writer().apply {
             rewind()
             for (i in circles.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         batch.drawStyle.shadow.uploadElements(0, circles.size)
 
-        drawCircles(drawContext, drawStyle, circles.size)
+        drawCircles(drawContext, drawStyle, batch, circles.size)
     }
 
 
@@ -170,9 +196,6 @@ class CircleDrawer {
         count++
     }
 
-    private fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, count: Int) {
-        drawCircles(drawContext, drawStyle, batch, count)
-    }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circleBatch: CircleBatch, count: Int) {
         val instanceAttributes = listOf(circleBatch.geometry, circleBatch.drawStyle)

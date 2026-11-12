@@ -27,6 +27,29 @@ class RectangleDrawer {
 
     internal var batch = RectangleBatch.create(10_000, Session.root)
 
+    /**
+     * Batches for lists of up to [POOLED_BATCH_SIZE] elements. Each call writes the next one, so it does not wait for
+     * the GPU to finish reading a batch an earlier call in the frame wrote.
+     */
+    private val pooledBatches = arrayOfNulls<RectangleBatch>(DrawerConfiguration.vertexBufferMultiBufferCount)
+    private var pooledBatchIndex = 0
+
+    /** A batch to write [size] elements into */
+    internal fun batchFor(size: Int): RectangleBatch {
+        if (size > POOLED_BATCH_SIZE) {
+            ensureBatchSize(size)
+            return batch
+        }
+        val index = pooledBatchIndex
+        pooledBatchIndex = (pooledBatchIndex + 1) % pooledBatches.size
+        val pooled = pooledBatches[index]
+        if (pooled != null && pooled.size >= size) {
+            return pooled
+        }
+        pooled?.destroy()
+        return RectangleBatch.create(pooledBatchCapacity(size), session = Session.root).also { pooledBatches[index] = it }
+    }
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("rectangle",
             vsGenerator = Driver.instance.shaderGenerators::rectangleVertexShader,
             fsGenerator = Driver.instance.shaderGenerators::rectangleFragmentShader)
@@ -69,7 +92,8 @@ class RectangleDrawer {
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, dimensions: List<Vector2>) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         require(positions.size == dimensions.size) {
             "`positions.size` and `dimensions.size` must be equal in drawRectangles()"
         }
@@ -84,14 +108,15 @@ class RectangleDrawer {
         }
         batch.drawStyle.put {
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         drawRectangles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, width: Double, height: Double) {
-        ensureBatchSize(positions.size)
+        val batch = batchFor(positions.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.put {
             positions.forEach {
                 write(Vector3(
@@ -102,14 +127,15 @@ class RectangleDrawer {
         }
         batch.drawStyle.put {
             for (i in positions.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         drawRectangles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles: List<Rectangle>) {
-        ensureBatchSize(rectangles.size)
+        val batch = batchFor(rectangles.size)
+        val attributes = DrawStyleAttributes(drawStyle)
         batch.geometry.put {
             rectangles.forEach {
                 write(Vector3(
@@ -120,7 +146,7 @@ class RectangleDrawer {
         }
         batch.drawStyle.put {
             for (i in rectangles.indices) {
-                write(drawStyle)
+                write(attributes)
             }
         }
         drawRectangles(drawContext, drawStyle, batch, rectangles.size)
@@ -128,8 +154,6 @@ class RectangleDrawer {
 
     fun drawRectangle(drawContext: DrawContext,
                       drawStyle: DrawStyle, x: Double, y: Double, width: Double, height: Double) {
-        ensureBatchSize(1)
-
         val batch = singleBatches[count.mod(singleBatches.size)]
 
         batch.geometry.put {

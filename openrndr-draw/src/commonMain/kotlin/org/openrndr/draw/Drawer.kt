@@ -782,9 +782,9 @@ class Drawer(val driver: Driver) {
     fun rectangles(build: RectangleBatchBuilder.() -> Unit) {
         val batchBuilder = RectangleBatchBuilder(this)
         batchBuilder.build()
-        rectangleDrawer.ensureBatchSize(batchBuilder.entries.size)
-        batchBuilder.batch(rectangleDrawer.batch)
-        rectangleDrawer.drawRectangles(context, drawStyle, rectangleDrawer.batch, batchBuilder.entries.size)
+        val batch = rectangleDrawer.batchFor(batchBuilder.entries.size)
+        batchBuilder.batch(batch)
+        rectangleDrawer.drawRectangles(context, drawStyle, batch, batchBuilder.entries.size)
     }
 
     /**
@@ -845,9 +845,9 @@ class Drawer(val driver: Driver) {
     fun points(build: PointBatchBuilder.() -> Unit) {
         val batchBuilder = PointBatchBuilder(this)
         batchBuilder.build()
-        pointDrawer.ensureBatchSize(batchBuilder.entries.size)
-        batchBuilder.batch(pointDrawer.batch)
-        pointDrawer.drawPoints(context, drawStyle, pointDrawer.batch, batchBuilder.entries.size)
+        val batch = pointDrawer.batchFor(batchBuilder.entries.size)
+        batchBuilder.batch(batch)
+        pointDrawer.drawPoints(context, drawStyle, batch, batchBuilder.entries.size)
     }
 
     /**
@@ -938,9 +938,9 @@ class Drawer(val driver: Driver) {
     fun circles(build: CircleBatchBuilder.() -> Unit) {
         val batchBuilder = CircleBatchBuilder(this)
         batchBuilder.build()
-        circleDrawer.ensureBatchSize(batchBuilder.entries.size)
-        batchBuilder.batch(circleDrawer.batch)
-        circleDrawer.drawCircles(context, drawStyle, circleDrawer.batch, batchBuilder.entries.size)
+        val batch = circleDrawer.batchFor(batchBuilder.entries.size)
+        batchBuilder.batch(batch)
+        circleDrawer.drawCircles(context, drawStyle, batch, batchBuilder.entries.size)
     }
 
 

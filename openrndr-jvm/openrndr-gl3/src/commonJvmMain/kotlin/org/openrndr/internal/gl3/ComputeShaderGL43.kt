@@ -20,6 +20,7 @@ data class ComputeShaderGL43(
     override var textureBindings: TextureBindings = TextureBindings()
 
     override val uniforms = mutableMapOf<String, Int>()
+    override val uniformValues: MutableMap<Int, Any> = HashMap()
     override val useProgramUniform = Driver.capabilities.programUniform
     private var destroyed = false
 
