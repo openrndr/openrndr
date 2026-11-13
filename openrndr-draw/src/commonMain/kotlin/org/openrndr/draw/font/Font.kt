@@ -21,7 +21,6 @@ interface Glyph {
 
     /**
      * Generate a [Shape] for this glyph
-     * @param scale the scale at which to generate the shape
      * @since 0.4.3
      */
     fun shape(): Shape
