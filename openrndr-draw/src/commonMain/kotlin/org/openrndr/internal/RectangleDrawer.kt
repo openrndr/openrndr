@@ -1,5 +1,6 @@
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -50,6 +51,25 @@ class RectangleDrawer {
         return RectangleBatch.create(pooledBatchCapacity(size), session = Session.root).also { pooledBatches[index] = it }
     }
 
+    private val vertexFormats = listOf(vertices.vertexFormat)
+    private val vertexBuffers = listOf(vertices)
+    private val instanceFormats = listOf(rectangleFormat, drawStyleFormat)
+    private val linear = LinearColors()
+
+    /** writes the style attributes of [drawStyle] for [count] rectangles of [batch] */
+    private fun writeStyles(batch: RectangleBatch, drawStyle: DrawStyle, count: Int) {
+        val fill = linear.fill(drawStyle.fill) ?: ColorRGBa.TRANSPARENT
+        val stroke = linear.stroke(drawStyle.stroke) ?: ColorRGBa.TRANSPARENT
+        val weight = strokeWeightAttribute(drawStyle)
+        batch.drawStyle.putElements(count) {
+            for (i in 0 until count) {
+                write(fill)
+                write(stroke)
+                write(weight)
+            }
+        }
+    }
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("rectangle",
             vsGenerator = Driver.instance.shaderGenerators::rectangleVertexShader,
             fsGenerator = Driver.instance.shaderGenerators::rectangleFragmentShader)
@@ -93,62 +113,45 @@ class RectangleDrawer {
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, dimensions: List<Vector2>) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
         require(positions.size == dimensions.size) {
             "`positions.size` and `dimensions.size` must be equal in drawRectangles()"
         }
-        batch.geometry.put {
-            dimensions.forEachIndexed { i, sz ->
-                write(Vector3(
-                        positions[i].x + min(0.0, sz.x),
-                        positions[i].y + min(0.0, sz.y), 0.0))
-                write(Vector3(abs(sz.x), abs(sz.y), 0.0))
-
+        batch.geometry.putElements(dimensions.size) {
+            for (i in dimensions.indices) {
+                val sz = dimensions[i]
+                write((positions[i].x + min(0.0, sz.x)).toFloat(), (positions[i].y + min(0.0, sz.y)).toFloat(), 0.0f)
+                write(abs(sz.x).toFloat(), abs(sz.y).toFloat(), 0.0f)
             }
         }
-        batch.drawStyle.put {
-            for (i in positions.indices) {
-                write(attributes)
-            }
-        }
+        writeStyles(batch, drawStyle, positions.size)
         drawRectangles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, width: Double, height: Double) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.put {
-            positions.forEach {
-                write(Vector3(
-                        it.x + min(0.0, width),
-                        it.y + min(0.0, height), 0.0))
-                write(Vector3(abs(width), abs(height), 0.0))
-            }
-        }
-        batch.drawStyle.put {
+        val w = abs(width).toFloat()
+        val h = abs(height).toFloat()
+        batch.geometry.putElements(positions.size) {
             for (i in positions.indices) {
-                write(attributes)
+                val position = positions[i]
+                write((position.x + min(0.0, width)).toFloat(), (position.y + min(0.0, height)).toFloat(), 0.0f)
+                write(w, h, 0.0f)
             }
         }
+        writeStyles(batch, drawStyle, positions.size)
         drawRectangles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles: List<Rectangle>) {
         val batch = batchFor(rectangles.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.put {
-            rectangles.forEach {
-                write(Vector3(
-                        it.x + min(0.0, it.width),
-                        it.y + min(0.0, it.height), 0.0))
-                write(Vector3(abs(it.width), abs(it.height), 0.0))
-            }
-        }
-        batch.drawStyle.put {
+        batch.geometry.putElements(rectangles.size) {
             for (i in rectangles.indices) {
-                write(attributes)
+                val it = rectangles[i]
+                write((it.x + min(0.0, it.width)).toFloat(), (it.y + min(0.0, it.height)).toFloat(), 0.0f)
+                write(abs(it.width).toFloat(), abs(it.height).toFloat(), 0.0f)
             }
         }
+        writeStyles(batch, drawStyle, rectangles.size)
         drawRectangles(drawContext, drawStyle, batch, rectangles.size)
     }
 
@@ -156,27 +159,25 @@ class RectangleDrawer {
                       drawStyle: DrawStyle, x: Double, y: Double, width: Double, height: Double) {
         val batch = singleBatches[count.mod(singleBatches.size)]
 
-        batch.geometry.put {
+        batch.geometry.putElements(1) {
             write(
                 (x + min(0.0, width)).toFloat(),
                 (y + min(0.0, height)).toFloat(), 0.0f)
             write(abs(width).toFloat(), abs(height).toFloat(), 0.0f)
         }
-        batch.drawStyle.put {
-            write(drawStyle)
-        }
+        writeStyles(batch, drawStyle, 1)
         drawRectangles(drawContext, drawStyle, batch, 1)
         count++
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, batch: RectangleBatch, count: Int) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(batch.geometry.vertexFormat, batch.drawStyle.vertexFormat))
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats, instanceFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices), listOf(batch.drawStyle, batch.geometry) + (drawStyle.shadeStyle?.attributes
-                ?: emptyList()), DrawPrimitive.TRIANGLES, 0, 6, 0, count)
+        Driver.instance.drawInstances(shader, vertexBuffers, withShadeStyleAttributes(drawStyle, batch.instanceAttributes),
+            DrawPrimitive.TRIANGLES, 0, 6, 0, count)
         shader.end()
     }
 }

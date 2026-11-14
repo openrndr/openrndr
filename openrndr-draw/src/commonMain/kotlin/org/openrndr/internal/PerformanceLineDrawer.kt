@@ -39,6 +39,14 @@ class PerformanceLineDrawer {
 
     private var counter = 0
 
+    private val vertexFormats = listOf(vertexFormat)
+    private val manyVerticesList = listOf(manyVertices)
+    private val fewVerticesLists = fewVertices.map { listOf(it) }
+
+    /** [vertices] in a list */
+    private fun listOfBuffer(vertices: VertexBuffer): List<VertexBuffer> =
+        if (vertices === manyVertices) manyVerticesList else fewVerticesLists[fewVertices.indexOf(vertices)]
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("performance-line",
             vsGenerator = Driver.instance.shaderGenerators::fastLineVertexShader,
             fsGenerator = Driver.instance.shaderGenerators::fastLineFragmentShader)
@@ -59,7 +67,7 @@ class PerformanceLineDrawer {
     fun drawLineSegments(drawContext: DrawContext,
                          drawStyle: DrawStyle, segments: List<Vector3>) {
         val vertices = vertices(segments.size)
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -67,8 +75,8 @@ class PerformanceLineDrawer {
 
         w.rewind()
         var vertexCount = 0
-        segments.forEachIndexed { index, it ->
-            w.write(it)
+        for (index in segments.indices) {
+            w.write(segments[index])
             w.write((index / 2).toFloat())
             w.write((index % 2).toFloat())
             vertexCount++
@@ -76,7 +84,7 @@ class PerformanceLineDrawer {
         vertices.shadow.uploadElements(0, vertexCount)
 
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
+        Driver.instance.drawVertexBuffer(shader, listOfBuffer(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
         shader.end()
     }
 
@@ -106,7 +114,7 @@ class PerformanceLineDrawer {
                          drawStyle: DrawStyle, segments: List<Vector2>) {
 
         val vertices = vertices(segments.size)
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -115,8 +123,8 @@ class PerformanceLineDrawer {
         w.rewind()
 
         var vertexCount = 0
-        segments.forEachIndexed { index, it ->
-            w.write(it); w.write(0.0f)
+        for (index in segments.indices) {
+            w.write(segments[index]); w.write(0.0f)
             w.write((index / 2).toFloat())
             w.write((index % 2).toFloat())
             vertexCount++
@@ -124,7 +132,7 @@ class PerformanceLineDrawer {
         vertices.shadow.uploadElements(0, vertexCount)
 
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
+        Driver.instance.drawVertexBuffer(shader, listOfBuffer(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
         shader.end()
     }
 
@@ -144,7 +152,7 @@ class PerformanceLineDrawer {
      */
     fun drawLineLoops(drawContext: DrawContext,
                       drawStyle: DrawStyle, loops: List<List<Vector2>>) =
-        drawLineStrips(drawContext, drawStyle, loops, List(loops.size) { true })
+        drawLineStrips(drawContext, drawStyle, loops, AllTrue(loops.size))
 
     /**
      * Draws line strips in 2D space, a strip is closed when its entry in [closed] is true
@@ -170,7 +178,7 @@ class PerformanceLineDrawer {
     @JvmName("drawLineLoops3d")
     fun drawLineLoops(drawContext: DrawContext,
                       drawStyle: DrawStyle, loops: List<List<Vector3>>) =
-        drawStrips(drawContext, drawStyle, loops, List(loops.size) { true }) { write(it) }
+        drawStrips(drawContext, drawStyle, loops, AllTrue(loops.size)) { write(it) }
 
     /**
      * Draws line strips in 3D space, a strip is closed when its entry in [closed] is true
@@ -188,12 +196,14 @@ class PerformanceLineDrawer {
         write: BufferWriter.(T) -> Unit
     ) {
         // a strip of n points has n - 1 segments, closed strips one more, every segment is 2 vertices
-        val count = strips.withIndex().sumOf { (index, strip) ->
-            if (strip.size < 2) 0 else 2 * (strip.size - 1) + (if (closed.getOrElse(index) { false }) 2 else 0)
+        var count = 0
+        for (index in strips.indices) {
+            val strip = strips[index]
+            count += if (strip.size < 2) 0 else 2 * (strip.size - 1) + (if (closed.getOrElse(index) { false }) 2 else 0)
         }
         if (count == 0) return
         val vertices = vertices(count)
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -201,8 +211,9 @@ class PerformanceLineDrawer {
         w.rewind()
         var vertexCount = 0
 
-        strips.forEachIndexed { index, strip ->
-            if (strip.size < 2) return@forEachIndexed
+        for (index in strips.indices) {
+            val strip = strips[index]
+            if (strip.size < 2) continue
             val segments = strip.size - 1 + (if (closed.getOrElse(index) { false }) 1 else 0)
             for (i in 0 until segments) {
                 write(w, strip[i])
@@ -216,7 +227,7 @@ class PerformanceLineDrawer {
         }
         vertices.shadow.uploadElements(0, vertexCount)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
+        Driver.instance.drawVertexBuffer(shader, listOfBuffer(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
         shader.end()
     }
 }

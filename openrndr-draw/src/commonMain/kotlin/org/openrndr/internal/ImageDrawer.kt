@@ -37,6 +37,18 @@ class ImageDrawer {
 
     private var instanceAttributes = vertexBuffer(instanceFormat, 10, Session.root)
 
+    private val vertexFormats = listOf(vertices.vertexFormat)
+    private val instanceFormats = listOf(instanceFormat)
+    private val vertexBuffers = listOf(vertices)
+    private val singleInstanceAttributeLists = singleInstanceAttributes.map { listOf(it) }
+    private var instanceAttributeList = listOf(instanceAttributes)
+
+    /** [instances] in a list, followed by the attributes of the shade style of [drawStyle] */
+    private fun withShadeStyleAttributes(drawStyle: DrawStyle, instances: List<VertexBuffer>): List<VertexBuffer> {
+        val attributes = drawStyle.shadeStyle?.attributes
+        return if (attributes.isNullOrEmpty()) instances else instances + attributes
+    }
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "image",
         vsGenerator = Driver.instance.shaderGenerators::imageVertexShader,
@@ -86,6 +98,7 @@ class ImageDrawer {
             Session.root.untrack(instanceAttributes)
             instanceAttributes.destroy()
             instanceAttributes = vertexBuffer(instanceFormat, size, Session.root)
+            instanceAttributeList = listOf(instanceAttributes)
         }
     }
 
@@ -93,41 +106,61 @@ class ImageDrawer {
         drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer,
         rectangles: List<Pair<Rectangle, Rectangle>>
     ) {
+        drawImages(drawContext, drawStyle, colorBuffer, rectangles.size) { iw ->
+            for (i in rectangles.indices) {
+                val (source, target) = rectangles[i]
+                iw.writeSource(source, colorBuffer.width, colorBuffer.height)
+                iw.write(target.corner.x.toFloat(), target.corner.y.toFloat(), target.width.toFloat(), target.height.toFloat())
+                iw.write(0.0f)
+            }
+        }
+    }
+
+    /**
+     * Draws the [source] area of [colorBuffer] into the target area at ([x], [y]) with dimensions ([width], [height])
+     */
+    fun drawImage(
+        drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer,
+        source: Rectangle, x: Double, y: Double, width: Double, height: Double
+    ) {
+        drawImages(drawContext, drawStyle, colorBuffer, 1) { iw ->
+            iw.writeSource(source, colorBuffer.width, colorBuffer.height)
+            iw.write(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            iw.write(0.0f)
+        }
+    }
+
+    /** writes the area [source] of a texture of [width] by [height] as the normalized source attribute */
+    private fun BufferWriter.writeSource(source: Rectangle, width: Int, height: Int) {
+        write(
+            (source.corner.x / width).toFloat(),
+            (source.corner.y / height).toFloat(),
+            (source.width / width).toFloat(),
+            (source.height / height).toFloat()
+        )
+    }
+
+    /** draws [instances] images of [colorBuffer], [write] writes their instance attributes */
+    private inline fun drawImages(
+        drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer, instances: Int,
+        write: (BufferWriter) -> Unit
+    ) {
         require(colorBuffer.multisample == BufferMultisample.Disabled) {
             """multisample color buffer $colorBuffer needs to be resolved first"""
         }
 
-        assertInstanceSize(rectangles.size)
+        assertInstanceSize(instances)
 
-        val localInstanceAttributes = if (rectangles.size == 1) {
-            singleInstanceAttributes[count.mod(singleInstanceAttributes.size)]
-        } else {
-            instanceAttributes
-        }
+        val single = instances == 1
+        val singleIndex = count.mod(singleInstanceAttributes.size)
+        val localInstanceAttributes = if (single) singleInstanceAttributes[singleIndex] else instanceAttributes
 
-        val shader = shaderManager.shader(
-            drawStyle.shadeStyle,
-            listOf(vertices.vertexFormat),
-            listOf(localInstanceAttributes.vertexFormat)
-        )
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats, instanceFormats)
 
         val iw = localInstanceAttributes.shadow.writer()
         iw.rewind()
-
-        rectangles.forEach {
-            val (source, target) = it
-            iw.write(
-                Vector4(
-                    source.corner.x / colorBuffer.width,
-                    source.corner.y / colorBuffer.height,
-                    source.width / colorBuffer.width,
-                    source.height / colorBuffer.height
-                )
-            )
-            iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
-            iw.write(0.0f)
-        }
-        localInstanceAttributes.shadow.uploadElements(0, rectangles.size)
+        write(iw)
+        localInstanceAttributes.shadow.uploadElements(0, instances)
 
         shader.textureBindings[0] = colorBuffer
         shader.begin()
@@ -137,13 +170,16 @@ class ImageDrawer {
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
             shader,
-            listOf(vertices),
-            listOf(localInstanceAttributes) + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            vertexBuffers,
+            withShadeStyleAttributes(
+                drawStyle,
+                if (single) singleInstanceAttributeLists[singleIndex] else instanceAttributeList
+            ),
             DrawPrimitive.TRIANGLES,
             0,
             6,
             0,
-            rectangles.size,
+            instances,
             verticesPerPatch = 0
         )
         shader.end()
@@ -167,31 +203,28 @@ class ImageDrawer {
         drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture,
         layers: List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>
     ) {
+        drawArrayTextureImages(drawContext, drawStyle, arrayTexture, rectangles.size) { iw ->
+            for (index in rectangles.indices) {
+                val (source, target) = rectangles[index]
+                iw.writeSource(source, arrayTexture.width, arrayTexture.height)
+                iw.write(target.corner.x.toFloat(), target.corner.y.toFloat(), target.width.toFloat(), target.height.toFloat())
+                iw.write(layers[index].toFloat())
+            }
+        }
+    }
 
-        assertInstanceSize(rectangles.size)
-        val shader = arrayTextureShaderManager.shader(
-            drawStyle.shadeStyle,
-            listOf(vertices.vertexFormat),
-            listOf(instanceAttributes.vertexFormat)
-        )
+    /** draws [instances] images of [arrayTexture], [write] writes their instance attributes */
+    private inline fun drawArrayTextureImages(
+        drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture, instances: Int,
+        write: (BufferWriter) -> Unit
+    ) {
+        assertInstanceSize(instances)
+        val shader = arrayTextureShaderManager.shader(drawStyle.shadeStyle, vertexFormats, instanceFormats)
 
         val iw = instanceAttributes.shadow.writer()
         iw.rewind()
-
-        rectangles.forEachIndexed { index, it ->
-            val (source, target) = it
-            iw.write(
-                Vector4(
-                    source.corner.x / arrayTexture.width,
-                    source.corner.y / arrayTexture.height,
-                    source.width / arrayTexture.width,
-                    source.height / arrayTexture.height
-                )
-            )
-            iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
-            iw.write(layers[index].toFloat())
-        }
-        instanceAttributes.shadow.uploadElements(0, rectangles.size)
+        write(iw)
+        instanceAttributes.shadow.uploadElements(0, instances)
 
         shader.begin()
         drawContext.applyToShader(shader)
@@ -200,13 +233,13 @@ class ImageDrawer {
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
             shader,
-            listOf(vertices),
-            listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            vertexBuffers,
+            withShadeStyleAttributes(drawStyle, instanceAttributeList),
             DrawPrimitive.TRIANGLES,
             0,
             6,
             0,
-            rectangles.size,
+            instances,
             verticesPerPatch = 0
         )
         shader.end()
@@ -227,7 +260,12 @@ class ImageDrawer {
         drawContext: DrawContext,
         drawStyle: DrawStyle, colorBuffer: ColorBuffer, x: Double, y: Double, width: Double, height: Double
     ) {
-        drawImage(drawContext, drawStyle, colorBuffer, listOf(colorBuffer.bounds to Rectangle(x, y, width, height)))
+        drawImages(drawContext, drawStyle, colorBuffer, 1) { iw ->
+            // the whole color buffer
+            iw.write(0.0f, 0.0f, 1.0f, 1.0f)
+            iw.write(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            iw.write(0.0f)
+        }
     }
 
     /**
@@ -252,15 +290,11 @@ class ImageDrawer {
         width: Double,
         height: Double
     ) {
-        drawImage(
-            drawContext, drawStyle, arrayTexture, listOf(layer), listOf(
-                arrayTexture.bounds to Rectangle(
-                    x,
-                    y,
-                    width,
-                    height
-                )
-            )
-        )
+        drawArrayTextureImages(drawContext, drawStyle, arrayTexture, 1) { iw ->
+            // the whole layer
+            iw.write(0.0f, 0.0f, 1.0f, 1.0f)
+            iw.write(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+            iw.write(layer.toFloat())
+        }
     }
 }

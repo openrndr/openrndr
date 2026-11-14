@@ -56,6 +56,11 @@ class CircleDrawer {
 
     private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { CircleBatch.create(1) }
 
+    private val vertexFormats = listOf(vertices.vertexFormat)
+    private val vertexBuffers = listOf(vertices)
+    private val instanceFormats = listOf(circleFormat, drawStyleFormat)
+    private val linear = LinearColors()
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "circle",
         vsGenerator = Driver.instance.shaderGenerators::circleVertexShader,
@@ -102,69 +107,58 @@ class CircleDrawer {
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radii: List<Double>) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.shadow.writer().apply {
-            rewind()
+        batch.geometry.putElements(positions.size) {
             for (i in positions.indices) {
-                write(Vector3(positions[i].x, positions[i].y, 0.0))
-                write(Vector2(abs(radii[i])))
+                val position = positions[i]
+                val radius = abs(radii[i]).toFloat()
+                write(position.x.toFloat(), position.y.toFloat(), 0.0f)
+                write(radius, radius)
             }
         }
-        batch.geometry.shadow.uploadElements(0, positions.size)
-
-        batch.drawStyle.shadow.writer().apply {
-            rewind()
-            for (i in positions.indices) {
-                write(attributes)
-            }
-        }
-        batch.drawStyle.shadow.uploadElements(0, positions.size)
+        writeStyles(batch, drawStyle, positions.size)
         drawCircles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radius: Double) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.shadow.writer().apply {
-            rewind()
+        val r = abs(radius).toFloat()
+        batch.geometry.putElements(positions.size) {
             for (i in positions.indices) {
-                write(Vector3(positions[i].x, positions[i].y, 0.0))
-                write(Vector2(abs(radius)))
+                val position = positions[i]
+                write(position.x.toFloat(), position.y.toFloat(), 0.0f)
+                write(r, r)
             }
         }
-        batch.geometry.shadow.uploadElements(0, positions.size)
-
-        batch.drawStyle.shadow.writer().apply {
-            rewind()
-            for (i in positions.indices) {
-                write(attributes)
-            }
-        }
-        batch.drawStyle.shadow.uploadElements(0, positions.size)
+        writeStyles(batch, drawStyle, positions.size)
         drawCircles(drawContext, drawStyle, batch, positions.size)
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circles: List<Circle>) {
         val batch = batchFor(circles.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.shadow.writer().apply {
-            rewind()
+        batch.geometry.putElements(circles.size) {
             for (i in circles.indices) {
-                write(circles[i].center.xy0)
-                write(Vector2(abs(circles[i].radius)))
+                val circle = circles[i]
+                val radius = abs(circle.radius).toFloat()
+                write(circle.center.x.toFloat(), circle.center.y.toFloat(), 0.0f)
+                write(radius, radius)
             }
         }
-        batch.geometry.shadow.uploadElements(0, circles.size)
-
-        batch.drawStyle.shadow.writer().apply {
-            rewind()
-            for (i in circles.indices) {
-                write(attributes)
-            }
-        }
-        batch.drawStyle.shadow.uploadElements(0, circles.size)
-
+        writeStyles(batch, drawStyle, circles.size)
         drawCircles(drawContext, drawStyle, batch, circles.size)
+    }
+
+    /** writes the style attributes of [drawStyle] for [count] circles of [batch] */
+    private fun writeStyles(batch: CircleBatch, drawStyle: DrawStyle, count: Int) {
+        val fill = linear.fill(drawStyle.fill) ?: ColorRGBa.TRANSPARENT
+        val stroke = linear.stroke(drawStyle.stroke) ?: ColorRGBa.TRANSPARENT
+        val weight = strokeWeightAttribute(drawStyle)
+        batch.drawStyle.putElements(count) {
+            for (i in 0 until count) {
+                write(fill)
+                write(stroke)
+                write(weight)
+            }
+        }
     }
 
 
@@ -175,22 +169,12 @@ class CircleDrawer {
 
         val batch = singleBatches[count.mod(singleBatches.size)]
 
-        batch.geometry.shadow.writer().apply {
-            rewind()
-            write(Vector3(x, y, 0.0))
-            write(Vector2(abs(radius)))
+        batch.geometry.putElements(1) {
+            val r = abs(radius).toFloat()
+            write(x.toFloat(), y.toFloat(), 0.0f)
+            write(r, r)
         }
-        batch.geometry.shadow.uploadElements(0, 1)
-
-        batch.drawStyle.shadow.writer().apply {
-            rewind()
-            write(drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
-            write(drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
-            val weight = if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else
-                drawStyle.strokeWeight
-            write(weight.toFloat())
-        }
-        batch.drawStyle.shadow.uploadElements(0, 1)
+        writeStyles(batch, drawStyle, 1)
 
         drawCircles(drawContext, drawStyle, batch, 1)
         count++
@@ -198,22 +182,15 @@ class CircleDrawer {
 
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circleBatch: CircleBatch, count: Int) {
-        val instanceAttributes = listOf(circleBatch.geometry, circleBatch.drawStyle)
-        val instanceAttributeFormats = listOf(circleBatch.geometry.vertexFormat, circleBatch.drawStyle.vertexFormat)
-
-        val shader = shaderManager.shader(
-            drawStyle.shadeStyle,
-            listOf(vertices.vertexFormat),
-            instanceAttributeFormats
-        )
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats, instanceFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
             shader,
-            listOf(vertices),
-            instanceAttributes + (drawStyle.shadeStyle?.attributes.orEmpty()),
+            vertexBuffers,
+            withShadeStyleAttributes(drawStyle, circleBatch.instanceAttributes),
             DrawPrimitive.TRIANGLES,
             0,
             6,

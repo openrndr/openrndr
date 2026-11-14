@@ -43,6 +43,10 @@ class FontImageMapDrawer {
 
     private val manyQuads = VertexBuffer.createDynamic(vertexFormat, 6 * maxQuads)
 
+    private val vertexFormats = listOf(vertexFormat)
+    private val fewQuadLists = fewQuads.map { listOf(it) }
+    private val manyQuadsList = listOf(manyQuads)
+
     private var quadCount = 0
 
     var counter = 0
@@ -83,7 +87,60 @@ class FontImageMapDrawer {
         y: Double,
         visible: Boolean,
         glyphOutput: GlyphOutput?
-    ) = drawTexts(context, drawStyle, listOf(text), listOf(Vector2(x, y)), visible, glyphOutput)
+    ) {
+        val vertices = getQueue(text.length)
+        val fontMap = drawStyle.fontMap as? FontImageMap
+        if (fontMap != null) {
+            val bw = vertices.shadow.writer()
+            bw.position = vertices.vertexFormat.size * quadCount * 6
+            writeText(fontMap, drawStyle, bw, text, x, y, 0, RenderTarget.active.contentScale, visible, glyphOutput)
+            flush(context, drawStyle, vertices)
+        }
+    }
+
+    /** writes the quads of the glyphs of [text] at ([x], [y]) into [bw] */
+    private fun writeText(
+        fontMap: FontImageMap,
+        drawStyle: DrawStyle,
+        bw: BufferWriter,
+        text: String,
+        x: Double,
+        y: Double,
+        instance: Int,
+        targetContentScale: Double,
+        visible: Boolean,
+        glyphOutput: GlyphOutput?
+    ) {
+        var cursorX = 0.0
+        val cursorY = 0.0
+        var hasLastChar = false
+        var lastChar = ' '
+        for (i in text.indices) {
+            val it = text[i]
+            var char = it
+            val glyphMetrics = fontMap.glyphMetrics[it] ?: run { char = '�'; fontMap.glyphMetrics['�'] }  ?: run { char = '_'; fontMap.glyphMetrics.getValue('_') }
+
+            if (drawStyle.kerning == KernMode.METRIC) {
+                cursorX += if (hasLastChar) fontMap.kerning(lastChar, char) else 0.0
+            }
+
+            val dx = insertCharacterQuad(
+                fontMap,
+                bw,
+                char,
+                x + cursorX,
+                y + cursorY,
+                instance,
+                drawStyle.textSetting,
+                targetContentScale,
+                visible,
+                glyphOutput
+            )
+            cursorX += glyphMetrics.advanceWidth + dx
+            lastChar = char
+            hasLastChar = true
+        }
+    }
 
 
     /**
@@ -107,48 +164,19 @@ class FontImageMapDrawer {
         visible: Boolean,
         glyphOutput: GlyphOutput?
     ): List<List<GlyphRectangle>> {
-        val count = texts.sumOf { it.length }
+        var count = 0
+        for (i in texts.indices) count += texts[i].length
         val vertices = getQueue(count)
 
         val fontMap = drawStyle.fontMap as? FontImageMap
         if (fontMap != null) {
-            var instance = 0
-
-            val textAndPositionPairs = texts.zip(positions)
-            for ((text, position) in textAndPositionPairs) {
-                var cursorX = 0.0
-                val cursorY = 0.0
-
-                val bw = vertices.shadow.writer()
+            val targetContentScale = RenderTarget.active.contentScale
+            val bw = vertices.shadow.writer()
+            // the texts and positions are paired, the shorter list determines how many texts are drawn
+            for (instance in 0 until minOf(texts.size, positions.size)) {
                 bw.position = vertices.vertexFormat.size * quadCount * 6
-
-                var lastChar: Char? = null
-                text.forEach {
-                    val lc = lastChar
-
-                    var char = it
-                    val glyphMetrics = fontMap.glyphMetrics[it] ?: run { char = '�'; fontMap.glyphMetrics['�'] }  ?: run { char = '_'; fontMap.glyphMetrics.getValue('_') }
-
-                    if (drawStyle.kerning == KernMode.METRIC) {
-                        cursorX += if (lc != null) fontMap.kerning(lc, char) else 0.0
-                    }
-
-                    val (dx, _) = insertCharacterQuad(
-                        fontMap,
-                        bw,
-                        char,
-                        position.x + cursorX,
-                        position.y + cursorY,
-                        instance,
-                        drawStyle.textSetting,
-                        visible,
-                        glyphOutput
-
-                    )
-                    cursorX += glyphMetrics.advanceWidth + dx
-                    lastChar = char
-                }
-                instance++
+                val position = positions[instance]
+                writeText(fontMap, drawStyle, bw, texts[instance], position.x, position.y, instance, targetContentScale, visible, glyphOutput)
             }
             flush(context, drawStyle, vertices)
         }
@@ -190,15 +218,17 @@ class FontImageMapDrawer {
         fontMap as FontImageMap
         var cursorX = 0.0
         val cursorY = 0.0
-        var lastChar: Char? = null
-        text.forEach {
-            val lc = lastChar
+        val targetContentScale = RenderTarget.active.contentScale
+        var hasLastChar = false
+        var lastChar = ' '
+        for (i in text.indices) {
+            val it = text[i]
             val metrics = fontMap.glyphMetrics[it]
-            metrics?.let { m ->
+            if (metrics != null) {
                 if (kerning == KernMode.METRIC) {
-                    cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                    cursorX += if (hasLastChar) fontMap.kerning(lastChar, it) else 0.0
                 }
-                val (dx, _) = insertCharacterQuad(
+                val dx = insertCharacterQuad(
                     fontMap,
                     bw,
                     it,
@@ -206,11 +236,13 @@ class FontImageMapDrawer {
                     y + cursorY,
                     0,
                     textSetting,
+                    targetContentScale,
                     visible,
                     glyphOutput
                 )
-                cursorX += m.advanceWidth + tracking + dx
+                cursorX += metrics.advanceWidth + tracking + dx
                 lastChar = it
+                hasLastChar = true
             }
         }
         queuedInstances++
@@ -231,7 +263,7 @@ class FontImageMapDrawer {
     fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
         if (quadCount > 0) {
             vertices.shadow.uploadElements(0, quadCount * 6)
-            val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+            val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
             shader.begin()
             context.applyToShader(shader)
 
@@ -240,7 +272,7 @@ class FontImageMapDrawer {
             shader.textureBindings[0] = (drawStyle.fontMap as FontImageMap).texture
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(vertices),
+                if (vertices === manyQuads) manyQuadsList else fewQuadLists[fewQuads.indexOf(vertices)],
                 DrawPrimitive.TRIANGLES,
                 0,
                 quadCount * 6,
@@ -255,6 +287,9 @@ class FontImageMapDrawer {
         }
     }
 
+    /**
+     * Writes the quad of [character] at ([cx], [cy]) into [bw], returns the shift of the quad that [textSetting] makes
+     */
     private fun insertCharacterQuad(
         fontMap: FontImageMap,
         bw: BufferWriter,
@@ -263,15 +298,15 @@ class FontImageMapDrawer {
         cy: Double,
         instance: Int,
         textSetting: TextSettingMode,
+        targetContentScale: Double,
         visible: Boolean,
         glyphOutput: GlyphOutput?
-    ): Pair<Double, GlyphRectangle?> {
+    ): Double {
 
         var character = character
         val rectangle = fontMap.map[character]
-            ?: run {  character = '�'; fontMap.map['�'] }
+            ?: run {  character = '\uFFFD'; fontMap.map['\uFFFD'] }
             ?: run { character = '_'; fontMap.map[' '] }
-        val targetContentScale = RenderTarget.active.contentScale
         val fmcs = fontMap.contentScale.toFloat()
 
         val metrics =
@@ -287,8 +322,7 @@ class FontImageMapDrawer {
         val y = if (textSetting == TextSettingMode.PIXEL) floor(sy * targetContentScale) / targetContentScale else sy
 
 
-        val glyphRectangle =
-            if (rectangle != null) {
+        if (rectangle != null) {
                 glyphOutput?.characters?.add(character)
                 val pad = 2.0f
                 val u0 = (rectangle.x.toFloat() - pad) / fontMap.texture.effectiveWidth
@@ -324,17 +358,15 @@ class FontImageMapDrawer {
                     }
                     quadCount++
                 }
-                val source = Rectangle(
-                    u0 * fontMap.texture.width * 1.0, (1.0-v0) * fontMap.texture.height * 1.0,
-                    (u1 - u0) * fontMap.texture.width * 1.0, (v0 - v1) * fontMap.texture.height * 1.0
-                )
-                val target = Rectangle(x0.toDouble(), y0.toDouble(), w.toDouble(), h.toDouble())
-
-                glyphOutput?.rectangles?.add(Pair(source, target))
-                GlyphRectangle(character, x0.toDouble(), y0.toDouble(), (x1 - x0).toDouble(), (y1 - y0).toDouble())
-            } else {
-                null
-            }
-        return Pair(x - sx, glyphRectangle)
+                if (glyphOutput != null) {
+                    val source = Rectangle(
+                        u0 * fontMap.texture.width * 1.0, (1.0 - v0) * fontMap.texture.height * 1.0,
+                        (u1 - u0) * fontMap.texture.width * 1.0, (v0 - v1) * fontMap.texture.height * 1.0
+                    )
+                    val target = Rectangle(x0.toDouble(), y0.toDouble(), w.toDouble(), h.toDouble())
+                    glyphOutput.rectangles.add(Pair(source, target))
+                }
+        }
+        return x - sx
     }
 }

@@ -197,7 +197,8 @@ class FontImageMap(val texture: ColorBuffer,
      * @param right The second character in the character pair.
      * @return The kerning value for the specified character pair as a Double. Defaults to 0.0 if the pair is not found.
      */
-    fun kerning(left: Char, right: Char): Double = kerningTable.getOrElse(CharacterPair(left, right)) { 0.0 }
+    fun kerning(left: Char, right: Char): Double =
+        if (kerningTable.isEmpty()) 0.0 else kerningTable.getOrElse(CharacterPair(left, right)) { 0.0 }
 }
 
 

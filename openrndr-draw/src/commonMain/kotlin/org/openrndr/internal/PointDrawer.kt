@@ -1,5 +1,6 @@
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -45,6 +46,22 @@ class PointDrawer {
     private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { PointBatch.create(1) }
 
 
+    private val linear = LinearColors()
+
+    /** writes the style attributes of [drawStyle] for [count] points of [batch] */
+    private fun writeStyles(batch: PointBatch, drawStyle: DrawStyle, count: Int) {
+        val fill = linear.fill(drawStyle.fill) ?: ColorRGBa.TRANSPARENT
+        val stroke = linear.stroke(drawStyle.stroke) ?: ColorRGBa.TRANSPARENT
+        val weight = strokeWeightAttribute(drawStyle)
+        batch.drawStyle.putElements(count) {
+            for (i in 0 until count) {
+                write(fill)
+                write(stroke)
+                write(weight)
+            }
+        }
+    }
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("point",
             vsGenerator = Driver.instance.shaderGenerators::pointVertexShader,
             fsGenerator = Driver.instance.shaderGenerators::pointFragmentShader)
@@ -55,6 +72,10 @@ class PointDrawer {
             batch = PointBatch.create(size, session = Session.root)
         }
     }
+
+    private val vertexFormats = listOf(vertices.vertexFormat)
+    private val vertexBuffers = listOf(vertices)
+    private val instanceFormats = listOf(pointFormat, drawStyleFormat)
 
     init {
         val w = vertices.shadow.writer()
@@ -82,17 +103,13 @@ class PointDrawer {
     @JvmName("drawPoints2D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.put {
+        batch.geometry.putElements(positions.size) {
             for (i in positions.indices) {
-                write(Vector3(positions[i].x, positions[i].y, 0.0))
+                val position = positions[i]
+                write(position.x.toFloat(), position.y.toFloat(), 0.0f)
             }
         }
-        batch.drawStyle.put {
-            for (i in positions.indices) {
-                write(attributes)
-            }
-        }
+        writeStyles(batch, drawStyle, positions.size)
         drawPoints(drawContext, drawStyle, batch, positions.size)
     }
 
@@ -106,17 +123,12 @@ class PointDrawer {
     @JvmName("drawPoints3D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector3>) {
         val batch = batchFor(positions.size)
-        val attributes = DrawStyleAttributes(drawStyle)
-        batch.geometry.put {
+        batch.geometry.putElements(positions.size) {
             for (i in positions.indices) {
                 write(positions[i])
             }
         }
-        batch.drawStyle.put {
-            for (i in positions.indices) {
-                write(attributes)
-            }
-        }
+        writeStyles(batch, drawStyle, positions.size)
         drawPoints(drawContext, drawStyle, batch, positions.size)
     }
 
@@ -133,12 +145,10 @@ class PointDrawer {
                   drawStyle: DrawStyle, x: Double, y: Double, z: Double) {
         val batch = singleBatches[count.mod(singleBatches.size)]
 
-        batch.geometry.put {
-            write(Vector3(x, y, z))
+        batch.geometry.putElements(1) {
+            write(x.toFloat(), y.toFloat(), z.toFloat())
         }
-        batch.drawStyle.put {
-            write(drawStyle)
-        }
+        writeStyles(batch, drawStyle, 1)
         drawPoints(drawContext, drawStyle, batch, 1)
         count++
     }
@@ -153,13 +163,13 @@ class PointDrawer {
      * @param count The number of points to be drawn from the batch.
      */
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, batch: PointBatch, count: Int) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(batch.geometry.vertexFormat, batch.drawStyle.vertexFormat))
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats, instanceFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices), listOf(batch.drawStyle, batch.geometry) + (drawStyle.shadeStyle?.attributes
-                ?: emptyList()), DrawPrimitive.POINTS, 0, 1, 0, count)
+        Driver.instance.drawInstances(shader, vertexBuffers, withShadeStyleAttributes(drawStyle, batch.instanceAttributes),
+            DrawPrimitive.POINTS, 0, 1, 0, count)
         shader.end()
     }
 }

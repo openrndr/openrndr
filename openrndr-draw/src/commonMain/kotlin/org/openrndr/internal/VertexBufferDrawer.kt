@@ -18,6 +18,9 @@ class VertexBufferDrawer {
         fsGenerator = Driver.instance.shaderGenerators::vertexBufferFragmentShader
     )
 
+    private val vertexFormats = VertexFormats()
+    private val instanceFormats = VertexFormats()
+
     fun drawVertexBuffer(
         drawContext: DrawContext,
         drawStyle: DrawStyle,
@@ -26,7 +29,7 @@ class VertexBufferDrawer {
         offset: Int,
         vertexCount: Int
     ) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat })
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats.of(vertexBuffers))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -44,7 +47,7 @@ class VertexBufferDrawer {
         offset: Int,
         indexCount: Int
     ) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat })
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats.of(vertexBuffers))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -84,8 +87,8 @@ class VertexBufferDrawer {
     ) {
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
-            vertexBuffers.map { it.vertexFormat },
-            instanceAttributes.map { it.vertexFormat })
+            vertexFormats.of(vertexBuffers),
+            instanceFormats.of(instanceAttributes))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -93,7 +96,7 @@ class VertexBufferDrawer {
         Driver.instance.drawInstances(
             shader,
             vertexBuffers,
-            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            withShadeStyleAttributes(drawStyle, instanceAttributes),
             primitive,
             offset,
             vertexCount,
@@ -139,8 +142,8 @@ class VertexBufferDrawer {
     ) {
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
-            vertexBuffers.map { it.vertexFormat },
-            instanceAttributes.map { it.vertexFormat })
+            vertexFormats.of(vertexBuffers),
+            instanceFormats.of(instanceAttributes))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -149,7 +152,7 @@ class VertexBufferDrawer {
             shader,
             indexBuffer,
             vertexBuffers,
-            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            withShadeStyleAttributes(drawStyle, instanceAttributes),
             primitive,
             offset,
             indexCount,
@@ -171,8 +174,8 @@ class VertexBufferDrawer {
     ) {
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
-            vertexBuffers.map { it.vertexFormat },
-            instanceAttributes.map { it.vertexFormat })
+            vertexFormats.of(vertexBuffers),
+            instanceFormats.of(instanceAttributes))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -181,7 +184,7 @@ class VertexBufferDrawer {
             shader,
             commandBuffer,
             vertexBuffers,
-            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            withShadeStyleAttributes(drawStyle, instanceAttributes),
             primitive,
             commandCount,
             0,
@@ -202,8 +205,8 @@ class VertexBufferDrawer {
     ) {
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
-            vertexBuffers.map { it.vertexFormat },
-            instanceAttributes.map { it.vertexFormat })
+            vertexFormats.of(vertexBuffers),
+            instanceFormats.of(instanceAttributes))
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -213,11 +216,38 @@ class VertexBufferDrawer {
             indexBuffer,
             commandBuffer,
             vertexBuffers,
-            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            withShadeStyleAttributes(drawStyle, instanceAttributes),
             primitive,
             commandCount,
             0,
         )
         shader.end()
+    }
+}
+
+/**
+ * The vertex formats of the last vertex buffers they were asked for, reused while the buffers are the same
+ */
+private class VertexFormats {
+    private val buffers = ArrayList<VertexBuffer>()
+    private var formats: List<VertexFormat> = emptyList()
+
+    /** the vertex formats of [vertexBuffers] */
+    fun of(vertexBuffers: List<VertexBuffer>): List<VertexFormat> {
+        var same = vertexBuffers.size == buffers.size
+        if (same) {
+            for (i in vertexBuffers.indices) {
+                if (vertexBuffers[i] !== buffers[i] || vertexBuffers[i].vertexFormat !== formats[i]) {
+                    same = false
+                    break
+                }
+            }
+        }
+        if (!same) {
+            buffers.clear()
+            buffers.addAll(vertexBuffers)
+            formats = vertexBuffers.map { it.vertexFormat }
+        }
+        return formats
     }
 }
