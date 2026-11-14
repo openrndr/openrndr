@@ -112,7 +112,7 @@ class ShaderGL3(
     private var destroyed = false
     private var running = false
     override var uniforms: MutableMap<String, Int> = hashMapOf()
-    override val uniformValues: MutableMap<Int, Any> = HashMap()
+    override val uniformCache = UniformValueCache()
     private var attributes: MutableMap<String, Int> = hashMapOf()
     private var blockBindings = hashMapOf<String, Int>()
     private val blocks: MutableMap<String, Int> = hashMapOf()
@@ -344,7 +344,7 @@ class ShaderGL3(
         if (ssbo != -1) {
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         }
-        logger.trace { "shader begin $name" }
+        logger.traceIfEnabled { "shader begin $name" }
         running = true
 
         glUseProgram(programObject)
@@ -359,7 +359,7 @@ class ShaderGL3(
     }
 
     override fun end() {
-        logger.trace { "shader end $name" }
+        logger.traceIfEnabled { "shader end $name" }
 
         glUseProgram(0)
 

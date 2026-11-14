@@ -553,7 +553,7 @@ data class DrawStyle(
             }
 
             if (shader.hasUniform("u_colorMatrix")) {
-                shader.uniform("u_colorMatrix", colorMatrix.floatArray)
+                shader.uniform("u_colorMatrix", colorMatrix)
             }
         } else {
             val styleBlock = styleBlocks.getOrPut(Driver.instance.contextID) {

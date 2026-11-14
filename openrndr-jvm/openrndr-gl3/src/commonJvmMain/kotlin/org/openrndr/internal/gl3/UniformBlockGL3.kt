@@ -227,11 +227,12 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
     override fun uniform(name: String, value: Array<Vector2>) {
         val entry = layout.entries[name]
         if (entry != null) {
-            if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == value.size) {
-                shadowBuffer.safePosition(entry.offset)
+            if (entry.type == UniformType.VECTOR2_FLOAT32 && entry.size == value.size) {
+                // array elements are [UniformDescription.stride] bytes apart, 16 in std140 layouts
                 for (i in value.indices) {
-                    shadowBuffer.putFloat(value[i].x.toFloat())
-                    shadowBuffer.putFloat(value[i].y.toFloat())
+                    val offset = entry.offset + i * entry.stride
+                    shadowBuffer.putFloat(offset, value[i].x.toFloat())
+                    shadowBuffer.putFloat(offset + 4, value[i].y.toFloat())
                 }
             } else {
                 throw RuntimeException("uniform mismatch")
@@ -245,12 +246,12 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
     override fun uniform(name: String, value: Array<Vector3>) {
         val entry = layout.entries[name]
         if (entry != null) {
-            if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == value.size) {
-                shadowBuffer.safePosition(entry.offset)
+            if (entry.type == UniformType.VECTOR3_FLOAT32 && entry.size == value.size) {
                 for (i in value.indices) {
-                    shadowBuffer.putFloat(value[i].x.toFloat())
-                    shadowBuffer.putFloat(value[i].y.toFloat())
-                    shadowBuffer.putFloat(value[i].z.toFloat())
+                    val offset = entry.offset + i * entry.stride
+                    shadowBuffer.putFloat(offset, value[i].x.toFloat())
+                    shadowBuffer.putFloat(offset + 4, value[i].y.toFloat())
+                    shadowBuffer.putFloat(offset + 8, value[i].z.toFloat())
                 }
             } else {
                 throw RuntimeException("uniform mismatch")
@@ -265,11 +266,12 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         val entry = layout.entries[name]
         if (entry != null) {
             if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == value.size) {
-                shadowBuffer.safePosition(entry.offset)
                 for (i in value.indices) {
-                    shadowBuffer.putFloat(value[i].x.toFloat())
-                    shadowBuffer.putFloat(value[i].y.toFloat())
-                    shadowBuffer.putFloat(value[i].z.toFloat())
+                    val offset = entry.offset + i * entry.stride
+                    shadowBuffer.putFloat(offset, value[i].x.toFloat())
+                    shadowBuffer.putFloat(offset + 4, value[i].y.toFloat())
+                    shadowBuffer.putFloat(offset + 8, value[i].z.toFloat())
+                    shadowBuffer.putFloat(offset + 12, value[i].w.toFloat())
                 }
             } else {
                 throw RuntimeException("uniform mismatch")

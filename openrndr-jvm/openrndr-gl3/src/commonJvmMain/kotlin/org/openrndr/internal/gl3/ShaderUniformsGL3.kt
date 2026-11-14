@@ -4,36 +4,26 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ShaderUniforms
 import org.openrndr.math.*
-import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
-interface ShaderUniformsGL3 : ShaderUniforms {
-    fun bound(f: () -> Unit) {
-        glUseProgram(programObject)
-        f()
-    }
+/**
+ * Runs [f] with the program of this shader in use, for drivers without program uniforms
+ */
+internal inline fun ShaderUniformsGL3.bound(f: () -> Unit) {
+    glUseProgram(programObject)
+    f()
+}
 
+interface ShaderUniformsGL3 : ShaderUniforms {
     val programObject: Int
     val name: String
     val uniforms: MutableMap<String, Int>
 
     /**
-     * The values last set at the uniform locations, values of immutable types that are set again are not uploaded
+     * The values last set at the uniform locations, values that are set again are not uploaded
      */
-    val uniformValues: MutableMap<Int, Any>
-
-    /**
-     * Is [value] different from the value last set at uniform location [index]? It is recorded when it is.
-     */
-    fun uniformChanged(index: Int, value: Any): Boolean {
-        val values = uniformValues
-        if (values[index] == value) {
-            return false
-        }
-        values[index] = value
-        return true
-    }
+    val uniformCache: UniformValueCache
 
     val useProgramUniform: Boolean
 
@@ -52,7 +42,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: ColorRGBa) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             val linearValue = value.toLinear()
             if (useProgramUniform) {
                 glProgramUniform4f(
@@ -72,7 +62,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                         linearValue.b.toFloat(),
                         linearValue.alpha.toFloat()
                     )
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -80,13 +70,13 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Vector3) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform3f(programObject, index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             } else {
                 bound {
                     glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -95,7 +85,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: Vector4) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform4f(
                     programObject,
@@ -108,7 +98,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -118,7 +108,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
+            uniformCache.clear(index)
             if (useProgramUniform) {
                 glProgramUniform4f(programObject, index, x, y, z, w)
             } else {
@@ -133,7 +123,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
+            uniformCache.clear(index)
             if (useProgramUniform) {
                 glProgramUniform3f(programObject, index, x, y, z)
             } else {
@@ -148,25 +138,26 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
+            uniformCache.clear(index)
             if (useProgramUniform) {
                 glProgramUniform2f(programObject, index, x, y)
-            }
-            bound {
-                glUniform2f(index, x, y)
+            } else {
+                bound {
+                    glUniform2f(index, x, y)
+                }
             }
         }
     }
 
     override fun uniform(name: String, value: Int) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1i(programObject, index, value)
             } else {
                 bound {
                     glUniform1i(index, value)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -186,13 +177,13 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector2) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform2i(programObject, index, value.x, value.y)
             } else {
                 bound {
                     glUniform2i(index, value.x, value.y)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -200,13 +191,13 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector3) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform3i(programObject, index, value.x, value.y, value.z)
             } else {
                 bound {
                     glUniform3i(index, value.x, value.y, value.z)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -214,13 +205,13 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: IntVector4) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform4i(programObject, index, value.x, value.y, value.z, value.w)
             } else {
                 bound {
                     glUniform4i(index, value.x, value.y, value.z, value.w)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -228,26 +219,27 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Boolean) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1i(programObject, index, if (value) 1 else 0)
-            }
-            bound {
-                glUniform1i(index, if (value) 1 else 0)
-                postUniformCheck(name, index, value)
+            } else {
+                bound {
+                    glUniform1i(index, if (value) 1 else 0)
+                    postUniformCheck(name, index)
+                }
             }
         }
     }
 
     override fun uniform(name: String, value: Vector2) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform2f(programObject, index, value.x.toFloat(), value.y.toFloat())
             } else {
                 bound {
                     glUniform2f(index, value.x.toFloat(), value.y.toFloat())
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -255,28 +247,27 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Float) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1f(programObject, index, value)
             } else {
                 bound {
                     glUniform1f(index, value)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
     override fun uniform(name: String, value: Double) {
-
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
             if (useProgramUniform) {
                 glProgramUniform1f(programObject, index, value.toFloat())
             } else {
                 bound {
                     glUniform1f(index, value.toFloat())
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -284,45 +275,65 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     override fun uniform(name: String, value: Matrix33) {
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
+            val floats = UniformScratch.current.floats(9)
+            value.copyInto(floats)
             if (useProgramUniform) {
-                glProgramUniformMatrix3fv(programObject, index, false, value.toFloatArray())
+                glProgramUniformMatrix3fv(programObject, index, false, floats)
             } else {
                 bound {
-                    logger.trace { "Setting uniform '$name' to $value" }
-                    glUniformMatrix3fv(index, false, value.toFloatArray())
-                    postUniformCheck(name, index, value)
+                    logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+                    glUniformMatrix3fv(index, false, floats)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
-
     override fun uniform(name: String, value: Matrix44) {
-
         val index = uniformIndex(name)
-        if (index != -1 && uniformChanged(index, value)) {
+        if (index != -1 && uniformCache.changed(index, value)) {
+            val floats = UniformScratch.current.floats(16)
+            value.copyInto(floats)
             if (useProgramUniform) {
-                glProgramUniformMatrix4fv(programObject, index, false, value.toFloatArray())
+                glProgramUniformMatrix4fv(programObject, index, false, floats)
             } else {
                 bound {
-                    logger.trace { "Setting uniform '$name' to $value" }
-                    glUniformMatrix4fv(index, false, value.toFloatArray())
-                    postUniformCheck(name, index, value)
+                    logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+                    glUniformMatrix4fv(index, false, floats)
+                    postUniformCheck(name, index)
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets a `float[25]` uniform to [value], uploaded when it changed
+     */
+    override fun uniform(name: String, value: Matrix55) {
+        val index = uniformIndex(name)
+        if (index != -1 && uniformCache.changed(index, value)) {
+            val floats = UniformScratch.current.floats(25)
+            value.copyInto(floats)
+            if (useProgramUniform) {
+                glProgramUniform1fv(programObject, index, floats)
+            } else {
+                bound {
+                    glUniform1fv(index, floats)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
     override fun uniform(name: String, value: Array<IntVector4>) {
-
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
 
-            val intValues = IntArray(value.size * 4)
+            val intValues = UniformScratch.current.ints(value.size * 4)
             for (i in value.indices) {
                 intValues[i * 4] = value[i].x
                 intValues[i * 4 + 1] = value[i].y
@@ -334,21 +345,20 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform4iv(index, intValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
     override fun uniform(name: String, value: Array<IntVector3>) {
-
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
 
-            val intValues = IntArray(value.size * 3)
+            val intValues = UniformScratch.current.ints(value.size * 3)
             for (i in value.indices) {
                 intValues[i * 3] = value[i].x
                 intValues[i * 3 + 1] = value[i].y
@@ -359,21 +369,20 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform3iv(index, intValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
     override fun uniform(name: String, value: Array<IntVector2>) {
-
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
 
-            val intValues = IntArray(value.size * 3)
+            val intValues = UniformScratch.current.ints(value.size * 2)
             for (i in value.indices) {
                 intValues[i * 2] = value[i].x
                 intValues[i * 2 + 1] = value[i].y
@@ -383,7 +392,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform2iv(index, intValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -393,9 +402,9 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
-            val floatValues = FloatArray(value.size * 2)
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+            val floatValues = UniformScratch.current.floats(value.size * 2)
             for (i in value.indices) {
                 floatValues[i * 2] = value[i].x.toFloat()
                 floatValues[i * 2 + 1] = value[i].y.toFloat()
@@ -405,7 +414,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform2fv(index, floatValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -415,9 +424,9 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
-            val floatValues = FloatArray(value.size * 3)
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+            val floatValues = UniformScratch.current.floats(value.size * 3)
             for (i in value.indices) {
                 floatValues[i * 3] = value[i].x.toFloat()
                 floatValues[i * 3 + 1] = value[i].y.toFloat()
@@ -428,7 +437,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform3fv(index, floatValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -438,10 +447,10 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size * 4)
+            val floatValues = UniformScratch.current.floats(value.size * 4)
             for (i in value.indices) {
                 floatValues[i * 4] = value[i].x.toFloat()
                 floatValues[i * 4 + 1] = value[i].y.toFloat()
@@ -453,25 +462,24 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     glUniform4fv(index, floatValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
     override fun uniform(name: String, value: FloatArray) {
-
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
             if (useProgramUniform) {
                 glProgramUniform1fv(programObject, index, value)
             } else {
                 bound {
                     glUniform1fv(index, value)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -481,14 +489,14 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
             if (useProgramUniform) {
                 glProgramUniform1iv(programObject, index, value)
             } else {
                 bound {
                     glUniform1iv(index, value)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -498,43 +506,44 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
-            @Suppress("SpellCheckingInspection") val fvalue = value.map { it.toFloat() }.toFloatArray()
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+            val floatValues = UniformScratch.current.floats(value.size)
+            for (i in value.indices) {
+                floatValues[i] = value[i].toFloat()
+            }
             if (useProgramUniform) {
-                glProgramUniform1fv(programObject, index, fvalue)
+                glProgramUniform1fv(programObject, index, floatValues)
             } else {
                 bound {
-                    glUniform1fv(index, fvalue)
-                    postUniformCheck(name, index, fvalue)
+                    glUniform1fv(index, floatValues)
+                    postUniformCheck(name, index)
                 }
             }
         }
     }
 
-
     override fun uniform(name: String, value: Array<ColorRGBa>) {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
 
-
-            val floatValues = FloatArray(value.size * 4)
+            val floatValues = UniformScratch.current.floats(value.size * 4)
             for (i in value.indices) {
-                val lvalue = value[i].toLinear()
-                floatValues[i * 4] = lvalue.r.toFloat()
-                floatValues[i * 4 + 1] = lvalue.g.toFloat()
-                floatValues[i * 4 + 2] = lvalue.b.toFloat()
-                floatValues[i * 4 + 3] = lvalue.alpha.toFloat()
+                val linearValue = value[i].toLinear()
+                floatValues[i * 4] = linearValue.r.toFloat()
+                floatValues[i * 4 + 1] = linearValue.g.toFloat()
+                floatValues[i * 4 + 2] = linearValue.b.toFloat()
+                floatValues[i * 4 + 3] = linearValue.alpha.toFloat()
             }
             if (useProgramUniform) {
                 glProgramUniform4fv(programObject, index, floatValues)
             } else {
                 bound {
                     glUniform4fv(index, floatValues)
-                    postUniformCheck(name, index, value)
+                    postUniformCheck(name, index)
                 }
             }
         }
@@ -544,23 +553,20 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
-            MemoryStack.stackPush().use { stack ->
-                val floatValues = stack.mallocFloat(value.size * 3 * 3)
-                for (j in value.indices) {
-                    value[j].put(floatValues)
-                }
-                floatValues.flip()
-                if (useProgramUniform) {
-                    glProgramUniformMatrix3fv(programObject, index, false, floatValues)
-                } else {
-                    bound {
-                        glUniformMatrix3fv(index, false, floatValues)
-                    }
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+            val floatValues = UniformScratch.current.floats(value.size * 9)
+            for (j in value.indices) {
+                value[j].copyInto(floatValues, j * 9)
+            }
+            if (useProgramUniform) {
+                glProgramUniformMatrix3fv(programObject, index, false, floatValues)
+            } else {
+                bound {
+                    glUniformMatrix3fv(index, false, floatValues)
                 }
             }
-            postUniformCheck(name, index, value)
+            postUniformCheck(name, index)
         }
     }
 
@@ -568,44 +574,33 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             // values of this type are not compared, the next value of another type is uploaded
-            uniformValues.remove(index)
-            logger.trace { "Setting uniform '$name' to $value" }
-
-            MemoryStack.stackPush().use { stack ->
-                val floatValues = stack.mallocFloat(value.size * 4 * 4)
-                for (j in value.indices) {
-                    value[j].put(floatValues)
-                }
-                floatValues.flip()
-                if (useProgramUniform) {
-                    glProgramUniformMatrix4fv(programObject, index, false, floatValues)
-                } else {
-                    bound {
-                        glUniformMatrix4fv(index, false, floatValues)
-                    }
-                }
-
+            uniformCache.clear(index)
+            logger.traceIfEnabled { "Setting uniform '$name' to $value" }
+            val floatValues = UniformScratch.current.floats(value.size * 16)
+            for (j in value.indices) {
+                value[j].copyInto(floatValues, j * 16)
             }
-            postUniformCheck(name, index, value)
+            if (useProgramUniform) {
+                glProgramUniformMatrix4fv(programObject, index, false, floatValues)
+            } else {
+                bound {
+                    glUniformMatrix4fv(index, false, floatValues)
+                }
+            }
+            postUniformCheck(name, index)
         }
     }
 
-    private fun postUniformCheck(name: String, index: Int, @Suppress("UNUSED_PARAMETER") value: Any) {
+    private fun postUniformCheck(name: String, index: Int) {
         debugGLErrors {
             val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
 
             fun checkUniform(): String {
                 if (currentProgram > 0) {
-                    val lengthBuffer =IntArray(1)// BufferUtils.createIntBuffer(1)
-                    val sizeBuffer = IntArray(1) //BufferUtils.createIntBuffer(1)
-                    val typeBuffer = IntArray(1)// BufferUtils.createIntBuffer(1)
-//                    val nameBuffer = BufferUtils.createByteBuffer(256)
-
+                    val lengthBuffer = IntArray(1)
+                    val sizeBuffer = IntArray(1)
+                    val typeBuffer = IntArray(1)
                     val retrievedName = glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer)
-//                    val nameBytes = ByteArray(lengthBuffer[0])
-//                    (nameBuffer as Buffer).rewind()
-//                    nameBuffer.get(nameBytes)
-//                    val retrievedName = String(nameBytes)
                     return "($name/$retrievedName): ${sizeBuffer[0]} / ${typeBuffer[0]}}"
                 }
                 return "no program"

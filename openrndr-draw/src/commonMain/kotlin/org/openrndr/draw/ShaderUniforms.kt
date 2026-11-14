@@ -35,4 +35,9 @@ interface ShaderUniforms {
     fun uniform(name: String, value: Array<Double>)
     fun uniform(name: String, value: Array<Matrix33>)
     fun uniform(name: String, value: Array<Matrix44>)
+
+    /**
+     * Sets a `float[25]` uniform to the elements of [value], in the order of [Matrix55.floatArray]
+     */
+    fun uniform(name: String, value: Matrix55) = uniform(name, value.floatArray)
 }
