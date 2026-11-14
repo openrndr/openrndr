@@ -30,17 +30,8 @@ class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(null), StyleParamete
         fill = ColorRGBa.WHITE
         shadeStyle.parameter("fill", fill)
     }
-    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) {
-        shadeStyle.parameter("fill", fill)
-        shadeStyle.textureBaseIndex = source.size
-
-        for ((index, buffer) in source.withIndex()) {
-            shadeStyle.parameter("input$index", buffer)
-        }
-        val shader = shadeStyleManager.shader(shadeStyle, format)
-        val realFilter = Filter(shader)
-        realFilter.apply(source, target, clip)
-    }
+    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) =
+        withInputMipmaps(source) { inputs -> applyShadeStyle(shadeStyle, fill, inputs, target, clip) }
 }
 
 
@@ -51,17 +42,8 @@ open class ShadeStyleFilter1to1(val shadeStyle: ShadeStyle) : Filter1to1(null), 
         fill = ColorRGBa.WHITE
         shadeStyle.parameter("fill", fill)
     }
-    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) {
-        shadeStyle.parameter("fill", fill)
-        shadeStyle.textureBaseIndex = source.size
-
-        for ((index, buffer) in source.withIndex()) {
-            shadeStyle.parameter("input$index", buffer)
-        }
-        val shader = shadeStyleManager.shader(shadeStyle, format)
-        val realFilter = Filter1to1(shader)
-        realFilter.apply(source, target, clip)
-    }
+    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) =
+        withInputMipmaps(source) { inputs -> applyShadeStyle(shadeStyle, fill, inputs, target, clip) }
 }
 
 
@@ -72,15 +54,23 @@ class ShadeStyleFilter2to1(val shadeStyle: ShadeStyle) : Filter2to1(null), Style
         fill = ColorRGBa.WHITE
         shadeStyle.parameter("fill", fill)
     }
-    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) {
-        shadeStyle.parameter("fill", fill)
-        shadeStyle.textureBaseIndex = source.size
-        for ((index, buffer) in source.withIndex()) {
-            shadeStyle.parameter("input$index", buffer)
-        }
-        val shader = shadeStyleManager.shader(shadeStyle, format)
-        val realFilter = Filter2to1(shader)
-        realFilter.apply(source, target, clip)
-    }
+    override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle?) =
+        withInputMipmaps(source) { inputs -> applyShadeStyle(shadeStyle, fill, inputs, target, clip) }
 }
 
+/** applies [shadeStyle] as a filter of [source], which are its inputs `input0` to `input<n>` */
+private fun applyShadeStyle(
+    shadeStyle: ShadeStyle,
+    fill: ColorRGBa,
+    source: Array<ColorBuffer>,
+    target: Array<ColorBuffer>,
+    clip: Rectangle?
+) {
+    shadeStyle.parameter("fill", fill)
+    shadeStyle.textureBaseIndex = source.size
+    for ((index, buffer) in source.withIndex()) {
+        shadeStyle.parameter("input$index", buffer)
+    }
+    val shader = shadeStyleManager.shader(shadeStyle, filterQuadFormat)
+    Filter(shader).apply(source, target, clip)
+}

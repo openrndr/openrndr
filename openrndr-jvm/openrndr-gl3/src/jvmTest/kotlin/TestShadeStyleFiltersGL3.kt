@@ -36,3 +36,37 @@ class TestShadeStyleFiltersGL3 : AbstractApplicationTestFixture() {
         listOf(first, second, target).forEach { it.destroy() }
     }
 }
+
+/**
+ * Filters with generateInputMipmaps sample copies of their inputs with mipmaps
+ */
+class TestFilterInputMipmapsGL3 : AbstractApplicationTestFixture() {
+    @Test
+    fun `inputs are sampled with mipmaps and are not changed`() {
+        // the left half is red, the right half black, the 1x1 level of its mipmaps is half red
+        val input = colorBuffer(8, 8, 1.0, ColorFormat.RGBa, ColorType.FLOAT32)
+        val pixels = ByteBuffer.allocateDirect(8 * 8 * 16).order(ByteOrder.nativeOrder())
+        for (y in 0 until 8) for (x in 0 until 8) {
+            pixels.putFloat(if (x < 4) 1.0f else 0.0f); pixels.putFloat(0.0f); pixels.putFloat(0.0f); pixels.putFloat(1.0f)
+        }
+        pixels.rewind()
+        input.write(org.openrndr.utils.buffer.MPPBuffer(pixels))
+        val target = colorBuffer(4, 4, 1.0, ColorFormat.RGBa, ColorType.FLOAT32)
+
+        val filter = org.openrndr.draw.ShadeStyleFilter1to1(shadeStyle {
+            fragmentTransform = "x_fill = vec4(textureLod(p_input0, c_textureCoordinate, 3.0).rgb, 1.0);"
+        })
+        filter.generateInputMipmaps = true
+        filter.apply(input, target)
+
+        val data = ByteBuffer.allocateDirect(4 * 4 * 16).order(ByteOrder.nativeOrder())
+        target.read(data)
+        for (pixel in 0 until 16) {
+            val r = data.getFloat(pixel * 16).toDouble()
+            assertTrue(abs(r - 0.5) < 1E-3, "pixel $pixel: red was $r")
+        }
+        kotlin.test.assertEquals(1, input.levels)
+        input.destroy()
+        target.destroy()
+    }
+}

@@ -14,7 +14,7 @@ import org.openrndr.shape.Rectangle
  */
 private val filterQuads = mutableMapOf<Long, VertexBuffer>()
 private var filterQuadDriver: Driver? = null
-private var filterQuadFormat = vertexFormat {
+internal var filterQuadFormat = vertexFormat {
     position(2)
     textureCoordinate(2)
 }
@@ -64,6 +64,47 @@ open class Filter(private val shader: Shader?): AutoCloseable {
     var padding = 0
 
     var depthBufferOut: DepthBuffer? = null
+
+    /**
+     * Should the inputs be sampled with mipmaps? The inputs are not changed and need no mipmap levels of their own:
+     * every input is copied to a color buffer of the [pool][colorBufferPool] with a full set of mipmap levels, its
+     * mipmaps are generated, and the copy is sampled with trilinear filtering and clamped to its edges, so shaders can read lower levels with
+     * `textureLod`. Multisample inputs are resolved by the copy, compressed inputs are sampled as they are.
+     */
+    var generateInputMipmaps = false
+
+    /**
+     * Runs [block] with the inputs that [generateInputMipmaps] asks for: [source] or copies of it with mipmaps
+     */
+    internal fun <T> withInputMipmaps(source: Array<ColorBuffer>, block: (Array<ColorBuffer>) -> T): T {
+        if (!generateInputMipmaps || source.isEmpty()) {
+            return block(source)
+        }
+        val pool = colorBufferPool()
+        val copies = mutableListOf<ColorBuffer>()
+        try {
+            val inputs = Array(source.size) { index ->
+                val input = source[index]
+                if (input.type.compressed) {
+                    input
+                } else {
+                    val levels = mipmapLevels(input.effectiveWidth, input.effectiveHeight)
+                    val copy = pool.acquire(input.width, input.height, input.contentScale, input.format, input.type, levels = levels)
+                    copies.add(copy)
+                    input.copyTo(copy)
+                    copy.generateMipmaps()
+                    copy.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.LINEAR)
+                    // the wrap modes of color buffers can't be read, the copies clamp
+                    copy.wrapU = WrapMode.CLAMP_TO_EDGE
+                    copy.wrapV = WrapMode.CLAMP_TO_EDGE
+                    copy
+                }
+            }
+            return block(inputs)
+        } finally {
+            copies.forEach { pool.release(it) }
+        }
+    }
 
     companion object {
         val filterVertexCode: String
@@ -143,6 +184,11 @@ void main() {
      */
     fun apply(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle? = null) {
         if (shader == null) { return }
+        withInputMipmaps(source) { inputs -> applyToTarget(inputs, target, clip) }
+    }
+
+    private fun applyToTarget(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle?) {
+        val shader = shader ?: return
 
         filterDrawStyle.clip = clip
         target.bind()
@@ -458,4 +504,15 @@ Filter(shader) {
         clip: Rectangle? = null
     ) =
         apply(arrayOf(source0, source1), arrayOf(target0, target1), clip)
+}
+
+/** the number of mipmap levels of a full mipmap chain of a [width] by [height] texture */
+internal fun mipmapLevels(width: Int, height: Int): Int {
+    var size = maxOf(width, height, 1)
+    var levels = 1
+    while (size > 1) {
+        size /= 2
+        levels++
+    }
+    return levels
 }
