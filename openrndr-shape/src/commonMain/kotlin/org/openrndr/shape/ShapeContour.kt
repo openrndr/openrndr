@@ -1,5 +1,7 @@
 package org.openrndr.shape
 
+import org.openrndr.shape.internal.flattenSegments
+
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Path2
@@ -277,25 +279,16 @@ data class ShapeContour(
         if (empty) {
             return Pair(emptyList(), emptyList())
         }
+        val positions = ArrayList<Vector2>()
+        val corners = ArrayList<Boolean>()
+        flattenSegments(segments, distanceTolerance, positions, corners)
+        return Pair(positions, corners)
+    }
 
-        val adaptivePoints = mutableListOf<Vector2>()
-        val corners = mutableListOf<Boolean>()
-        for (segment in this.segments) {
-            val samples = segment.adaptivePositions(distanceTolerance)
-            val lastSampleIndex = samples.size - 1
-            samples.forEachIndexed { index, it ->
-                val last = adaptivePoints.lastOrNull()
-                if (last == null || last.squaredDistanceTo(it) > 0.0) {
-                    adaptivePoints.add(it)
-                    if (index == 0 || index == lastSampleIndex) {
-                        corners.add(segment.corner)
-                    } else {
-                        corners.add(false)
-                    }
-                }
-            }
-        }
-        return Pair(adaptivePoints, corners)
+    override fun adaptivePositions(distanceTolerance: Double): List<Vector2> {
+        val positions = ArrayList<Vector2>()
+        flattenSegments(segments, distanceTolerance, positions)
+        return positions
     }
 
 

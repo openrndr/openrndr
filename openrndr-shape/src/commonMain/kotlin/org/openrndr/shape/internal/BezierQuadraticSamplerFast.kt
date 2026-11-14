@@ -93,7 +93,7 @@ internal fun quadBezFlattenTs(
     tolerance: Double,
     t0: Double,
     t1: Double,
-    out: MutableList<Double>,
+    out: DoubleList,
     includeStart: Boolean = true
 ) {
     val params = quadBezMapToBasic(p0, p1, p2)
@@ -146,10 +146,10 @@ internal fun quadBezFlattenTs(
     out.add(t1)
 }
 
-internal fun flattenQuadraticTs(q: Segment2D, tolerance: Double): List<Double> =
-    ArrayList<Double>().also { quadBezFlattenTs(q.start, q.control[0], q.end, tolerance, 0.0, 1.0, it) }
+internal fun flattenQuadraticTs(q: Segment2D, tolerance: Double, out: DoubleList) =
+    quadBezFlattenTs(q.start, q.control[0], q.end, tolerance, 0.0, 1.0, out)
 
-internal fun flattenQuadraticTs(q: Segment3D, tolerance: Double): List<Double> {
+internal fun flattenQuadraticTs(q: Segment3D, tolerance: Double, out: DoubleList) {
     val (c, e) = quadBez3dTo2d(q.start, q.control[0], q.end)
-    return ArrayList<Double>().also { quadBezFlattenTs(Vector2.ZERO, c, e, tolerance, 0.0, 1.0, it) }
+    quadBezFlattenTs(Vector2.ZERO, c, e, tolerance, 0.0, 1.0, out)
 }

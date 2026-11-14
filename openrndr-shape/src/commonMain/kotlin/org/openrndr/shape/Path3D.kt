@@ -1,5 +1,7 @@
 package org.openrndr.shape
 
+import org.openrndr.shape.internal.flattenSegments
+
 import kotlinx.serialization.Serializable
 import org.openrndr.math.GeometricPrimitive3D
 import org.openrndr.math.Matrix44
@@ -21,6 +23,12 @@ class PathProjection3D(val segmentProjection: SegmentProjection3D, val projectio
 @Serializable
 class Path3D(override val segments: List<Segment3D>, override val closed: Boolean) : Path<Vector3>,
     GeometricPrimitive3D {
+    override fun adaptivePositions(distanceTolerance: Double): List<Vector3> {
+        val positions = ArrayList<Vector3>()
+        flattenSegments(segments, distanceTolerance, positions)
+        return positions
+    }
+
     companion object {
 
         val EMPTY: Path3D = Path3D(emptyList(), false)

@@ -18,11 +18,10 @@ private const val CUBIC_TO_QUADRATIC_FRACTION = 0.1
  */
 private const val MAX_QUADRATICS = 256
 
-internal fun flattenCubicTs(segment: Segment2D, tolerance: Double): List<Double> {
+internal fun flattenCubicTs(segment: Segment2D, tolerance: Double, out: DoubleList) {
     val toleranceC = tolerance * CUBIC_TO_QUADRATIC_FRACTION
     val toleranceQ = tolerance - toleranceC
     val count = segment.numQuadratics(toleranceC)
-    val result = ArrayList<Double>()
     var p0 = segment.start
     var d0 = derivative(segment.start, segment.control[0], segment.control[1], segment.end, 0.0)
     for (i in 0 until count) {
@@ -33,18 +32,16 @@ internal fun flattenCubicTs(segment: Segment2D, tolerance: Double): List<Double>
         // control point of the quadratic approximating the cubic span [t0, t1], see [Segment2D.quadratic]
         val s = (t1 - t0) / 3.0
         val c = ((p0 + d0 * s) * 3.0 + (p3 - d3 * s) * 3.0 - p0 - p3) * 0.25
-        quadBezFlattenTs(p0, c, p3, toleranceQ, t0, t1, result, includeStart = i == 0)
+        quadBezFlattenTs(p0, c, p3, toleranceQ, t0, t1, out, includeStart = i == 0)
         p0 = p3
         d0 = d3
     }
-    return result
 }
 
-internal fun flattenCubicTs(segment: Segment3D, tolerance: Double): List<Double> {
+internal fun flattenCubicTs(segment: Segment3D, tolerance: Double, out: DoubleList) {
     val toleranceC = tolerance * CUBIC_TO_QUADRATIC_FRACTION
     val toleranceQ = tolerance - toleranceC
     val count = segment.numQuadratics(toleranceC)
-    val result = ArrayList<Double>()
     var p0 = segment.start
     var d0 = derivative(segment.start, segment.control[0], segment.control[1], segment.end, 0.0)
     for (i in 0 until count) {
@@ -56,11 +53,10 @@ internal fun flattenCubicTs(segment: Segment3D, tolerance: Double): List<Double>
         val s = (t1 - t0) / 3.0
         val c = ((p0 + d0 * s) * 3.0 + (p3 - d3 * s) * 3.0 - p0 - p3) * 0.25
         val (c2, e2) = quadBez3dTo2d(p0, c, p3)
-        quadBezFlattenTs(Vector2.ZERO, c2, e2, toleranceQ, t0, t1, result, includeStart = i == 0)
+        quadBezFlattenTs(Vector2.ZERO, c2, e2, toleranceQ, t0, t1, out, includeStart = i == 0)
         p0 = p3
         d0 = d3
     }
-    return result
 }
 
 internal fun Segment2D.toQuadratics(tolerance: Double): List<Segment2D> {
