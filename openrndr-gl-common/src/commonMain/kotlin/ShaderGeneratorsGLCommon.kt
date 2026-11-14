@@ -1256,7 +1256,11 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
+        |   // inputs hold premultiplied colors, x_fill is straight like in the image shaders, it is premultiplied on output
         |   vec4 x_fill = texture(tex0, v_texCoord0);
+        |   if (x_fill.a != 0.0) {
+        |       x_fill.rgb /= x_fill.a;
+        |   }
         |   vec4 x_stroke = vec4(0.0);
         |   {
         |       // -- shadeStructure.fragmentTransform
