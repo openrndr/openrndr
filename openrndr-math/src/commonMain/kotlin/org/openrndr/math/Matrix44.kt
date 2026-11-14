@@ -1,6 +1,8 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.transforms.scale
+import org.openrndr.math.transforms.translate
 import kotlin.jvm.JvmRecord
 
 /**
@@ -237,26 +239,72 @@ data class Matrix44(
     operator fun times(mat: Matrix44) = when {
         this === IDENTITY -> mat
         mat === IDENTITY -> this
-        else -> Matrix44(
-            fmaDot(this.c0r0, mat.c0r0, this.c1r0, mat.c0r1, this.c2r0, mat.c0r2, this.c3r0, mat.c0r3), // m00
-            fmaDot(this.c0r0, mat.c1r0, this.c1r0, mat.c1r1, this.c2r0, mat.c1r2, this.c3r0, mat.c1r3), // c1r0
-            fmaDot(this.c0r0, mat.c2r0, this.c1r0, mat.c2r1, this.c2r0, mat.c2r2, this.c3r0, mat.c2r3), // c2r0
-            fmaDot(this.c0r0, mat.c3r0, this.c1r0, mat.c3r1, this.c2r0, mat.c3r2, this.c3r0, mat.c3r3), // c3r0
+        else -> times(
+            mat.c0r0, mat.c1r0, mat.c2r0, mat.c3r0,
+            mat.c0r1, mat.c1r1, mat.c2r1, mat.c3r1,
+            mat.c0r2, mat.c1r2, mat.c2r2, mat.c3r2,
+            mat.c0r3, mat.c1r3, mat.c2r3, mat.c3r3
+        )
+    }
 
-            fmaDot(this.c0r1, mat.c0r0, this.c1r1, mat.c0r1, this.c2r1, mat.c0r2, this.c3r1, mat.c0r3), // c0r1
-            fmaDot(this.c0r1, mat.c1r0, this.c1r1, mat.c1r1, this.c2r1, mat.c1r2, this.c3r1, mat.c1r3), // c1r1
-            fmaDot(this.c0r1, mat.c2r0, this.c1r1, mat.c2r1, this.c2r1, mat.c2r2, this.c3r1, mat.c2r3), // c2r1
-            fmaDot(this.c0r1, mat.c3r0, this.c1r1, mat.c3r1, this.c2r1, mat.c3r2, this.c3r1, mat.c3r3), // c3r1
+    /**
+     * This matrix multiplied by the matrix of the entries b<column><row>, given in the order of the constructor. [times],
+     * [timesTranslate] and [timesScale] share it, the matrices that they multiply by are not made.
+     */
+    private fun times(
+        b00: Double, b10: Double, b20: Double, b30: Double,
+        b01: Double, b11: Double, b21: Double, b31: Double,
+        b02: Double, b12: Double, b22: Double, b32: Double,
+        b03: Double, b13: Double, b23: Double, b33: Double
+    ) = Matrix44(
+        fmaDot(c0r0, b00, c1r0, b01, c2r0, b02, c3r0, b03), // c0r0
+        fmaDot(c0r0, b10, c1r0, b11, c2r0, b12, c3r0, b13), // c1r0
+        fmaDot(c0r0, b20, c1r0, b21, c2r0, b22, c3r0, b23), // c2r0
+        fmaDot(c0r0, b30, c1r0, b31, c2r0, b32, c3r0, b33), // c3r0
 
-            fmaDot(this.c0r2, mat.c0r0, this.c1r2, mat.c0r1, this.c2r2, mat.c0r2, this.c3r2, mat.c0r3), // c0r2
-            fmaDot(this.c0r2, mat.c1r0, this.c1r2, mat.c1r1, this.c2r2, mat.c1r2, this.c3r2, mat.c1r3), // c1r2
-            fmaDot(this.c0r2, mat.c2r0, this.c1r2, mat.c2r1, this.c2r2, mat.c2r2, this.c3r2, mat.c2r3), // c2r2
-            fmaDot(this.c0r2, mat.c3r0, this.c1r2, mat.c3r1, this.c2r2, mat.c3r2, this.c3r2, mat.c3r3), // c3r2
+        fmaDot(c0r1, b00, c1r1, b01, c2r1, b02, c3r1, b03), // c0r1
+        fmaDot(c0r1, b10, c1r1, b11, c2r1, b12, c3r1, b13), // c1r1
+        fmaDot(c0r1, b20, c1r1, b21, c2r1, b22, c3r1, b23), // c2r1
+        fmaDot(c0r1, b30, c1r1, b31, c2r1, b32, c3r1, b33), // c3r1
 
-            fmaDot(this.c0r3, mat.c0r0, this.c1r3, mat.c0r1, this.c2r3, mat.c0r2, this.c3r3, mat.c0r3), // c0r3
-            fmaDot(this.c0r3, mat.c1r0, this.c1r3, mat.c1r1, this.c2r3, mat.c1r2, this.c3r3, mat.c1r3), // c1r3
-            fmaDot(this.c0r3, mat.c2r0, this.c1r3, mat.c2r1, this.c2r3, mat.c2r2, this.c3r3, mat.c2r3), // c2r3
-            fmaDot(this.c0r3, mat.c3r0, this.c1r3, mat.c3r1, this.c2r3, mat.c3r2, this.c3r3, mat.c3r3) // c3r3
+        fmaDot(c0r2, b00, c1r2, b01, c2r2, b02, c3r2, b03), // c0r2
+        fmaDot(c0r2, b10, c1r2, b11, c2r2, b12, c3r2, b13), // c1r2
+        fmaDot(c0r2, b20, c1r2, b21, c2r2, b22, c3r2, b23), // c2r2
+        fmaDot(c0r2, b30, c1r2, b31, c2r2, b32, c3r2, b33), // c3r2
+
+        fmaDot(c0r3, b00, c1r3, b01, c2r3, b02, c3r3, b03), // c0r3
+        fmaDot(c0r3, b10, c1r3, b11, c2r3, b12, c3r3, b13), // c1r3
+        fmaDot(c0r3, b20, c1r3, b21, c2r3, b22, c3r3, b23), // c2r3
+        fmaDot(c0r3, b30, c1r3, b31, c2r3, b32, c3r3, b33) // c3r3
+    )
+
+    /**
+     * This matrix multiplied by the translation matrix of ([x], [y], [z]), exactly `this * Matrix44.translate(x, y, z)`,
+     * without making the translation matrix
+     */
+    fun timesTranslate(x: Double, y: Double, z: Double): Matrix44 = if (this === IDENTITY) {
+        Matrix44.translate(x, y, z)
+    } else {
+        times(
+            1.0, 0.0, 0.0, x,
+            0.0, 1.0, 0.0, y,
+            0.0, 0.0, 1.0, z,
+            0.0, 0.0, 0.0, 1.0
+        )
+    }
+
+    /**
+     * This matrix multiplied by the scale matrix of ([x], [y], [z]), exactly `this * Matrix44.scale(x, y, z)`, without
+     * making the scale matrix
+     */
+    fun timesScale(x: Double, y: Double, z: Double): Matrix44 = if (this === IDENTITY) {
+        Matrix44.scale(x, y, z)
+    } else {
+        times(
+            x, 0.0, 0.0, 0.0,
+            0.0, y, 0.0, 0.0,
+            0.0, 0.0, z, 0.0,
+            0.0, 0.0, 0.0, 1.0
         )
     }
 

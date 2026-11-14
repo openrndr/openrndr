@@ -11,10 +11,9 @@ import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.math.fmaDot
 import org.openrndr.math.transforms.rotate
 import org.openrndr.math.transforms.rotateZ
-import org.openrndr.math.transforms.scale
-import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -22,7 +21,6 @@ import kotlin.jvm.JvmName
 import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.math.sqrt
-import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
@@ -58,7 +56,18 @@ class Drawer(val driver: Driver) {
      * The bounds of the drawable area as a [Rectangle]
      */
     val bounds: Rectangle
-        get() = Rectangle(Vector2(0.0, 0.0), width * 1.0, height * 1.0)
+        get() {
+            val target = RenderTarget.active
+            val cached = cachedBounds
+            return if (cached != null && cached.width == target.width * 1.0 && cached.height == target.height * 1.0) {
+                cached
+            } else {
+                Rectangle(Vector2(0.0, 0.0), target.width * 1.0, target.height * 1.0).also { cachedBounds = it }
+            }
+        }
+
+    /** the last [bounds], reused while the size of the active render target does not change */
+    private var cachedBounds: Rectangle? = null
 
     private val drawStyles = ArrayDeque<DrawStyle>().apply {
         addLast(DrawStyle())
@@ -89,7 +98,17 @@ class Drawer(val driver: Driver) {
     val width: Int get() = RenderTarget.active.width
     val height: Int get() = RenderTarget.active.height
 
-    private var modelViewScalingFactor = 1.0
+    /** the scaling factors are computed when they are needed after the model or view matrix changed */
+    private var scalingFactorsDirty = false
+    private var modelViewScalingFactorValue = 1.0
+    private var planeScalingFactorValue = 1.0
+
+    private val modelViewScalingFactor: Double
+        get() {
+            if (scalingFactorsDirty) updateScalingFactors()
+            return modelViewScalingFactorValue
+        }
+
     private val modelViewScaling: Double
         get() {
             return modelViewScalingFactor * RenderTarget.active.contentScale
@@ -99,7 +118,11 @@ class Drawer(val driver: Driver) {
      * The scale of the plane z = 0 by the model and view matrices: the square root of the scale of areas, falls back
      * to [modelViewScalingFactor] when the plane is seen edge-on
      */
-    private var planeScalingFactor = 1.0
+    private val planeScalingFactor: Double
+        get() {
+            if (scalingFactorsDirty) updateScalingFactors()
+            return planeScalingFactorValue
+        }
 
     /**
      * The scale of the plane z = 0 in device pixels, the fringes of shapes, contours and lines are a device pixel wide
@@ -109,10 +132,37 @@ class Drawer(val driver: Driver) {
         get() = planeScalingFactor * RenderTarget.active.contentScale
 
     private fun updateScalingFactors() {
-        val modelView = view * model
-        modelViewScalingFactor = (modelView.matrix33 * Vector3.UNIT_XYZ).length
-        val areaScale = abs(modelView.c0r0 * modelView.c1r1 - modelView.c1r0 * modelView.c0r1)
-        planeScalingFactor = if (areaScale > 1E-12) sqrt(areaScale) else modelViewScalingFactor
+        scalingFactorsDirty = false
+        val v = view
+        val m = model
+        // the upper left 3x3 of view * model, as Matrix44.times computes it
+        val c0r0: Double; val c1r0: Double; val c2r0: Double
+        val c0r1: Double; val c1r1: Double; val c2r1: Double
+        val c0r2: Double; val c1r2: Double; val c2r2: Double
+        if (v === Matrix44.IDENTITY || m === Matrix44.IDENTITY) {
+            val r = if (v === Matrix44.IDENTITY) m else v
+            c0r0 = r.c0r0; c1r0 = r.c1r0; c2r0 = r.c2r0
+            c0r1 = r.c0r1; c1r1 = r.c1r1; c2r1 = r.c2r1
+            c0r2 = r.c0r2; c1r2 = r.c1r2; c2r2 = r.c2r2
+        } else {
+            c0r0 = fmaDot(v.c0r0, m.c0r0, v.c1r0, m.c0r1, v.c2r0, m.c0r2, v.c3r0, m.c0r3)
+            c1r0 = fmaDot(v.c0r0, m.c1r0, v.c1r0, m.c1r1, v.c2r0, m.c1r2, v.c3r0, m.c1r3)
+            c2r0 = fmaDot(v.c0r0, m.c2r0, v.c1r0, m.c2r1, v.c2r0, m.c2r2, v.c3r0, m.c2r3)
+            c0r1 = fmaDot(v.c0r1, m.c0r0, v.c1r1, m.c0r1, v.c2r1, m.c0r2, v.c3r1, m.c0r3)
+            c1r1 = fmaDot(v.c0r1, m.c1r0, v.c1r1, m.c1r1, v.c2r1, m.c1r2, v.c3r1, m.c1r3)
+            c2r1 = fmaDot(v.c0r1, m.c2r0, v.c1r1, m.c2r1, v.c2r1, m.c2r2, v.c3r1, m.c2r3)
+            c0r2 = fmaDot(v.c0r2, m.c0r0, v.c1r2, m.c0r1, v.c2r2, m.c0r2, v.c3r2, m.c0r3)
+            c1r2 = fmaDot(v.c0r2, m.c1r0, v.c1r2, m.c1r1, v.c2r2, m.c1r2, v.c3r2, m.c1r3)
+            c2r2 = fmaDot(v.c0r2, m.c2r0, v.c1r2, m.c2r1, v.c2r2, m.c2r2, v.c3r2, m.c2r3)
+        }
+        // the length of the upper left 3x3 times Vector3.UNIT_XYZ, as Matrix33.times computes it
+        val u = Vector3.UNIT_XYZ
+        val x = u.x * c0r0 + u.y * c1r0 + u.z * c2r0
+        val y = u.x * c0r1 + u.y * c1r1 + u.z * c2r1
+        val z = u.x * c0r2 + u.y * c1r2 + u.z * c2r2
+        modelViewScalingFactorValue = sqrt(x * x + y * y + z * z)
+        val areaScale = abs(c0r0 * c1r1 - c1r0 * c0r1)
+        planeScalingFactorValue = if (areaScale > 1E-12) sqrt(areaScale) else modelViewScalingFactorValue
     }
 
 
@@ -132,7 +182,8 @@ class Drawer(val driver: Driver) {
     var model: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            updateScalingFactors()
+            scalingFactorsDirty = true
+            contextDirty = true
         }
 
 
@@ -146,7 +197,8 @@ class Drawer(val driver: Driver) {
     var view: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            updateScalingFactors()
+            scalingFactorsDirty = true
+            contextDirty = true
         }
 
 
@@ -156,6 +208,15 @@ class Drawer(val driver: Driver) {
      * Defaults to the identity matrix, meaning no transformation is applied.
      */
     var projection: Matrix44 = Matrix44.IDENTITY
+        set(value) {
+            field = value
+            contextDirty = true
+        }
+
+    /** the last [context], reused while the matrices and the size and content scale of the target do not change */
+    private var cachedContext: DrawContext? = null
+    private var contextTarget: RenderTarget? = null
+    private var contextDirty = true
 
 
     /**
@@ -165,15 +226,28 @@ class Drawer(val driver: Driver) {
      * derived based on the active rendering state.
      */
     val context: DrawContext
-        get() = DrawContext(
-            model,
-            view,
-            projection,
-            RenderTarget.active.width,
-            RenderTarget.active.height,
-            RenderTarget.active.contentScale,
-            modelViewScalingFactor
-        )
+        get() {
+            val target = RenderTarget.active
+            val cached = cachedContext
+            if (cached != null && !contextDirty && target === contextTarget && cached.width == target.width &&
+                cached.height == target.height && cached.contentScale == target.contentScale
+            ) {
+                return cached
+            }
+            return DrawContext(
+                model,
+                view,
+                projection,
+                target.width,
+                target.height,
+                target.contentScale,
+                modelViewScalingFactor
+            ).also {
+                cachedContext = it
+                contextTarget = target
+                contextDirty = false
+            }
+        }
 
     /**
      * Represents the style settings used for drawing operations.
@@ -282,7 +356,7 @@ class Drawer(val driver: Driver) {
         up: Vector3 = Vector3.UNIT_Y,
         target: TransformTarget = TransformTarget.VIEW
     ) {
-        transform(target) *= _lookAt(from, to, up)
+        multiply(target, _lookAt(from, to, up))
     }
 
     /**
@@ -292,7 +366,7 @@ class Drawer(val driver: Driver) {
      * @param target The target transformation to be scaled. Defaults to the MODEL transformation.
      */
     fun scale(s: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.scale(s, s, s)
+        scale(s, s, s, target)
     }
 
     /**
@@ -301,7 +375,7 @@ class Drawer(val driver: Driver) {
      * @param y the scaling factor for the y-axis
      */
     fun scale(x: Double, y: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.scale(x, y, 1.0)
+        scale(x, y, 1.0, target)
     }
 
     /**
@@ -313,7 +387,7 @@ class Drawer(val driver: Driver) {
      * @param target The transformation target to which the scaling is applied. Defaults to TransformTarget.MODEL.
      */
     fun scale(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.scale(x, y, z)
+        setMatrix(target, matrix(target).timesScale(x, y, z))
     }
 
     /**
@@ -323,7 +397,7 @@ class Drawer(val driver: Driver) {
      * @param target The transformation target to which the translation is applied. Defaults to TransformTarget.MODEL.
      */
     fun translate(t: Vector2, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.translate(t.vector3())
+        translate(t.x, t.y, 0.0, target)
     }
 
 
@@ -334,7 +408,7 @@ class Drawer(val driver: Driver) {
      * @param target The transformation target to which the translation is applied. Defaults to TransformTarget.MODEL.
      */
     fun translate(t: Vector3, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.translate(t)
+        translate(t.x, t.y, t.z, target)
     }
 
     /**
@@ -360,7 +434,7 @@ class Drawer(val driver: Driver) {
      * @param target The target of the transformation. Defaults to TransformTarget.MODEL.
      */
     fun translate(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.translate(Vector3(x, y, z))
+        setMatrix(target, matrix(target).timesTranslate(x, y, z))
     }
 
 
@@ -378,7 +452,7 @@ class Drawer(val driver: Driver) {
      * @param target The target object to apply the rotation to. Defaults to TransformTarget.MODEL.
      */
     fun rotate(rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.rotateZ(rotationInDegrees)
+        multiply(target, Matrix44.rotateZ(rotationInDegrees))
     }
 
 
@@ -392,7 +466,7 @@ class Drawer(val driver: Driver) {
      * defaults to TransformTarget.MODEL.
      */
     fun rotate(axis: Vector3, rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
-        transform(target) *= Matrix44.rotate(axis, rotationInDegrees)
+        multiply(target, Matrix44.rotate(axis, rotationInDegrees))
     }
 
 
@@ -414,7 +488,7 @@ class Drawer(val driver: Driver) {
      * @see drawStyle
      * @see popStyle
      */
-    fun pushStyle(): DrawStyle = drawStyles.push(drawStyle.copy())
+    fun pushStyle(): DrawStyle = drawStyles.push(drawStyle.deepCopy())
 
     /**
      * Pop the draw style from the draw style stack
@@ -422,7 +496,8 @@ class Drawer(val driver: Driver) {
      * @see popStyle
      */
     fun popStyle() {
-        drawStyle = drawStyles.pop().copy()
+        // the popped style is no longer on the stack, it becomes the draw style
+        drawStyle = drawStyles.pop()
     }
 
     /**
@@ -665,7 +740,15 @@ class Drawer(val driver: Driver) {
     /**
      * The draw style for raw rectangles: fill only, hard edges
      */
-    private fun rawRectangleStyle() = drawStyle.copy(stroke = null, smooth = false)
+    private fun rawRectangleStyle(): DrawStyle {
+        rawRectangleStyle.setFrom(drawStyle)
+        rawRectangleStyle.stroke = null
+        rawRectangleStyle.smooth = false
+        return rawRectangleStyle
+    }
+
+    /** the style of raw rectangles, reused */
+    private val rawRectangleStyle = DrawStyle()
 
     /**
      * Draws a raw rectangle: a quad that covers exactly the pixels whose centers lie inside the rectangle, without
@@ -780,11 +863,29 @@ class Drawer(val driver: Driver) {
      * the attributes and properties of the rectangles to be drawn.
      */
     fun rectangles(build: RectangleBatchBuilder.() -> Unit) {
-        val batchBuilder = RectangleBatchBuilder(this)
-        batchBuilder.build()
-        val batch = rectangleDrawer.batchFor(batchBuilder.entries.size)
-        batchBuilder.batch(batch)
-        rectangleDrawer.drawRectangles(context, drawStyle, batch, batchBuilder.entries.size)
+        val batchBuilder = builder(rectangleBatchBuilder) { RectangleBatchBuilder(this) }
+        try {
+            batchBuilder.build()
+            val batch = rectangleDrawer.batchFor(batchBuilder.entries.size)
+            batchBuilder.batch(batch)
+            rectangleDrawer.drawRectangles(context, drawStyle, batch, batchBuilder.entries.size)
+        } finally {
+            batchBuilder.building = false
+        }
+    }
+
+    private val rectangleBatchBuilder = RectangleBatchBuilder(this)
+    private val circleBatchBuilder = CircleBatchBuilder(this)
+    private val pointBatchBuilder = PointBatchBuilder(this)
+
+    /**
+     * The builder of the drawer, reset, or a new builder when it is building a batch already: batches built while
+     * building a batch
+     */
+    private inline fun <T : BatchBuilder> builder(builder: T, create: () -> T): T {
+        val result = if (builder.building) create() else builder.also { it.reset() }
+        result.building = true
+        return result
     }
 
     /**
@@ -843,11 +944,15 @@ class Drawer(val driver: Driver) {
      *              to configure the batch of points to be drawn.
      */
     fun points(build: PointBatchBuilder.() -> Unit) {
-        val batchBuilder = PointBatchBuilder(this)
-        batchBuilder.build()
-        val batch = pointDrawer.batchFor(batchBuilder.entries.size)
-        batchBuilder.batch(batch)
-        pointDrawer.drawPoints(context, drawStyle, batch, batchBuilder.entries.size)
+        val batchBuilder = builder(pointBatchBuilder) { PointBatchBuilder(this) }
+        try {
+            batchBuilder.build()
+            val batch = pointDrawer.batchFor(batchBuilder.entries.size)
+            batchBuilder.batch(batch)
+            pointDrawer.drawPoints(context, drawStyle, batch, batchBuilder.entries.size)
+        } finally {
+            batchBuilder.building = false
+        }
     }
 
     /**
@@ -936,11 +1041,15 @@ class Drawer(val driver: Driver) {
      * creating a batch of circles using the CircleBatchBuilder.
      */
     fun circles(build: CircleBatchBuilder.() -> Unit) {
-        val batchBuilder = CircleBatchBuilder(this)
-        batchBuilder.build()
-        val batch = circleDrawer.batchFor(batchBuilder.entries.size)
-        batchBuilder.batch(batch)
-        circleDrawer.drawCircles(context, drawStyle, batch, batchBuilder.entries.size)
+        val batchBuilder = builder(circleBatchBuilder) { CircleBatchBuilder(this) }
+        try {
+            batchBuilder.build()
+            val batch = circleDrawer.batchFor(batchBuilder.entries.size)
+            batchBuilder.batch(batch)
+            circleDrawer.drawCircles(context, drawStyle, batch, batchBuilder.entries.size)
+        } finally {
+            batchBuilder.building = false
+        }
     }
 
 
@@ -959,9 +1068,9 @@ class Drawer(val driver: Driver) {
         if (RenderTarget.active.hasStencilBuffer) {
             when (shape.topology) {
                 ShapeTopology.CLOSED -> {
-                    val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
-                    val closedP = closedPC.map { it.first }
-                    val closedC = closedPC.map { it.second }
+                    val closedP = ArrayList<List<Vector2>>(shape.contours.size)
+                    val closedC = ArrayList<List<Boolean>>(shape.contours.size)
+                    sample(shape.contours, distanceTolerance, closedP, closedC)
                     paintInOrder(
                         fill = { qualityPolygonDrawer.drawPolygon(context, drawStyle, closedP, closedC, fringeWidth) },
                         stroke = {
@@ -971,19 +1080,22 @@ class Drawer(val driver: Driver) {
                 }
 
                 ShapeTopology.OPEN -> {
-                    val openPC = shape.openContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
-                    val openP = openPC.map { it.first }
-                    val openC = openPC.map { it.second }
+                    val openContours = shape.openContours
+                    val openP = ArrayList<List<Vector2>>(openContours.size)
+                    val openC = ArrayList<List<Boolean>>(openContours.size)
+                    sample(openContours, distanceTolerance, openP, openC)
                     qualityLineDrawer.drawLineStrips(context, drawStyle, openP, openC, fringeWidth)
                 }
 
                 ShapeTopology.MIXED -> {
-                    val closedPC = shape.closedContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
-                    val closedP = closedPC.map { it.first }
-                    val closedC = closedPC.map { it.second }
-                    val openPC = shape.openContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
-                    val openP = openPC.map { it.first }
-                    val openC = openPC.map { it.second }
+                    val closedContours = shape.closedContours
+                    val closedP = ArrayList<List<Vector2>>(closedContours.size)
+                    val closedC = ArrayList<List<Boolean>>(closedContours.size)
+                    sample(closedContours, distanceTolerance, closedP, closedC)
+                    val openContours = shape.openContours
+                    val openP = ArrayList<List<Vector2>>(openContours.size)
+                    val openC = ArrayList<List<Boolean>>(openContours.size)
+                    sample(openContours, distanceTolerance, openP, openC)
                     // the fill and the strokes have the bounds of the whole shape
                     val bounds = expansionBounds(closedP + openP)
                     paintInOrder(
@@ -997,6 +1109,20 @@ class Drawer(val driver: Driver) {
             }
         } else {
             error("Drawing shapes requires a render target with a stencil attachment.")
+        }
+    }
+
+    /** adds the adaptive positions and corners of [contours] to [positions] and [corners] */
+    private fun sample(
+        contours: List<ShapeContour>,
+        distanceTolerance: Double,
+        positions: MutableList<List<Vector2>>,
+        corners: MutableList<List<Boolean>>
+    ) {
+        for (i in contours.indices) {
+            val (p, c) = contours[i].adaptivePositionsAndCorners(distanceTolerance)
+            positions.add(p)
+            corners.add(c)
         }
     }
 
@@ -1023,8 +1149,14 @@ class Drawer(val driver: Driver) {
         }
 
         if (RenderTarget.active.hasStencilBuffer) {
-            paintInOrder(fill = { contourFill(contour, distanceTolerance, fringeWidth) }, stroke = {
-                contourStroke(contour, distanceTolerance, fringeWidth)
+            // the fill and a quality stroke are drawn from the same positions and corners
+            val filled = drawStyle.fill != null && contour.closed
+            val stroked = drawStyle.stroke != null && drawStyle.strokeWeight > 1E-4
+            val apc = if (filled || (stroked && drawStyle.quality == DrawQuality.QUALITY)) {
+                contour.adaptivePositionsAndCorners(distanceTolerance)
+            } else null
+            paintInOrder(fill = { if (filled && apc != null) contourFill(apc, fringeWidth) }, stroke = {
+                if (stroked) contourStroke(contour, apc, distanceTolerance, fringeWidth)
             })
         } else {
             error("Drawing contours requires a render target with a stencil attachment")
@@ -1044,34 +1176,32 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    private fun contourFill(contour: ShapeContour, distanceTolerance: Double, fringeWidth: Double) {
-        if (drawStyle.fill != null && contour.closed) {
-            val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
-            val ap = listOf(apc.first)
-            val ac = listOf(apc.second)
-
-            qualityPolygonDrawer.drawPolygon(context, drawStyle, ap, ac, fringeWidth)
-        }
+    /** fills the closed contour of the adaptive positions and corners [apc] */
+    private fun contourFill(apc: Pair<List<Vector2>, List<Boolean>>, fringeWidth: Double) {
+        qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(apc.first), listOf(apc.second), fringeWidth)
     }
 
-    private fun contourStroke(contour: ShapeContour, distanceTolerance: Double, fringeWidth: Double) {
-        if (drawStyle.stroke != null && drawStyle.strokeWeight > 1E-4) {
-            when (drawStyle.quality) {
-                DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(
-                    context,
-                    drawStyle,
-                    listOf(contour.adaptivePositions(distanceTolerance)),
-                    listOf(contour.closed)
-                )
+    /** strokes [contour], a quality stroke is drawn from its adaptive positions and corners [apc] */
+    private fun contourStroke(
+        contour: ShapeContour,
+        apc: Pair<List<Vector2>, List<Boolean>>?,
+        distanceTolerance: Double,
+        fringeWidth: Double
+    ) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineStrips(
+                context,
+                drawStyle,
+                listOf(contour.adaptivePositions(distanceTolerance)),
+                listOf(contour.closed)
+            )
 
-                DrawQuality.QUALITY -> {
-                    val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
-                    val ap = listOf(apc.first)
-                    val ac = listOf(apc.second)
-                    when (contour.closed) {
-                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, ap, ac, fringeWidth)
-                        false -> qualityLineDrawer.drawLineStrips(context, drawStyle, ap, ac, fringeWidth)
-                    }
+            DrawQuality.QUALITY -> {
+                val ap = listOf(apc!!.first)
+                val ac = listOf(apc.second)
+                when (contour.closed) {
+                    true -> qualityLineDrawer.drawLineLoops(context, drawStyle, ap, ac, fringeWidth)
+                    false -> qualityLineDrawer.drawLineStrips(context, drawStyle, ap, ac, fringeWidth)
                 }
             }
         }
@@ -1126,15 +1256,10 @@ class Drawer(val driver: Driver) {
             return
         }
 
+        val points = listOf(start, end)
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(
-                context,
-                drawStyle,
-                listOf(listOf(start, end)),
-                listOf(listOf(true, true)),
-                fringeWidth
-            )
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, points)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineSegments(context, drawStyle, points, null, fringeWidth)
         }
     }
 
@@ -1156,14 +1281,7 @@ class Drawer(val driver: Driver) {
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
-            DrawQuality.QUALITY -> {
-
-                val pairs = (0 until segments.size / 2).map {
-                    listOf(segments[it * 2], segments[it * 2 + 1])
-                }
-                val corners = pairs.map { it.map { true } }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, corners, fringeWidth)
-            }
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineSegments(context, drawStyle, segments, null, fringeWidth)
         }
     }
 
@@ -1182,13 +1300,7 @@ class Drawer(val driver: Driver) {
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
-            DrawQuality.QUALITY -> {
-                val pairs = (0 until segments.size / 2).map {
-                    listOf(segments[it * 2], segments[it * 2 + 1])
-                }
-                val corners = pairs.map { it.map { true } }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, corners, weights, fringeWidth)
-            }
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineSegments(context, drawStyle, segments, weights, fringeWidth)
         }
     }
 
@@ -1234,20 +1346,11 @@ class Drawer(val driver: Driver) {
             return
         }
 
+        // the start and the end of every segment
+        val points = SegmentPoints(segments)
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> {
-                // TODO: a faster version would pass `segments` to
-                // fastLineDrawer as is to avoid iterating over the points twice
-                val points = segments.map { it.start } + segments.last().end
-                fastLineDrawer.drawLineSegments(context, drawStyle, points)
-            }
-
-            DrawQuality.QUALITY -> {
-                val pairs = segments.map {
-                    listOf(it.start, it.end)
-                }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, pairs.map { it.map { true } }, fringeWidth)
-            }
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, points)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineSegments(context, drawStyle, points, null, fringeWidth)
         }
     }
 
@@ -1269,7 +1372,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 listOf(points),
-                listOf(points.map { true }),
+                listOf(AllTrue(points.size)),
                 fringeWidth
             )
         }
@@ -1312,7 +1415,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 loops,
-                loops.map { it.map { true } },
+                AllTrueLists(loops),
                 fringeWidth
             )
         }
@@ -1331,7 +1434,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 loops,
-                closed = List(loops.size) { true })
+                closed = AllTrue(loops.size))
         }
     }
 
@@ -1352,7 +1455,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 loops,
-                loops.map { it.map { true } },
+                AllTrueLists(loops),
                 weights,
                 fringeWidth
             )
@@ -1374,7 +1477,7 @@ class Drawer(val driver: Driver) {
                 drawStyle,
                 loops,
                 weights,
-                closed = List(loops.size) { true })
+                closed = AllTrue(loops.size))
         }
     }
 
@@ -1393,7 +1496,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 listOf(points),
-                listOf(points.map { true }),
+                listOf(AllTrue(points.size)),
                 fringeWidth
             )
         }
@@ -1425,7 +1528,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 strips,
-                strips.map { it.map { true } },
+                AllTrueLists(strips),
                 fringeWidth
             )
         }
@@ -1457,7 +1560,7 @@ class Drawer(val driver: Driver) {
                 context,
                 drawStyle,
                 strips,
-                strips.map { it.map { true } },
+                AllTrueLists(strips),
                 weights,
                 fringeWidth
             )
@@ -1557,7 +1660,7 @@ class Drawer(val driver: Driver) {
      */
     fun path(path: Path3D) {
         if (path.closed) {
-            lineLoop(path.adaptivePositions(0.03).dropLast(1))
+            lineLoop(path.adaptivePositions(0.03).withoutLast())
         } else {
             lineStrip(path.adaptivePositions(0.03))
         }
@@ -1573,7 +1676,7 @@ class Drawer(val driver: Driver) {
         meshLineDrawer.drawLineStrips(
             context,
             drawStyle,
-            paths.map { p -> p.adaptivePositions(0.03).let { if (p.closed) it.dropLast(1) else it } },
+            paths.map { p -> p.adaptivePositions(0.03).let { if (p.closed) it.withoutLast() else it } },
             weights,
             colors,
             closed = paths.map { it.closed })
@@ -1584,7 +1687,7 @@ class Drawer(val driver: Driver) {
      * Draws a [source] area of an image ([ColorBuffer]) into a [target] area
      */
     fun image(colorBuffer: ColorBuffer, source: Rectangle, target: Rectangle) {
-        imageDrawer.drawImage(context, drawStyle, colorBuffer, listOf(source to target))
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, source, target.x, target.y, target.width, target.height)
     }
 
     /**
@@ -1874,23 +1977,30 @@ class Drawer(val driver: Driver) {
         )
     }
 
-    /**
-     * Returns a mutable property reference to a specific transformation matrix
-     * based on the provided transform target.
-     *
-     * @param transform the target transformation type to retrieve the matrix for;
-     *                  can be projection, model, or view.
-     * @return a mutable property reference to the corresponding transformation matrix.
-     */
-    private fun transform(transform: TransformTarget): KMutableProperty0<Matrix44> {
-        return when (transform) {
-            TransformTarget.PROJECTION -> this::projection
-            TransformTarget.MODEL -> this::model
-            TransformTarget.VIEW -> this::view
+    /** the matrix of [transform]: the projection, model or view matrix */
+    private fun matrix(transform: TransformTarget): Matrix44 = when (transform) {
+        TransformTarget.PROJECTION -> projection
+        TransformTarget.MODEL -> model
+        TransformTarget.VIEW -> view
+    }
+
+    /** sets the matrix of [transform] to [matrix] */
+    private fun setMatrix(transform: TransformTarget, matrix: Matrix44) {
+        when (transform) {
+            TransformTarget.PROJECTION -> projection = matrix
+            TransformTarget.MODEL -> model = matrix
+            TransformTarget.VIEW -> view = matrix
         }
+    }
+
+    /** multiplies the matrix of [transform] by [matrix] */
+    private fun multiply(transform: TransformTarget, matrix: Matrix44) {
+        setMatrix(transform, matrix(transform) * matrix)
     }
 }
 
+/** the list without its last element, a view of it, empty when it is empty */
+private fun <T> List<T>.withoutLast(): List<T> = if (isEmpty()) this else subList(0, size - 1)
 
 /**
  * Executes a given function within an isolated context where transforms and styles
@@ -1913,7 +2023,7 @@ class Drawer(val driver: Driver) {
  * @see Drawer.isolatedWithTarget
  */
 @OptIn(ExperimentalContracts::class)
-fun Drawer.isolated(function: Drawer.() -> Unit) {
+inline fun Drawer.isolated(function: Drawer.() -> Unit) {
     contract {
         callsInPlace(function, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
@@ -1957,7 +2067,7 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
  * @see Drawer.isolated
  */
 @OptIn(ExperimentalContracts::class)
-fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
+inline fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
     contract {
         callsInPlace(function, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
@@ -1969,5 +2079,3 @@ fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit)
     }
 }
 
-
-private operator fun KMutableProperty0<Matrix44>.timesAssign(matrix: Matrix44) = set(get() * matrix)
