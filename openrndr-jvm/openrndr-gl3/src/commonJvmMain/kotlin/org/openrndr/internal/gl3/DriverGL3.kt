@@ -127,7 +127,7 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 /**
  * The GL state [DriverGL3] last set in a context, to skip calls that would not change it
  */
-private class ContextState {
+internal class ContextState {
     /** resource ids of the textures bound to the texture units */
     val cachedTextureBindings = LongArray(32) { -1 }
 
@@ -149,6 +149,95 @@ private class ContextState {
 
     /** are the context wide capabilities enabled, sRGB framebuffers and point sizes from shaders */
     var capabilitiesEnabled = false
+
+    /** the VAO bound between draws, 0 until it is created */
+    var defaultVAO = 0
+
+    /** the key VAOs are looked up with, filled for every draw */
+    val vaoProbe = VaoKey()
+
+    /** the key of the VAO of the last draw, [lastVao], valid while no VAOs were destroyed since */
+    val lastVaoKey = VaoKey()
+    var lastVao = 0
+    var lastVaoGeneration = -1L
+
+    /** the framebuffers color buffers are copied with, 0 until they are created */
+    var copyReadFramebuffer = 0
+    var copyDrawFramebuffer = 0
+}
+
+/**
+ * The shader and vertex buffers a VAO is made for. The key that VAOs are looked up with is filled for every draw and
+ * reused, the keys in the map are copies.
+ */
+internal class VaoKey {
+    var context = 0L
+        private set
+    var shader = 0
+        private set
+    private var vertexBuffers = IntArray(4)
+    private var vertexBufferCount = 0
+    private var instanceBuffers = IntArray(4)
+    private var instanceBufferCount = 0
+    private var hash = 0
+
+    fun set(context: Long, shader: Int, vertexBuffers: List<VertexBuffer>, instanceBuffers: List<VertexBuffer>) {
+        this.context = context
+        this.shader = shader
+        if (this.vertexBuffers.size < vertexBuffers.size) this.vertexBuffers = IntArray(vertexBuffers.size)
+        if (this.instanceBuffers.size < instanceBuffers.size) this.instanceBuffers = IntArray(instanceBuffers.size)
+        vertexBufferCount = vertexBuffers.size
+        instanceBufferCount = instanceBuffers.size
+        var h = context.hashCode() * 31 + shader
+        for (i in 0 until vertexBufferCount) {
+            val buffer = (vertexBuffers[i] as VertexBufferGL3).buffer
+            this.vertexBuffers[i] = buffer
+            h = h * 31 + buffer
+        }
+        h = h * 31 + vertexBufferCount
+        for (i in 0 until instanceBufferCount) {
+            val buffer = (instanceBuffers[i] as VertexBufferGL3).buffer
+            this.instanceBuffers[i] = buffer
+            h = h * 31 + buffer
+        }
+        hash = h * 31 + instanceBufferCount
+    }
+
+    fun copyFrom(other: VaoKey) {
+        context = other.context
+        shader = other.shader
+        if (vertexBuffers.size < other.vertexBufferCount) vertexBuffers = IntArray(other.vertexBufferCount)
+        if (instanceBuffers.size < other.instanceBufferCount) instanceBuffers = IntArray(other.instanceBufferCount)
+        other.vertexBuffers.copyInto(vertexBuffers, 0, 0, other.vertexBufferCount)
+        other.instanceBuffers.copyInto(instanceBuffers, 0, 0, other.instanceBufferCount)
+        vertexBufferCount = other.vertexBufferCount
+        instanceBufferCount = other.instanceBufferCount
+        hash = other.hash
+    }
+
+    fun copy(): VaoKey = VaoKey().also { it.copyFrom(this) }
+
+    /** does the VAO use the vertex or instance attribute [buffer]? */
+    fun usesBuffer(buffer: Int): Boolean {
+        for (i in 0 until vertexBufferCount) if (vertexBuffers[i] == buffer) return true
+        for (i in 0 until instanceBufferCount) if (instanceBuffers[i] == buffer) return true
+        return false
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is VaoKey) return false
+        if (hash != other.hash || context != other.context || shader != other.shader) return false
+        if (vertexBufferCount != other.vertexBufferCount || instanceBufferCount != other.instanceBufferCount) return false
+        for (i in 0 until vertexBufferCount) if (vertexBuffers[i] != other.vertexBuffers[i]) return false
+        for (i in 0 until instanceBufferCount) if (instanceBuffers[i] != other.instanceBuffers[i]) return false
+        return true
+    }
+
+    override fun hashCode(): Int = hash
+
+    override fun toString(): String =
+        "VaoKey(context=$context, shader=$shader, vertexBuffers=${vertexBuffers.take(vertexBufferCount)}, instanceBuffers=${instanceBuffers.take(instanceBufferCount)})"
 }
 
 private const val MAX_DRAW_BUFFERS = 16
@@ -157,18 +246,23 @@ private const val MAX_DRAW_BUFFERS = 16
 private const val DRAW_ARRAYS_INDIRECT_COMMAND_SIZE = 4 * 4
 private const val DRAW_ELEMENTS_INDIRECT_COMMAND_SIZE = 5 * 4
 
-/** The equations and factors of a blend mode, null for [BlendMode.REPLACE], which does not blend */
-private fun blendFactors(blendMode: BlendMode): IntArray? = when (blendMode) {
-    BlendMode.OVER -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-    BlendMode.BLEND -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    BlendMode.ADD -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
-    BlendMode.REPLACE -> null
-    BlendMode.SUBTRACT -> intArrayOf(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-    BlendMode.MULTIPLY -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-    BlendMode.REMOVE -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-    BlendMode.MIN -> intArrayOf(GL_MIN, GL_MIN, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
-    BlendMode.MAX -> intArrayOf(GL_MAX, GL_MAX, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+/** The equations and factors of the blend modes by ordinal, null for [BlendMode.REPLACE], which does not blend */
+private val blendFactorsByMode: Array<IntArray?> = Array(BlendMode.entries.size) { ordinal ->
+    when (BlendMode.entries[ordinal]) {
+        BlendMode.OVER -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+        BlendMode.BLEND -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        BlendMode.ADD -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+        BlendMode.REPLACE -> null
+        BlendMode.SUBTRACT -> intArrayOf(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+        BlendMode.MULTIPLY -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+        BlendMode.REMOVE -> intArrayOf(GL_FUNC_ADD, GL_FUNC_ADD, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+        BlendMode.MIN -> intArrayOf(GL_MIN, GL_MIN, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+        BlendMode.MAX -> intArrayOf(GL_MAX, GL_MAX, GL_ONE, GL_ONE, GL_ONE, GL_ONE)
+    }
 }
+
+/** The equations and factors of a blend mode, null for [BlendMode.REPLACE], which does not blend */
+private fun blendFactors(blendMode: BlendMode): IntArray? = blendFactorsByMode[blendMode.ordinal]
 abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImporterFactory,
     D3D11TextureImporterFactory, DmaBufImporterFactory {
 
@@ -229,7 +323,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
         // -- find or create a VAO for our shader + vertex buffers combination
         val context = contextID
-        val vao = getVao(context, vertexBuffers, instanceAttributes, shader)
+        val state = contextState(context)
+        val vao = getVao(context, state, vertexBuffers, instanceAttributes, shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -252,15 +347,14 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO(context))
+        glBindVertexArray(defaultVAO(state))
     }
 
 
-    private val contextStates = HashMap<Long, ContextState>()
+    private val contextStates = PerContext { ContextState() }
 
     /** The state of the [context] */
-    private fun contextState(context: Long = contextID): ContextState =
-        synchronized(contextStates) { contextStates.getOrPut(context) { ContextState() } }
+    internal fun contextState(context: Long = contextID): ContextState = contextStates[context]
 
     override fun drawIndexedCommandBuffer(
         shader: Shader,
@@ -280,7 +374,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
         // -- find or create a VAO for our shader + vertex buffers combination
         val context = contextID
-        val vao = getVao(context, vertexBuffers, instanceAttributes, shader)
+        val state = contextState(context)
+        val vao = getVao(context, state, vertexBuffers, instanceAttributes, shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -305,7 +400,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO(context))
+        glBindVertexArray(defaultVAO(state))
     }
 
     /**
@@ -313,14 +408,14 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
      * each draw buffer whose blend mode changed. Each draw buffer is blended by its own mode when the driver supports
      * indexed blend state, otherwise all are blended by the mode of the last one.
      */
-    fun applyBlendMode(drawStyle: DrawStyle) = applyBlendMode(drawStyle, contextState())
+    fun applyBlendMode(drawStyle: DrawStyle) = applyBlendMode(drawStyle, contextState(), RenderTarget.active)
 
-    private fun applyBlendMode(drawStyle: DrawStyle, state: ContextState) {
-        val blendModes = RenderTarget.active.blendModes
+    private fun applyBlendMode(drawStyle: DrawStyle, state: ContextState, target: RenderTarget) {
+        val blendModes = target.blendModes
         if (blendModes.isEmpty()) {
             return
         }
-        if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
+        if (indexedBlend) {
             for (i in 0 until min(blendModes.size, MAX_DRAW_BUFFERS)) {
                 val blendMode = drawStyle.blendMode ?: blendModes[i]
                 if (state.blendModes[i] == blendMode) {
@@ -358,15 +453,24 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     private fun applyTextureBindings(bindings: TextureBindings, state: ContextState) {
         debugGLErrors { "Pre-existing error" }
         val cachedTextureBindings = state.cachedTextureBindings
-        bindings.binding.forEach { i, texture ->
-            val (resourceId, target, name) = when (texture) {
-                is ColorBufferGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
-                is DepthBufferGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
-                is BufferTextureGL3 -> Triple(texture.resourceId, GL_TEXTURE_BUFFER, texture.texture)
-                is ArrayTextureGL3 -> Triple(texture.resourceId, texture.target, texture.texture)
-                is ArrayCubemapGL4 -> Triple(texture.resourceId, texture.target, texture.texture)
-                is VolumeTextureGL3 -> Triple(texture.resourceId, GL_TEXTURE_3D, texture.texture)
-                is CubemapGL3 -> Triple(texture.resourceId, GL_TEXTURE_CUBE_MAP, texture.texture)
+        val binding = bindings.binding
+        if (binding.isEmpty()) {
+            return
+        }
+        for (entry in binding.entries) {
+            val i = entry.key
+            val texture = entry.value
+            val resourceId: Long
+            val target: Int
+            val name: Int
+            when (texture) {
+                is ColorBufferGL3 -> { resourceId = texture.resourceId; target = texture.target; name = texture.texture }
+                is DepthBufferGL3 -> { resourceId = texture.resourceId; target = texture.target; name = texture.texture }
+                is BufferTextureGL3 -> { resourceId = texture.resourceId; target = GL_TEXTURE_BUFFER; name = texture.texture }
+                is ArrayTextureGL3 -> { resourceId = texture.resourceId; target = texture.target; name = texture.texture }
+                is ArrayCubemapGL4 -> { resourceId = texture.resourceId; target = texture.target; name = texture.texture }
+                is VolumeTextureGL3 -> { resourceId = texture.resourceId; target = GL_TEXTURE_3D; name = texture.texture }
+                is CubemapGL3 -> { resourceId = texture.resourceId; target = GL_TEXTURE_CUBE_MAP; name = texture.texture }
                 else -> error("unsupported texture type $texture")
             }
             if (cachedTextureBindings[i] != resourceId) {
@@ -382,7 +486,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
     }
 
-    private val executionQueue = mutableListOf<() -> Unit>()
+    private val executionLock = Any()
+
+    /** the functions queued for the main thread, swapped with [executing] when they run */
+    private var executionQueue = ArrayList<() -> Unit>()
+    private var executing = ArrayList<() -> Unit>()
 
     /**
      * Called on the thread that queues a function for the main thread, so that a main loop that waits can wake up and
@@ -392,25 +500,42 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     var onMainThreadWork: (() -> Unit)? = null
 
     fun executeOnMainThread(f: () -> Unit) {
-        synchronized(executionQueue) {
+        synchronized(executionLock) {
             executionQueue.add(f)
         }
         onMainThreadWork?.invoke()
     }
 
+    /**
+     * Runs the functions queued for the main thread. Functions they queue run on the next call. When one throws, the
+     * functions after it stay queued.
+     */
     fun processMainThreadExecutables() {
-        synchronized(executionQueue) {
-            for (runnable in executionQueue) {
-                try {
-                    runnable()
-                } catch (e: Throwable) {
-                    logger.error(e) {
-                        "an exception occurred during main thread execution"
-                    }
-                    throw e
-                }
+        val runnables = synchronized(executionLock) {
+            if (executionQueue.isEmpty()) {
+                return
             }
-            executionQueue.clear()
+            val queued = executionQueue
+            executionQueue = executing
+            executing = queued
+            queued
+        }
+        var index = 0
+        try {
+            while (index < runnables.size) {
+                runnables[index]()
+                index++
+            }
+        } catch (e: Throwable) {
+            logger.error(e) {
+                "an exception occurred during main thread execution"
+            }
+            synchronized(executionLock) {
+                executionQueue.addAll(0, runnables.subList(index + 1, runnables.size))
+            }
+            throw e
+        } finally {
+            runnables.clear()
         }
     }
 
@@ -421,6 +546,9 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         val textureMultisampleStorage: Boolean,
         val compute: Boolean,
     )
+
+    /** can each draw buffer be blended by its own mode? */
+    private val indexedBlend = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)
 
     val capabilities = Capabilities(
         programUniform = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_1),
@@ -595,22 +723,27 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 //        //return DrawThreadGL3.create()
 //    }
 
-    private val defaultVAOs = HashMap<Long, Int>()
-    private val defaultVAO: Int
-        get() = defaultVAO(contextID)
-
-    /** The VAO bound between draws in [context], which must be current */
-    private fun defaultVAO(context: Long): Int = defaultVAOs.getOrPut(context) {
-        val vaos = IntArray(1)
-        synchronized(Driver.instance) {
-            logger.debug { "[context=$context] creating default VAO" }
-            glGenVertexArrays(vaos)
+    /** The VAO bound between draws in the context of [state], which must be current */
+    private fun defaultVAO(state: ContextState): Int {
+        if (state.defaultVAO == 0) {
+            val vaos = IntArray(1)
+            synchronized(Driver.instance) {
+                logger.debug { "creating default VAO" }
+                glGenVertexArrays(vaos)
+            }
+            state.defaultVAO = vaos[0]
         }
-        vaos[0]
+        return state.defaultVAO
     }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGLCommon()
-    private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
+
+    /** the VAOs of all contexts, guarded by itself, as are [pendingVaoDeletions] and [vaoGeneration] */
+    private val vaos = HashMap<VaoKey, Int>()
+
+    /** increases when VAOs are destroyed, the last VAO of a context is valid while it does not change */
+    @Volatile
+    private var vaoGeneration = 0L
 
     override fun internalShaderResource(resourceId: String): String {
         val resource = this.javaClass.getResource("shaders/$resourceId")
@@ -623,7 +756,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     }
 
     init {
-        logger.trace { "initializing DriverGL3" }
+        logger.traceIfEnabled { "initializing DriverGL3" }
     }
 
     private var fontImageMapManagerInstance: FontImageMapManager? = null
@@ -715,7 +848,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         name: String,
         session: Session?
     ): Shader {
-        logger.trace {
+        logger.traceIfEnabled {
             "creating shader:\n${gsCode}\n${vsCode}\n${fsCode}"
         }
         val vertexShader = VertexShaderGL3.fromString(vsCode, name)
@@ -758,7 +891,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         levels: Int,
         session: Session?
     ): ArrayTexture {
-        logger.trace { "creating array texture" }
+        logger.traceIfEnabled { "creating array texture" }
         val arrayTexture = ArrayTextureGL3.create(width, height, layers, format, type, levels, session)
         session?.track(arrayTexture)
         return arrayTexture
@@ -770,7 +903,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         type: ColorType,
         session: Session?
     ): BufferTexture {
-        logger.trace { "creating buffer texture" }
+        logger.traceIfEnabled { "creating buffer texture" }
         val bufferTexture = BufferTextureGL3.create(elementCount, format, type, session)
         session?.track(bufferTexture)
         return bufferTexture
@@ -783,7 +916,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         levels: Int,
         session: Session?
     ): Cubemap {
-        logger.trace { "creating cube map $width" }
+        logger.traceIfEnabled { "creating cube map $width" }
         val cubemap = CubemapGL3.create(width, format, type, levels, session)
         session?.track(cubemap)
         return cubemap
@@ -810,7 +943,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         multisample: BufferMultisample,
         session: Session?
     ): RenderTarget {
-        logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
+        logger.traceIfEnabled { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {
             val renderTarget = RenderTargetGL3.create(width, height, contentScale, multisample, session)
             session?.track(renderTarget)
@@ -826,7 +959,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         levels: Int,
         session: Session?
     ): ArrayCubemap {
-        logger.trace { "creating array texture" }
+        logger.traceIfEnabled { "creating array texture" }
         version.require(DriverVersionGL.GL_VERSION_4_1)
         val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
         session?.track(arrayTexture)
@@ -846,7 +979,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         checkGLErrors {
             "pre-existing error in createColorBuffer"
         }
-        logger.trace { "creating color buffer $width x $height @ $format:$type" }
+        logger.traceIfEnabled { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
             val colorBuffer =
                 ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels, session)
@@ -862,7 +995,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         multisample: BufferMultisample,
         session: Session?
     ): DepthBuffer {
-        logger.trace { "creating depth buffer $width x $height @ $format" }
+        logger.traceIfEnabled { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
             val depthBuffer = DepthBufferGL3.create(width, height, format, multisample, session)
             return depthBuffer
@@ -903,34 +1036,39 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
      */
     private fun getVao(
         context: Long,
+        state: ContextState,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributeBuffers: List<VertexBuffer>,
         shader: ShaderGL3
     ): Int {
         if (pendingVaoDeletions.isNotEmpty()) {
-            pendingVaoDeletions.remove(context)?.forEach { glDeleteVertexArrays(it) }
+            synchronized(vaos) { pendingVaoDeletions.remove(context) }?.forEach { glDeleteVertexArrays(it) }
         }
-        val shaderVertexDescription = ShaderVertexDescription(
-            context,
-            shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(instanceAttributeBuffers.size) { (instanceAttributeBuffers[it] as VertexBufferGL3).buffer }
-        )
-        return vaos.getOrPut(shaderVertexDescription) {
+        val probe = state.vaoProbe
+        probe.set(context, shader.programObject, vertexBuffers, instanceAttributeBuffers)
+        val generation = vaoGeneration
+        if (state.lastVaoGeneration == generation && state.lastVaoKey == probe) {
+            return state.lastVao
+        }
+        val vao = synchronized(vaos) { vaos[probe] } ?: run {
             logger.debug {
-                "[context=$context] creating new VAO for hash $shaderVertexDescription"
+                "[context=$context] creating new VAO for $probe"
             }
-
             val arrays = IntArray(1)
             synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, instanceAttributeBuffers, shader)
                 debugGLErrors()
-                glBindVertexArray(defaultVAO(context))
+                glBindVertexArray(defaultVAO(state))
             }
+            synchronized(vaos) { vaos[probe.copy()] = arrays[0] }
             arrays[0]
         }
+        state.lastVaoKey.copyFrom(probe)
+        state.lastVao = vao
+        state.lastVaoGeneration = generation
+        return vao
     }
 
     override fun drawVertexBuffer(
@@ -946,7 +1084,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         val context = contextID
-        applyTextureBindings(shader.textureBindings, contextState(context))
+        val state = contextState(context)
+        applyTextureBindings(shader.textureBindings, state)
         debugGLErrors {
             "an error occurred while applying texture bindings to the shader: $it"
         }
@@ -958,7 +1097,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val vao = getVao(context, vertexBuffers, emptyList(), shader)
+        val vao = getVao(context, state, vertexBuffers, emptyList(), shader)
 
         glBindVertexArray(vao)
         debugGLErrors {
@@ -979,37 +1118,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO(context))
-    }
-
-    @JvmRecord
-    data class ShaderVertexDescription(
-        val context: Long,
-        val shader: Int,
-        val vertexBuffers: IntArray,
-        val instanceAttributeBuffers: IntArray
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as ShaderVertexDescription
-
-            if (context != other.context) return false
-            if (shader != other.shader) return false
-            if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
-            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = context.hashCode()
-            result = 31 * result + shader
-            result = 31 * result + vertexBuffers.contentHashCode()
-            result = 31 * result + instanceAttributeBuffers.contentHashCode()
-            return result
-        }
+        glBindVertexArray(defaultVAO(state))
     }
 
     override fun drawIndexedVertexBuffer(
@@ -1024,7 +1133,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
         val context = contextID
-        applyTextureBindings(shader.textureBindings, contextState(context))
+        val state = contextState(context)
+        applyTextureBindings(shader.textureBindings, state)
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
@@ -1033,13 +1143,13 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
 
         // -- find or create a VAO for our shader + vertex buffers combination
-        val vao = getVao(context, vertexBuffers, emptyList(), shader)
+        val vao = getVao(context, state, vertexBuffers, emptyList(), shader)
 
 
         glBindVertexArray(vao)
 
 
-        //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
+        //logger.traceIfEnabled { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
         indexBuffer.bind()
 
 
@@ -1056,7 +1166,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO(context))
+        glBindVertexArray(defaultVAO(state))
     }
 
     @Suppress("DuplicatedCode")
@@ -1075,7 +1185,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
         val context = contextID
-        applyTextureBindings(shader.textureBindings, contextState(context))
+        val state = contextState(context)
+        applyTextureBindings(shader.textureBindings, state)
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
@@ -1084,7 +1195,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         }
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val vao = getVao(context, vertexBuffers, instanceAttributes, shader as ShaderGL3)
+        val vao = getVao(context, state, vertexBuffers, instanceAttributes, shader as ShaderGL3)
 
         debugGLErrors()
         glBindVertexArray(vao)
@@ -1111,7 +1222,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore default VAO binding
-        glBindVertexArray(defaultVAO(context))
+        glBindVertexArray(defaultVAO(state))
     }
 
     @Suppress("DuplicatedCode")
@@ -1128,7 +1239,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         verticesPerPatch: Int
     ) {
         val context = contextID
-        applyTextureBindings(shader.textureBindings, contextState(context))
+        val state = contextState(context)
+        applyTextureBindings(shader.textureBindings, state)
         require(instanceOffset == 0 || (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
@@ -1141,7 +1253,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val vao = getVao(context, vertexBuffers, instanceAttributes, shader as ShaderGL3)
+        val vao = getVao(context, state, vertexBuffers, instanceAttributes, shader as ShaderGL3)
 
         glBindVertexArray(vao)
         indexBuffer as IndexBufferGL3
@@ -1175,7 +1287,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
             }
         }
         // -- restore default VAO binding
-        glBindVertexArray(defaultVAO(context))
+        glBindVertexArray(defaultVAO(state))
     }
 
     private fun setupFormat(
@@ -1345,8 +1457,10 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     /**
      * Runs [function] without the scissor test, which clears and blits honor, and restores the scissor test afterwards
      */
-    internal fun withoutScissor(function: () -> Unit) {
-        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
+    internal inline fun withoutScissor(function: () -> Unit) {
+        // the scissor test is known from the state of the context unless nothing is known yet
+        val state = contextState()
+        val scissorTestEnabled = if (state.dirty) glIsEnabled(GL_SCISSOR_TEST) else state.scissorEnabled
         if (scissorTestEnabled) {
             glDisable(GL_SCISSOR_TEST)
         }
@@ -1361,7 +1475,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
      * scissored and masked like draws. The masks of the cached draw style are restored afterwards, the masks of the
      * first draw style otherwise.
      */
-    internal fun withOpenWriteMasks(clear: () -> Unit) = withoutScissor {
+    internal inline fun withOpenWriteMasks(clear: () -> Unit) = withoutScissor {
         glColorMask(true, true, true, true)
         glDepthMask(true)
         glStencilMaskSeparate(GL_FRONT_AND_BACK, 0xff)
@@ -1383,6 +1497,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
 
     override fun setState(drawStyle: DrawStyle) {
         val state = contextState()
+        val activeTarget = RenderTarget.active
         val dirty = state.dirty
         val cached = state.cached
 
@@ -1414,13 +1529,13 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
                 state.blendModes.fill(null)
             }
             state.blendOffForAlphaToCoverage = false
-            applyBlendMode(drawStyle, state)
+            applyBlendMode(drawStyle, state, activeTarget)
         }
 
         // the scissor box depends on the size and content scale of the render target, not only on the clip
         val clip = drawStyle.clip
         if (clip != null) {
-            val target = RenderTarget.active
+            val target = activeTarget
             val scale = target.contentScale
             // the pixels whose centers lie inside the clip
             val x0 = (min(clip.x, clip.x + clip.width) * scale).roundToInt()
@@ -1597,28 +1712,29 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
         val current = contextID == context
         styleBlocks.remove(context)
         contextBlocks.remove(context)
-        defaultVAOs.remove(context)?.let {
+        contextStates.remove(context)?.let { state ->
             if (current) {
-                glDeleteVertexArrays(it)
-                debugGLErrors()
+                if (state.defaultVAO != 0) {
+                    glDeleteVertexArrays(state.defaultVAO)
+                    debugGLErrors()
+                }
+                if (state.copyReadFramebuffer != 0) glDeleteFramebuffers(state.copyReadFramebuffer)
+                if (state.copyDrawFramebuffer != 0) glDeleteFramebuffers(state.copyDrawFramebuffer)
             }
         }
-        val keys = vaos.keys.filter { it.context == context }
-        for (key in keys) {
-            val vao = vaos.remove(key) ?: continue
-            if (current) {
+        val removed = synchronized(vaos) {
+            vaoGeneration++
+            val keys = vaos.keys.filter { it.context == context }
+            val removed = keys.mapNotNull { vaos.remove(it) }
+            removed + (pendingVaoDeletions.remove(context) ?: emptyList())
+        }
+        if (current) {
+            for (vao in removed) {
                 glDeleteVertexArrays(vao)
                 debugGLErrors()
             }
         }
-        pendingVaoDeletions.remove(context)?.let { pending ->
-            if (current) {
-                pending.forEach { glDeleteVertexArrays(it) }
-            }
-        }
-        synchronized(contextStates) {
-            contextStates.remove(context)
-        }
+        RenderTargetGL3.forgetContext(context)
     }
 
     override val activeRenderTarget: RenderTarget
@@ -1633,23 +1749,30 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver, IOSurfaceImport
     /**
      * Deletes the VAOs whose keys match [predicate], those of other contexts when that context is next used
      */
-    private fun destroyVAOs(predicate: (ShaderVertexDescription) -> Boolean) {
+    private fun destroyVAOs(predicate: (VaoKey) -> Boolean) {
         val context = contextID
-        val candidates = vaos.keys.filter(predicate)
-        for (candidate in candidates) {
-            val value = vaos.remove(candidate) ?: continue
-            logger.debug { "removing VAO $value for $candidate" }
-            if (candidate.context == context) {
-                glDeleteVertexArrays(value)
-                debugGLErrors()
-            } else {
-                pendingVaoDeletions.getOrPut(candidate.context) { mutableListOf() }.add(value)
+        val current = mutableListOf<Int>()
+        synchronized(vaos) {
+            vaoGeneration++
+            val candidates = vaos.keys.filter(predicate)
+            for (candidate in candidates) {
+                val value = vaos.remove(candidate) ?: continue
+                logger.debug { "removing VAO $value for $candidate" }
+                if (candidate.context == context) {
+                    current.add(value)
+                } else {
+                    pendingVaoDeletions.getOrPut(candidate.context) { mutableListOf() }.add(value)
+                }
             }
+        }
+        for (vao in current) {
+            glDeleteVertexArrays(vao)
+            debugGLErrors()
         }
     }
 
     fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) = destroyVAOs {
-        it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(vertexBuffer.buffer)
+        it.usesBuffer(vertexBuffer.buffer)
     }
 
     fun destroyVAOsForShader(shader: ShaderGL3) = destroyVAOs { it.shader == shader.programObject }

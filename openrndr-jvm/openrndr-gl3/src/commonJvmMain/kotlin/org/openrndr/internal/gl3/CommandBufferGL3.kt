@@ -2,6 +2,8 @@ package org.openrndr.internal.gl3.org.openrndr.internal.gl3
 
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.ShaderStorageBufferGL43
+import org.openrndr.internal.gl3.ShaderStorageBufferShadowGL3
+import java.nio.Buffer
 import kotlin.reflect.KClass
 
 @JvmRecord
@@ -30,22 +32,32 @@ class CommandBufferGL3<T : CommandBase>(
 ) :
     CommandBuffer<T> {
 
+    /**
+     * Writes the commands of [source] from the start of the buffer. The layout of the commands is fixed, 4 or 5
+     * 32-bit integers, they are written into the shadow directly instead of through a writer that checks the format.
+     */
     override fun write(source: List<T>) {
-        ssbo.put {
-            for (command in source) {
-                if (command is CommandGL3) {
-                    write(command.vertexCount)
-                    write(command.instanceCount)
-                    write(command.baseVertex)
-                    write(command.baseInstance)
-                } else if (command is IndexedCommandGL3) {
-                    write(command.vertexCount)
-                    write(command.instanceCount)
-                    write(command.firstIndex)
-                    write(command.baseVertex)
-                    write(command.baseInstance)
-                }
+        val shadow = ssbo.shadow as ShaderStorageBufferShadowGL3
+        val buffer = shadow.buffer
+        (buffer as Buffer).rewind()
+        for (i in source.indices) {
+            val command = source[i]
+            if (command is CommandGL3) {
+                buffer.putInt(command.vertexCount.toInt())
+                buffer.putInt(command.instanceCount.toInt())
+                buffer.putInt(command.baseVertex)
+                buffer.putInt(command.baseInstance.toInt())
+            } else if (command is IndexedCommandGL3) {
+                buffer.putInt(command.vertexCount.toInt())
+                buffer.putInt(command.instanceCount.toInt())
+                buffer.putInt(command.firstIndex.toInt())
+                buffer.putInt(command.baseVertex)
+                buffer.putInt(command.baseInstance.toInt())
             }
+        }
+        val bytes = buffer.position()
+        if (bytes > 0) {
+            shadow.upload(0, bytes)
         }
     }
 

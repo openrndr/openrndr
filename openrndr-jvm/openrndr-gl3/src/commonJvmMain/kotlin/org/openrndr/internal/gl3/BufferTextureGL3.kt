@@ -15,7 +15,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
             }
 
     override fun upload(offset: Int, sizeInBytes: Int) {
-        logger.trace { "uploading shadow to buffer texture" }
+        logger.traceIfEnabled { "uploading shadow to buffer texture" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
         (buffer as Buffer).limit(offset + sizeInBytes)

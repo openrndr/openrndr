@@ -7,7 +7,7 @@ private val logger = KotlinLogging.logger {}
 class FragmentShaderGL3(val shaderObject:Int, val name:String="<unknown-fragment-shader>") {
     companion object {
         fun fromString(code:String, name:String="<unknown-fragment-shader>"): FragmentShaderGL3 {
-            logger.trace { "compiling shader $name from $code" }
+            logger.traceIfEnabled { "compiling shader $name from $code" }
             val shaderObject = glCreateShader(GL_FRAGMENT_SHADER)
             glShaderSource(shaderObject, code)
             glCompileShader(shaderObject)

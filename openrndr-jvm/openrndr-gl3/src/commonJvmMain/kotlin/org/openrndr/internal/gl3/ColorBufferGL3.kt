@@ -37,8 +37,8 @@ enum class TextureStorageModeGL {
 }
 
 
-internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
-    val entries = arrayOf(
+/** the GL internal formats and formats of the color formats and types */
+private val conversionEntries = arrayOf(
         ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
         ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI, GL_RED_INTEGER),
         ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I, GL_RED_INTEGER),
@@ -98,13 +98,21 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
         ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, GL_RGBA),
         ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, GL_RGBA)
     )
-    for (entry in entries) {
-        if (entry.format === format && entry.type === type) {
-            return Pair(entry.glFormat, entry.glType)
+
+/** the pairs of internal format and format by the ordinals of format and type, null when there is no conversion */
+private val internalFormats: Array<Array<Pair<Int, Int>?>> =
+    Array(ColorFormat.entries.size) { format ->
+        Array(ColorType.entries.size) { type ->
+            conversionEntries.firstOrNull { it.format.ordinal == format && it.type.ordinal == type }
+                ?.let { Pair(it.glFormat, it.glType) }
         }
     }
-    throw Exception("no conversion entry for $format/$type")
-}
+
+/**
+ * The GL internal format and format of [format] and [type]
+ */
+internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> =
+    internalFormats[format.ordinal][type.ordinal] ?: throw Exception("no conversion entry for $format/$type")
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ColorBufferGL3(
@@ -285,20 +293,23 @@ class ColorBufferGL3(
         }
     }
 
-    fun <T> bound(f: ColorBufferGL3.() -> T): T {
+    /**
+     * Runs [f] with this color buffer bound to texture unit 0. It stays bound there, the texture bindings that
+     * [DriverGL3] keeps track of are updated, so the binding is not queried and restored.
+     */
+    inline fun <T> bound(f: ColorBufferGL3.() -> T): T {
+        bindToUnit0()
+        return this.f()
+    }
+
+    @PublishedApi
+    internal fun bindToUnit0() {
         checkDestroyed()
         glActiveTexture(GL_TEXTURE0)
         debugGLErrors()
-        val current = when (multisample) {
-            Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
-            is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
-        }
         glBindTexture(target, texture)
         debugGLErrors()
-        val t = this.f()
-        glBindTexture(target, current)
-        debugGLErrors()
-        return t
+        (Driver.instance as DriverGL3).contextState().cachedTextureBindings[0] = resourceId
     }
 
     fun destroyShadow() {
@@ -435,13 +446,8 @@ class ColorBufferGL3(
     ) {
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
-            colorBuffer(this@ColorBufferGL3, fromLevel)
-        } as RenderTargetGL3
-
-        readTarget.bind()
-        glReadBuffer(GL_COLOR_ATTACHMENT0)
-        debugGLErrors()
+        val state = (Driver.instance as DriverGL3).contextState()
+        attachToCopyFramebuffer(state, GL_READ_FRAMEBUFFER, this, fromLevel)
 
         // color buffers are stored bottom-up, the rectangles are top-down
         val sourceHeight = effectiveHeight / fromDiv
@@ -464,10 +470,8 @@ class ColorBufferGL3(
                 }
             }
         }
-        readTarget.unbind()
-
-        readTarget.detachColorAttachments()
-        readTarget.destroy()
+        detachFromCopyFramebuffer(GL_READ_FRAMEBUFFER, this)
+        restoreFramebuffer()
     }
 
     /**
@@ -483,22 +487,9 @@ class ColorBufferGL3(
     ) {
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale, multisample = multisample) {
-            colorBuffer(this@ColorBufferGL3, fromLevel)
-        } as RenderTargetGL3
-
-        val writeTarget = renderTarget(
-            target.width / toDiv,
-            target.height / toDiv,
-            target.contentScale,
-            multisample = target.multisample
-        ) {
-            colorBuffer(target, toLevel)
-        } as RenderTargetGL3
-
-        writeTarget.bind()
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-        debugGLErrors()
+        val state = (Driver.instance as DriverGL3).contextState()
+        attachToCopyFramebuffer(state, GL_READ_FRAMEBUFFER, this, fromLevel)
+        attachToCopyFramebuffer(state, GL_DRAW_FRAMEBUFFER, target, toLevel)
 
         // color buffers are stored bottom-up, the rectangles are top-down
         val sourceHeight = effectiveHeight / fromDiv
@@ -524,13 +515,46 @@ class ColorBufferGL3(
             }
             null
         }
-        writeTarget.unbind()
+        detachFromCopyFramebuffer(GL_READ_FRAMEBUFFER, this)
+        detachFromCopyFramebuffer(GL_DRAW_FRAMEBUFFER, target)
+        restoreFramebuffer()
+    }
 
-        writeTarget.detachColorAttachments()
-        writeTarget.destroy()
+    /**
+     * Binds the framebuffer of the context that copies read from ([GL_READ_FRAMEBUFFER]) or write to
+     * ([GL_DRAW_FRAMEBUFFER]) to [binding] and attaches [level] of [buffer] to it. The framebuffers are made once per
+     * context instead of a render target per copy.
+     */
+    private fun attachToCopyFramebuffer(state: ContextState, binding: Int, buffer: ColorBufferGL3, level: Int) {
+        val read = binding == GL_READ_FRAMEBUFFER
+        var framebuffer = if (read) state.copyReadFramebuffer else state.copyDrawFramebuffer
+        val created = framebuffer == 0
+        if (created) {
+            framebuffer = glGenFramebuffers()
+            if (read) state.copyReadFramebuffer = framebuffer else state.copyDrawFramebuffer = framebuffer
+        }
+        glBindFramebuffer(binding, framebuffer)
+        glFramebufferTexture2D(binding, GL_COLOR_ATTACHMENT0, buffer.target, buffer.texture, level)
+        if (created) {
+            if (read) {
+                glReadBuffer(GL_COLOR_ATTACHMENT0)
+            } else {
+                glDrawBuffers(intArrayOf(GL_COLOR_ATTACHMENT0))
+            }
+        }
+        debugGLErrors()
+    }
 
-        readTarget.detachColorAttachments()
-        readTarget.destroy()
+    /** detaches [buffer] from the copy framebuffer bound to [binding], it would keep a deleted texture alive */
+    private fun detachFromCopyFramebuffer(binding: Int, buffer: ColorBufferGL3) {
+        glFramebufferTexture2D(binding, GL_COLOR_ATTACHMENT0, buffer.target, 0, 0)
+        debugGLErrors()
+    }
+
+    /** binds the framebuffer of the active render target again after a copy */
+    private fun restoreFramebuffer() {
+        glBindFramebuffer(GL_FRAMEBUFFER, RenderTargetGL3.activeRenderTarget.framebuffer)
+        debugGLErrors()
     }
 
     /**
@@ -752,41 +776,66 @@ class ColorBufferGL3(
         }
     }
 
+    // the texture parameters last set or read, null until they are known, so that setting them again does not bind
+    // the texture and reading them does not query it
+    private var knownWrapU: WrapMode? = null
+    private var knownWrapV: WrapMode? = null
+    private var knownFilterMin: MinifyingFilter? = null
+    private var knownFilterMag: MagnifyingFilter? = null
+
     override var wrapU: WrapMode
-        get() = TODO("not implemented")
+        get() = knownWrapU ?: bound {
+            val wrap = glGetTexParameteri(target, GL_TEXTURE_WRAP_S)
+            WrapMode.entries.first { it.glWrap() == wrap }
+        }.also { knownWrapU = it }
         set(value) {
-            bound {
-                glTexParameteri(target, GL_TEXTURE_WRAP_S, value.glWrap())
+            if (knownWrapU != value) {
+                bound {
+                    glTexParameteri(target, GL_TEXTURE_WRAP_S, value.glWrap())
+                }
+                knownWrapU = value
             }
         }
 
     override var wrapV: WrapMode
-        get() = TODO("not implemented")
+        get() = knownWrapV ?: bound {
+            val wrap = glGetTexParameteri(target, GL_TEXTURE_WRAP_T)
+            WrapMode.entries.first { it.glWrap() == wrap }
+        }.also { knownWrapV = it }
         set(value) {
-            bound {
-                glTexParameteri(target, GL_TEXTURE_WRAP_T, value.glWrap())
+            if (knownWrapV != value) {
+                bound {
+                    glTexParameteri(target, GL_TEXTURE_WRAP_T, value.glWrap())
+                }
+                knownWrapV = value
             }
         }
 
     override var filterMin: MinifyingFilter
-        get() = bound {
+        get() = knownFilterMin ?: bound {
             val filter = glGetTexParameteri(target, GL_TEXTURE_MIN_FILTER)
             MinifyingFilter.entries.first { it.toGLFilter() == filter }
-        }
+        }.also { knownFilterMin = it }
         set(value) {
-            bound {
-                glTexParameteri(target, GL_TEXTURE_MIN_FILTER, value.toGLFilter())
+            if (knownFilterMin != value) {
+                bound {
+                    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, value.toGLFilter())
+                }
+                knownFilterMin = value
             }
         }
 
     override var filterMag: MagnifyingFilter
-        get() = bound {
+        get() = knownFilterMag ?: bound {
             val filter = glGetTexParameteri(target, GL_TEXTURE_MAG_FILTER)
             MagnifyingFilter.entries.first { it.toGLFilter() == filter }
-        }
+        }.also { knownFilterMag = it }
         set(value) {
-            bound {
-                glTexParameteri(target, GL_TEXTURE_MAG_FILTER, value.toGLFilter())
+            if (knownFilterMag != value) {
+                bound {
+                    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, value.toGLFilter())
+                }
+                knownFilterMag = value
             }
         }
 
@@ -851,12 +900,11 @@ class ColorBufferGL3(
         if (multisample == Disabled) {
             bound {
                 debugGLErrors()
-                logger.trace {
+                logger.traceIfEnabled {
                     "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
                 }
                 sourceBuffer.order(ByteOrder.nativeOrder())
-                val currentPack = intArrayOf(0)
-                glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
+                val unpackAlignment = glGetInteger(GL_UNPACK_ALIGNMENT)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
                 if (sourceType.compressed) {
@@ -891,7 +939,7 @@ class ColorBufferGL3(
                     )
                     debugGLErrors()
                 }
-                glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
+                glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment)
                 debugGLErrors()
             }
         } else {
@@ -942,13 +990,14 @@ class ColorBufferGL3(
             DriverTypeGL.GL -> {
 
                 bound {
-                    logger.trace {
+                    logger.traceIfEnabled {
                         "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
                     }
                     debugGLErrors()
+                    // the alignment is restored afterwards, it is read before it is set
+                    val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
                     glPixelStorei(GL_PACK_ALIGNMENT, 1)
                     debugGLErrors()
-                    val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
                     targetBuffer.order(ByteOrder.nativeOrder())
                     (targetBuffer as Buffer).rewind()
                     if (!targetType.compressed) {
@@ -1087,7 +1136,8 @@ class ColorBufferGL3(
     }
 
 
-    private fun checkDestroyed() {
+    @PublishedApi
+    internal fun checkDestroyed() {
         if (destroyed) {
             throw IllegalStateException("color buffer is destroyed")
         }

@@ -235,8 +235,6 @@ void main() {
             renderTarget.detachDepthBuffer()
         }
         renderTarget.detachColorAttachments()
-        // attaching adds a blend mode that detaching does not remove, the render target is attached to again
-        (renderTarget.blendModes as? MutableList<BlendMode>)?.clear()
     }
 
     /**

@@ -23,7 +23,7 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
         }
 
     override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
-        logger.trace { "uploading shadow to vertex buffer" }
+        logger.traceIfEnabled { "uploading shadow to vertex buffer" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offsetInBytes)
         (buffer as Buffer).limit(offsetInBytes + sizeInBytes)
@@ -40,9 +40,12 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
         close()
     }
 
-    override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment, null)
+    /** the writer of the shadow, its position is the position of [buffer], which all writers share */
+    private val sharedWriter by lazy(LazyThreadSafetyMode.NONE) {
+        BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment, null)
     }
+
+    override fun writer(): BufferWriter = sharedWriter
 
     override fun reader(): BufferReader {
         return ByteBufferReader(buffer, vertexBuffer.vertexFormat.alignment, null)
@@ -80,7 +83,7 @@ class VertexBufferGL3(
             }
             val buffer = glGenBuffers()
             debugGLErrors()
-            logger.trace {
+            logger.traceIfEnabled {
                 "created new vertex buffer[buffer=${buffer}, vertexCount=${vertexCount}, vertexFormat=${vertexFormat}]"
             }
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
@@ -119,7 +122,7 @@ class VertexBufferGL3(
         }
 
         if (data.isDirect) {
-            logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
+            logger.traceIfEnabled { "writing to vertex buffer, ${data.remaining()} bytes" }
 
             if (useNamedBuffer) {
                 glNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
@@ -255,13 +258,13 @@ class VertexBufferGL3(
         if (isDestroyed) {
             error("buffer is destroyed")
         }
-        logger.trace { "binding vertex buffer $buffer" }
+        logger.traceIfEnabled { "binding vertex buffer $buffer" }
         glBindBuffer(GL_ARRAY_BUFFER, buffer)
         debugGLErrors()
     }
 
     fun unbind() {
-        logger.trace { "unbinding vertex buffer" }
+        logger.traceIfEnabled { "unbinding vertex buffer" }
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         debugGLErrors()
     }

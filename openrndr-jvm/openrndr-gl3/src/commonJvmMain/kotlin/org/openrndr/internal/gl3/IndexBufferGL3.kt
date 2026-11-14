@@ -51,13 +51,13 @@ class IndexBufferGL3(
         if (isDestroyed) {
             throw IllegalStateException("buffer is destroyed")
         }
-        logger.trace { "binding vertex buffer $buffer" }
+        logger.traceIfEnabled { "binding vertex buffer $buffer" }
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
         debugGLErrors()
     }
 
     fun unbind() {
-        logger.trace { "unbinding vertex buffer" }
+        logger.traceIfEnabled { "unbinding vertex buffer" }
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         debugGLErrors()
     }

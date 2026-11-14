@@ -21,7 +21,8 @@ private val finishOnUnbind by lazy {
     System.getProperty("org.openrndr.gl3.finish_on_unbind") == "true"
 }
 
-private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
+/** the stacks of bound render targets, one per context */
+private val active = PerContext { Stack<RenderTargetGL3>() }
 
 class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled, Session.root)
 
@@ -108,7 +109,7 @@ open class RenderTargetGL3(
             multisample: BufferMultisample = BufferMultisample.Disabled,
             session: Session?
         ): RenderTargetGL3 {
-            logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
+            logger.traceIfEnabled { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
 
             if (multisample is BufferMultisample.SampleCount) {
@@ -127,18 +128,29 @@ open class RenderTargetGL3(
 
         val activeRenderTarget: RenderTargetGL3
             get() {
-                val stack = active.getOrPut(Driver.instance.contextID) {
-                    logger.debug { "creating active render target stack for context ${Driver.instance.contextID}" }
-                    Stack()
-                }
+                val stack = active[Driver.instance.contextID]
                 if (stack.isEmpty()) {
                     logger.error { "empty stack while looking for active render target for context ${Driver.instance.contextID}" }
                 }
                 return stack.peek()
             }
+
+        /** binds the render target that is active in [context] again, after a target was bound to change it */
+        private fun rebindActive(context: Long) {
+            val stack = active.getOrNull(context) ?: return
+            if (stack.isNotEmpty()) {
+                stack.peek().bindTarget()
+            }
+        }
+
+        /** forgets the render targets bound in [context], which is destroyed */
+        internal fun forgetContext(context: Long) {
+            active.remove(context)
+        }
     }
 
-    private var bound = false
+    /** the draw buffers of the color attachments, made again when the number of attachments changes */
+    private var drawBuffers = IntArray(0)
 
     override val hasColorAttachments: Boolean get() = colorAttachments.isNotEmpty()
     override val hasDepthBuffer: Boolean get() = depthBuffer?.hasDepth == true
@@ -153,14 +165,10 @@ open class RenderTargetGL3(
 
     override fun bind() {
         require(!destroyed)
-        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on $contextID" }
-        if (bound) {
-            throw RuntimeException("already bound")
-        } else {
-            val stack = active.getOrPut(Driver.instance.contextID) { Stack() }
-            stack.push(this)
-            bindTarget()
-        }
+        val context = Driver.instance.contextID
+        require(context == contextID) { "can't bind render target on context $context it is created on $contextID" }
+        active[context].push(this)
+        bindTarget()
     }
 
     open fun bindTarget() {
@@ -174,7 +182,9 @@ open class RenderTargetGL3(
 
         debugGLErrors { null }
         if (colorAttachments.isNotEmpty()) {
-            val drawBuffers = List(colorAttachments.size) { index -> GL_COLOR_ATTACHMENT0 + index }.toIntArray()
+            if (drawBuffers.size != colorAttachments.size) {
+                drawBuffers = IntArray(colorAttachments.size) { index -> GL_COLOR_ATTACHMENT0 + index }
+            }
             glDrawBuffers(drawBuffers)
             debugGLErrors {
                 when (it) {
@@ -189,28 +199,21 @@ open class RenderTargetGL3(
         val effectiveWidth = (width * contentScale).toInt()
         val effectiveHeight = (height * contentScale).toInt()
 
-        logger.trace { "setting viewport to (0, 0, $effectiveWidth, $effectiveHeight)" }
+        logger.traceIfEnabled { "setting viewport to (0, 0, $effectiveWidth, $effectiveHeight)" }
         glViewport(0, 0, effectiveWidth, effectiveHeight)
         debugGLErrors { null }
     }
 
     override fun unbind() {
         require(!destroyed)
-        if (!bound) {
-            val previous = active.getOrPut(Driver.instance.contextID) { Stack() }.let {
-                it.pop()
-                it.peek()
-            }
-            previous as RenderTargetGL3
-            logger.trace { "restoring to previous render target $previous" }
-            if (finishOnUnbind) {
-                Driver.instance.finish()
-            }
-            previous.bindTarget()
-            bound = false
-        } else {
-            throw RuntimeException("target not bound")
+        val stack = active[Driver.instance.contextID]
+        stack.pop()
+        val previous = stack.peek()
+        logger.traceIfEnabled { "restoring to previous render target $previous" }
+        if (finishOnUnbind) {
+            Driver.instance.finish()
         }
+        previous.bindTarget()
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
@@ -256,8 +259,7 @@ open class RenderTargetGL3(
         )
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int, name: String?) {
@@ -286,8 +288,7 @@ open class RenderTargetGL3(
         colorAttachments.add(ArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, side, layer, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String?) {
@@ -318,8 +319,7 @@ open class RenderTargetGL3(
         colorAttachments.add(CubemapAttachment(colorAttachments.size, name, cubemap, side, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attach(volumeTexture: VolumeTexture, layer: Int, level: Int, name: String?) {
@@ -356,8 +356,7 @@ open class RenderTargetGL3(
         colorAttachments.add(VolumeTextureAttachment(colorAttachments.size, name, volumeTexture, layer, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attachLayered(arrayTexture: ArrayTexture, level: Int, name: String?) {
@@ -382,8 +381,7 @@ open class RenderTargetGL3(
         colorAttachments.add(LayeredArrayTextureAttachment(colorAttachments.size, name, arrayTexture, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attachLayered(arrayCubemap: ArrayCubemap, level: Int, name: String?) {
@@ -404,8 +402,7 @@ open class RenderTargetGL3(
         colorAttachments.add(LayeredArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attachLayered(cubemap: Cubemap, level: Int, name: String?) {
@@ -435,8 +432,7 @@ open class RenderTargetGL3(
         colorAttachments.add(LayeredCubemapAttachment(colorAttachments.size, name, cubemap, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attachLayered(volumeTexture: VolumeTexture, level: Int, name: String?) {
@@ -464,8 +460,7 @@ open class RenderTargetGL3(
         colorAttachments.add(LayeredVolumeTextureAttachment(colorAttachments.size, name, volumeTexture, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name: String?) {
@@ -496,11 +491,10 @@ open class RenderTargetGL3(
         colorAttachments.add(ArrayTextureAttachment(colorAttachments.size, name, arrayTexture, layer, level))
         blendModes.add(defaultBlendMode())
 
-        if (active[context]?.peek() != null)
-            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+        rebindActive(context)
     }
 
-    private fun bufferBound(function: () -> Unit) {
+    private inline fun bufferBound(function: () -> Unit) {
         val currentBuf = glGetInteger(GL_FRAMEBUFFER_BINDING)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
         debugGLErrors { "problem binding framebuffer $framebuffer" }
@@ -516,12 +510,11 @@ open class RenderTargetGL3(
         val targetColor = color.toLinearity(if (type.isSRGB && !encodes) Linearity.SRGB else Linearity.LINEAR)
 
         bufferBound {
-            val ca = floatArrayOf(
-                targetColor.r.toFloat(),
-                targetColor.g.toFloat(),
-                targetColor.b.toFloat(),
-                targetColor.alpha.toFloat()
-            )
+            val ca = UniformScratch.current.floats(4)
+            ca[0] = targetColor.r.toFloat()
+            ca[1] = targetColor.g.toFloat()
+            ca[2] = targetColor.b.toFloat()
+            ca[3] = targetColor.alpha.toFloat()
             (Driver.instance as DriverGL3).withOpenWriteMasks {
                 glClearBufferfv(GL_COLOR, index, ca)
             }
@@ -693,6 +686,9 @@ open class RenderTargetGL3(
             }
         }
         colorAttachments.clear()
+        // every attach adds the blend mode of its attachment, a render target that is reused would collect more blend
+        // modes than it has draw buffers
+        blendModes.clear()
     }
 
     @Deprecated(

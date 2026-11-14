@@ -25,7 +25,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 
 
     override fun download() {
-        logger.trace {
+        logger.traceIfEnabled {
             "downloading colorbuffer into shadow"
         }
         colorBuffer.read(buffer)

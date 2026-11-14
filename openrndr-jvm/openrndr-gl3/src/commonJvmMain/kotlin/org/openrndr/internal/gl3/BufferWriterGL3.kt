@@ -26,6 +26,14 @@ class BufferWriterGL3(
         buffer.order(ByteOrder.nativeOrder())
     }
 
+    /** a float view of the whole buffer, float arrays are copied through it in bulk */
+    private val floatView by lazy(LazyThreadSafetyMode.NONE) {
+        val bytes = buffer.duplicate().order(ByteOrder.nativeOrder())
+        (bytes as Buffer).limit(bytes.capacity())
+        (bytes as Buffer).position(0)
+        bytes.asFloatBuffer()
+    }
+
     /**
      * Processes the next element in the `elementIterator` based on the specified `BufferPrimitiveType`.
      * Aligns buffer position if necessary and validates type consistency. Recursively processes
@@ -126,8 +134,17 @@ class BufferWriterGL3(
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(4)
         }
-        buffer.asFloatBuffer().put(a, offset, size)
-        (buffer as Buffer).position(buffer.position() + size * 4)
+        val position = buffer.position()
+        if (position % 4 == 0) {
+            val view = floatView
+            (view as Buffer).position(position / 4)
+            view.put(a, offset, size)
+        } else {
+            for (i in offset until offset + size) {
+                buffer.putFloat(position + (i - offset) * 4, a[i])
+            }
+        }
+        (buffer as Buffer).position(position + size * 4)
     }
 
     override fun write(v: Vector3) {
