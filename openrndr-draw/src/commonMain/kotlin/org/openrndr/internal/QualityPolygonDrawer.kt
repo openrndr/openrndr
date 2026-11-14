@@ -16,6 +16,8 @@ import org.openrndr.math.Vector4
  */
 class QualityPolygonDrawer {
     private val expansionDrawer = ExpansionDrawer()
+    private val scratch = ExpansionScratch()
+    private val devicePixels = DevicePixelMapCache()
 
     /**
      * Draws a polygon based on the specified parameters including loops, corner settings, and a fringe width for smoothing.
@@ -39,17 +41,17 @@ class QualityPolygonDrawer {
             // the fill is always anti-aliased, the stroke is drawn over it. A stroke does not necessarily cover the
             // edge of the fill: it can be thinner than a pixel, not be drawn at all (strokeWeight = 0), or lie
             // inside or outside of the outline
-            val pixels = if (drawStyle.smooth) devicePixelMap(drawContext) else null
+            scratch.reset()
+            val pixels = if (drawStyle.smooth) devicePixels.of(drawContext) else null
             if (pixels != null) {
                 // the fill is expanded in device pixels, so that its fringe is a pixel wide across every edge, however
                 // the geometry is scaled, skewed or rotated, and mapped back
-                val (a, b, c, d) = pixels
-                val path = Path.fromLineLoops(loops.map { loop -> loop.map { Vector2(a * it.x + b * it.y, c * it.x + d * it.y) } }, corners)
+                val path = Path.fromLineLoops(loops, corners, scratch, pixels)
                 val fillExpansions = path.expandFill(1.0, 1.0, LineJoin.BEVEL, 2.4)
                 mapFromDevicePixels(fillExpansions, pixels)
                 expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fringeWidth, bounds)
             } else {
-                val path = Path.fromLineLoops(loops, corners)
+                val path = Path.fromLineLoops(loops, corners, scratch)
                 val fw = if (drawStyle.smooth) fringeWidth else 0.0
                 val fillExpansions = path.expandFill(fw, fw, LineJoin.BEVEL, 2.4)
                 expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw, bounds)

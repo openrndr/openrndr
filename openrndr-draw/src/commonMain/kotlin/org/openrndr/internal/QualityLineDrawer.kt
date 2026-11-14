@@ -14,6 +14,11 @@ import kotlin.math.abs
  */
 class QualityLineDrawer {
     private val expansionDrawer = ExpansionDrawer()
+    private val scratch = ExpansionScratch()
+    private val devicePixels = DevicePixelMapCache()
+
+    /** the expansions of a draw */
+    private val expansions = ArrayList<Expansion>()
 
     /**
      * Draws a series of connected line strips with the specified drawing context and style.
@@ -39,18 +44,66 @@ class QualityLineDrawer {
                        bounds: Vector4 = expansionBounds(strips)) {
         val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
-            val expansions = strips.mapIndexed { index, it ->
-                val path = Path.fromLineStrip(it, corners[index], false)
-                path.expandStroke(
-                    fw,
-                    drawStyle.strokeWeight / 2.0,
-                    drawStyle.lineCap,
-                    drawStyle.lineJoin,
-                    drawStyle.miterLimit
+            scratch.reset()
+            expansions.clear()
+            for (index in strips.indices) {
+                val path = Path.fromLineStrip(strips[index], corners[index], false, scratch)
+                expansions.add(
+                    path.expandStroke(
+                        fw,
+                        drawStyle.strokeWeight / 2.0,
+                        drawStyle.lineCap,
+                        drawStyle.lineJoin,
+                        drawStyle.miterLimit
+                    )
                 )
             }
             // a single straight segment cannot overlap itself
             val singlePass = strips.size == 1 && strips[0].size == 2
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, bounds, singlePass = singlePass)
+        }
+    }
+
+    /**
+     * Draws the line segments between the [points] at even indices and the points that follow them, like line strips
+     * of two points that are corners
+     *
+     * @param weights the stroke weights of the segments, the stroke weight of [drawStyle] when null
+     */
+    fun drawLineSegments(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        points: List<Vector2>,
+        weights: List<Double>?,
+        fringeWidth: Double
+    ) {
+        val segmentCount = points.size / 2
+        val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
+            scratch.reset()
+            expansions.clear()
+            var minX = Double.POSITIVE_INFINITY
+            var minY = Double.POSITIVE_INFINITY
+            var maxX = Double.NEGATIVE_INFINITY
+            var maxY = Double.NEGATIVE_INFINITY
+            for (index in 0 until segmentCount) {
+                val start = points[index * 2]
+                val end = points[index * 2 + 1]
+                // the bounds of the points, as expansionBounds finds them
+                for (point in 0 until 2) {
+                    val p = if (point == 0) start else end
+                    if (p.x < minX) minX = p.x
+                    if (p.x > maxX) maxX = p.x
+                    if (p.y < minY) minY = p.y
+                    if (p.y > maxY) maxY = p.y
+                }
+                val path = Path.fromSegment(start, end, scratch)
+                val weight = weights?.get(index) ?: drawStyle.strokeWeight
+                expansions.add(path.expandStroke(fw, weight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit))
+            }
+            val bounds = if (minX > maxX) Vector4.ZERO else Vector4(minX, minY, maxX - minX, maxY - minY)
+            // a single straight segment cannot overlap itself
+            val singlePass = weights == null && segmentCount == 1
             expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, bounds, singlePass = singlePass)
         }
     }
@@ -78,9 +131,11 @@ class QualityLineDrawer {
                        fringeWidth: Double) {
         val fw = strokeFringe(drawContext, drawStyle, fringeWidth)
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
-            val expansions = strips.mapIndexed { index, it ->
-                val path = Path.fromLineStrip(it, corners[index], false)
-                path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+            scratch.reset()
+            expansions.clear()
+            for (index in strips.indices) {
+                val path = Path.fromLineStrip(strips[index], corners[index], false, scratch)
+                expansions.add(path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit))
             }
             expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw, expansionBounds(strips))
         }
@@ -123,16 +178,21 @@ class QualityLineDrawer {
                 return
             }
             val reference = if (asShape) strips.maxByOrNull { abs(Path.signedArea(it)) } else null
-            val expansions = strips.mapIndexed { index, it ->
-                val path = Path.fromLineStrip(it, corners[index], true)
-                path.expandStroke(
-                    effectiveFringeWidth,
-                    drawStyle.strokeWeight / 2.0,
-                    drawStyle.lineCap,
-                    drawStyle.lineJoin,
-                    drawStyle.miterLimit,
-                    drawStyle.strokeAlignment.outsideFraction,
-                    Path.signedArea(reference ?: it) > 0.0
+            scratch.reset()
+            expansions.clear()
+            for (index in strips.indices) {
+                val strip = strips[index]
+                val path = Path.fromLineStrip(strip, corners[index], true, scratch)
+                expansions.add(
+                    path.expandStroke(
+                        effectiveFringeWidth,
+                        drawStyle.strokeWeight / 2.0,
+                        drawStyle.lineCap,
+                        drawStyle.lineJoin,
+                        drawStyle.miterLimit,
+                        drawStyle.strokeAlignment.outsideFraction,
+                        Path.signedArea(reference ?: strip) > 0.0
+                    )
                 )
             }
             expansionDrawer.renderStrokes(
@@ -160,15 +220,11 @@ class QualityLineDrawer {
             return null
         }
         // the clip and its fringes are made in device pixels when possible, so that the fringes are a pixel wide
-        val pixels = if (fringeWidth > 0.0) devicePixelMap(drawContext) else null
+        val pixels = if (fringeWidth > 0.0) devicePixels.of(drawContext) else null
         val width = if (pixels != null) 1.0 else fringeWidth
-        val path = Path()
-        strips.forEachIndexed { index, strip ->
-            val points = if (pixels != null) {
-                val (a, b, c, d) = pixels
-                strip.map { Vector2(a * it.x + b * it.y, c * it.x + d * it.y) }
-            } else strip
-            path.contours.addAll(Path.fromLineStrip(points, corners[index], true).contours)
+        val path = Path(scratch)
+        for (index in strips.indices) {
+            path.contours.addAll(Path.fromLineStrip(strips[index], corners[index], true, scratch, pixels).contours)
         }
         path.closed = true
         val inside = drawStyle.strokeAlignment == StrokeAlignment.INSIDE
@@ -189,7 +245,7 @@ class QualityLineDrawer {
         if (!drawStyle.smooth) {
             return 0.0
         }
-        val pixels = devicePixelMap(drawContext) ?: return fringeWidth
+        val pixels = devicePixels.of(drawContext) ?: return fringeWidth
         val scale = minimumScale(pixels)
         return if (scale > 1E-12) 1.0 / scale else fringeWidth
     }
@@ -218,11 +274,15 @@ class QualityLineDrawer {
             // independent loops are clipped independently
             val groups = if (drawStyle.strokeAlignment == StrokeAlignment.CENTER) listOf(strips.indices.toList()) else strips.indices.map { listOf(it) }
             for (group in groups) {
-                val expansions = group.map { index ->
-                    val path = Path.fromLineStrip(strips[index], corners[index], true)
-                    path.expandStroke(
-                        fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit,
-                        drawStyle.strokeAlignment.outsideFraction, Path.signedArea(strips[index]) > 0.0
+                scratch.reset()
+                expansions.clear()
+                for (index in group) {
+                    val path = Path.fromLineStrip(strips[index], corners[index], true, scratch)
+                    expansions.add(
+                        path.expandStroke(
+                            fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit,
+                            drawStyle.strokeAlignment.outsideFraction, Path.signedArea(strips[index]) > 0.0
+                        )
                     )
                 }
                 expansionDrawer.renderStrokes(

@@ -1,8 +1,10 @@
 package org.openrndr.internal
 
 import org.openrndr.draw.*
+import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector4
+import org.openrndr.math.fmaDot
 import org.openrndr.shape.FillRule
 import kotlin.jvm.JvmRecord
 import kotlin.math.abs
@@ -14,16 +16,66 @@ import kotlin.math.sqrt
  * y' = c x + d y, when the map is affine, as it is with orthographic projections, null otherwise
  */
 internal fun devicePixelMap(drawContext: DrawContext): DoubleArray? {
-    val m = drawContext.projection * drawContext.view * drawContext.model
-    // the w of positions in the plane z = 0 must not depend on the position
-    if (abs(m.c0r3) > 1E-12 || abs(m.c1r3) > 1E-12 || abs(m.c3r3) < 1E-12) {
-        return null
+    val map = DoubleArray(4)
+    return if (devicePixelMap(drawContext, map)) map else null
+}
+
+/**
+ * Writes the map of [devicePixelMap] into [map], returns false when there is none
+ */
+private fun devicePixelMap(drawContext: DrawContext, map: DoubleArray): Boolean {
+    // the entries of projection * view * model that the map needs, computed like Matrix44.times computes them
+    val pv = drawContext.projection * drawContext.view
+    val m = drawContext.model
+    val c0r0: Double
+    val c1r0: Double
+    val c0r1: Double
+    val c1r1: Double
+    val c0r3: Double
+    val c1r3: Double
+    val c3r3: Double
+    if (pv === Matrix44.IDENTITY || m === Matrix44.IDENTITY) {
+        val r = if (pv === Matrix44.IDENTITY) m else pv
+        c0r0 = r.c0r0; c1r0 = r.c1r0; c0r1 = r.c0r1; c1r1 = r.c1r1; c0r3 = r.c0r3; c1r3 = r.c1r3; c3r3 = r.c3r3
+    } else {
+        c0r0 = fmaDot(pv.c0r0, m.c0r0, pv.c1r0, m.c0r1, pv.c2r0, m.c0r2, pv.c3r0, m.c0r3)
+        c1r0 = fmaDot(pv.c0r0, m.c1r0, pv.c1r0, m.c1r1, pv.c2r0, m.c1r2, pv.c3r0, m.c1r3)
+        c0r1 = fmaDot(pv.c0r1, m.c0r0, pv.c1r1, m.c0r1, pv.c2r1, m.c0r2, pv.c3r1, m.c0r3)
+        c1r1 = fmaDot(pv.c0r1, m.c1r0, pv.c1r1, m.c1r1, pv.c2r1, m.c1r2, pv.c3r1, m.c1r3)
+        c0r3 = fmaDot(pv.c0r3, m.c0r0, pv.c1r3, m.c0r1, pv.c2r3, m.c0r2, pv.c3r3, m.c0r3)
+        c1r3 = fmaDot(pv.c0r3, m.c1r0, pv.c1r3, m.c1r1, pv.c2r3, m.c1r2, pv.c3r3, m.c1r3)
+        c3r3 = fmaDot(pv.c0r3, m.c3r0, pv.c1r3, m.c3r1, pv.c2r3, m.c3r2, pv.c3r3, m.c3r3)
     }
-    val sx = 0.5 * drawContext.width * drawContext.contentScale / m.c3r3
-    val sy = 0.5 * drawContext.height * drawContext.contentScale / m.c3r3
-    val map = doubleArrayOf(m.c0r0 * sx, m.c1r0 * sx, m.c0r1 * sy, m.c1r1 * sy)
+    // the w of positions in the plane z = 0 must not depend on the position
+    if (abs(c0r3) > 1E-12 || abs(c1r3) > 1E-12 || abs(c3r3) < 1E-12) {
+        return false
+    }
+    val sx = 0.5 * drawContext.width * drawContext.contentScale / c3r3
+    val sy = 0.5 * drawContext.height * drawContext.contentScale / c3r3
+    map[0] = c0r0 * sx
+    map[1] = c1r0 * sx
+    map[2] = c0r1 * sy
+    map[3] = c1r1 * sy
     val determinant = map[0] * map[3] - map[1] * map[2]
-    return if (abs(determinant) > 1E-12 && map.all { it.isFinite() }) map else null
+    return abs(determinant) > 1E-12 && map.all { it.isFinite() }
+}
+
+/**
+ * The [devicePixelMap] of the last draw context it was asked for, the map is computed once for every draw context
+ */
+internal class DevicePixelMapCache {
+    private var context: DrawContext? = null
+    private val map = DoubleArray(4)
+    private var valid = false
+
+    /** the device pixel map of [drawContext], or null when there is none. The map must not be changed */
+    fun of(drawContext: DrawContext): DoubleArray? {
+        if (drawContext !== context) {
+            context = drawContext
+            valid = devicePixelMap(drawContext, map)
+        }
+        return if (valid) map else null
+    }
 }
 
 /** the smallest scale of the linear [map] (a, b, c, d) in any direction, its smallest singular value */
@@ -40,8 +92,8 @@ internal fun minimumScale(map: DoubleArray): Double {
 internal fun mapFromDevicePixels(expansions: List<Expansion>, map: DoubleArray) {
     val (a, b, c, d) = map
     val determinant = a * d - b * c
-    for (expansion in expansions) {
-        expansion.mapPositions(d / determinant, -b / determinant, -c / determinant, a / determinant)
+    for (i in expansions.indices) {
+        expansions[i].mapPositions(d / determinant, -b / determinant, -c / determinant, a / determinant)
     }
 }
 
@@ -96,7 +148,52 @@ internal class ExpansionDrawer {
     private companion object {
         /** the stencil bit used to clip strokes, the lower bits count the stroke coverage */
         const val CLIP_BIT = 0x80
+
+        const val FILL = 1 shl 1
+        const val FRINGE = 1 shl 2
+        const val STROKE = 1 shl 0
     }
+
+    /** the bit of [type] in the type masks of [drawMerged] */
+    private fun bit(type: ExpansionType) = 1 shl type.ordinal
+
+    /** the style of the passes of a draw, see [passStyle] */
+    private val passStyle = DrawStyle()
+    private val passStencil = StencilStyle()
+    private val frontStencil = StencilStyle()
+    private val backStencil = StencilStyle()
+    private val defaultStencil = StencilStyle()
+
+    /**
+     * A copy of [drawStyle] for the passes of a draw, with a stencil of its own: the passes change its stencil and
+     * write mask, not those of [drawStyle]. The copy is reused by the next draw.
+     */
+    private fun passStyle(drawStyle: DrawStyle): DrawStyle {
+        passStencil.setFrom(drawStyle.stencil)
+        passStyle.setFrom(drawStyle)
+        passStyle.stencil = passStencil
+        passStyle.frontStencil = passStencil
+        passStyle.backStencil = passStencil
+        return passStyle
+    }
+
+    private var lastVertexBuffer: VertexBuffer? = null
+    private var lastVertexBuffers: List<VertexBuffer> = emptyList()
+
+    /** [vertexBuffer] in a list, the list of the last vertex buffer is reused */
+    private fun listOfBuffer(vertexBuffer: VertexBuffer): List<VertexBuffer> {
+        if (vertexBuffer !== lastVertexBuffer) {
+            lastVertexBuffer = vertexBuffer
+            lastVertexBuffers = listOf(vertexBuffer)
+        }
+        return lastVertexBuffers
+    }
+
+    /** the commands of a draw, the strokes, fills and fringes among them */
+    private val commandList = ArrayList<ExpansionCommand>()
+    private val strokeCommands = ArrayList<ExpansionCommand>()
+    private val fillCommands = ArrayList<ExpansionCommand>()
+    private val fringeCommands = ArrayList<ExpansionCommand>()
 
     private val shaderManager = ShadeStyleManager.fromGenerators(
         "expansion",
@@ -109,6 +206,8 @@ internal class ExpansionDrawer {
         textureCoordinate(2)
         attribute("vertexOffset", VertexElementType.FLOAT32)
     }
+
+    private val vertexFormats = listOf(vertexFormat)
 
     val manyVertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
     val fewVertices =
@@ -143,7 +242,7 @@ internal class ExpansionDrawer {
         bounds: Vector4
     ) {
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat), emptyList())
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats, emptyList())
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -157,7 +256,7 @@ internal class ExpansionDrawer {
         shader.uniform("strokeMult", (drawStyle.strokeWeight * 0.5 + fs * 0.5) / (fs))
         shader.uniform("strokeFillFactor", 0.0)
         strokeCoverage(shader, drawStyle, fs)
-        commands.forEach { command ->
+        for (command in commands) {
 
             localStyle.channelWriteMask = drawStyle.channelWriteMask
             // -- pre
@@ -167,7 +266,7 @@ internal class ExpansionDrawer {
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(command.vertexBuffer),
+                listOfBuffer(command.vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 command.vertexOffset,
                 command.vertexCount,
@@ -181,7 +280,7 @@ internal class ExpansionDrawer {
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(command.vertexBuffer),
+                listOfBuffer(command.vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 command.vertexOffset,
                 command.vertexCount,
@@ -189,13 +288,13 @@ internal class ExpansionDrawer {
             )
 
             // -- reset stencil
-            localStyle.channelWriteMask = ChannelMask(red = false, green = false, blue = false, alpha = false)
+            localStyle.channelWriteMask = ChannelMask.NONE
             localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(command.vertexBuffer),
+                listOfBuffer(command.vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 command.vertexOffset,
                 command.vertexCount,
@@ -227,7 +326,7 @@ internal class ExpansionDrawer {
         singlePass: Boolean = false
     ) {
         if (commands.isNotEmpty()) {
-            val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
+            val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
             shader.begin()
             drawContext.applyToShader(shader)
             drawStyle.applyToShader(shader)
@@ -245,13 +344,12 @@ internal class ExpansionDrawer {
 
             // -- a stroke that cannot overlap itself is drawn in a single pass, without the stencil buffer
             if (singlePass && clipCommands.isEmpty() && fringeCommands.isEmpty()) {
-                val singleStyle = passStyle(drawStyle)
-                singleStyle.stencil.stencilTest = StencilTest.DISABLED
+                localStyle.stencil.stencilTest = StencilTest.DISABLED
                 shader.uniform("strokeThr", 0.0f)
-                Driver.instance.setState(singleStyle)
+                Driver.instance.setState(localStyle)
                 Driver.instance.drawVertexBuffer(
                     shader,
-                    listOf(commands[0].vertexBuffer),
+                    listOfBuffer(commands[0].vertexBuffer),
                     DrawPrimitive.TRIANGLE_STRIP,
                     commands[0].vertexOffset,
                     vertexCount,
@@ -268,7 +366,7 @@ internal class ExpansionDrawer {
                 localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x00, 0xff)
                 localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INVERT)
                 Driver.instance.setState(localStyle)
-                drawMerged(shader, clipCommands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
+                drawMerged(shader, clipCommands, FILL, DrawPrimitive.TRIANGLES)
                 localStyle.stencil.stencilWriteMask = 0xff
             }
             // strokes are drawn where the stencil buffer holds this value, drawn pixels are increased to prevent
@@ -283,7 +381,7 @@ internal class ExpansionDrawer {
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(commands[0].vertexBuffer),
+                listOfBuffer(commands[0].vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 commands[0].vertexOffset,
                 vertexCount,
@@ -297,7 +395,7 @@ internal class ExpansionDrawer {
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(commands[0].vertexBuffer),
+                listOfBuffer(commands[0].vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 commands[0].vertexOffset,
                 vertexCount,
@@ -313,25 +411,25 @@ internal class ExpansionDrawer {
                 localStyle.stencil.stencilFunc(StencilTest.EQUAL, if (clipInside) 0x00 else CLIP_BIT, 0xff)
                 localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
                 Driver.instance.setState(localStyle)
-                drawMerged(shader, fringeCommands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
+                drawMerged(shader, fringeCommands, FRINGE, DrawPrimitive.TRIANGLE_STRIP)
             }
 
             // -- reset stencil
-            localStyle.channelWriteMask = ChannelMask(red = false, green = false, blue = false, alpha = false)
+            localStyle.channelWriteMask = ChannelMask.NONE
             localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(
                 shader,
-                listOf(commands[0].vertexBuffer),
+                listOfBuffer(commands[0].vertexBuffer),
                 DrawPrimitive.TRIANGLE_STRIP,
                 commands[0].vertexOffset,
                 vertexCount,
                 verticesPerPatch = 0
             )
             // the clip bit is also set outside of the strokes and fringes
-            drawMerged(shader, fringeCommands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
-            drawMerged(shader, clipCommands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
+            drawMerged(shader, fringeCommands, FRINGE, DrawPrimitive.TRIANGLE_STRIP)
+            drawMerged(shader, clipCommands, FILL, DrawPrimitive.TRIANGLES)
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
             localStyle.channelWriteMask = drawStyle.channelWriteMask
@@ -346,7 +444,7 @@ internal class ExpansionDrawer {
         fringeScale: Double,
         bounds: Vector4
     ) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -360,7 +458,7 @@ internal class ExpansionDrawer {
 
         shader.uniform("strokeFillFactor", 1.0)
         // the fill and its fringe are lists of triangles that follow each other, drawn with a single draw call
-        drawMerged(shader, commands, setOf(ExpansionType.FILL, ExpansionType.FRINGE), DrawPrimitive.TRIANGLES)
+        drawMerged(shader, commands, FILL or FRINGE, DrawPrimitive.TRIANGLES)
     }
 
     private fun renderFillCommands(
@@ -374,7 +472,7 @@ internal class ExpansionDrawer {
             return
         }
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -404,8 +502,10 @@ internal class ExpansionDrawer {
         shader.uniform("bounds", bounds)
         shader.uniform("fringeMode", 0)
         shader.uniform("strokeCoverage", 0)
-        localStyle.frontStencil = StencilStyle()
-        localStyle.backStencil = StencilStyle()
+        frontStencil.setFrom(defaultStencil)
+        backStencil.setFrom(defaultStencil)
+        localStyle.frontStencil = frontStencil
+        localStyle.backStencil = backStencil
 
         localStyle.frontStencil.stencilWriteMask = 0xff
         localStyle.backStencil.stencilWriteMask = 0xff
@@ -427,7 +527,7 @@ internal class ExpansionDrawer {
         localStyle.cullTestPass = CullTestPass.ALWAYS
         Driver.instance.setState(localStyle)
 
-        drawMerged(shader, commands, setOf(ExpansionType.FILL), DrawPrimitive.TRIANGLES)
+        drawMerged(shader, commands, FILL, DrawPrimitive.TRIANGLES)
 
         localStyle.frontStencil = localStyle.stencil
         localStyle.backStencil = localStyle.stencil
@@ -449,7 +549,7 @@ internal class ExpansionDrawer {
                 onDepthTestPass = onPass
             )
             Driver.instance.setState(localStyle)
-            drawMerged(shader, commands, setOf(ExpansionType.FRINGE), DrawPrimitive.TRIANGLE_STRIP)
+            drawMerged(shader, commands, FRINGE, DrawPrimitive.TRIANGLE_STRIP)
         }
         // the outside of the fill, where the other side of an outline is always inside
         drawFringes(1, 0x00, insideMask, StencilOperation.KEEP)
@@ -492,7 +592,7 @@ internal class ExpansionDrawer {
         quad.shadow.upload()
         quadCounter++
         Driver.instance.setState(localStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(quad), DrawPrimitive.TRIANGLES, 0, 6, verticesPerPatch = 0)
+        Driver.instance.drawVertexBuffer(shader, listOfBuffer(quad), DrawPrimitive.TRIANGLES, 0, 6, verticesPerPatch = 0)
 
 
         localStyle.stencil.stencilTest = StencilTest.DISABLED
@@ -501,6 +601,7 @@ internal class ExpansionDrawer {
 
     private fun toCommand(
         vertices: VertexBuffer,
+        writer: BufferWriter,
         expansion: Expansion,
         vertexOffset: Int,
         stripsAsTriangles: Boolean
@@ -517,7 +618,7 @@ internal class ExpansionDrawer {
                     vertices, expansion.type, vertexOffset, vertexCount,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
-                vertices.shadow.writer().apply {
+                writer.apply {
                     fun writeVertex(i: Int) {
                         write(expansion.fb, expansion.bufferStart + i * vertexSize, vertexSize)
                     }
@@ -551,7 +652,7 @@ internal class ExpansionDrawer {
                     vertices, expansion.type, vertexOffset, stripVertexCount(expansion.vertexCount),
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy
                 )
-                val w = vertices.shadow.writer().apply {
+                val w = writer.apply {
                     positionElements = vertexOffset
                 }
 
@@ -598,32 +699,33 @@ internal class ExpansionDrawer {
     private fun drawMerged(
         shader: Shader,
         commands: List<ExpansionCommand>,
-        types: Set<ExpansionType>,
+        types: Int,
         primitive: DrawPrimitive
     ) {
         var first: ExpansionCommand? = null
         var count = 0
-        fun flush() {
-            first?.let {
-                Driver.instance.drawVertexBuffer(
-                    shader, listOf(it.vertexBuffer), primitive, it.vertexOffset, count, verticesPerPatch = 0
-                )
-            }
-            first = null
-            count = 0
-        }
-        for (command in commands) {
-            if (command.type !in types) continue
+        for (i in commands.indices) {
+            val command = commands[i]
+            if (bit(command.type) and types == 0) continue
             val f = first
             if (f != null && f.vertexBuffer === command.vertexBuffer && f.vertexOffset + count == command.vertexOffset) {
                 count += command.vertexCount
             } else {
-                flush()
+                if (f != null) {
+                    Driver.instance.drawVertexBuffer(
+                        shader, listOfBuffer(f.vertexBuffer), primitive, f.vertexOffset, count, verticesPerPatch = 0
+                    )
+                }
                 first = command
                 count = command.vertexCount
             }
         }
-        flush()
+        val f = first
+        if (f != null) {
+            Driver.instance.drawVertexBuffer(
+                shader, listOfBuffer(f.vertexBuffer), primitive, f.vertexOffset, count, verticesPerPatch = 0
+            )
+        }
     }
 
     /**
@@ -636,15 +738,21 @@ internal class ExpansionDrawer {
     private fun toCommands(
         vertices: VertexBuffer,
         expansions: List<Expansion>,
-        stripsAsTriangles: Boolean = false
+        stripsAsTriangles: Boolean = false,
+        moreExpansions: List<Expansion> = emptyList()
     ): List<ExpansionCommand> {
         var vertexOffset = 0
-        val commands = mutableListOf<ExpansionCommand>()
-        expansions.forEach {
-            val command = toCommand(vertices, it, vertexOffset, stripsAsTriangles)
-            if (command.type != ExpansionType.SKIP) {
-                commands.add(command)
-                vertexOffset += command.vertexCount
+        val commands = commandList
+        commands.clear()
+        val writer = vertices.shadow.writer()
+        for (list in 0 until 2) {
+            val source = if (list == 0) expansions else moreExpansions
+            for (i in source.indices) {
+                val command = toCommand(vertices, writer, source[i], vertexOffset, stripsAsTriangles)
+                if (command.type != ExpansionType.SKIP) {
+                    commands.add(command)
+                    vertexOffset += command.vertexCount
+                }
             }
         }
         vertices.shadow.uploadElements(0, vertexOffset)
@@ -703,21 +811,51 @@ internal class ExpansionDrawer {
         clip: StrokeClip? = null,
         singlePass: Boolean = false
     ) {
-        val clipExpansions = clip?.let { it.polygons + it.fringes } ?: emptyList()
-        val vertexCount = expansions.sumOf { commandVertexCount(it) } + clipExpansions.sumOf { commandVertexCount(it) }
+        var vertexCount = 0
+        for (i in expansions.indices) vertexCount += commandVertexCount(expansions[i])
+        if (clip != null) {
+            for (i in clip.polygons.indices) vertexCount += commandVertexCount(clip.polygons[i])
+            for (i in clip.fringes.indices) vertexCount += commandVertexCount(clip.fringes[i])
+        }
         // the strokes come first in the vertex buffer, they are drawn with a single draw call
-        val commands = toCommands(vertices(vertexCount), expansions + clipExpansions)
+        val vertices = vertices(vertexCount)
+        val commands = if (clip == null) toCommands(vertices, expansions) else {
+            // the polygons and fringes of the clip follow each other
+            toCommands(vertices, expansions, moreExpansions = clipExpansions(clip))
+        }
+        strokeCommands.clear()
+        fillCommands.clear()
+        fringeCommands.clear()
+        for (i in commands.indices) {
+            val command = commands[i]
+            when (command.type) {
+                ExpansionType.STROKE -> strokeCommands.add(command)
+                ExpansionType.FILL -> fillCommands.add(command)
+                ExpansionType.FRINGE -> fringeCommands.add(command)
+                ExpansionType.SKIP -> {}
+            }
+        }
         renderStrokeCommandsInterleaved(
             drawContext,
             drawStyle,
-            commands.filter { it.type == ExpansionType.STROKE },
+            strokeCommands,
             fringeScale,
             bounds,
-            commands.filter { it.type == ExpansionType.FILL },
-            commands.filter { it.type == ExpansionType.FRINGE },
+            fillCommands,
+            fringeCommands,
             clip?.inside ?: true,
             singlePass
         )
+    }
+
+    /** the polygons and then the fringes of [clip] */
+    private val clipExpansionList = ArrayList<Expansion>()
+
+    private fun clipExpansions(clip: StrokeClip): List<Expansion> {
+        clipExpansionList.clear()
+        clipExpansionList.addAll(clip.polygons)
+        clipExpansionList.addAll(clip.fringes)
+        return clipExpansionList
     }
 
     /**
@@ -739,13 +877,15 @@ internal class ExpansionDrawer {
     ) {
         if (convex) {
             // convex fills are drawn with a single draw call, their fringes are written as triangles
-            val vertexCount = expansions.sumOf { commandVertexCount(it, stripsAsTriangles = true) }
+            var vertexCount = 0
+            for (i in expansions.indices) vertexCount += commandVertexCount(expansions[i], stripsAsTriangles = true)
             renderConvexFillCommands(
                 drawContext, drawStyle, toCommands(vertices(vertexCount), expansions, stripsAsTriangles = true),
                 fringeScale, bounds
             )
         } else {
-            val vertexCount = expansions.sumOf { commandVertexCount(it) }
+            var vertexCount = 0
+            for (i in expansions.indices) vertexCount += commandVertexCount(expansions[i])
             renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
         }
     }
@@ -768,13 +908,4 @@ internal class ExpansionDrawer {
         val vertexCount = expansions.sumOf { commandVertexCount(it) }
         renderFillCommands(drawContext, drawStyle, toCommands(vertices(vertexCount), expansions), fringeScale, bounds)
     }
-}
-
-/**
- * A copy of [drawStyle] for the passes of a draw, with a stencil of its own: the passes change its stencil and write
- * mask, not those of [drawStyle]
- */
-private fun passStyle(drawStyle: DrawStyle): DrawStyle {
-    val stencil = drawStyle.stencil.copy()
-    return drawStyle.copy(stencil = stencil, frontStencil = stencil, backStencil = stencil)
 }

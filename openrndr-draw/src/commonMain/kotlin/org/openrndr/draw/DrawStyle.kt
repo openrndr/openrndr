@@ -158,6 +158,17 @@ data class StencilStyle(
         depthFailOperation = onDepthTestFail
         depthPassOperation = onDepthTestPass
     }
+
+    /** sets all properties to those of [other] */
+    internal fun setFrom(other: StencilStyle) {
+        stencilFailOperation = other.stencilFailOperation
+        depthFailOperation = other.depthFailOperation
+        depthPassOperation = other.depthPassOperation
+        stencilTestMask = other.stencilTestMask
+        stencilTestReference = other.stencilTestReference
+        stencilWriteMask = other.stencilWriteMask
+        stencilTest = other.stencilTest
+    }
 }
 
 
@@ -516,6 +527,53 @@ data class DrawStyle(
     /** How the stroke weight of 3D lines translates to their width on screen */
     var lineWidthMode: LineWidthMode = LineWidthMode.PERSPECTIVE
 ) {
+
+    /**
+     * Sets all properties to those of [other], like [copy] does: the stencil styles are shared with [other]
+     */
+    internal fun setFrom(other: DrawStyle) {
+        clip = other.clip
+        fill = other.fill
+        stroke = other.stroke
+        lineCap = other.lineCap
+        lineJoin = other.lineJoin
+        strokeWeight = other.strokeWeight
+        smooth = other.smooth
+        miterLimit = other.miterLimit
+        quality = other.quality
+        depthTestPass = other.depthTestPass
+        depthWrite = other.depthWrite
+        blendMode = other.blendMode
+        cullTestPass = other.cullTestPass
+        channelWriteMask = other.channelWriteMask
+        alphaToCoverage = other.alphaToCoverage
+        shadeStyle = other.shadeStyle
+        fontMap = other.fontMap
+        kerning = other.kerning
+        textSetting = other.textSetting
+        stencil = other.stencil
+        frontStencil = other.frontStencil
+        backStencil = other.backStencil
+        colorMatrix = other.colorMatrix
+        strokeAlignment = other.strokeAlignment
+        fillRule = other.fillRule
+        paintOrder = other.paintOrder
+        lineBlendOnce = other.lineBlendOnce
+        lineWidthMode = other.lineWidthMode
+    }
+
+    /**
+     * A copy with stencil styles of its own: changes to the stencils of the copy do not change those of this style.
+     * Front and back stencils that are the stencil stay the stencil of the copy.
+     */
+    internal fun deepCopy(): DrawStyle {
+        val stencilCopy = stencil.copy()
+        return copy(
+            stencil = stencilCopy,
+            frontStencil = if (frontStencil === stencil) stencilCopy else frontStencil.copy(),
+            backStencil = if (backStencil === stencil) stencilCopy else backStencil.copy()
+        )
+    }
 
     fun applyToShader(shader: Shader) {
         if (shader.hasUniform("u_strokeAlignment")) {

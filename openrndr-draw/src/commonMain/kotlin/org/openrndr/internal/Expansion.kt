@@ -36,7 +36,12 @@ internal enum class ExpansionType {
  * @param fb The FloatArray serving as the vertex buffer to store calculated geometry.
  * @param bufferStart The starting index (in floats) from which geometry data will be written in `fb`
  */
-internal class Expansion(val type: ExpansionType, val fb: FloatArray, val bufferStart: Int) {
+internal class Expansion(
+    val type: ExpansionType,
+    val fb: FloatArray,
+    val bufferStart: Int,
+    private val bufferEnd: Int = fb.size
+) {
     var vertexCount = 0
     var minx = Double.POSITIVE_INFINITY
     var maxx = Double.NEGATIVE_INFINITY
@@ -44,24 +49,24 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
     var maxy = Double.NEGATIVE_INFINITY
     var bufferPosition = bufferStart
 
-    private fun chooseBevel(bevel: Boolean, p0: PathPoint, p1: PathPoint, w: Double): DoubleArray {
-        val x0: Double
-        val y0: Double
-        val x1: Double
-        val y1: Double
+    /** the corners that [chooseBevel] chose */
+    private var bevelX0 = 0.0
+    private var bevelY0 = 0.0
+    private var bevelX1 = 0.0
+    private var bevelY1 = 0.0
 
+    private fun chooseBevel(bevel: Boolean, p0: PathPoint, p1: PathPoint, w: Double) {
         if (bevel) {
-            x0 = p1.x + p0.dy * w
-            y0 = p1.y - p0.dx * w
-            x1 = p1.x + p1.dy * w
-            y1 = p1.y - p1.dx * w
+            bevelX0 = p1.x + p0.dy * w
+            bevelY0 = p1.y - p0.dx * w
+            bevelX1 = p1.x + p1.dy * w
+            bevelY1 = p1.y - p1.dx * w
         } else {
-            x0 = p1.x + p1.dmx * w
-            y0 = p1.y + p1.dmy * w
-            x1 = p1.x + p1.dmx * w
-            y1 = p1.y + p1.dmy * w
+            bevelX0 = p1.x + p1.dmx * w
+            bevelY0 = p1.y + p1.dmy * w
+            bevelX1 = p1.x + p1.dmx * w
+            bevelY1 = p1.y + p1.dmy * w
         }
-        return doubleArrayOf(x0, y0, x1, y1)
     }
 
     /**
@@ -118,11 +123,11 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             return
 
         if (p1.flags and LEFT != 0) {
-            val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
-            val lx0 = r[0]
-            val ly0 = r[1]
-            val lx1 = r[2]
-            val ly1 = r[3]
+            chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
+            val lx0 = bevelX0
+            val ly0 = bevelY0
+            val lx1 = bevelX1
+            val ly1 = bevelY1
 
             addVertex(lx0, ly0, lu, 1.0, offset)
             addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
@@ -157,12 +162,12 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
 
         } else {
-            val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
+            chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
 
-            val rx0 = r[0]
-            val ry0 = r[1]
-            val rx1 = r[2]
-            val ry1 = r[3]
+            val rx0 = bevelX0
+            val ry0 = bevelY0
+            val rx1 = bevelX1
+            val ry1 = bevelY1
 
             addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
@@ -269,11 +274,11 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 
         if (p1.flags and LEFT != 0) {
 
-            val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
-            val lx0 = r[0]
-            val ly0 = r[1]
-            val lx1 = r[2]
-            val ly1 = r[3]
+            chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
+            val lx0 = bevelX0
+            val ly0 = bevelY0
+            val lx1 = bevelX1
+            val ly1 = bevelY1
 
             var a0 = atan2(-dly0, -dlx0)
             var a1 = atan2(-dly1, -dlx1)
@@ -301,11 +306,11 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
 
         } else {
-            val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
-            val rx0 = r[0]
-            val ry0 = r[1]
-            val rx1 = r[2]
-            val ry1 = r[3]
+            chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
+            val rx0 = bevelX0
+            val ry0 = bevelY0
+            val rx1 = bevelX1
+            val ry1 = bevelY1
 
             val a0 = atan2(dly0, dlx0)
             var a1 = atan2(dly1, dlx1)
@@ -424,8 +429,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         }
     }
 
-    fun vertex(idx: Int): Vector2 =
-        Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
+    fun vertexX(idx: Int): Double = fb[bufferStart + idx * 5].toDouble()
+
+    fun vertexY(idx: Int): Double = fb[bufferStart + idx * 5 + 1].toDouble()
 
     fun addVertex(x: Double, y: Double, u: Double, v: Double, offset: Double) {
         if (x != x || y != y) {
@@ -437,6 +443,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         miny = min(miny, y)
         maxy = max(maxy, y)
 
+        if (bufferPosition + 5 > bufferEnd) {
+            throw IndexOutOfBoundsException("expansion of $vertexCount vertices is full")
+        }
         fb[bufferPosition++] = x.toFloat()
         fb[bufferPosition++] = y.toFloat()
         fb[bufferPosition++] = u.toFloat()
@@ -448,11 +457,18 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 }
 
 
-internal class Path {
+internal class Path(private val scratch: ExpansionScratch? = null) {
     var convex: Boolean = false
     var closed: Boolean = false
     private var nbevel: Int = 0
-    val contours = mutableListOf<List<PathPoint>>()
+    val contours = mutableListOf<MutableList<PathPoint>>()
+
+    /** a point of the path, from the [scratch] when there is one */
+    private fun point(): PathPoint = scratch?.point() ?: PathPoint()
+
+    /** an expansion of [floats] floats, from the [scratch] when there is one */
+    private fun expansion(type: ExpansionType, floats: Int): Expansion =
+        scratch?.expansion(type, floats) ?: Expansion(type, FloatArray(floats), 0)
 
     companion object {
         /**
@@ -469,45 +485,133 @@ internal class Path {
             return area * 0.5
         }
 
+        /**
+         * A path of the line strip [segments], with the [corners] that are not smoothed. When [map] is given, the
+         * points are mapped by the linear map (a, b, c, d) it holds: x' = a x + b y, y' = c x + d y. The points and
+         * expansions of the path are taken from [scratch] when it is given.
+         */
         fun fromLineStrip(
             segments: List<Vector2>,
             corners: List<Boolean>,
-            closed: Boolean
+            closed: Boolean,
+            scratch: ExpansionScratch? = null,
+            map: DoubleArray? = null
         ): Path {
-            val sp = Path()
+            val sp = Path(scratch)
             if (segments.isEmpty()) {
                 return sp
             }
-
-            val drop = closed && segments.first().squaredDistanceTo(segments.last()) < 10E-6
-            val path = segments.mapIndexed { index, it ->
-                PathPoint().apply { x = it.x; y = it.y; flags = if (corners[index]) CORNER else 0 }
-            }.dropLast(if (drop) 1 else 0)
-
-            if (path.isNotEmpty()) {
-                if (!closed) {
-                    path[0].flags = 0
-                    path[path.size - 1].flags = 0
-                }
-                sp.contours.add(path)
-            }
+            sp.addContour(segments, corners, if (closed) DROP_CLOSING else KEEP, closed, map)
             sp.closed = closed
             return sp
         }
 
-        fun fromLineLoops(contours: List<List<Vector2>>, corners: List<List<Boolean>>): Path {
-            val sp = Path()
-            contours.forEachIndexed { contourIndex, contour ->
-                val path = contour.mapIndexed { index, it ->
-                    PathPoint().apply {
-                        x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0
-                    }
-                }.dropLast(1)
-                sp.contours.add(path)
+        /**
+         * A path of the closed [contours], whose last point repeats the first, with the [corners] that are not
+         * smoothed. When [map] is given, the points are mapped by it, see [fromLineStrip]. The points and expansions
+         * of the path are taken from [scratch] when it is given.
+         */
+        fun fromLineLoops(
+            contours: List<List<Vector2>>,
+            corners: List<List<Boolean>>,
+            scratch: ExpansionScratch? = null,
+            map: DoubleArray? = null
+        ): Path {
+            val sp = Path(scratch)
+            for (contourIndex in contours.indices) {
+                sp.addContour(contours[contourIndex], corners[contourIndex], DROP_LAST, true, map, always = true)
             }
             sp.closed = true
             return sp
         }
+
+        /**
+         * A path of the line segment from [start] to [end], like [fromLineStrip] of the two points
+         */
+        fun fromSegment(start: Vector2, end: Vector2, scratch: ExpansionScratch? = null): Path {
+            val sp = Path(scratch)
+            val contour = ArrayList<PathPoint>(2)
+            for (position in 0 until 2) {
+                val point = sp.point()
+                val p = if (position == 0) start else end
+                point.x = p.x
+                point.y = p.y
+                point.flags = 0
+                contour.add(point)
+            }
+            sp.contours.add(contour)
+            sp.closed = false
+            return sp
+        }
+
+        /** keep all points */
+        private const val KEEP = 0
+
+        /** drop the last point when it lies on the first */
+        private const val DROP_CLOSING = 1
+
+        /** drop the last point */
+        private const val DROP_LAST = 2
+    }
+
+    /**
+     * Adds a contour of [positions] with the [corners] that are not smoothed, mapped by the linear [map] (a, b, c, d)
+     * when it is given, without the last position as [drop] tells. Empty contours are only added when [always] is
+     * true. The corners of open contours ([closed] is false) are cleared at their ends.
+     */
+    private fun addContour(
+        positions: List<Vector2>,
+        corners: List<Boolean>,
+        drop: Int,
+        closed: Boolean,
+        map: DoubleArray?,
+        always: Boolean = false
+    ) {
+        val a = map?.get(0) ?: 1.0
+        val b = map?.get(1) ?: 0.0
+        val c = map?.get(2) ?: 0.0
+        val d = map?.get(3) ?: 1.0
+        val n = when (drop) {
+            DROP_LAST -> (positions.size - 1).coerceAtLeast(0)
+            DROP_CLOSING -> {
+                val first = positions[0]
+                val last = positions[positions.size - 1]
+                val dx: Double
+                val dy: Double
+                if (map != null) {
+                    dx = (a * last.x + b * last.y) - (a * first.x + b * first.y)
+                    dy = (c * last.x + d * last.y) - (c * first.x + d * first.y)
+                } else {
+                    dx = last.x - first.x
+                    dy = last.y - first.y
+                }
+                if (dx * dx + dy * dy < 10E-6) positions.size - 1 else positions.size
+            }
+
+            else -> positions.size
+        }
+        if (n == 0 && !always) {
+            return
+        }
+        val contour = ArrayList<PathPoint>(n)
+        for (index in 0 until n) {
+            val position = positions[index]
+            val point = point()
+            if (map != null) {
+                point.x = a * position.x + b * position.y
+                point.y = c * position.x + d * position.y
+            } else {
+                point.x = position.x
+                point.y = position.y
+            }
+            point.flags = if (corners[index]) CORNER else 0
+            contour.add(point)
+        }
+        if (!closed && n > 0) {
+            contour[0].flags = 0
+            contour[n - 1].flags = 0
+        }
+        contours.add(contour)
     }
 
     private fun calculateJoins(points: List<PathPoint>, w: Double, lineJoin: LineJoin, miterLimit: Double) {
@@ -621,8 +725,8 @@ internal class Path {
 
         val outerArea = contours.maxByOrNull { abs(signedArea(it)) }?.let { signedArea(it) } ?: return
         if (outerArea > 0.0) {
-            for (i in contours.indices) {
-                contours[i] = contours[i].reversed()
+            for (contour in contours) {
+                contour.reverse()
             }
         }
     }
@@ -720,7 +824,7 @@ internal class Path {
                 }
             }
 
-            val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
+            val expansion = expansion(ExpansionType.STROKE, cverts * 5)
 
             var offset = 0.0
             val aa = fringeWidth
@@ -782,10 +886,8 @@ internal class Path {
             // -- end
             if (closed) {
                 // Loop it
-                val v0 = expansion.vertex(0)
-                val v1 = expansion.vertex(1)
-                expansion.addVertex(v0.x, v0.y, 0.0, 1.0, offset)
-                expansion.addVertex(v1.x, v1.y, 1.0, 1.0, offset)
+                expansion.addVertex(expansion.vertexX(0), expansion.vertexY(0), 0.0, 1.0, offset)
+                expansion.addVertex(expansion.vertexX(1), expansion.vertexY(1), 1.0, 1.0, offset)
             } else {
                 // Add cap
                 var dx = p1.x - p0.x
@@ -803,7 +905,7 @@ internal class Path {
             }
             return expansion
         } else {
-            return Expansion(ExpansionType.SKIP, FloatArray(0), 0)
+            return expansion(ExpansionType.SKIP, 0)
         }
     }
 
@@ -816,16 +918,21 @@ internal class Path {
             return emptyList()
         }
         orientForFill()
-        return contours.filter { it.size >= 3 }.map { points ->
+        val result = ArrayList<Expansion>(contours.size)
+        for (points in contours) {
+            if (points.size < 3) continue
             prepare(points)
             calculateJoins(points, abs(offset), LineJoin.MITER, Double.POSITIVE_INFINITY)
-            val clip = Expansion(ExpansionType.FILL, FloatArray(points.size * 5), 0)
+            val clip = expansion(ExpansionType.FILL, points.size * 5)
             for (point in points) {
-                val (dx, dy) = limitedMiter(point)
+                val scale = limitedMiterScale(point)
+                val dx = point.dmx * scale
+                val dy = point.dmy * scale
                 clip.addVertex(point.x - dx * offset, point.y - dy * offset, 0.5, 1.0, 0.0)
             }
-            clip
+            result.add(clip)
         }
+        return result
     }
 
     /**
@@ -842,25 +949,32 @@ internal class Path {
         // u = 0.5 is opaque, u = 0.0 is transparent
         val uInside = if (fadeOutwards) 0.5 else 0.0
         val uOutside = if (fadeOutwards) 0.0 else 0.5
-        return contours.filter { it.size >= 3 }.map { points ->
+        val result = ArrayList<Expansion>(contours.size)
+        for (points in contours) {
+            if (points.size < 3) continue
             prepare(points)
             calculateJoins(points, h, LineJoin.MITER, Double.POSITIVE_INFINITY)
-            val fringe = Expansion(ExpansionType.FRINGE, FloatArray((points.size + 1) * 2 * 5), 0)
+            val fringe = expansion(ExpansionType.FRINGE, (points.size + 1) * 2 * 5)
             for (i in 0..points.size) {
                 val point = points[i % points.size]
-                val (dx, dy) = limitedMiter(point)
+                val scale = limitedMiterScale(point)
+                val dx = point.dmx * scale
+                val dy = point.dmy * scale
                 fringe.addVertex(point.x + dx * h, point.y + dy * h, uInside, 1.0, 0.0)
                 fringe.addVertex(point.x - dx * h, point.y - dy * h, uOutside, 1.0, 0.0)
             }
-            fringe
+            result.add(fringe)
         }
+        return result
     }
 
-    /** the miter vector of [point], pointing into the filled region after [orientForFill], limited to length 4 */
-    private fun limitedMiter(point: PathPoint): Pair<Double, Double> {
+    /**
+     * The scale that limits the miter vector of [point], which points into the filled region after [orientForFill],
+     * to length 4
+     */
+    private fun limitedMiterScale(point: PathPoint): Double {
         val length = sqrt(point.dmx * point.dmx + point.dmy * point.dmy)
-        val scale = if (length > 4.0) 4.0 / length else 1.0
-        return Pair(point.dmx * scale, point.dmy * scale)
+        return if (length > 4.0) 4.0 / length else 1.0
     }
 
     /**
@@ -870,13 +984,13 @@ internal class Path {
      * point to, 0.5 on the outline and 1 on the other side. v is 2 in the strip on the side of the miters, 1 in the
      * other strip.
      */
-    private fun centeredFringes(points: List<PathPoint>, w: Double, offset: Double): List<Expansion> {
+    private fun centeredFringes(points: List<PathPoint>, w: Double, offset: Double, result: MutableList<Expansion>) {
         var size = 2
         for (point in points) {
             size += if (point.flags and (BEVEL or INNER_BEVEL) != 0) 4 else 2
         }
-        val inner = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
-        val outer = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
+        val inner = expansion(ExpansionType.FRINGE, size * 5)
+        val outer = expansion(ExpansionType.FRINGE, size * 5)
 
         fun across(p: PathPoint, nx: Double, ny: Double) {
             inner.addVertex(p.x + nx * w, p.y + ny * w, 0.0, 2.0, offset)
@@ -897,13 +1011,12 @@ internal class Path {
             p0 = p1
         }
         // close the strips
-        val i0 = inner.vertex(0)
-        val o1 = outer.vertex(1)
-        inner.addVertex(i0.x, i0.y, 0.0, 2.0, offset)
+        inner.addVertex(inner.vertexX(0), inner.vertexY(0), 0.0, 2.0, offset)
         inner.addVertex(points[0].x, points[0].y, 0.5, 2.0, offset)
         outer.addVertex(points[0].x, points[0].y, 0.5, 1.0, offset)
-        outer.addVertex(o1.x, o1.y, 1.0, 1.0, offset)
-        return listOf(inner, outer)
+        outer.addVertex(outer.vertexX(1), outer.vertexY(1), 1.0, 1.0, offset)
+        result.add(inner)
+        result.add(outer)
     }
 
     fun expandFill(
@@ -939,7 +1052,7 @@ internal class Path {
                         4
                     }
                 }
-                val fill = Expansion(ExpansionType.FILL, FloatArray(size * 5), 0)
+                val fill = expansion(ExpansionType.FILL, size * 5)
                 // convex fills are inset by half of the fringe, their fringe fades from the inset outline. Other fills
                 // are stenciled on their outline, their fringes are centered on it, see ExpansionDrawer
                 val fillOffset = if (convex) woff else 0.0
@@ -994,7 +1107,7 @@ internal class Path {
                     }
 
                     if (!convex) {
-                        result.addAll(centeredFringes(points, woff, pathOffset))
+                        centeredFringes(points, woff, pathOffset, result)
                         continue
                     }
 
@@ -1006,7 +1119,7 @@ internal class Path {
                             4
                         }
                     }
-                    val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
+                    val fringe = expansion(ExpansionType.FRINGE, size * 5)
 
                     // Create only half a fringe for convex shapes so that
                     // the shape can be rendered without stenciling.
@@ -1034,11 +1147,8 @@ internal class Path {
                         }
                     }
                     // Loop it
-                    val v0 = fringe.vertex(0)
-                    val v1 = fringe.vertex(1)
-
-                    fringe.addVertex(v0.x, v0.y, lu, 1.0, pathOffset)
-                    fringe.addVertex(v1.x, v1.y, ru, 1.0, pathOffset)
+                    fringe.addVertex(fringe.vertexX(0), fringe.vertexY(0), lu, 1.0, pathOffset)
+                    fringe.addVertex(fringe.vertexX(1), fringe.vertexY(1), ru, 1.0, pathOffset)
                     result.add(fringe)
                 }
 
@@ -1071,8 +1181,70 @@ internal class PathPoint {
         const val CLIP = 0x10
     }
 
+    /** clears the point, for reuse */
+    fun clear() {
+        x = 0.0; y = 0.0; dx = 0.0; dy = 0.0; length = 0.0; dmx = 0.0; dmy = 0.0; flags = 0
+    }
+
     override fun toString(): String {
         return "PathPoint(x=$x, y=$y, flags=$flags)"
+    }
+}
+
+/**
+ * The memory of the paths and expansions of a draw: the points of paths and the vertex data of expansions. It is
+ * reused by the next draw after [reset], expansions and paths taken from it are only valid until then. Not thread
+ * safe, every drawer has its own.
+ */
+internal class ExpansionScratch {
+    private companion object {
+        /** the size of the chunks of vertex data, in floats */
+        const val CHUNK_SIZE = 64 * 1024
+    }
+
+    private val chunks = ArrayList<FloatArray>()
+    private var chunkIndex = 0
+    private var chunkPosition = 0
+
+    private val points = ArrayList<PathPoint>()
+    private var pointCount = 0
+
+    /** makes the memory available to the next draw, invalidates the expansions and paths taken from it */
+    fun reset() {
+        chunkIndex = 0
+        chunkPosition = 0
+        pointCount = 0
+    }
+
+    /** a cleared point */
+    fun point(): PathPoint {
+        if (pointCount == points.size) {
+            points.add(PathPoint())
+        }
+        return points[pointCount++].also { it.clear() }
+    }
+
+    /** an expansion with room for [floats] floats of vertex data */
+    fun expansion(type: ExpansionType, floats: Int): Expansion {
+        while (true) {
+            if (chunkIndex == chunks.size) {
+                chunks.add(FloatArray(max(CHUNK_SIZE, floats)))
+                chunkPosition = 0
+            }
+            val chunk = chunks[chunkIndex]
+            if (chunk.size - chunkPosition >= floats) {
+                val expansion = Expansion(type, chunk, chunkPosition, chunkPosition + floats)
+                chunkPosition += floats
+                return expansion
+            }
+            if (chunkPosition == 0) {
+                // a chunk that is too small for the expansion on its own is replaced by a larger one
+                chunks[chunkIndex] = FloatArray(max(CHUNK_SIZE, floats))
+            } else {
+                chunkIndex++
+                chunkPosition = 0
+            }
+        }
     }
 }
 
