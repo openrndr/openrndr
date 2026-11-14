@@ -99,13 +99,17 @@ data class ShadeStyleOutput(
 
 class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit) : MutableMap<K, V> by b {
     override fun put(key: K, value: V): V? {
-        if (key !in this || get(key) != value) {
+        // a null value can't tell a new key from a present one by the previous value
+        val isNew = value == null && !b.containsKey(key)
+        val previous = b.put(key, value)
+        if (isNew || previous != value) {
             onChange()
         }
-        return b.put(key, value)
+        return previous
     }
 
     override fun remove(key: K): V? {
+        if (!b.containsKey(key)) return null
         onChange()
         return b.remove(key)
     }
@@ -141,18 +145,24 @@ open class ShadeStyle(
      */
     open var dirty = true
         set(value) {
-            if (value) structureVersion++
+            if (value) version++
             field = value
         }
 
+    private var version = 0L
+
     /**
-     * Counts the changes of the structure of this shade style: its code, parameter types and outputs
+     * Counts the changes of the structure of this shade style: its code, parameter types and outputs. Shade style
+     * managers key the structures and shaders of a style on it.
      */
-    var structureVersion = 0L
-        private set
+    open val structureVersion: Long get() = version
 
     /** this shade style with its dynamic parameters resolved, see [resolveDynamicParameters] */
     internal var resolvedStyle: ShadeStyle? = null
+
+    /** the structure version for which [hasDynamicParameters] was determined */
+    internal var dynamicCheckVersion = -1L
+    internal var hasDynamicParameters = false
 
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 
@@ -165,14 +175,18 @@ open class ShadeStyle(
      */
     var vertexPreamble: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     var geometryPreamble: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     fun parameterType(name: String): String {
@@ -190,8 +204,10 @@ open class ShadeStyle(
      */
     var fragmentPreamble: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     /**
@@ -204,14 +220,18 @@ open class ShadeStyle(
      */
     var vertexTransform: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     var geometryTransform: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     /**
@@ -222,8 +242,10 @@ open class ShadeStyle(
      */
     var fragmentTransform: String? = null
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     /**
@@ -233,8 +255,10 @@ open class ShadeStyle(
      */
     var libraries: List<GlslLibrary> = emptyList()
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     override var bufferValues = mutableMapOf<String, Any>()
@@ -256,8 +280,10 @@ open class ShadeStyle(
 
     var suppressDefaultOutput = false
         set(value) {
-            dirty = true
-            field = value
+            if (field != value) {
+                dirty = true
+                field = value
+            }
         }
 
     fun output(name: String, output: ShadeStyleOutput) {

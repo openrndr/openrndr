@@ -24,6 +24,9 @@ sealed class DynamicParameter {
     /** describes the structure of the parameter, two parameters with the same signature share shaders */
     internal abstract val signature: String
 
+    /** the parameter type of styles that have this parameter, made once */
+    internal val parameterType: String by lazy { "dynamic $signature" }
+
     /** the GLSL libraries the code of the parameter uses */
     open val libraries: List<GlslLibrary> get() = emptyList()
 }
@@ -81,7 +84,7 @@ class TextureParameter(
     override val glslType: String,
     val coordinate: String = DEFAULT_COORDINATE
 ) : DynamicParameter() {
-    override val signature: String get() = "texture $glslType ${texture.type.colorSampling} $coordinate"
+    override val signature: String by lazy { "texture $glslType ${texture.type.colorSampling} $coordinate" }
 
     companion object {
         /** shows the texture over the bounds of what is drawn like [Drawer.image] does, and like the input of filters */
@@ -103,7 +106,7 @@ class GlslParameter internal constructor(
     constructor(glslType: String, code: String, libraries: List<GlslLibrary> = emptyList()) :
             this(glslType, code, libraries, ParameterScope())
 
-    override val signature: String get() = "glsl $glslType $code" + librariesSignature(libraries)
+    override val signature: String by lazy { "glsl $glslType $code" + librariesSignature(libraries) }
 }
 
 /**
@@ -147,7 +150,7 @@ class GlslFunction internal constructor(
     constructor(glslType: String, arguments: String, code: String, libraries: List<GlslLibrary> = emptyList()) :
             this(glslType, arguments, code, libraries, ParameterScope())
 
-    override val signature: String get() = "function $glslType ($arguments) $code" + librariesSignature(libraries)
+    override val signature: String by lazy { "function $glslType ($arguments) $code" + librariesSignature(libraries) }
 
     /**
      * The GLSL types of the [arguments], without their names and precision qualifiers: `vec2 p, in highp float r[2]`
@@ -219,7 +222,13 @@ inline fun <reified T> glslFunction(
  * changes.
  */
 private class ResolvedShadeStyle(val original: ShadeStyle) : ShadeStyle() {
-    override var parameterValues: MutableMap<String, Any> = ResolvedValues { original.parameterValues }
+    /**
+     * The structure version of the original with its dynamic parameters and the structure versions of their scopes,
+     * dynamic parameters compare by identity. When it differs [signature] tells if the structure changed.
+     */
+    var versions: List<Any> = emptyList()
+
+    override var parameterValues: MutableMap<String, Any> = ResolvedValues({ original.parameterValues }, { versions })
     override var bufferValues: MutableMap<String, Any>
         get() = original.bufferValues
         set(value) {
@@ -232,39 +241,133 @@ private class ResolvedShadeStyle(val original: ShadeStyle) : ShadeStyle() {
             original.textureBaseIndex = value
         }
 
-    /**
-     * The structure version of the original with its dynamic parameters and the structure versions of their scopes,
-     * dynamic parameters compare by identity. When it differs [signature] tells if the structure changed.
-     */
-    var versions: List<Any> = emptyList()
-
     /** the structure version and the structural signature of the original when it was resolved */
     var signature: String? = null
 }
 
 /**
  * The parameter values of a style, read by [source], with dynamic parameters expanded to the uniforms of their
- * resolvers
+ * resolvers. The names of the uniforms are made once for every [layout], an object that changes when the structure of
+ * the parameters changes. Iterating the values reads them from [source], it does not copy them.
  */
-private class ResolvedValues(private val source: () -> Map<String, Any>) : AbstractMutableMap<String, Any>() {
-    override fun put(key: String, value: Any): Any? = error("the values of resolved shade styles are read only")
+internal class ResolvedValues(
+    private val source: () -> Map<String, Any>,
+    private val layout: () -> Any?
+) : AbstractMutableMap<String, Any>() {
+    /**
+     * A uniform of the resolved style: the value at [path] in the source, a path through the scopes of nested dynamic
+     * parameters, or the texture of the texture parameter at [path] when [texture] is true
+     */
+    private class Slot(val path: Array<String>, val key: String, val texture: Boolean)
 
-    override val entries: MutableSet<MutableMap.MutableEntry<String, Any>>
-        get() {
-            val result = LinkedHashMap<String, Any>()
-            fun expand(prefix: String, values: Map<String, Any>) {
+    private var slots = emptyArray<Slot>()
+    private var slotsLayout: Any? = Unit
+
+    private fun slots(): Array<Slot> {
+        val current = layout()
+        if (current !== slotsLayout) {
+            slotsLayout = current
+            val result = mutableListOf<Slot>()
+            fun expand(path: List<String>, prefix: String, values: Map<String, Any>) {
                 for ((key, value) in values) {
                     when (val dynamic = dynamicOf(value)) {
-                        is TextureParameter -> result["$prefix${key}_texture"] = dynamic.texture
-                        is GlslParameter -> expand("$prefix${key}_", dynamic.scope.parameterValues)
-                        is GlslFunction -> expand("$prefix${key}_", dynamic.scope.parameterValues)
-                        null -> result["$prefix$key"] = value
+                        is TextureParameter -> result.add(Slot((path + key).toTypedArray(), "$prefix${key}_texture", true))
+                        is GlslParameter -> expand(path + key, "$prefix${key}_", dynamic.scope.parameterValues)
+                        is GlslFunction -> expand(path + key, "$prefix${key}_", dynamic.scope.parameterValues)
+                        null -> result.add(Slot((path + key).toTypedArray(), "$prefix$key", false))
                     }
                 }
             }
-            expand("", source())
-            return result.entries
+            expand(emptyList(), "", source())
+            slots = result.toTypedArray()
         }
+        return slots
+    }
+
+    /** the value of [slot], null when it is not present */
+    private fun valueOf(slot: Slot): Any? {
+        var values: Map<String, Any> = source()
+        val last = slot.path.size - 1
+        for (i in 0 until last) {
+            val scope = scopeOf(dynamicOf(values[slot.path[i]]) ?: return null) ?: return null
+            values = scope.parameterValues
+        }
+        val value = values[slot.path[last]] ?: return null
+        return if (slot.texture) (dynamicOf(value) as? TextureParameter)?.texture else value
+    }
+
+    override fun put(key: String, value: Any): Any? = error("the values of resolved shade styles are read only")
+
+    override val size: Int get() = slots().size
+
+    override fun isEmpty(): Boolean = size == 0
+
+    override val entries: MutableSet<MutableMap.MutableEntry<String, Any>> =
+        object : AbstractMutableSet<MutableMap.MutableEntry<String, Any>>() {
+            override val size: Int get() = this@ResolvedValues.size
+
+            override fun add(element: MutableMap.MutableEntry<String, Any>): Boolean =
+                error("the values of resolved shade styles are read only")
+
+            override fun iterator(): MutableIterator<MutableMap.MutableEntry<String, Any>> =
+                object : MutableIterator<MutableMap.MutableEntry<String, Any>> {
+                    private val slots = slots()
+                    private var index = 0
+                    private var next: MutableMap.MutableEntry<String, Any>? = null
+
+                    override fun hasNext(): Boolean {
+                        while (next == null && index < slots.size) {
+                            val slot = slots[index++]
+                            val value = valueOf(slot) ?: continue
+                            next = ResolvedEntry(slot.key, value)
+                        }
+                        return next != null
+                    }
+
+                    override fun next(): MutableMap.MutableEntry<String, Any> {
+                        if (!hasNext()) throw NoSuchElementException()
+                        return next!!.also { next = null }
+                    }
+
+                    override fun remove() = error("the values of resolved shade styles are read only")
+                }
+        }
+}
+
+private class ResolvedEntry(override val key: String, override val value: Any) : MutableMap.MutableEntry<String, Any> {
+    override fun setValue(newValue: Any): Any = error("the values of resolved shade styles are read only")
+}
+
+/**
+ * Do [versions] equal the versions of a style with [structureVersion] and [values], see [scopeVersions]? It compares
+ * without making the versions.
+ */
+private fun versionsMatch(versions: List<Any>, structureVersion: Long, values: Map<String, Any>): Boolean {
+    if (versions.isEmpty() || (versions[0] as? Long) != structureVersion) return false
+    return matchScopeVersions(versions, 1, values) == versions.size
+}
+
+/** the index in [versions] after the scope versions of [values], -1 when they differ */
+private fun matchScopeVersions(versions: List<Any>, start: Int, values: Map<String, Any>): Int {
+    var index = start
+    for (value in values.values) {
+        val dynamic = dynamicOf(value) ?: continue
+        if (index >= versions.size || versions[index] !== dynamic) return -1
+        index++
+        val scope = scopeOf(dynamic) ?: continue
+        if (index >= versions.size || (versions[index] as? Long) != scope.structureVersion) return -1
+        index = matchScopeVersions(versions, index + 1, scope.parameterValues)
+        if (index == -1) return -1
+    }
+    return index
+}
+
+/** does a style with [types] have dynamic parameters? Dynamic parameters have dynamic types. */
+private fun hasDynamicTypes(types: Map<String, String>): Boolean {
+    for (type in types.values) {
+        if (type.startsWith("dynamic ") || type == DYNAMIC_SOURCE_TYPE) return true
+    }
+    return false
 }
 
 /**
@@ -542,15 +645,20 @@ private fun cachedResolution(
  * @see DynamicParameter
  */
 fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
-    if (libraries.isEmpty() && parameterValues.values.none { dynamicOf(it) != null }) {
+    val structureVersion = structureVersion
+    if (dynamicCheckVersion != structureVersion) {
+        // dynamic parameters have dynamic types, the types are part of the structure
+        dynamicCheckVersion = structureVersion
+        hasDynamicParameters = hasDynamicTypes(parameterTypes)
+    }
+    if (libraries.isEmpty() && !hasDynamicParameters) {
         return this
     }
     val resolved = resolvedStyle as? ResolvedShadeStyle ?: ResolvedShadeStyle(this).also { resolvedStyle = it }
-    val versions = listOf(structureVersion) + scopeVersions(parameterValues)
-    if (versions == resolved.versions) {
+    if (versionsMatch(resolved.versions, structureVersion, parameterValues)) {
         return resolved
     }
-    resolved.versions = versions
+    resolved.versions = listOf(structureVersion) + scopeVersions(parameterValues)
     // other dynamic parameters with the same structure, for example made anew every frame, keep the resolution
     val signature = "$structureVersion;" + structuralSignature(parameterValues, parameterTypes)
     if (signature == resolved.signature) {
@@ -598,31 +706,56 @@ fun ShadeStyle.resolveDynamicParameters(): ShadeStyle {
  * @see DynamicParameter
  */
 fun ComputeStyle.resolveDynamicParameters(): ComputeStyle {
-    if (libraries.isEmpty() && parameterValues.values.none { dynamicOf(it) != null }) {
+    val structureVersion = structureVersion
+    if (dynamicCheckVersion != structureVersion) {
+        dynamicCheckVersion = structureVersion
+        hasDynamicParameters = hasDynamicTypes(parameterTypes)
+    }
+    if (libraries.isEmpty() && !hasDynamicParameters) {
         return this
     }
-    val (uniformTypes, stageResolvers) = cachedResolution(
-        parameterValues, parameterTypes, libraries, listOf(listOf(computePreamble, computeTransform))
-    )
-
     val original = this
-    return ComputeStyle().apply {
-        computePreamble = stageResolvers[0].around(original.computePreamble) ?: ""
-        computeTransform = original.computeTransform
-        workGroupSize = original.workGroupSize
-        textureBaseIndex = original.textureBaseIndex
-        parameterTypes.putAll(uniformTypes)
-        parameterValues = ResolvedValues { original.parameterValues }
-        bufferValues = original.bufferValues
-        buffers.putAll(original.buffers)
-        bufferTypes.putAll(original.bufferTypes)
-        bufferAccess.putAll(original.bufferAccess)
-        bufferFlags.putAll(original.bufferFlags)
-        imageBindings.putAll(original.imageBindings)
-        imageTypes.putAll(original.imageTypes)
-        imageValues.putAll(original.imageValues)
-        imageAccess.putAll(original.imageAccess)
-        imageFlags.putAll(original.imageFlags)
-        imageArrayLength.putAll(original.imageArrayLength)
+    val resolved = resolvedStyle ?: ComputeStyle().also {
+        it.parameterValues = ResolvedValues({ original.parameterValues }, { original.resolvedVersions })
+        resolvedStyle = it
+    }
+    if (!versionsMatch(resolvedVersions, structureVersion, parameterValues)) {
+        resolvedVersions = listOf(structureVersion) + scopeVersions(parameterValues)
+        val signature = "$structureVersion;" + structuralSignature(parameterValues, parameterTypes)
+        if (signature != resolvedSignature) {
+            resolvedSignature = signature
+            val (uniformTypes, stageResolvers) = cachedResolution(
+                parameterValues, parameterTypes, libraries, listOf(listOf(computePreamble, computeTransform))
+            )
+            resolved.computePreamble = stageResolvers[0].around(computePreamble) ?: ""
+            resolved.parameterTypes.clear()
+            resolved.parameterTypes.putAll(uniformTypes)
+            // putAll does not count as a change of the structure
+            resolved.structureVersion++
+        }
+    }
+    resolved.computeTransform = computeTransform
+    resolved.workGroupSize = workGroupSize
+    resolved.textureBaseIndex = textureBaseIndex
+    resolved.bufferValues = bufferValues
+    // the bindings are not part of the structure version, they are copied when they changed
+    syncMap(resolved.buffers, buffers)
+    syncMap(resolved.bufferTypes, bufferTypes)
+    syncMap(resolved.bufferAccess, bufferAccess)
+    syncMap(resolved.bufferFlags, bufferFlags)
+    syncMap(resolved.imageBindings, imageBindings)
+    syncMap(resolved.imageTypes, imageTypes)
+    syncMap(resolved.imageValues, imageValues)
+    syncMap(resolved.imageAccess, imageAccess)
+    syncMap(resolved.imageFlags, imageFlags)
+    syncMap(resolved.imageArrayLength, imageArrayLength)
+    return resolved
+}
+
+/** makes [target] equal to [source] when it differs */
+private fun <K, V> syncMap(target: MutableMap<K, V>, source: Map<K, V>) {
+    if (target != source) {
+        target.clear()
+        target.putAll(source)
     }
 }

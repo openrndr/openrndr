@@ -4,12 +4,21 @@ package org.openrndr.draw
  * The values of the members of a [ComposedShadeStyle] under their namespaced keys, `amount` of member 1 is
  * `s1_amount`. Reads and writes go to the members, so values changed on a member are used by the composition. Other
  * keys are values of the composition itself, kept in [own], such as the inputs that shade style filters set.
+ *
+ * The entries are a view of [own] and the maps of the members, iterating them does not copy the values. The
+ * namespaced keys are kept, so that they are the same strings every time they are read.
  */
-private class NamespacedValues<V>(
+private class NamespacedValues<V : Any>(
     private val members: List<ShadeStyle>,
     private val select: (ShadeStyle) -> MutableMap<String, V>
 ) : AbstractMutableMap<String, V>() {
     private val own = mutableMapOf<String, V>()
+
+    /** the namespaced keys of the members by their own keys */
+    private val namespacedKeys = Array(members.size) { HashMap<String, String>() }
+
+    private fun namespacedKey(index: Int, key: String): String =
+        namespacedKeys[index].getOrPut(key) { namespaced(index, key) }
 
     private fun member(key: String): Pair<MutableMap<String, V>, String>? =
         memberKey(key, members.size)?.let { (index, name) -> select(members[index]) to name }
@@ -24,26 +33,65 @@ private class NamespacedValues<V>(
         return map.remove(name)
     }
 
-    override val entries: MutableSet<MutableMap.MutableEntry<String, V>>
+    override fun get(key: String): V? = member(key)?.let { (map, name) -> map[name] } ?: own[key]
+
+    override fun containsKey(key: String): Boolean = member(key)?.let { (map, name) -> map.containsKey(name) } ?: own.containsKey(key)
+
+    override val size: Int
         get() {
-            val result = LinkedHashMap<String, V>(own)
-            for ((index, member) in members.withIndex()) {
-                for ((key, value) in select(member)) {
-                    result[namespaced(index, key)] = value
-                }
-            }
-            return result.entries
+            var size = own.size
+            for (member in members) size += select(member).size
+            return size
         }
 
-    override fun get(key: String): V? = member(key)?.let { (map, name) -> map[name] } ?: own[key]
+    override fun isEmpty(): Boolean = size == 0
+
+    override val entries: MutableSet<MutableMap.MutableEntry<String, V>> = object : AbstractMutableSet<MutableMap.MutableEntry<String, V>>() {
+        override val size: Int get() = this@NamespacedValues.size
+
+        override fun add(element: MutableMap.MutableEntry<String, V>): Boolean {
+            put(element.key, element.value)
+            return true
+        }
+
+        override fun iterator(): MutableIterator<MutableMap.MutableEntry<String, V>> = object : MutableIterator<MutableMap.MutableEntry<String, V>> {
+            /** -1 iterates [own], otherwise the index of the member */
+            private var index = -1
+            private var current: MutableIterator<MutableMap.MutableEntry<String, V>> = own.entries.iterator()
+
+            override fun hasNext(): Boolean {
+                while (!current.hasNext()) {
+                    if (index + 1 >= members.size) return false
+                    index++
+                    current = select(members[index]).entries.iterator()
+                }
+                return true
+            }
+
+            override fun next(): MutableMap.MutableEntry<String, V> {
+                if (!hasNext()) throw NoSuchElementException()
+                val entry = current.next()
+                if (index == -1) return entry
+                val key = namespacedKey(index, entry.key)
+                return object : MutableMap.MutableEntry<String, V> {
+                    override val key: String get() = key
+                    override val value: V get() = entry.value
+                    override fun setValue(newValue: V): V = entry.setValue(newValue)
+                }
+            }
+
+            override fun remove() = current.remove()
+        }
+    }
 }
 
 private fun namespace(index: Int) = "s${index}_"
 
 /** the index of the member and the name of [key] when it is `s<index>_<name>` of one of [memberCount] members */
 private fun memberKey(key: String, memberCount: Int): Pair<Int, String>? {
+    if (key.length < 3 || key[0] != 's' || !key[1].isDigit()) return null
     val separator = key.indexOf('_')
-    if (!key.startsWith("s") || separator < 2) return null
+    if (separator < 2) return null
     val index = key.substring(1, separator).toIntOrNull() ?: return null
     return if (index in 0 until memberCount) index to key.substring(separator + 1) else null
 }
@@ -70,7 +118,8 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
 
     override val imageValues: MutableMap<String, Array<out ImageBinding>> = NamespacedValues(members) { it.imageValues }
 
-    private var memberVersions = emptyList<Long>()
+    /** the structure versions of the members when the composition was last updated */
+    private val memberVersions = LongArray(members.size) { -1L }
 
     override var dirty: Boolean
         get() {
@@ -81,6 +130,13 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
             super.dirty = value
         }
 
+    /** the structure version of the composition, which is updated first when the structure of a member changed */
+    override val structureVersion: Long
+        get() {
+            update()
+            return super.structureVersion
+        }
+
     init {
         update()
     }
@@ -89,9 +145,15 @@ class ComposedShadeStyle(val members: List<ShadeStyle>) : ShadeStyle() {
      * Generates the namespaced code and structure when the structure of a member changed
      */
     private fun update() {
-        val versions = members.map { it.structureVersion }
-        if (versions == memberVersions) return
-        memberVersions = versions
+        var changed = false
+        for (i in members.indices) {
+            val version = members[i].structureVersion
+            if (version != memberVersions[i]) {
+                memberVersions[i] = version
+                changed = true
+            }
+        }
+        if (!changed) return
 
         val vertexPreambles = mutableListOf<String>()
         val geometryPreambles = mutableListOf<String>()

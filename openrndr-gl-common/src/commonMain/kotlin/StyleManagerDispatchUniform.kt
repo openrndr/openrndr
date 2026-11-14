@@ -7,11 +7,15 @@ import org.openrndr.math.*
 interface StyleManagerDispatchUniform {
     var textureIndex: Int
 
+    /** the names of the uniforms of parameters */
+    val uniformNames: UniformNames
+
     fun <T> dispatchParameters(style: StyleParameters, shader: T, textureBindings: TextureBindings) where T: ShaderUniforms {
         textureIndex = style.textureBaseIndex
-        for ((key, value) in style.parameterValues) {
+        for (entry in style.parameterValues.entries) {
+            val key = entry.key
             val type = style.parameterTypes[key] ?: error("parameter type not found for $key")
-            setUniform(shader, textureBindings,"p_$key", type, key, value)
+            setUniform(shader, textureBindings, uniformNames.parameter(key), type, key, entry.value)
         }
     }
 
@@ -20,9 +24,8 @@ interface StyleManagerDispatchUniform {
             is Boolean -> shader.uniform(targetName, value)
             is Int -> {
                 when (type) {
-                    "int" ->
-                    shader.uniform(targetName, value as Int)
-                    "float" -> shader.uniform(targetName, value as Double)
+                    "int" -> shader.uniform(targetName, value)
+                    "float" -> shader.uniform(targetName, value.toDouble())
                 }
 
             }
@@ -80,7 +83,7 @@ interface StyleManagerDispatchUniform {
             }
 
             is DoubleArray -> {
-                shader.uniform(targetName, value.map { it.toFloat() }.toFloatArray())
+                shader.uniform(targetName, FloatArray(value.size) { value[it].toFloat() })
             }
 
             is IntArray -> {
@@ -122,14 +125,13 @@ interface StyleManagerDispatchUniform {
 
                     is CastableToVector4 -> {
                         @Suppress("UNCHECKED_CAST")
-                        shader.uniform(targetName, (value as Array<CastableToVector4>).map {
-                            it.toVector4()
-                        }.toTypedArray())
+                        val castable = value as Array<CastableToVector4>
+                        shader.uniform(targetName, Array(castable.size) { castable[it].toVector4() })
                     }
 
                     is Struct<*> -> {
                         for (i in 0 until value.size) {
-                            setUniform(shader, textureBindings,"$targetName[$i]", "struct","", value[i]!!)
+                            setUniform(shader, textureBindings, uniformNames.element(targetName, i), "struct", "", value[i]!!)
                         }
                     }
                 }
@@ -142,7 +144,7 @@ interface StyleManagerDispatchUniform {
             is Struct<*> -> {
                 for (f in value.values.keys) {
                     val type = value.types[f]!!
-                    setUniform(shader, textureBindings,"$targetName.$f", type,"", value.values.getValue(f))
+                    setUniform(shader, textureBindings, uniformNames.field(targetName, f), type, "", value.values.getValue(f))
                 }
             }
 

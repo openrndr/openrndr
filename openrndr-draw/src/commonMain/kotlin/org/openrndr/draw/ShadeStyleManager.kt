@@ -47,8 +47,14 @@ abstract class ShadeStyleManager(val name: String) {
         instanceFormats: List<VertexFormat> = emptyList()
     ): Shader
 
+    /** the list of the format of the last [shader] call with a single format, formats are often the same */
+    private var lastFormats: List<VertexFormat> = emptyList()
+
     fun shader(
         style: ShadeStyle?,
         format: VertexFormat
-    ): Shader = shader(style, listOf(format), emptyList())
+    ): Shader {
+        val formats = lastFormats.takeIf { it.size == 1 && it[0] === format } ?: listOf(format).also { lastFormats = it }
+        return shader(style, formats, emptyList())
+    }
 }

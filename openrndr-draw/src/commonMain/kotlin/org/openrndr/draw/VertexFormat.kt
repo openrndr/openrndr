@@ -130,8 +130,19 @@ class VertexFormat(val alignment: BufferAlignment = BufferAlignment.NONE) {
         return items == other.items
     }
 
+    /** the hash of [items] and the list and size it was computed for, formats are hashed on every draw */
+    private var hash = 0
+    private var hashedItems: List<VertexElement>? = null
+    private var hashedSize = -1
+
     override fun hashCode(): Int {
-        return items.hashCode()
+        val items = items
+        if (items !== hashedItems || items.size != hashedSize) {
+            hash = items.hashCode()
+            hashedItems = items
+            hashedSize = items.size
+        }
+        return hash
     }
 
     /**

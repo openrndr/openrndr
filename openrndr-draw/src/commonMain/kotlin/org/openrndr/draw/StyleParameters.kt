@@ -44,14 +44,14 @@ class Parameter<R : Any>(
     fun setValue(name: String, value: R) {
         parameterValues[name] = value
         parameterTypes[name] = when (value) {
-            is DynamicParameter -> "dynamic ${value.signature}"
+            is DynamicParameter -> value.parameterType
             is DynamicParameterSource -> DYNAMIC_SOURCE_TYPE
             is Boolean -> "boolean"
             is Int -> "int"
             is Double -> "float"
             is Float -> "float"
-            is IntArray -> "int, ${value.size}"
-            is FloatArray -> "float, ${value.size}"
+            is IntArray -> arrayType(parameterTypes[name], "int", ", ", value.size)
+            is FloatArray -> arrayType(parameterTypes[name], "float", ", ", value.size)
             is Vector2 -> "Vector2"
             is Vector3 -> "Vector3"
             is Vector4 -> "Vector4"
@@ -99,43 +99,43 @@ class Parameter<R : Any>(
                 if (value.isNotEmpty()) {
                     when (value.first()) {
                         is Matrix44 -> {
-                            "Matrix44, ${value.size}"
+                            arrayType(parameterTypes[name], "Matrix44", ", ", value.size)
                         }
 
                         is Vector2 -> {
-                            "Vector2, ${value.size}"
+                            arrayType(parameterTypes[name], "Vector2", ", ", value.size)
                         }
 
                         is Vector3 -> {
-                            "Vector3, ${value.size}"
+                            arrayType(parameterTypes[name], "Vector3", ", ", value.size)
                         }
 
                         is Vector4 -> {
-                            "Vector4, ${value.size}"
+                            arrayType(parameterTypes[name], "Vector4", ", ", value.size)
                         }
 
                         is ColorRGBa -> {
-                            "ColorRGBa, ${value.size}"
+                            arrayType(parameterTypes[name], "ColorRGBa", ", ", value.size)
                         }
 
                         is Double -> {
-                            "float, ${value.size}"
+                            arrayType(parameterTypes[name], "float", ", ", value.size)
                         }
 
                         is IntVector2 -> {
-                            "IntVector2, ${value.size}"
+                            arrayType(parameterTypes[name], "IntVector2", ", ", value.size)
                         }
 
                         is IntVector3 -> {
-                            "IntVector3, ${value.size}"
+                            arrayType(parameterTypes[name], "IntVector3", ", ", value.size)
                         }
 
                         is IntVector4 -> {
-                            "IntVector4, ${value.size}"
+                            arrayType(parameterTypes[name], "IntVector4", ", ", value.size)
                         }
 
                         is CastableToVector4 -> {
-                            "Vector4, ${value.size}"
+                            arrayType(parameterTypes[name], "Vector4", ", ", value.size)
                         }
 
                         else -> error("unsupported array type ${(value.first()!!)::class}")
@@ -210,32 +210,32 @@ interface StyleParameters {
 
     fun parameter(name: String, value: Array<Matrix33>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Matrix33>()},${value.size}"
+        setArrayType(name, shadeStyleType<Matrix33>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Array<Matrix44>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Matrix44>()},${value.size}"
+        setArrayType(name, shadeStyleType<Matrix44>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Array<Vector2>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector2>()},${value.size}"
+        setArrayType(name, shadeStyleType<Vector2>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Array<Vector3>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector3>()},${value.size}"
+        setArrayType(name, shadeStyleType<Vector3>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Array<Vector4>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector4>()},${value.size}"
+        setArrayType(name, shadeStyleType<Vector4>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Array<ColorRGBa>) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<ColorRGBa>()},${value.size}"
+        setArrayType(name, shadeStyleType<ColorRGBa>(), ",", value.size)
     }
 
     fun parameter(name: String, value: Float) {
@@ -305,7 +305,7 @@ interface StyleParameters {
      */
     fun parameter(name: String, value: DynamicParameter) {
         parameterValues[name] = value
-        parameterTypes[name] = "dynamic ${value.signature}"
+        parameterTypes[name] = value.parameterType
     }
 
     /**
@@ -342,12 +342,12 @@ interface StyleParameters {
 
     fun parameter(name: String, value: IntArray) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Int>()}, ${value.size}"
+        setArrayType(name, shadeStyleType<Int>(), ", ", value.size)
     }
 
     fun parameter(name: String, value: DoubleArray) {
         parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Double>()}, ${value.size}"
+        setArrayType(name, shadeStyleType<Double>(), ", ", value.size)
     }
 
     fun parameter(name: String, value: ArrayCubemap) {
@@ -386,6 +386,32 @@ inline fun <reified T : Struct<T>> StyleParameters.parameter(name: String, value
 inline fun <reified T : Struct<T>> StyleParameters.parameter(name: String, value: Array<T>) {
     parameterValues[name] = value
     parameterTypes[name] = "struct ${T::class.simpleName},${value.size}"
+}
+
+/**
+ * The type of an array parameter, `<type><separator><size>`: [existing] when it is that type already, so that setting
+ * an array of the same type and size every frame does not make a string
+ */
+internal fun arrayType(existing: String?, type: String, separator: String, size: Int): String {
+    if (existing != null && existing.length > type.length + separator.length &&
+        existing.startsWith(type) && existing.startsWith(separator, type.length)
+    ) {
+        val digits = existing.length - type.length - separator.length
+        var parsed = 0
+        var valid = digits <= 9
+        for (i in existing.length - digits until existing.length) {
+            val c = existing[i]
+            if (c !in '0'..'9') { valid = false; break }
+            parsed = parsed * 10 + (c - '0')
+        }
+        if (valid && parsed == size) return existing
+    }
+    return "$type$separator$size"
+}
+
+/** sets the type of the array parameter [name], see [arrayType] */
+internal fun StyleParameters.setArrayType(name: String, type: String, separator: String, size: Int) {
+    parameterTypes[name] = arrayType(parameterTypes[name], type, separator, size)
 }
 
 /**

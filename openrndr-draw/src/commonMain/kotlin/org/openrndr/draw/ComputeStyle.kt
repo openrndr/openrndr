@@ -25,8 +25,28 @@ data class ComputeStructure(
  * @since 0.4.4
  */
 class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
+    /**
+     * Counts the changes of the structure of this compute style: its code, libraries, work group size and parameter
+     * types. Compute style managers key the structures of a style on it and on its bindings.
+     */
+    var structureVersion = 0L
+        internal set
+
     var computePreamble: String = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                structureVersion++
+            }
+        }
+
     var computeTransform: String = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                structureVersion++
+            }
+        }
 
     /**
      * The GLSL libraries the code of this compute style uses, their code is emitted before the preamble when it reads
@@ -34,6 +54,12 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
      * @see GlslLibrary
      */
     var libraries: List<GlslLibrary> = emptyList()
+        set(value) {
+            if (field != value) {
+                field = value
+                structureVersion++
+            }
+        }
 
     override var textureBaseIndex: Int = 2
 
@@ -41,9 +67,24 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
      * The size of the compute work group
      */
     var workGroupSize = IntVector3(1, 1, 1)
-    private var dirty = true
+        set(value) {
+            if (field != value) {
+                field = value
+                structureVersion++
+            }
+        }
+
     override var parameterValues: MutableMap<String, Any> = mutableMapOf()
-    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
+    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { structureVersion++ }
+
+    /** the structure version for which [hasDynamicParameters] was determined */
+    internal var dynamicCheckVersion = -1L
+    internal var hasDynamicParameters = false
+
+    /** this compute style with its dynamic parameters resolved, see [resolveDynamicParameters] */
+    internal var resolvedStyle: ComputeStyle? = null
+    internal var resolvedVersions: List<Any> = emptyList()
+    internal var resolvedSignature: String? = null
 
     override var bufferValues = mutableMapOf<String, Any>()
     override val buffers = mutableMapOf<String, String>()
