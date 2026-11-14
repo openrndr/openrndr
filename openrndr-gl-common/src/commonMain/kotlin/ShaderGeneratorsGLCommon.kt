@@ -114,6 +114,7 @@ uniform sampler2D image;
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 ${shadeStructure.outputs ?: ""}
 
@@ -157,6 +158,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -177,6 +179,8 @@ void main() {
     if (u_flipV == 0) {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
     }
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -195,6 +199,7 @@ uniform sampler2DArray image;
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 #ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -238,6 +243,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -260,6 +266,8 @@ void main() {
     if (u_flipV == 0) {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
     }
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -277,6 +285,7 @@ ${shadeStructure.uniforms ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 #ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -313,6 +322,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -330,6 +340,8 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position.xyz + i_offset;
     float x_pointSize = 1.0;
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -350,6 +362,7 @@ ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 #ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -368,7 +381,8 @@ uniform float u_smooth;
 uniform int u_paintOrder;
 ${
         fragmentMainConstants(
-            boundsPosition = "vec3(va_texCoord0, 0.0)", boundsSize = "v_boundsSize"
+            // the bounds of a circle are its diameter, v_boundsSize holds its radius
+            boundsPosition = "vec3(va_texCoord0, 0.0)", boundsSize = "v_boundsSize * 2.0"
         )
     }
 
@@ -427,6 +441,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -451,6 +466,8 @@ void main() {
     ${preVertexTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = vec3(a_position.xy * effectiveRadius, 0.0) + i_offset;
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -474,6 +491,7 @@ flat in int v_element;
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 #ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -513,6 +531,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 ${vertexMainConstants("int(a_position.z)")}
 ${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
@@ -528,6 +547,8 @@ void main() {
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = decodedPosition;
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -546,6 +567,7 @@ ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
+in vec3 v_objectPosition;
 
 #ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -663,6 +685,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -689,6 +712,8 @@ void main() {
 
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -838,6 +863,7 @@ uniform sampler2D image;
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 $transformVaryingIn
+in vec3 v_objectPosition;
 flat in int v_instance;
 
 #ifndef OUTPUT_color
@@ -871,6 +897,7 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+out vec3 v_objectPosition;
 
 ${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
@@ -884,6 +911,8 @@ void main() {
     $preVertexTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position.xyz;
+    // the position before the model transform
+    v_objectPosition = x_position;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -905,6 +934,7 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |${drawerUniforms()}
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
+        |in vec3 v_objectPosition;
         |flat in int v_instance;
         |$meshLineUniforms
         |flat in vec4 v_meshLineSegment;
@@ -991,6 +1021,7 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |${shadeStructure.varyingOut ?: ""}
         |$transformVaryingOut
+        |out vec3 v_objectPosition;
         |${vertexMainConstants(element = "int(a_element)")}
         |${shadeStructure.vertexPreamble ?: ""}
         |flat out int v_instance;
@@ -1162,6 +1193,8 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |   // the attributes of the corner of the quad
         |   float t = (atStart ? 0.0 : 1.0) + (segmentLength > 1e-4 ? along / segmentLength : 0.0);
         |   va_position = mix(a_position, a_end, t);
+        |   // the position on the segment before the model transform, also on the caps past its ends
+        |   v_objectPosition = va_position;
         |   va_texCoord0 = vec2(0.5 + 0.5 * a_corner.y * halfWidth / max(hwStart, hwEnd), mix(a_texCoord0.x, a_texCoord0.y, t));
         |}
         """.trimMargin()
