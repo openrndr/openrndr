@@ -12,8 +12,15 @@ import org.openrndr.shape.Rectangle
  * changes. It is not tracked by a session: ending the session it was created in, for example by closing a
  * child window, must not destroy it.
  */
-private val filterQuads = mutableMapOf<Long, VertexBuffer>()
+private val filterQuads = mutableMapOf<Long, List<VertexBuffer>>()
 private var filterQuadDriver: Driver? = null
+
+/** the names of the uniforms of the inputs of filters */
+private val inputTextureNames = Array(16) { "tex$it" }
+private val textureSizeNames = Array(32) { "textureSize$it" }
+
+private fun inputTextureName(index: Int) = inputTextureNames.getOrNull(index) ?: "tex$index"
+private fun textureSizeName(index: Int) = textureSizeNames.getOrNull(index) ?: "textureSize$index"
 internal var filterQuadFormat = vertexFormat {
     position(2)
     textureCoordinate(2)
@@ -49,7 +56,6 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
  */
 open class Filter(private val shader: Shader?): AutoCloseable {
 
-    private val textureBindings = TextureBindings()
     private val filterDrawStyle = DrawStyle().apply {
         depthWrite = false
         depthTestPass = DepthTestPass.ALWAYS
@@ -76,35 +82,79 @@ open class Filter(private val shader: Shader?): AutoCloseable {
     /**
      * Runs [block] with the inputs that [generateInputMipmaps] asks for: [source] or copies of it with mipmaps
      */
-    internal fun <T> withInputMipmaps(source: Array<ColorBuffer>, block: (Array<ColorBuffer>) -> T): T {
+    internal inline fun <T> withInputMipmaps(source: Array<ColorBuffer>, block: (Array<ColorBuffer>) -> T): T {
         if (!generateInputMipmaps || source.isEmpty()) {
             return block(source)
         }
-        val pool = colorBufferPool()
-        val copies = mutableListOf<ColorBuffer>()
+        val inputs = mipmappedInputs(source)
         try {
-            val inputs = Array(source.size) { index ->
-                val input = source[index]
-                if (input.type.compressed) {
-                    input
-                } else {
-                    val levels = mipmapLevels(input.effectiveWidth, input.effectiveHeight)
-                    val copy = pool.acquire(input.width, input.height, input.contentScale, input.format, input.type, levels = levels)
-                    copies.add(copy)
-                    input.copyTo(copy)
-                    copy.generateMipmaps()
-                    copy.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.LINEAR)
-                    // the wrap modes of color buffers can't be read, the copies clamp
-                    copy.wrapU = WrapMode.CLAMP_TO_EDGE
-                    copy.wrapV = WrapMode.CLAMP_TO_EDGE
-                    copy
-                }
-            }
             return block(inputs)
         } finally {
-            copies.forEach { pool.release(it) }
+            releaseMipmappedInputs(source, inputs)
         }
     }
+
+    /** copies of [source] with mipmaps from the [pool][colorBufferPool], compressed inputs are kept */
+    internal fun mipmappedInputs(source: Array<ColorBuffer>): Array<ColorBuffer> {
+        val pool = colorBufferPool()
+        return Array(source.size) { index ->
+            val input = source[index]
+            if (input.type.compressed) {
+                input
+            } else {
+                val levels = mipmapLevels(input.effectiveWidth, input.effectiveHeight)
+                val copy = pool.acquire(input.width, input.height, input.contentScale, input.format, input.type, levels = levels)
+                input.copyTo(copy)
+                copy.generateMipmaps()
+                copy.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.LINEAR)
+                // the wrap modes of color buffers can't be read, the copies clamp
+                copy.wrapU = WrapMode.CLAMP_TO_EDGE
+                copy.wrapV = WrapMode.CLAMP_TO_EDGE
+                copy
+            }
+        }
+    }
+
+    /** gives the copies in [inputs] of [source] back to the pool */
+    internal fun releaseMipmappedInputs(source: Array<ColorBuffer>, inputs: Array<ColorBuffer>) {
+        val pool = colorBufferPool()
+        for (i in inputs.indices) {
+            if (inputs[i] !== source[i]) pool.release(inputs[i])
+        }
+    }
+
+    /**
+     * The render targets that [apply] draws into, one per context: framebuffers are not shared between contexts. They
+     * are made again when the size of the target changes, and when the driver changes.
+     */
+    private val renderTargets = HashMap<Long, RenderTarget>()
+    private var renderTargetsDriver: Driver? = null
+
+    private fun renderTargetFor(width: Int, height: Int, contentScale: Double): RenderTarget {
+        if (renderTargetsDriver !== Driver.instance) {
+            // the render targets of an earlier driver were released with its contexts
+            renderTargets.clear()
+            renderTargetsDriver = Driver.instance
+        }
+        val context = Driver.instance.contextID
+        val cached = renderTargets[context]
+        if (cached != null && cached.width == width && cached.height == height && cached.contentScale == contentScale) {
+            return cached
+        }
+        cached?.destroy()
+        return renderTarget(width, height, contentScale, session = null) {}.also { renderTargets[context] = it }
+    }
+
+    /** the projection of the last target, targets of the same size are common */
+    private var projection = Matrix44.IDENTITY
+    private var projectionWidth = -1
+    private var projectionHeight = -1
+    private var targetSize = Vector2.ZERO
+    private var paddingVector = Vector2.ZERO
+    private var paddingOfVector = 0
+
+    /** the sizes of the inputs of the last apply, as uniform values */
+    private var inputSizes = arrayOfNulls<Vector2>(4)
 
     companion object {
         val filterVertexCode: String
@@ -147,21 +197,36 @@ void main() {
      * @param clip An optional `Rectangle` that defines the clipping region for the filter operation.
      */
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle? = null) {
+        val shader = shader ?: return
+        withInputMipmaps(source) { inputs -> applyShader(shader, inputs, target, clip, dispatchParameters = true) }
+    }
+
+    /**
+     * Applies [shader] to [source], inputs that are used as they are, and writes to [target], in the render target of
+     * this filter for the current context. [dispatchParameters] sets the [parameters] of this filter on the shader.
+     */
+    internal fun applyShader(
+        shader: Shader,
+        source: Array<ColorBuffer>,
+        target: Array<ColorBuffer>,
+        clip: Rectangle?,
+        dispatchParameters: Boolean
+    ) {
         if (target.isEmpty() || clip?.area == 0.0) {
             return
         }
         filterDrawStyle.clip = clip
-        val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
+        val renderTarget = renderTargetFor(target[0].width, target[0].height, target[0].contentScale)
 
-        target.forEach {
-            renderTarget.attach(it, ownedByRenderTarget = false)
+        for (i in target.indices) {
+            renderTarget.attach(target[i], ownedByRenderTarget = false)
         }
 
         for (i in 0 until target.size) {
             renderTarget.setBlendMode(i, BlendMode.REPLACE)
         }
 
-        apply(source, renderTarget, clip)
+        applyToTarget(shader, source, renderTarget, clip, dispatchParameters)
         depthBufferOut?.let {
             renderTarget.attach(it, false)
         }
@@ -170,7 +235,8 @@ void main() {
             renderTarget.detachDepthBuffer()
         }
         renderTarget.detachColorAttachments()
-        renderTarget.destroy()
+        // attaching adds a blend mode that detaching does not remove, the render target is attached to again
+        (renderTarget.blendModes as? MutableList<BlendMode>)?.clear()
     }
 
     /**
@@ -183,13 +249,17 @@ void main() {
      * @param clip An optional `Rectangle` specifying the clipping region for the filter application. Defaults to `null`.
      */
     fun apply(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle? = null) {
-        if (shader == null) { return }
-        withInputMipmaps(source) { inputs -> applyToTarget(inputs, target, clip) }
+        val shader = shader ?: return
+        withInputMipmaps(source) { inputs -> applyToTarget(shader, inputs, target, clip, dispatchParameters = true) }
     }
 
-    private fun applyToTarget(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle?) {
-        val shader = shader ?: return
-
+    private fun applyToTarget(
+        shader: Shader,
+        source: Array<ColorBuffer>,
+        target: RenderTarget,
+        clip: Rectangle?,
+        dispatchParameters: Boolean
+    ) {
         filterDrawStyle.clip = clip
         target.bind()
 
@@ -211,30 +281,54 @@ void main() {
             }
             fq.shadow.upload()
             fq.shadow.destroy()
-            fq
+            listOf(fq)
         }
 
         shader.begin()
 
-        source.forEachIndexed { index, colorBuffer ->
+        if (inputSizes.size < source.size) inputSizes = inputSizes.copyOf(source.size)
+        for (index in source.indices) {
+            val colorBuffer = source[index]
             shader.textureBindings[index] = colorBuffer
-            shader.uniform("tex$index", index)
-            shader.uniform(
-                "textureSize$index",
-                Vector2(colorBuffer.effectiveWidth.toDouble(), colorBuffer.effectiveHeight.toDouble())
-            )
+            shader.uniform(inputTextureName(index), index)
+            shader.uniform(textureSizeName(index), inputSize(index, colorBuffer))
         }
 
         Driver.instance.setState(filterDrawStyle)
 
-        shader.uniform(
-            "projectionMatrix",
-            ortho(0.0, target.width.toDouble(), target.height.toDouble(), 0.0, -1.0, 1.0)
-        )
-        shader.uniform("targetSize", Vector2(target.width.toDouble(), target.height.toDouble()))
-        shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
+        if (target.width != projectionWidth || target.height != projectionHeight) {
+            projectionWidth = target.width
+            projectionHeight = target.height
+            projection = ortho(0.0, target.width.toDouble(), target.height.toDouble(), 0.0, -1.0, 1.0)
+            targetSize = Vector2(target.width.toDouble(), target.height.toDouble())
+        }
+        if (padding != paddingOfVector) {
+            paddingOfVector = padding
+            paddingVector = Vector2(padding.toDouble(), padding.toDouble())
+        }
+        shader.uniform("projectionMatrix", projection)
+        shader.uniform("targetSize", targetSize)
+        shader.uniform("padding", paddingVector)
 
-        var textureIndex = source.size + 0
+        if (dispatchParameters) dispatchParameters(shader, source.size)
+
+        Driver.instance.drawVertexBuffer(shader, filterQuad, DrawPrimitive.TRIANGLES, 0, 6)
+        shader.end()
+        target.unbind()
+    }
+
+    /** the size of [colorBuffer], input [index], as a uniform value, the same object while the size is the same */
+    private fun inputSize(index: Int, colorBuffer: ColorBuffer): Vector2 {
+        val width = colorBuffer.effectiveWidth.toDouble()
+        val height = colorBuffer.effectiveHeight.toDouble()
+        val size = inputSizes[index]
+        if (size != null && size.x == width && size.y == height) return size
+        return Vector2(width, height).also { inputSizes[index] = it }
+    }
+
+    /** sets the [parameters] of this filter on [shader], its textures are bound after the [inputCount] inputs */
+    private fun dispatchParameters(shader: Shader, inputCount: Int) {
+        var textureIndex = inputCount
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
@@ -278,7 +372,7 @@ void main() {
                 is ColorBuffer -> {
                     shader.uniform(uniform, textureIndex)
                     shader.uniform(
-                        "textureSize$textureIndex",
+                        textureSizeName(textureIndex),
                         Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble())
                     )
                     shader.textureBindings[textureIndex] = value
@@ -293,22 +387,18 @@ void main() {
 
                 is ArrayCubemap -> {
                     shader.uniform(uniform, textureIndex)
-                    textureBindings[textureIndex] = value
+                    shader.textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
                 is BufferTexture -> {
                     shader.uniform(uniform, textureIndex)
-                    textureBindings[textureIndex] = value
+                    shader.textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
             }
         }
-
-        Driver.instance.drawVertexBuffer(shader, listOf(filterQuad), DrawPrimitive.TRIANGLES, 0, 6)
-        shader.end()
-        target.unbind()
     }
 
     // TODO move to Filter1to1
@@ -344,6 +434,11 @@ void main() {
      * and avoid resource leaks.
      */
     open fun destroy() {
+        // framebuffers can only be deleted in their own context, the others are released with their contexts
+        if (renderTargetsDriver === Driver.instance) {
+            renderTargets.remove(Driver.instance.contextID)?.destroy()
+        }
+        renderTargets.clear()
         shader?.destroy()
     }
 

@@ -58,8 +58,14 @@ class ShadeStyleFilter2to1(val shadeStyle: ShadeStyle) : Filter2to1(null), Style
         withInputMipmaps(source) { inputs -> applyShadeStyle(shadeStyle, fill, inputs, target, clip) }
 }
 
-/** applies [shadeStyle] as a filter of [source], which are its inputs `input0` to `input<n>` */
-private fun applyShadeStyle(
+/** the names of the inputs of shade style filters */
+private val inputNames = Array(8) { "input$it" }
+
+/**
+ * Applies [shadeStyle] as a filter of [source], which are its inputs `input0` to `input<n>`, with the render target,
+ * padding and depth buffer of this filter
+ */
+private fun Filter.applyShadeStyle(
     shadeStyle: ShadeStyle,
     fill: ColorRGBa,
     source: Array<ColorBuffer>,
@@ -68,9 +74,9 @@ private fun applyShadeStyle(
 ) {
     shadeStyle.parameter("fill", fill)
     shadeStyle.textureBaseIndex = source.size
-    for ((index, buffer) in source.withIndex()) {
-        shadeStyle.parameter("input$index", buffer)
+    for (index in source.indices) {
+        shadeStyle.parameter(inputNames.getOrNull(index) ?: "input$index", source[index])
     }
     val shader = shadeStyleManager.shader(shadeStyle, filterQuadFormat)
-    Filter(shader).apply(source, target, clip)
+    applyShader(shader, source, target, clip, dispatchParameters = false)
 }

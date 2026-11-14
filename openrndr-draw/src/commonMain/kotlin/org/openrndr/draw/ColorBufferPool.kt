@@ -103,15 +103,37 @@ fun colorBufferPool(): ColorBufferPool {
     return sharedPools.getOrPut(Driver.instance.shareGroupID) { ColorBufferPool() }
 }
 
-private data class PoolKey(
-    val width: Int,
-    val height: Int,
-    val contentScale: Double,
-    val format: ColorFormat,
-    val type: ColorType,
-    val multisample: BufferMultisample,
-    val levels: Int
-)
+/**
+ * The properties of the buffers of a pool. A pool looks buffers up with a probe key whose properties it sets, and
+ * keeps copies of it, so that acquiring a buffer does not make a key.
+ */
+private class PoolKey(
+    var width: Int,
+    var height: Int,
+    var contentScale: Double,
+    var format: ColorFormat,
+    var type: ColorType,
+    var multisample: BufferMultisample,
+    var levels: Int
+) {
+    fun copy() = PoolKey(width, height, contentScale, format, type, multisample, levels)
+
+    override fun equals(other: Any?): Boolean =
+        other is PoolKey && width == other.width && height == other.height && contentScale == other.contentScale &&
+                format == other.format && type == other.type && multisample == other.multisample &&
+                levels == other.levels
+
+    override fun hashCode(): Int {
+        var result = width
+        result = 31 * result + height
+        result = 31 * result + contentScale.hashCode()
+        result = 31 * result + format.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + multisample.hashCode()
+        result = 31 * result + levels
+        return result
+    }
+}
 
 private class PoolEntry(val key: PoolKey, val buffer: ColorBuffer) {
     var acquired = false
@@ -122,6 +144,7 @@ private class ColorBufferPoolImpl : ColorBufferPool {
     private val free = mutableMapOf<PoolKey, ArrayDeque<PoolEntry>>()
     private val entries = mutableMapOf<ColorBuffer, PoolEntry>()
     private var frame = 0L
+    private val probe = PoolKey(0, 0, 1.0, ColorFormat.RGBa, ColorType.UINT8, BufferMultisample.Disabled, 1)
 
     override val size: Int get() = entries.size
 
@@ -134,10 +157,11 @@ private class ColorBufferPoolImpl : ColorBufferPool {
         multisample: BufferMultisample,
         levels: Int
     ): ColorBuffer {
-        val key = PoolKey(width, height, contentScale, format, type, multisample, levels)
-        val entry = free[key]?.removeLastOrNull() ?: run {
+        probe.width = width; probe.height = height; probe.contentScale = contentScale; probe.format = format
+        probe.type = type; probe.multisample = multisample; probe.levels = levels
+        val entry = free[probe]?.removeLastOrNull() ?: run {
             val buffer = colorBuffer(width, height, contentScale, format, type, multisample, levels, session = null)
-            PoolEntry(key, buffer).also { entries[buffer] = it }
+            PoolEntry(probe.copy(), buffer).also { entries[buffer] = it }
         }
         entry.acquired = true
         entry.lastFrame = frame
@@ -159,13 +183,17 @@ private class ColorBufferPoolImpl : ColorBufferPool {
         val iterator = free.values.iterator()
         while (iterator.hasNext()) {
             val queue = iterator.next()
-            queue.removeAll { entry ->
-                val unused = frame - entry.lastFrame > frames
-                if (unused) {
+            // the queue is in the order of release, the buffers released longest ago come first
+            var i = 0
+            while (i < queue.size) {
+                val entry = queue[i]
+                if (frame - entry.lastFrame > frames) {
+                    queue.removeAt(i)
                     entries.remove(entry.buffer)
                     entry.buffer.destroy()
+                } else {
+                    i++
                 }
-                unused
             }
             if (queue.isEmpty()) iterator.remove()
         }
