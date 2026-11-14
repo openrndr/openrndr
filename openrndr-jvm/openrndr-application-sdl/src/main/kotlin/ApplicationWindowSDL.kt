@@ -12,6 +12,7 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
 import org.openrndr.color.ColorProfile
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
@@ -382,7 +383,13 @@ class ApplicationWindowSDL(
 
         Program.active = program
         SDL_GL_MakeCurrent(window, glContext)
-        defaultRenderTarget.bind()
+        // binding the target every frame would grow the stack of bound targets, it is bound once and made current
+        // again in the frames after that
+        if (RenderTarget.active !== defaultRenderTarget) {
+            defaultRenderTarget.bind()
+        } else {
+            defaultRenderTarget.bindTarget()
+        }
 
         setupSizes()
         deliverEvents()

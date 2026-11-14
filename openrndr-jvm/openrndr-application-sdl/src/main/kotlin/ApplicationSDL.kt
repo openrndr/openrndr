@@ -55,17 +55,26 @@ object ApplicationSDLConfiguration {
     }
 }
 
+/** the sets of modifiers by their bits, alt, ctrl, shift and super, made once and shared by events */
+private val modifierSets: Array<Set<KeyModifier>> = Array(16) { bits ->
+    buildSet {
+        if (bits and 1 != 0) add(KeyModifier.ALT)
+        if (bits and 2 != 0) add(KeyModifier.CTRL)
+        if (bits and 4 != 0) add(KeyModifier.SHIFT)
+        if (bits and 8 != 0) add(KeyModifier.SUPER)
+    }
+}
+
 private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
     if (mod == 0) {
         return emptySet()
-    } else {
-        val modifiers = mutableSetOf<KeyModifier>()
-        if (mod and SDL_KMOD_ALT != 0) modifiers.add(KeyModifier.ALT)
-        if (mod and SDL_KMOD_CTRL != 0) modifiers.add(KeyModifier.CTRL)
-        if (mod and SDL_KMOD_SHIFT != 0) modifiers.add(KeyModifier.SHIFT)
-        if (mod and SDL_KMOD_GUI != 0) modifiers.add(KeyModifier.SUPER)
-        return modifiers
     }
+    var bits = 0
+    if (mod and SDL_KMOD_ALT != 0) bits = bits or 1
+    if (mod and SDL_KMOD_CTRL != 0) bits = bits or 2
+    if (mod and SDL_KMOD_SHIFT != 0) bits = bits or 4
+    if (mod and SDL_KMOD_GUI != 0) bits = bits or 8
+    return modifierSets[bits]
 }
 
 class ApplicationSDL(override var program: Program, override var configuration: Configuration) : Application() {
@@ -874,14 +883,22 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             (Driver.instance as DriverGL3).processMainThreadExecutables()
             var drawn = update(window)
 
-            val closeWindows = windows.filter { it.closeRequested }
-            for (window in closeWindows) {
-                windows.remove(window)
-                windowsById.remove(SDL_GetWindowID(window.window))
-                window.close()
-            }
-            for (window in windows) {
-                drawn = update(window) or drawn
+            // the child windows are looped over by index, iterating would allocate an iterator every frame
+            if (windows.isNotEmpty()) {
+                var i = 0
+                while (i < windows.size) {
+                    val child = windows[i]
+                    if (child.closeRequested) {
+                        windows.removeAt(i)
+                        windowsById.remove(SDL_GetWindowID(child.window))
+                        child.close()
+                    } else {
+                        i++
+                    }
+                }
+                for (j in 0 until windows.size) {
+                    drawn = update(windows[j]) or drawn
+                }
             }
             // no window was drawn: they are minimized, or unfocused and throttled. Wait for an event, for work queued
             // from another thread, or until a window or a delayed coroutine is due, instead of spinning
@@ -908,7 +925,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
      */
     private fun idleTimeout(): Long {
         var timeout = 1000L
-        for (w in listOf(window) + windows) {
+        for (i in -1 until windows.size) {
+            val w = if (i == -1) window else windows[i]
             w.millisUntilNextDraw()?.let { timeout = minOf(timeout, it) }
             w.program.dispatcher.millisUntilNextDelay()?.let { timeout = minOf(timeout, it) }
         }

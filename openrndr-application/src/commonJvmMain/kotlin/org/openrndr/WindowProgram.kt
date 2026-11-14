@@ -344,9 +344,18 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
         backgroundColor?.let {
             drawer.clear(it)
         }
-        extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
+        // extensions are looped over by index instead of copied every frame, extensions added while they run get their
+        // first beforeDraw in the next frame
+        val extensionCount = extensions.size
+        for (i in 0 until extensionCount) {
+            val extension = extensions.getOrNull(i) ?: break
+            if (extension.enabled) extension.beforeDraw(drawer, this)
+        }
         draw()
-        extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
+        for (i in extensions.size - 1 downTo 0) {
+            val extension = extensions.getOrNull(i) ?: continue
+            if (extension.enabled) extension.afterDraw(drawer, this)
+        }
         frameCount++
     }
 

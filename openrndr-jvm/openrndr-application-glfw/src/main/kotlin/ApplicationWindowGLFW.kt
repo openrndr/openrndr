@@ -230,7 +230,8 @@ class ApplicationWindowGLFW(
     }
 
     fun setupGlfwEvents(application: ApplicationGLFWGL3) {
-        val modifiers = mutableSetOf<KeyModifier>()
+        // events keep the set of modifiers they were triggered with, the set is replaced when the modifiers change
+        var modifiers: Set<KeyModifier> = emptySet()
 
         var down = false
         var lastDragPosition = Vector2.ZERO
@@ -497,7 +498,7 @@ class ApplicationWindowGLFW(
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
             cursorPosition = position
-            logger.trace { "mouse moved $xpos $ypos -- $position" }
+            if (logger.isTraceEnabled()) logger.trace { "mouse moved $xpos $ypos -- $position" }
             program.mouse.moved.trigger(
                 MouseEvent(
                     position,

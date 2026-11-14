@@ -747,7 +747,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         var lastDragPosition = Vector2.ZERO
         var lastMouseButtonDown = MouseButton.NONE
-        val modifiers = mutableSetOf<KeyModifier>()
+        // events keep the set of modifiers they were triggered with, the set is replaced when the modifiers change
+        var modifiers: Set<KeyModifier> = emptySet()
 
         // Equivalent mapping found also in ApplicationSDL.kt
         glfwSetKeyCallback(window) { _, key, scancode, action, _ ->
@@ -915,7 +916,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
-            logger.trace { "mouse moved $xpos $ypos -- $position" }
+            if (logger.isTraceEnabled()) logger.trace { "mouse moved $xpos $ypos -- $position" }
             realCursorPosition = position
             program.mouse.moved.trigger(
                 MouseEvent(
@@ -1126,7 +1127,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         deliverEvents()
         program.dispatcher.execute()
         try {
-            logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
+            if (logger.isTraceEnabled()) logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
             logger.error { "Caught exception inside the program loop. (${e.message})" }

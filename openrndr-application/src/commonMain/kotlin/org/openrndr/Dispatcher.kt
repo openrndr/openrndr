@@ -55,7 +55,7 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
 
     override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
         synchronized(toContinueAfterLock) {
-            logger.trace { "scheduleResume $timeMillis $continuation" }
+            if (logger.isTraceEnabled()) logger.trace { "scheduleResume $timeMillis $continuation" }
             toContinueAfter.add(Pair(currentTimeMillis() + timeMillis, continuation))
         }
         onWorkQueued?.invoke()
@@ -67,7 +67,7 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
 
      override fun dispatch(context: CoroutineContext, block: Runnable) {
         synchronized(toRunLock) {
-            logger.trace { "dispatching $block" }
+            if (logger.isTraceEnabled()) logger.trace { "dispatching $block" }
             toRun.add(block)
         }
         onWorkQueued?.invoke()
@@ -82,37 +82,42 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
     @OptIn(ExperimentalCoroutinesApi::class)
     fun execute() {
         lastRunTime = currentTimeMillis()
+        // the tasks are copied before they run, tasks they dispatch run in the next call. Nothing is copied when
+        // nothing is queued or due, which is the common case for a frame
         synchronized(toRunLock) {
-            val copy = toRun + emptyList()
-            toRun.clear()
-            copy.forEach {
-                logger.trace { "running $it" }
-                it.run()
+            if (toRun.isNotEmpty()) {
+                val copy = ArrayList(toRun)
+                toRun.clear()
+                for (i in copy.indices) {
+                    val runnable = copy[i]
+                    if (logger.isTraceEnabled()) logger.trace { "running $runnable" }
+                    runnable.run()
+                }
             }
         }
 
         val time = currentTimeMillis()
         synchronized(toRunAfterLock) {
-            val toDo = toRunAfter.filter { it.first <= time }
-            if (toDo.isNotEmpty()) {
+            if (toRunAfter.any { it.first <= time }) {
+                val toDo = toRunAfter.filter { it.first <= time }
                 toRunAfter.removeAll { it.first <= time }
-            }
-            for ((_, runnable) in toDo) {
-                logger.trace { "running $runnable" }
-                runnable.run()
+                for ((_, runnable) in toDo) {
+                    if (logger.isTraceEnabled()) logger.trace { "running $runnable" }
+                    runnable.run()
+                }
             }
         }
 
         synchronized(toContinueAfterLock) {
-            val toDo = toContinueAfter.filter { it.first <= time }
-            if (toDo.isNotEmpty()) {
+            if (toContinueAfter.any { it.first <= time }) {
+                val toDo = toContinueAfter.filter { it.first <= time }
                 toContinueAfter.removeAll { it.first <= time }
-            }
-            for ((_, continuation) in toDo) {
-                with(continuation) {
-                    logger.trace { "resuming $continuation" }
-                    @Suppress("EXPERIMENTAL_API_USAGE")
-                    resumeUndispatched(Unit)
+                for ((_, continuation) in toDo) {
+                    with(continuation) {
+                        if (logger.isTraceEnabled()) logger.trace { "resuming $continuation" }
+                        @Suppress("EXPERIMENTAL_API_USAGE")
+                        resumeUndispatched(Unit)
+                    }
                 }
             }
         }
