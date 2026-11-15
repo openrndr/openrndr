@@ -80,10 +80,8 @@ private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
 class ApplicationSDL(override var program: Program, override var configuration: Configuration) : Application() {
 
     override fun requestDraw() {
-        drawRequested = true
+        window.requestDraw()
     }
-
-    private var drawRequested = false
 
     /** The type of the event that wakes the loop when it waits for events, 0 when it could not be registered */
     private val wakeEventType = SDL_RegisterEvents(1)
@@ -100,7 +98,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
      * Wakes the loop for work queued from any thread, an event is only pushed while it waits, so dispatching many
      * tasks does not fill the event queue
      */
-    private fun wake() {
+    internal fun wake() {
         workQueued = true
         if (waiting && wakeEventType != 0) {
             stackPush().use {
@@ -112,6 +110,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     }
 
     private var exitRequested = false
+
+    /** Are exposed windows drawn by an event watch? See the loop */
+    private val useEventWatch = System.getProperty("org.openrndr.application.eventwatch") != "false"
 
     override fun exit() {
         exitRequested = true
@@ -316,6 +317,13 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_QUIT -> {
                 logger.debug { "Received quit event" }
                 exitRequested = true
+            }
+
+            // without the event watch exposed windows are drawn by the loop, also in PresentationMode.MANUAL
+            SDL_EVENT_WINDOW_EXPOSED -> {
+                if (!useEventWatch) {
+                    windowById(event.window().windowID())?.requestDraw()
+                }
             }
 
             // the size in pixels changes when the window is resized and when its content scale changes
@@ -847,7 +855,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             program.setup()
         }
 
-        if (System.getProperty("org.openrndr.application.eventwatch") != "false") {
+        if (useEventWatch) {
             // https://wiki.libsdl.org/SDL3/AppFreezeDuringDrag
             // the watch draws exposed windows while the event loop is blocked, during a live resize on macOS for
             // example. The poll loop ignores exposed events, a window that was drawn by the watch is not drawn again
@@ -855,7 +863,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val event = SDL_Event.create(p1)
                 if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
                     val eventWindow = windowById(event.window().windowID())
-                    if (eventWindow != null && eventWindow.update()) {
+                    if (eventWindow != null && eventWindow.update(exposed = true)) {
                         eventWindow.drawnByEventWatch = true
                     }
                 }

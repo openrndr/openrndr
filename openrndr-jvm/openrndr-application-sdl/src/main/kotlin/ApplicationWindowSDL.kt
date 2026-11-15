@@ -234,11 +234,25 @@ class ApplicationWindowSDL(
     override val cursorInWindow: Boolean
         get() = TODO("Not yet implemented")
 
+    /**
+     * [PresentationMode.MANUAL] draws the window when a draw is requested with [requestDraw] and when it is exposed,
+     * [PresentationMode.AUTOMATIC] draws it every frame
+     */
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+        set(value) {
+            field = value
+            // the loop may be waiting while no window had a draw to do
+            application.wake()
+        }
 
-    var drawRequested = false
+    /** Is a draw requested? The first frame is always drawn */
+    @Volatile
+    private var drawRequested = true
+
+    /** Requests a draw of the window, from any thread, the loop is woken when it waits */
     override fun requestDraw() {
         drawRequested = true
+        application.wake()
     }
 
     override var windowContentScale: Double
@@ -366,6 +380,10 @@ class ApplicationWindowSDL(
         if (destroyed || (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L) {
             return null
         }
+        if (presentationMode == PresentationMode.MANUAL && !drawRequested) {
+            // drawn when a draw is requested, which wakes the loop
+            return null
+        }
         if (windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL) {
             return 0L
         }
@@ -373,10 +391,12 @@ class ApplicationWindowSDL(
     }
 
     /**
-     * Delivers the events of the window and draws it, unless it is minimized or unfocused and throttled
+     * Delivers the events of the window and draws it, unless it is minimized or unfocused and throttled, or in
+     * [PresentationMode.MANUAL] without a requested draw
+     * @param exposed is the window exposed? Its contents are presented again, also in [PresentationMode.MANUAL]
      * @return true when the window was drawn
      */
-    fun update(): Boolean {
+    fun update(exposed: Boolean = false): Boolean {
 
         if (destroyed)
             return false
@@ -404,12 +424,16 @@ class ApplicationWindowSDL(
         program.dispatcher.execute()
 
         val ct = System.currentTimeMillis()
-        val draw =  windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
+        val presentationAllowed = presentationMode == PresentationMode.AUTOMATIC || drawRequested || exposed
+        val draw = presentationAllowed &&
+                (windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100))
 
         val surfaceArea = program.width * program.height
         val iconified = (SDL_GetWindowFlags(window) and SDL_WINDOW_MINIMIZED) != 0L
         val drawn = draw && surfaceArea > 0 && !iconified
         if (drawn) {
+            // a draw requested while drawing is done in the next frame
+            drawRequested = false
             program.drawImpl()
             SDL_GL_SwapWindow(window)
             lastUpdate = ct
