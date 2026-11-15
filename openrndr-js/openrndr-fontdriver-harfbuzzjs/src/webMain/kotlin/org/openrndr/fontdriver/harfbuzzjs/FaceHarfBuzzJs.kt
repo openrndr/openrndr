@@ -20,6 +20,9 @@ class HarfBuzzFaceData internal constructor(
     internal val defaultMaster: FaceMaster
 ) {
     val unitsPerEm: Int = hbUpem(hbFace)
+
+    /** the bytes of the OpenType MATH table of the face, null when it has none */
+    val mathTable: ByteArray? by lazy { hbTableBytes(hbFace, "MATH")?.let { uint8ArrayToByteArray(it) } }
 }
 
 /**

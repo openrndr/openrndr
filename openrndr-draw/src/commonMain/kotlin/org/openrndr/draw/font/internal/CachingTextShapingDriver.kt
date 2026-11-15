@@ -1,6 +1,7 @@
 package org.openrndr.draw.font.internal
 
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.MathTable
 import org.openrndr.utils.collections.LRUCache
 import kotlin.jvm.JvmRecord
 
@@ -47,4 +48,8 @@ class CachingTextShapingDriver(val driver: TextShapingDriver) : TextShapingDrive
     ): List<String> {
         return driver.queryPositionFeatures(face, script)
     }
+
+    override fun querySupportedScripts(face: Face): List<Script> = driver.querySupportedScripts(face)
+
+    override fun mathTable(face: Face): MathTable? = driver.mathTable(face)
 }

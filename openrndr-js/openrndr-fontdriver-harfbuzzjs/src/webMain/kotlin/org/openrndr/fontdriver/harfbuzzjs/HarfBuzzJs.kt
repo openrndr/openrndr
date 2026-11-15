@@ -180,6 +180,14 @@ internal fun hbGlyphPath(font: HarfBuzzObject, glyph: Int): HarfBuzzObject = js(
 internal fun hbPathTypes(path: HarfBuzzObject): String = js("path.types")
 internal fun hbPathValues(path: HarfBuzzObject): Float64Array<*> = js("path.values")
 
+/** a copy of the bytes of [table], null when the face has no such table */
+internal fun hbTableBytes(face: HarfBuzzObject, table: String): Uint8Array<*>? = js(
+    """(() => {
+        const data = face.referenceTable(table);
+        return data && data.byteLength > 0 ? data.slice() : null;
+    })()"""
+)
+
 /** reads a big-endian 16-bit signed integer at [offset] in [table], 0 when the face has no such table */
 internal fun hbTableInt16(face: HarfBuzzObject, table: String, offset: Int): Int = js(
     """(() => {

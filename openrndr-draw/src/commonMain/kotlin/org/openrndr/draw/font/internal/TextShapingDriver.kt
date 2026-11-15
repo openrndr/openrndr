@@ -1,6 +1,7 @@
 package org.openrndr.draw.font.internal
 
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.MathTable
 import org.openrndr.math.Vector2
 import kotlin.jvm.JvmRecord
 
@@ -310,6 +311,12 @@ interface TextShapingDriver {
     fun querySupportedScripts(face: Face): List<Script> {
         return emptyList()
     }
+
+    /**
+     * The OpenType MATH table of [face], in the units of the shaping results, null when the face has none or the
+     * driver does not read it
+     */
+    fun mathTable(face: Face): MathTable? = null
 
     companion object {
         var driver: TextShapingDriver? = null

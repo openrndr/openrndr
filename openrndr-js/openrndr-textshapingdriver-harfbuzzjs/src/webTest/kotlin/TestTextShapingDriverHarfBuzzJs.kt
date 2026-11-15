@@ -52,3 +52,33 @@ class TestTextShapingDriverHarfBuzzJs {
         assertEquals(emptyList(), driver.querySubstitutionFeatures(face, Script.ARABIC))
     }
 }
+
+private fun fileExists(path: String): Boolean =
+    js("(() => { const p = globalThis.process; const fs = p && p.getBuiltinModule ? p.getBuiltinModule('fs') : undefined; return !!(fs && fs.existsSync(path)); })()")
+
+/**
+ * The MATH table on the web, read from the bytes of the table. The values are compared with HarfBuzz on the JVM by
+ * TestOpenTypeMathTable, here the driver is checked to give it in pixels at the size of the face.
+ */
+class TestMathTableHarfBuzzJs {
+    @Test
+    fun mathTables() = runTest {
+        val root = repositoryRootVariable()?.toString() ?: return@runTest
+        val fonts = FontDriverHarfBuzzJs.create()
+        val driver = TextShapingDriverHarfBuzzJs()
+        val roboto = fonts.loadFace("$root/openrndr-jvm/openrndr-gl3/src/jvmTest/resources/fonts/Roboto-Medium.ttf")
+        assertEquals(null, driver.mathTable(roboto))
+
+        val stix = "/System/Library/Fonts/Supplemental/STIXTwoMath.otf"
+        if (!fileExists(stix)) return@runTest
+        val face = fonts.loadFace(stix).withSize(32.0)
+        val math = driver.mathTable(face) ?: error("no MATH table")
+        // 258 of 1000 units per em
+        assertEquals(32.0 * 258 / 1000, math.constant(org.openrndr.draw.font.MathConstant.AXIS_HEIGHT), 1E-9)
+        val paren = driver.shape(face, "(").single().glyphIndex
+        val variants = math.variants(paren, org.openrndr.draw.font.MathDirection.VERTICAL)
+        assertEquals(paren, variants.first().glyphIndex)
+        assertEquals(true, variants.zipWithNext().all { (a, b) -> b.advance > a.advance })
+        assertEquals(true, math.assembly(paren, org.openrndr.draw.font.MathDirection.VERTICAL)!!.parts.any { it.isExtender })
+    }
+}

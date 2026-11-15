@@ -8,6 +8,7 @@ import org.lwjgl.util.harfbuzz.HarfBuzz.*
 import org.lwjgl.util.harfbuzz.OpenType.*
 import org.lwjgl.util.harfbuzz.hb_feature_t
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.MathTable
 import org.openrndr.draw.font.internal.*
 import org.openrndr.fontdriver.freetype.FaceFreetype
 import org.openrndr.math.Vector2
@@ -158,6 +159,12 @@ class TextShapingDriverHarfBuzz : TextShapingDriver {
                 null
             }
         }
+    }
+
+    override fun mathTable(face: Face): MathTable? {
+        face as FaceFreetype
+        val hasMath = face.shaping { hbFont -> hb_ot_math_has_data(hb_font_get_face(hbFont)) }
+        return if (hasMath) MathTableHarfBuzz(face) else null
     }
 
     override fun querySupportedScripts(face: Face): List<Script> {

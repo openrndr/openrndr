@@ -3,6 +3,8 @@
 package org.openrndr.textshapingdriver.harfbuzzjs
 
 import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.MathTable
+import org.openrndr.draw.font.internal.OpenTypeMathTable
 import org.openrndr.draw.font.internal.Direction
 import org.openrndr.draw.font.internal.Script
 import org.openrndr.draw.font.internal.ShapeFeature
@@ -82,6 +84,16 @@ class TextShapingDriverHarfBuzzJs : TextShapingDriver {
     override fun querySubstitutionFeatures(face: Face, script: Script): List<String> = features(face, script, "GSUB")
 
     override fun queryPositionFeatures(face: Face, script: Script): List<String> = features(face, script, "GPOS")
+
+    /**
+     * The MATH table of [face], read from its bytes: harfbuzzjs does not have HarfBuzz's MATH functions. Lengths are in
+     * pixels at the size of the face, like the shaping results.
+     */
+    override fun mathTable(face: Face): MathTable? {
+        face as FaceHarfBuzzJs
+        val table = face.data.mathTable ?: return null
+        return OpenTypeMathTable(table, face.scale)
+    }
 
     override fun querySupportedScripts(face: Face): List<Script> {
         val hbFace = face.harfBuzzFace()
