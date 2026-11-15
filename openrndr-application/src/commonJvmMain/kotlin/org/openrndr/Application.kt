@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import org.openrndr.ApplicationConfiguration.preloadClassName
 import org.openrndr.color.ColorProfile
 import org.openrndr.math.Vector2
-import org.openrndr.shape.Rectangle
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,8 +46,11 @@ abstract class ApplicationWindow(val program: Program) : AutoCloseable {
     abstract val windowMultisample: WindowMultisample
     abstract val windowFocused: Boolean
 
-    abstract var textInputArea: Rectangle?
-    abstract var textInputCursor: Double
+    /** where text is being typed in the window, see [Window.textInputArea] */
+    open var textInputArea: TextInputArea? = null
+
+    /** does the window receive text input? See [Window.textInputActive] */
+    open var textInputActive: Boolean = true
     abstract var cursorPosition: Vector2
     abstract var cursorVisible: Boolean
     abstract var cursorHideMode: MouseCursorHideMode
@@ -132,6 +134,9 @@ actual abstract class Application {
 
     actual abstract fun requestDraw()
     actual abstract fun requestFocus()
+
+    actual open var textInputArea: TextInputArea? = null
+    actual open var textInputActive: Boolean = true
 
     actual abstract fun exit()
     actual abstract suspend fun setup()

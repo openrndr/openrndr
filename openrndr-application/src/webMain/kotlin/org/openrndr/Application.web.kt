@@ -66,6 +66,9 @@ actual abstract class Application {
     actual abstract val seconds: Double
 
     actual abstract var presentationMode: PresentationMode
+
+    actual open var textInputArea: TextInputArea? = null
+    actual open var textInputActive: Boolean = true
     actual abstract var windowContentScale: Double
     actual open val windowColorProfile: ColorProfile
         get() = ColorProfile.SRGB

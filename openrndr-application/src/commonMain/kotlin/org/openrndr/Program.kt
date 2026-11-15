@@ -233,6 +233,24 @@ interface Window {
     var hitTest: ((Vector2) -> Hit)?
 
     /**
+     * Where text is being typed in this window, null when no text is being typed. The system places input method
+     * candidate windows and on-screen keyboards next to it, for example while typing Chinese, Japanese or Korean
+     * text or emoji. Text fields set it to the line of their caret whenever the caret moves, and to null when they
+     * lose focus. Back-ends that cannot position input methods ignore it.
+     */
+    var textInputArea: TextInputArea?
+        get() = null
+        set(value) {}
+
+    /**
+     * Does this window receive text input? While it does, input methods compose text and touch devices may show an
+     * on-screen keyboard. True by default, back-ends that always receive text input ignore false.
+     */
+    var textInputActive: Boolean
+        get() = true
+        set(value) {}
+
+    /**
      * Minimizes the window.
      */
     fun minimize()
@@ -587,6 +605,18 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         override fun requestFocus() = application.requestFocus()
 
         override fun requestDraw() = application.requestDraw()
+
+        override var textInputArea: TextInputArea?
+            get() = application.textInputArea
+            set(value) {
+                application.textInputArea = value
+            }
+
+        override var textInputActive: Boolean
+            get() = application.textInputActive
+            set(value) {
+                application.textInputActive = value
+            }
 
         override val focused = Event<WindowEvent>("window-focused", postpone = true)
 

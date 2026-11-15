@@ -240,6 +240,18 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
                 applicationWindow.windowHitTest = value
             }
 
+        override var textInputArea: TextInputArea?
+            get() = applicationWindow.textInputArea
+            set(value) {
+                applicationWindow.textInputArea = value
+            }
+
+        override var textInputActive: Boolean
+            get() = applicationWindow.textInputActive
+            set(value) {
+                applicationWindow.textInputActive = value
+            }
+
         override fun requestFocus() = application.requestFocus()
 
         override fun requestDraw() = application.requestDraw()

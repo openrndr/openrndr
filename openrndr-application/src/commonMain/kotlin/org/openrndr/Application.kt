@@ -101,6 +101,12 @@ expect abstract class Application {
     abstract val seconds: Double
 
     abstract var presentationMode: PresentationMode
+
+    /** where text is being typed in the window of the application, see [Window.textInputArea] */
+    open var textInputArea: TextInputArea?
+
+    /** does the window of the application receive text input? See [Window.textInputActive] */
+    open var textInputActive: Boolean
 }
 
 /**

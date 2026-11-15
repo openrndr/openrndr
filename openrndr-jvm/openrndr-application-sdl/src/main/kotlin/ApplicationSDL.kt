@@ -964,6 +964,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
         }
     override var windowTitle: String by Proxy { window::windowTitle }
+    override var textInputArea: TextInputArea? by Proxy { window::textInputArea }
+    override var textInputActive: Boolean by Proxy { window::textInputActive }
 
     override var windowPosition: Vector2 by Proxy { window::windowPosition }
     override var windowSize: Vector2 by Proxy { window::windowSize }

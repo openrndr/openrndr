@@ -1,6 +1,9 @@
 package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlin.math.floor
+import kotlin.math.roundToInt
+import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLKeyboard.*
 import org.lwjgl.sdl.SDLMouse.*
@@ -19,7 +22,6 @@ import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
-import org.openrndr.shape.Rectangle
 import kotlin.math.ceil
 
 
@@ -68,29 +70,53 @@ class ApplicationWindowSDL(
         (program as? WindowProgram)?.applicationWindow = this
     }
 
-    override var textInputCursor: Double = 0.0
-
-    override var textInputArea: Rectangle? = null
-        get() = field
+    /**
+     * Where text is being typed, passed to [SDL_SetTextInputArea]. The area is in program units, which are converted
+     * to the window coordinates of SDL: points on macOS, where they are the same, pixels on Windows and X11.
+     */
+    override var textInputArea: TextInputArea? = null
         set(value) {
             if (field != value) {
                 field = value
-                if (value != null) {
-                    val rect = SDL_Rect.calloc(1)
-                    rect.x(value.x.toInt())
-                    rect.y(value.y.toInt())
-                    rect.w(value.width.toInt())
-                    rect.h(value.height.toInt())
-                    rect.flip()
-                    SDL_SetTextInputArea(
-                        window,
-                        rect,
-                        textInputCursor.toInt()
-                    )
-                    rect.free()
-                }
+                applyTextInputArea()
             }
         }
+
+    /** Does the window receive text input, [SDL_StartTextInput] and [SDL_StopTextInput] */
+    override var textInputActive: Boolean
+        get() = !destroyed && SDL_TextInputActive(window)
+        set(value) {
+            if (destroyed || value == SDL_TextInputActive(window)) return
+            if (value) {
+                SDL_StartTextInput(window)
+                applyTextInputArea()
+            } else {
+                SDL_StopTextInput(window)
+            }
+        }
+
+    /** Passes [textInputArea] to SDL, the area covers the pixels the area touches, null clears it */
+    private fun applyTextInputArea() {
+        if (destroyed) return
+        val value = textInputArea
+        if (value == null) {
+            nSDL_SetTextInputArea(window, NULL, 0)
+            return
+        }
+        // program units are pixels divided by the display scale, window coordinates are pixels divided by the pixel
+        // density
+        val toWindow = program.window.contentScale / SDL_GetWindowPixelDensity(window).toDouble().coerceAtLeast(1E-6)
+        val area = value.area
+        val x0 = floor(area.x * toWindow)
+        val y0 = floor(area.y * toWindow)
+        val x1 = ceil((area.x + area.width) * toWindow)
+        val y1 = ceil((area.y + area.height) * toWindow)
+        stackPush().use { stack ->
+            val rect = SDL_Rect.malloc(1, stack)
+            rect[0].set(x0.toInt(), y0.toInt(), (x1 - x0).toInt(), (y1 - y0).toInt())
+            SDL_SetTextInputArea(window, rect, (value.cursor * toWindow).roundToInt())
+        }
+    }
 
     override var windowHitTest: ((Vector2) -> Hit)? = null
         set(value) {
