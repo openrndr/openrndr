@@ -27,12 +27,13 @@ class CommonTestRing2 {
         ring.test(Vec2(450.0, 240.0)).inside shouldBe true
         ring.test(Vec2(460.0, 232.0)).inside shouldBe false
 
-        // compare with an even-odd test on a fine polygon, leaving out points close to the outline
-        val polygon = (0..2000).map { curve.position(it / 2000.0) } + start
+        // compare with an even-odd test on a fine polygon, leaving out points close to the outline. Coarse enough to run
+        // within the time limit of the browser tests on CI
+        val polygon = (0..500).map { curve.position(it / 500.0) } + start
         var wrong = 0
-        for (i in 0..60) {
-            for (j in 0..60) {
-                val p = Vec2(444.0 + 27.0 * i / 60, 230.0 + 20.0 * j / 60)
+        for (i in 0..30) {
+            for (j in 0..30) {
+                val p = Vec2(444.0 + 27.0 * i / 30, 230.0 + 20.0 * j / 30)
                 var inside = false
                 var near = false
                 for (k in 0 until polygon.size - 1) {
