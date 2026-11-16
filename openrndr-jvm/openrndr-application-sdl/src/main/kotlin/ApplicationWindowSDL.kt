@@ -150,6 +150,15 @@ class ApplicationWindowSDL(
     var closeRequested = false
 
     /**
+     * Closes the window. It is destroyed by the loop of the application between the frames of the windows, so a
+     * window can be closed while another window is drawn, from its draw or one of its events.
+     */
+    override fun close() {
+        closeRequested = true
+        application.wake()
+    }
+
+    /**
      * Is the window minimized? Set by the minimized and restored events
      */
     internal var minimized = false
@@ -333,10 +342,16 @@ class ApplicationWindowSDL(
             extension.shutdown(program)
         }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
+        // the context of another window may be current, it is made current again after this context is destroyed
+        val previousWindow = SDL_GL_GetCurrentWindow()
+        val previousContext = SDL_GL_GetCurrentContext()
         // the driver keys its state by GL context, it deletes the VAOs of the context when it is current
         SDL_GL_MakeCurrent(window, glContext)
         Driver.instance.destroyContext(glContext)
         SDL_GL_DestroyContext(glContext)
+        if (previousContext != NULL && previousContext != glContext && previousWindow != window) {
+            SDL_GL_MakeCurrent(previousWindow, previousContext)
+        }
 
         application.windowsById.remove(SDL_GetWindowID(window))
         application.windows.remove(this)

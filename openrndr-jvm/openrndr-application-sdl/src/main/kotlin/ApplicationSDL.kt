@@ -899,7 +899,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     if (child.closeRequested) {
                         windows.removeAt(i)
                         windowsById.remove(SDL_GetWindowID(child.window))
-                        child.close()
+                        child.destroy()
                     } else {
                         i++
                     }
