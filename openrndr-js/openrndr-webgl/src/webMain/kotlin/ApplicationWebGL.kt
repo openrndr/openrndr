@@ -14,6 +14,7 @@ import org.openrndr.textshapingdriver.harfbuzzjs.TextShapingDriverHarfBuzzJs
 import org.openrndr.imagedriver.browser.ImageDriverBrowser
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.KeyboardDriver
 import org.openrndr.math.Vector2
 import web.animations.requestAnimationFrame
 import web.device.devicePixelRatio
@@ -118,6 +119,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
         } else {
             (Driver.instance as DriverWebGL).context = context as WebGL2RenderingContext
         }
+        if (KeyboardDriver.driver == null) {
+            KeyboardDriver.driver = KeyboardDriverWebGL()
+        }
         context?.checkErrors("ApplicationWebGL.setup(), pre-existing errors")
 
         program.drawer = Drawer(Driver.instance)
@@ -194,26 +198,27 @@ class ApplicationWebGL(override var program: Program, override var configuration
         // Keyboard
         canvas?.addEventListener(EventType("keydown"), {
             it as HtmlKeyboardEvent
-            program.keyboard.keyDown.trigger(
-                KeyEvent(
-                    KeyEventType.KEY_DOWN,
-                    0,                      // TODO: investigate alternatives
-                    it.key,
-                    getModifiers(it)
-                )
-            )
+            val event = keyEvent(if (it.repeat) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN, it)
+            if (it.repeat) {
+                program.keyboard.keyRepeat.trigger(event)
+            } else {
+                program.keyboard.keyDown.trigger(event)
+            }
+            // a printable key has a key value of a single character, which can be a surrogate pair. Shortcuts with
+            // ctrl or meta type no characters, except ctrl+alt which is how AltGr is reported on Windows
+            val text = it.key
+            val printable = text.length == 1 || (text.length == 2 && text[0].isHighSurrogate())
+            val shortcut = (it.ctrlKey && !it.altKey) || it.metaKey
+            if (printable && !shortcut && !it.isComposing) {
+                for (character in text) {
+                    program.keyboard.character.trigger(CharacterEvent(character, emptySet()))
+                }
+            }
         })
 
         canvas?.addEventListener(EventType("keyup"), {
             it as HtmlKeyboardEvent
-            program.keyboard.keyUp.trigger(
-                KeyEvent(
-                    KeyEventType.KEY_UP,
-                    0,                      // TODO: investigate alternatives
-                    it.key,
-                    getModifiers(it)
-                )
-            )
+            program.keyboard.keyUp.trigger(keyEvent(KeyEventType.KEY_UP, it))
         })
 
         // Mouse
@@ -410,6 +415,16 @@ class ApplicationWebGL(override var program: Program, override var configuration
             }
             reader.readAsDataURL(file)
         }
+    }
+
+    /**
+     * Creates a [KeyEvent] for [e], the key id identifies the physical key, special keys are named like on the JVM
+     */
+    private fun keyEvent(type: KeyEventType, e: HtmlKeyboardEvent): KeyEvent {
+        val driver = KeyboardDriver.instance as KeyboardDriverWebGL
+        val key = driver.getKeyIdForCode(e.code.toString())
+        val name = driver.getKeyName(key).takeIf { it != "<null>" } ?: e.key
+        return KeyEvent(type, key, name, getModifiers(e))
     }
 
     private fun getModifiers(e: HtmlKeyboardEvent): Set<KeyModifier> {
