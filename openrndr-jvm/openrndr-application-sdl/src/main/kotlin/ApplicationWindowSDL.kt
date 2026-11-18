@@ -53,6 +53,8 @@ class ApplicationWindowSDL(
     override var unfocusBehaviour: UnfocusBehaviour,
     program: Program,
     drawer: Drawer,
+    /** Does the window wait for vertical blanks when it paces the loop? See [pacing] */
+    internal val vsync: Boolean = true,
 ) : ApplicationWindow(program) {
 
     val window: Long = window
@@ -167,6 +169,20 @@ class ApplicationWindowSDL(
      * Was the window drawn by the event watch, while the events were polled?
      */
     internal var drawnByEventWatch = false
+
+    /**
+     * Does the window pace the loop? Only the pacing window waits for vertical blanks when it is presented, the
+     * windows are presented one after the other and would otherwise each wait for one. Set by the loop before the
+     * window is presented.
+     */
+    internal var pacing = false
+
+    /** The pacing the swap interval of the context was set for, null before it was set */
+    private var swapIntervalPacing: Boolean? = null
+
+    /** Was the window drawn and not presented yet? */
+    internal var presentPending = false
+        private set
 
     override fun minimize() {
         if (!SDL_MinimizeWindow(window)) {
@@ -476,13 +492,36 @@ class ApplicationWindowSDL(
             // a draw requested while drawing is done in the next frame
             drawRequested = false
             program.drawImpl()
-            SDL_GL_SwapWindow(window)
+            presentPending = true
             lastUpdate = ct
         }
-        if (!shown) {
+        // a drawn window is shown when it is presented
+        if (!shown && !presentPending) {
             show()
         }
         return drawn
+    }
+
+    /**
+     * Presents the window when it was drawn by [update] and not presented yet. The swap interval of its context
+     * follows [pacing].
+     */
+    internal fun present() {
+        if (!presentPending || destroyed) {
+            return
+        }
+        presentPending = false
+        // swapping and the swap interval act on the current context
+        SDL_GL_MakeCurrent(window, glContext)
+        val waits = pacing && vsync
+        if (swapIntervalPacing != waits) {
+            setSwapInterval(window, waits)
+            swapIntervalPacing = waits
+        }
+        SDL_GL_SwapWindow(window)
+        if (!shown) {
+            show()
+        }
     }
 
     /**
@@ -700,14 +739,9 @@ fun createApplicationWindowSDL(
 //        logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
 //    }
 
-    if (configuration.vsync) {
-        if (!SDL_GL_SetSwapInterval(-1)) {
-            logger.warn { "Failed to set adaptive vsync for window $window: ${SDL_GetError()}" }
-            if (!SDL_GL_SetSwapInterval(1)) {
-                logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
-            }
-        }
-    }
+    // the default swap interval differs per platform, windows do not wait for vertical blanks until they pace the
+    // loop, see ApplicationWindowSDL.pacing
+    setSwapInterval(window, false)
 
 //    if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) -1 else 0)) {
 //        if (!SDL_SetWindowSurfaceVSync(window, if (configuration.vsync) 1 else 0)) {
@@ -746,6 +780,29 @@ fun createApplicationWindowSDL(
         configuration.closable,
         unfocusBehaviour = configuration.unfocusBehaviour,
         program = program,
-        drawer
+        drawer,
+        vsync = configuration.vsync
     )
+}
+
+/** Is adaptive vsync supported? Set to false when it could not be set, it is not tried again */
+private var adaptiveVsyncSupported = true
+
+/**
+ * Sets the swap interval of the current context, adaptive vsync when [vsync] is true and it is supported
+ */
+private fun setSwapInterval(window: Long, vsync: Boolean) {
+    if (vsync) {
+        if (!adaptiveVsyncSupported || !SDL_GL_SetSwapInterval(-1)) {
+            if (adaptiveVsyncSupported) {
+                logger.warn { "Failed to set adaptive vsync for window $window: ${SDL_GetError()}" }
+                adaptiveVsyncSupported = false
+            }
+            if (!SDL_GL_SetSwapInterval(1)) {
+                logger.warn { "Failed to set vsync for window $window: ${SDL_GetError()}" }
+            }
+        }
+    } else if (!SDL_GL_SetSwapInterval(0)) {
+        logger.warn { "Failed to disable vsync for window $window: ${SDL_GetError()}" }
+    }
 }

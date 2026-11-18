@@ -864,6 +864,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
                     val eventWindow = windowById(event.window().windowID())
                     if (eventWindow != null && eventWindow.update(exposed = true)) {
+                        // the window is presented right away, the loop is blocked
+                        eventWindow.present()
                         eventWindow.drawnByEventWatch = true
                     }
                 }
@@ -908,6 +910,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     drawn = update(windows[j]) or drawn
                 }
             }
+            if (drawn) {
+                present()
+            }
             // no window was drawn: they are minimized, or unfocused and throttled. Wait for an event, for work queued
             // from another thread, or until a window or a delayed coroutine is due, instead of spinning
             if (!drawn && !exitRequested) {
@@ -925,6 +930,30 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             window.destroy()
         }
         shutdown()
+    }
+
+    /**
+     * Presents the windows that were drawn. All windows are drawn before they are presented, one window paces the
+     * loop: it is presented last and is the only one that waits for a vertical blank, the primary window when it was
+     * drawn, the first drawn child window with vsync otherwise. With every window waiting, the frame rate would be
+     * divided by the number of windows on drivers that block in the swap.
+     */
+    private fun present() {
+        var pacer: ApplicationWindowSDL? = null
+        for (i in -1 until windows.size) {
+            val w = if (i == -1) window else windows[i]
+            if (pacer == null && w.vsync && w.presentPending) {
+                pacer = w
+            }
+        }
+        for (i in -1 until windows.size) {
+            val w = if (i == -1) window else windows[i]
+            w.pacing = w === pacer
+            if (w !== pacer) {
+                w.present()
+            }
+        }
+        pacer?.present()
     }
 
     /**
