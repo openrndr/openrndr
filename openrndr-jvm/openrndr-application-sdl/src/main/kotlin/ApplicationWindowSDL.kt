@@ -642,15 +642,7 @@ fun createApplicationWindowSDL(
         Fullscreen.SET_DISPLAY_MODE -> TODO("not yet implemented")
     }
 
-    when (val ms = configuration.multisample) {
-        WindowMultisample.Disabled -> Unit
-        is WindowMultisample.SampleCount -> {
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, ms.count)
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
-        }
-
-        WindowMultisample.SystemDefault -> Unit
-    }
+    setMultisampleAttributes(configuration.multisample)
 
     var positionX: Long = SDL_WINDOWPOS_CENTERED_DISPLAY(0).toLong()
     var positionY: Long = SDL_WINDOWPOS_CENTERED_DISPLAY(0).toLong()
@@ -812,4 +804,17 @@ private fun setSwapInterval(window: Long, vsync: Boolean) {
     } else if (!SDL_GL_SetSwapInterval(0)) {
         logger.warn { "Failed to disable vsync for window $window: ${SDL_GetError()}" }
     }
+}
+
+/**
+ * Sets the multisample attributes of the next context SDL creates, for [multisample]. With OpenGL on macOS a context
+ * that asks for samples can't share with a context that doesn't, every context asks for at least one sample there. One
+ * sample without sample buffers gives a context without multisampling.
+ */
+internal fun setMultisampleAttributes(multisample: WindowMultisample) {
+    val count = (multisample as? WindowMultisample.SampleCount)?.count ?: 0
+    val minimumCount =
+        if (Platform.type == PlatformType.MAC && DriverGL3Configuration.driverType == DriverTypeGL.GL) 1 else 0
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, if (count > 0) 1 else 0)
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, maxOf(count, minimumCount))
 }

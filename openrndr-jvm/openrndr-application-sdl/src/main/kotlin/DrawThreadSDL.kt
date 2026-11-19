@@ -30,6 +30,7 @@ import org.lwjgl.system.MemoryUtil
 import org.openrndr.Dispatcher
 import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
+import org.openrndr.WindowMultisample
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.NullRenderTargetGL3
@@ -53,6 +54,7 @@ class DrawThreadSDL(val window: Long, val context: Long): DrawThread {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, Driver.glVersion.minorVersion)
             SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
+            setMultisampleAttributes(WindowMultisample.Disabled)
 
             if (Driver.glType == DriverTypeGL.GLES) {
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)

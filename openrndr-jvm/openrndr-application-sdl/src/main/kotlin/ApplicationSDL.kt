@@ -189,6 +189,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
+        // the windows and threads share with the primary context, it has their multisample attributes
+        setMultisampleAttributes(WindowMultisample.Disabled)
 
         for (version in DriverGL3Configuration.candidateVersions()) {
             when (version.type) {
