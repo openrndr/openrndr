@@ -162,7 +162,7 @@ fun findHardwareEncoder(
  */
 private fun candidates(codecName: String): List<HardwareEncoder> = when (Platform.type) {
     PlatformType.WINDOWS -> listOf("nvenc", "qsv", "amf", "mf").map { HardwareEncoder("${codecName}_$it") }
-    PlatformType.GENERIC -> listOf(HardwareEncoder("${codecName}_nvenc")) +
+    PlatformType.GENERIC, PlatformType.LINUX -> listOf(HardwareEncoder("${codecName}_nvenc")) +
             renderNodes().map { HardwareEncoder("${codecName}_vaapi", it) }
 
     else -> emptyList()

@@ -83,7 +83,7 @@ class TestHardwareEncoder {
 
     @Test
     fun `encoders are tried in order with the pixel format and the result is cached`() {
-        if (Platform.type != PlatformType.GENERIC) return
+        if ((Platform.type != PlatformType.GENERIC && Platform.type != PlatformType.LINUX)) return
         val (ffmpeg, log) = fakeFfmpeg("hevc_nvenc")
         assertEquals(HardwareEncoder("hevc_nvenc"), findHardwareEncoder("hevc", "p010le", ffmpeg.path))
         assertEquals(HardwareEncoder("hevc_nvenc"), findHardwareEncoder("hevc", "p010le", ffmpeg.path))
@@ -95,7 +95,7 @@ class TestHardwareEncoder {
 
     @Test
     fun `no encoder is found when none works`() {
-        if (Platform.type != PlatformType.GENERIC) return
+        if ((Platform.type != PlatformType.GENERIC && Platform.type != PlatformType.LINUX)) return
         val (ffmpeg, log) = fakeFfmpeg("none")
         assertNull(findHardwareEncoder("h264", ffmpeg = ffmpeg.path))
         val calls = log.readLines()

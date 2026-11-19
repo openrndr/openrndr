@@ -28,7 +28,7 @@ internal fun listVideoDeviceNames(): List<String> {
     val formatName = when (Platform.type) {
         PlatformType.WINDOWS -> "dshow"
         PlatformType.MAC -> "avfoundation"
-        PlatformType.GENERIC -> "v4l2"
+        PlatformType.GENERIC, PlatformType.LINUX -> "v4l2"
         else -> return emptyList()
     }
     val format = av_find_input_format(formatName)
@@ -65,7 +65,7 @@ internal fun listScreenNames(): List<String> = when (Platform.type) {
         }
     }
 
-    PlatformType.GENERIC -> sortX11Displays(File("/tmp/.X11-unix").list()?.toList() ?: emptyList())
+    PlatformType.GENERIC, PlatformType.LINUX -> sortX11Displays(File("/tmp/.X11-unix").list()?.toList() ?: emptyList())
     else -> emptyList()
 }
 
@@ -98,7 +98,7 @@ private fun listInputSources(format: AVInputFormat): List<String>? {
                 else -> device.device_name()?.string
             }
         }
-        return if (Platform.type == PlatformType.GENERIC) sortVideoDeviceFiles(names) else names
+        return if (Platform.type == PlatformType.GENERIC || Platform.type == PlatformType.LINUX) sortVideoDeviceFiles(names) else names
     } finally {
         avdevice_free_list_devices(list)
         list.close()

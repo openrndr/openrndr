@@ -208,7 +208,7 @@ internal class DmaBufImporterGL3 private constructor(
          * @return the importer, or null when the context is not an EGL context that imports DMA-BUFs
          */
         fun createOrNull(): DmaBufImporterGL3? {
-            if (Platform.type != PlatformType.GENERIC) {
+            if ((Platform.type != PlatformType.GENERIC && Platform.type != PlatformType.LINUX)) {
                 return null
             }
             if (!ensureEGL()) {

@@ -53,7 +53,7 @@ class Proxy<R, T>(val b: R.() -> KMutableProperty0<T>) {
 
 object ApplicationSDLConfiguration {
     val fixWindowSize by lazy {
-        SDL_GetCurrentVideoDriver() != "wayland" && (Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC)
+        SDL_GetCurrentVideoDriver() != "wayland" && (Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC || Platform.type == PlatformType.LINUX)
     }
 }
 

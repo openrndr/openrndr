@@ -15,7 +15,8 @@ actual object Platform {
         return when {
             os.startsWith("windows") -> WindowsPlatformDriver()
             os.startsWith("mac") -> MacOSPlatformDriver()
-            else -> GenericPlatformDriver()
+            // other unix-like systems follow the XDG base directory specification too
+            else -> LinuxPlatformDriver()
         }
     }
 
@@ -24,6 +25,7 @@ actual object Platform {
         when {
             os.startsWith("windows") -> PlatformType.WINDOWS
             os.startsWith("mac") -> PlatformType.MAC
+            os.startsWith("linux") -> PlatformType.LINUX
             else -> PlatformType.GENERIC
         }
     }

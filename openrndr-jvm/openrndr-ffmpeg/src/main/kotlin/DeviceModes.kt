@@ -48,7 +48,7 @@ internal fun listVideoDeviceModes(deviceName: String): List<VideoDeviceMode> {
     avdevice_register_all()
     val (formatName, url, options) = when (Platform.type) {
         PlatformType.WINDOWS -> Triple("dshow", "video=$deviceName", mapOf("list_options" to "true"))
-        PlatformType.GENERIC -> Triple("v4l2", deviceName, mapOf("list_formats" to "all"))
+        PlatformType.GENERIC, PlatformType.LINUX -> Triple("v4l2", deviceName, mapOf("list_formats" to "all"))
         else -> return emptyList()
     }
     val format = av_find_input_format(formatName)

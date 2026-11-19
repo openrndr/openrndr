@@ -37,7 +37,7 @@ internal var primaryWindow: Long = NULL
 
 object ApplicationGlfwConfiguration {
     val fixWindowSize by lazy {
-        Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC
+        Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC || Platform.type == PlatformType.LINUX
     }
 }
 

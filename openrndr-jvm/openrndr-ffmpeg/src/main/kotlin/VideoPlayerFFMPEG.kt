@@ -469,7 +469,7 @@ class VideoPlayerFFMPEG private constructor(
             val (format, properDeviceName) = when (Platform.type) {
                 PlatformType.WINDOWS -> ("dshow" to "video=$deviceName")
                 PlatformType.MAC -> ("avfoundation" to deviceName)
-                PlatformType.GENERIC -> ("video4linux2" to deviceName)
+                PlatformType.GENERIC, PlatformType.LINUX -> ("video4linux2" to deviceName)
                 else -> error("unsupported platform ${Platform.type}")
             }
             val file = AVFile(
@@ -506,7 +506,7 @@ class VideoPlayerFFMPEG private constructor(
             return when (Platform.type) {
                 PlatformType.WINDOWS -> listDeviceNames().firstOrNull() ?: error("no video devices found")
                 PlatformType.MAC -> "0"
-                PlatformType.GENERIC -> "/dev/video0"
+                PlatformType.GENERIC, PlatformType.LINUX -> "/dev/video0"
                 else -> error("unsupported platform ${Platform.type}")
             }
         }
@@ -542,7 +542,7 @@ class VideoPlayerFFMPEG private constructor(
             val (format, properDeviceName) = when (Platform.type) {
                 PlatformType.WINDOWS -> ("gdigrab" to screenName)
                 PlatformType.MAC -> ("avfoundation" to screenName)
-                PlatformType.GENERIC -> ("x11grab" to screenName)
+                PlatformType.GENERIC, PlatformType.LINUX -> ("x11grab" to screenName)
                 else -> error("unsupported platform ${Platform.type}")
             }
             val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight, windowId)
@@ -557,7 +557,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> "desktop"
                 // the index of the first screen depends on the number of cameras, the name does not
                 PlatformType.MAC -> listScreenDevices().firstOrNull() ?: "Capture screen 0"
-                PlatformType.GENERIC -> System.getenv("DISPLAY") ?: listScreenDevices().firstOrNull() ?: ":1"
+                PlatformType.GENERIC, PlatformType.LINUX -> System.getenv("DISPLAY") ?: listScreenDevices().firstOrNull() ?: ":1"
                 else -> error("unsupported platform ${Platform.type}")
             }
         }
@@ -633,7 +633,7 @@ class VideoPlayerFFMPEG private constructor(
                     PlatformType.WINDOWS -> d3d11FrameConverter = (Driver.instance as? D3D11TextureImporterFactory)
                         ?.takeIf { it.supportsD3D11TextureImport }?.let { D3D11FrameConverter(it) }
 
-                    PlatformType.GENERIC -> dmaBufImporter =
+                    PlatformType.GENERIC, PlatformType.LINUX -> dmaBufImporter =
                         (Driver.instance as? DmaBufImporterFactory)?.createDmaBufImporter()
 
                     else -> {}

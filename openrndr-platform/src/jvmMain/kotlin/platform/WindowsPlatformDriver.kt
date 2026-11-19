@@ -1,78 +1,54 @@
 package org.openrndr.platform
 
-
 import java.io.File
 
 class WindowsPlatformDriver : PlatformDriver {
 
     override fun temporaryDirectory(): File {
-        val directoryName = System.getProperty("java.io.tmpdir") + "OPENRNDR-" + randomID
-        val file = File(directoryName)
+        return processTemporaryDirectory("OPENRNDR-$randomID")
+    }
+
+    /**
+     * The cache directory for [programName] in `%LOCALAPPDATA%\<programName>\Cache`. Caches are local to the machine,
+     * they don't roam with the user's profile.
+     */
+    override fun cacheDirectory(programName: String): File {
+        val file = File(File(knownFolder("LOCALAPPDATA", "AppData\\Local"), programName), "Cache")
         if (!file.exists()) {
             file.mkdirs()
         }
         return file
     }
 
-    override fun cacheDirectory(programName: String): File {
-        val f = File(".\\cache")
-        if (!f.exists()) {
-            val result = f.mkdirs()
-            if (!result) {
-                throw RuntimeException("could not create cache directory")
-            }
+    /**
+     * The support directory for [programName] in `%APPDATA%\<programName>`, which roams with the user's profile
+     */
+    override fun supportDirectory(programName: String): File {
+        val file = File(knownFolder("APPDATA", "AppData\\Roaming"), programName)
+        if (!file.exists()) {
+            file.mkdirs()
         }
-        return f
+        return file
     }
 
-    override fun supportDirectory(programName: String): File {
-        return File(".")
+    /**
+     * The known folder in the environment variable [variable], or [default] in the home directory when it is not set
+     */
+    private fun knownFolder(variable: String, default: String): File {
+        val value = System.getenv(variable)
+        return if (!value.isNullOrBlank() && File(value).isAbsolute) {
+            File(value)
+        } else {
+            File(System.getProperty("user.home"), default)
+        }
     }
 
     companion object {
-        val randomID: String
-
-        init {
-            val alphabet = charArrayOf(
-                'a',
-                'b',
-                'd',
-                'e',
-                'f',
-                'g',
-                'h',
-                'i',
-                'j',
-                'k',
-                'l',
-                'm',
-                'n',
-                'o',
-                'p',
-                'q',
-                'r',
-                's',
-                't',
-                'u',
-                'v',
-                'w',
-                'x',
-                'y',
-                'z'
-            )
-
-            var id = ""
-            for (i in 0..7) {
-                id += alphabet[i]
-            }
-
-            randomID = id
-        }
-
+        val randomID: String = randomTemporaryID()
     }
 
     override fun path(): List<File> {
-        return System.getenv("PATH").split(";").map { File(it) }
+        return System.getenv("PATH").split(File.pathSeparator).filter { it.isNotBlank() }.map { File(it) }
     }
 
 }

@@ -1,7 +1,9 @@
 package org.openrndr.platform
 
 enum class PlatformType {
+    @Deprecated("Deprecated", ReplaceWith("PlatformType.LINUX"))
     GENERIC,
+    LINUX,
     WINDOWS,
     MAC,
     BROWSER

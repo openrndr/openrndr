@@ -83,7 +83,7 @@ class ApplicationBaseSDL : ApplicationBase() {
             SDL_SetHint(SDL_HINT_OPENGL_LIBRARY, angleGLESLibrary!!.absolutePath)
         }
 
-        if (Platform.type == PlatformType.GENERIC && Platform.property("org.openrndr.sdl.egl") != "false" &&
+        if ((Platform.type == PlatformType.GENERIC || Platform.type == PlatformType.LINUX) && Platform.property("org.openrndr.sdl.egl") != "false" &&
             loadEGL()
         ) {
             // SDL creates GLX contexts on X11 by default, EGL contexts can import DMA-BUFs, like VAAPI video frames

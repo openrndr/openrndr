@@ -4,26 +4,25 @@ import java.io.File
 
 class MacOSPlatformDriver : PlatformDriver {
     override fun temporaryDirectory(): File {
-        val directoryName = System.getProperty("java.io.tmpdir") + "OPENRNDR-" + randomID
-        val file = File(directoryName)
-        if (!file.exists()) {
-            file.mkdirs()
-        }
-        return file
+        return processTemporaryDirectory("OPENRNDR-$randomID")
     }
 
+    /**
+     * The cache directory for [programName] in `~/Library/Caches`
+     */
     override fun cacheDirectory(programName: String): File {
-        val directoryName = System.getProperty("user.home") + "/Library/Caches/" + programName
-        val file = File(directoryName)
+        val file = File(libraryDirectory("Caches"), programName)
         if (!file.exists()) {
             file.mkdirs()
         }
         return file
     }
 
+    /**
+     * The support directory for [programName] in `~/Library/Application Support`
+     */
     override fun supportDirectory(programName: String): File {
-        val directoryName = System.getProperty("user.home") + "/Library/Application Support/" + programName
-        val file = File(directoryName)
+        val file = File(libraryDirectory("Application Support"), programName)
         if (!file.exists()) {
             file.mkdirs()
         }
@@ -31,47 +30,14 @@ class MacOSPlatformDriver : PlatformDriver {
     }
 
     override fun path(): List<File> {
-        return System.getenv("PATH").split(":").map { File(it) }
+        return System.getenv("PATH").split(File.pathSeparator).map { File(it) }
+    }
+
+    private fun libraryDirectory(name: String): File {
+        return File(File(System.getProperty("user.home"), "Library"), name)
     }
 
     companion object {
-
-        var randomID: String
-
-        init {
-            val alphabet = charArrayOf(
-                'a',
-                'b',
-                'd',
-                'e',
-                'f',
-                'g',
-                'h',
-                'i',
-                'j',
-                'k',
-                'l',
-                'm',
-                'n',
-                'o',
-                'p',
-                'q',
-                'r',
-                's',
-                't',
-                'u',
-                'v',
-                'w',
-                'x',
-                'y',
-                'z'
-            )
-            var id = ""
-            for (i in 0..7) {
-                id += alphabet[i]
-            }
-            randomID = id
-        }
-
+        var randomID: String = randomTemporaryID()
     }
 }

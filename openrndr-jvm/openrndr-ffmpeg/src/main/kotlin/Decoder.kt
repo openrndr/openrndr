@@ -92,7 +92,7 @@ internal class Decoder(
                     )
 
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
-                    PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI, AV_HWDEVICE_TYPE_OPENCL)
+                    PlatformType.GENERIC, PlatformType.LINUX -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI, AV_HWDEVICE_TYPE_OPENCL)
                     PlatformType.BROWSER -> error("browser not supported")
                 }
 
