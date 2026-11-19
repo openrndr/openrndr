@@ -30,6 +30,7 @@ include(
         "openrndr-animatable",
         "openrndr-jvm:openrndr-dialogs",
 
+        "openrndr-jvm:openrndr-application-awt",
         "openrndr-jvm:openrndr-application-egl",
         "openrndr-jvm:openrndr-application-glfw",
         "openrndr-jvm:openrndr-application-sdl",
