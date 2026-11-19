@@ -28,5 +28,4 @@ threads.
 
 * `DemoApplicationAWT01`: `application { }` on the AWT back-end
 * `DemoSwing01`: two programs in a Swing split pane with Swing controls
-* `DemoCompose01` in `openrndr-application-awt-compose-demo`: a program in a Compose Desktop window next to Compose
-  controls
+* `DemoCompose01`: a program in a Compose Desktop window next to Compose controls

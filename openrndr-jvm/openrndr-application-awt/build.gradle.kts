@@ -4,6 +4,11 @@ plugins {
     id("org.openrndr.convention.variant")
 }
 
+repositories {
+    // Compose, used by the demos, depends on AndroidX libraries
+    google()
+}
+
 variants {
     val nativeLibs = listOf(libs.lwjgl.opengl, libs.lwjgl.opengles)
 
@@ -67,6 +72,20 @@ dependencies {
     implementation(libs.lwjgl.opengles)
 
     demoImplementation(libs.slf4j.simple)
+
+    // Compose Desktop for DemoCompose01
+    val os = System.getProperty("os.name").lowercase()
+    val arm = System.getProperty("os.arch") in setOf("aarch64", "arm64")
+    demoImplementation(
+        when {
+            os.contains("mac") -> if (arm) libs.compose.desktop.macos.arm64 else libs.compose.desktop.macos.x64
+            os.contains("win") -> libs.compose.desktop.windows.x64
+            else -> if (arm) libs.compose.desktop.linux.arm64 else libs.compose.desktop.linux.x64
+        }
+    )
+    demoImplementation(libs.compose.material)
+    // the Compose compiler plugin only compiles the demos, the main compilation has no Compose runtime
+    "kotlinCompilerPluginClasspathDemo"(libs.kotlin.compose.compiler.plugin)
 }
 
 sourceSets {
