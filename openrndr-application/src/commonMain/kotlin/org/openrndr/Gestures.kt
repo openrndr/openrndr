@@ -9,10 +9,12 @@ import kotlin.jvm.JvmRecord
  * Represents an event triggered by a pinch gesture, typically used in touch interfaces.
  *
  * @property scale The scale factor associated with the pinch gesture. A value greater than 1.0
- * indicates a zoom-in gesture, while a value less than 1.0 indicates a zoom-out gesture.
+ * indicates a zoom-in gesture, while a value less than 1.0 indicates a zoom-out gesture. For
+ * [GestureEvents.pinchUpdated] it is the change since the previous update, it is 1.0 when the gesture starts and ends.
+ * @property position The position the pinch is centred on, in the same units as [MouseEvent.position]. Back-ends
+ * that do not know the centre of the pinch report the position of the cursor.
  */
-
-data class PinchEvent(val scale:Double) {
+data class PinchEvent(val scale: Double, val position: Vector2 = Vector2.ZERO) {
 
     /**
      * specifies if the propagation of this event is cancelled

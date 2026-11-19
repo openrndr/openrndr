@@ -20,7 +20,8 @@ private const val PINCH_ENDED = 2
  * Listens to the touch and pen pointers and pinch gestures of [canvas]:
  * - [onPointer] is called with the event (down, moved, up), the pointer id, its position and displacement in CSS
  *   pixels and its pressure. A cancelled pointer is up, mouse pointers are not reported.
- * - [onPinch] is called with the phase (started, updated, ended) and the scale since the last update. Pinches are
+ * - [onPinch] is called with the phase (started, updated, ended), the scale since the last update and the position the
+ *   pinch is centred on in CSS pixels, the middle of the touches or the cursor position for trackpads. Pinches are
  *   made with two touches, a trackpad pinch is a wheel event with the control key held (Chrome, Firefox), or a gesture
  *   event (Safari).
  * - [capturesTouch] and [capturesPinch] tell if the default actions of the browser, scrolling and zooming, are
@@ -29,7 +30,7 @@ private const val PINCH_ENDED = 2
 private fun listenToTouchInputJs(
     canvas: HTMLCanvasElement,
     onPointer: (event: Int, id: Int, x: Double, y: Double, dx: Double, dy: Double, pressure: Double) -> Unit,
-    onPinch: (phase: Int, scale: Double) -> Unit,
+    onPinch: (phase: Int, scale: Double, x: Double, y: Double) -> Unit,
     capturesTouch: () -> Boolean,
     capturesPinch: () -> Boolean
 ): Unit = js(
@@ -38,6 +39,12 @@ private fun listenToTouchInputJs(
         let pinchDistance = 0;
         const touches = () => [...pointers.values()].filter((p) => p.type === 'touch');
         const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        // the position of the last pinch event, a pinch ends where it was last updated
+        let pinchX = 0, pinchY = 0;
+        const pinch = (phase, scale, x, y) => { pinchX = x; pinchY = y; onPinch(phase, scale, x, y); };
+        const middle = (t) => [(t[0].x + t[1].x) / 2, (t[0].y + t[1].y) / 2];
+        // gesture events have no offset, their client position is made relative to the canvas
+        const offset = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 
         canvas.addEventListener('pointerdown', (e) => {
             if (e.pointerType === 'mouse') return;
@@ -48,7 +55,7 @@ private fun listenToTouchInputJs(
             const t = touches();
             if (e.pointerType === 'touch' && t.length === 2) {
                 pinchDistance = distance(t[0], t[1]);
-                onPinch(0, 1.0);
+                pinch(0, 1.0, ...middle(t));
             }
         });
         canvas.addEventListener('pointermove', (e) => {
@@ -60,7 +67,7 @@ private fun listenToTouchInputJs(
             const t = touches();
             if (pointer.type === 'touch' && t.length >= 2) {
                 const d = distance(t[0], t[1]);
-                onPinch(1, d / pinchDistance);
+                pinch(1, d / pinchDistance, ...middle(t));
                 pinchDistance = d;
             }
         });
@@ -70,7 +77,7 @@ private fun listenToTouchInputJs(
             const pinching = pointer.type === 'touch' && touches().length >= 2;
             pointers.delete(e.pointerId);
             onPointer(2, e.pointerId, e.offsetX, e.offsetY, 0, 0, 0);
-            if (pinching && touches().length < 2) onPinch(2, 1.0);
+            if (pinching && touches().length < 2) pinch(2, 1.0, pinchX, pinchY);
         };
         canvas.addEventListener('pointerup', up);
         canvas.addEventListener('pointercancel', up);
@@ -80,10 +87,10 @@ private fun listenToTouchInputJs(
         canvas.addEventListener('wheel', (e) => {
             if (!e.ctrlKey) return;
             if (capturesPinch()) e.preventDefault();
-            if (wheelPinch === null) onPinch(0, 1.0); else clearTimeout(wheelPinch);
+            if (wheelPinch === null) pinch(0, 1.0, e.offsetX, e.offsetY); else clearTimeout(wheelPinch);
             const delta = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
-            onPinch(1, Math.exp(-delta * 0.01));
-            wheelPinch = setTimeout(() => { wheelPinch = null; onPinch(2, 1.0); }, 150);
+            pinch(1, Math.exp(-delta * 0.01), e.offsetX, e.offsetY);
+            wheelPinch = setTimeout(() => { wheelPinch = null; pinch(2, 1.0, pinchX, pinchY); }, 150);
         }, { passive: false });
 
         // trackpad pinches in Safari are gesture events, touch pinches are already reported through pointers
@@ -93,19 +100,19 @@ private fun listenToTouchInputJs(
             if (capturesPinch()) e.preventDefault();
             if (touches().length >= 2) return;
             gesturing = true; gestureScale = 1.0;
-            onPinch(0, 1.0);
+            pinch(0, 1.0, ...offset(e));
         });
         canvas.addEventListener('gesturechange', (e) => {
             if (capturesPinch()) e.preventDefault();
             if (!gesturing) return;
-            onPinch(1, e.scale / gestureScale);
+            pinch(1, e.scale / gestureScale, ...offset(e));
             gestureScale = e.scale;
         });
         canvas.addEventListener('gestureend', (e) => {
             if (capturesPinch()) e.preventDefault();
             if (!gesturing) return;
             gesturing = false;
-            onPinch(2, 1.0);
+            pinch(2, 1.0, pinchX, pinchY);
         });
     })()"""
 )
@@ -130,11 +137,12 @@ internal fun listenToTouchInput(canvas: HTMLCanvasElement, program: Program) {
                 POINTER_UP -> pointers.pointerUp.trigger(message)
             }
         },
-        onPinch = { phase, scale ->
+        onPinch = { phase, scale, x, y ->
+            val message = PinchEvent(scale, Vector2(x, y))
             when (phase) {
-                PINCH_STARTED -> gestures.pinchStarted.trigger(PinchEvent(scale))
-                PINCH_UPDATED -> gestures.pinchUpdated.trigger(PinchEvent(scale))
-                PINCH_ENDED -> gestures.pinchEnded.trigger(PinchEvent(scale))
+                PINCH_STARTED -> gestures.pinchStarted.trigger(message)
+                PINCH_UPDATED -> gestures.pinchUpdated.trigger(message)
+                PINCH_ENDED -> gestures.pinchEnded.trigger(message)
             }
         },
         capturesTouch = { listensToTouch(program) },

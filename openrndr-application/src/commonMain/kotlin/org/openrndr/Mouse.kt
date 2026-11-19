@@ -19,8 +19,17 @@ enum class MouseCursorHideMode {
  * @property type The type of the mouse event, represented by [MouseEventType], such as click, drag, or scroll.
  * @property button The mouse button involved in the event, represented by [MouseButton].
  * @property modifiers The set of key modifiers (such as Shift, Ctrl, or Alt) active during the mouse event, represented by [KeyModifier].
+ * @property source The device that scrolled, for [MouseEventType.SCROLLED] events, see [ScrollSource]
  */
-data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyModifier>) {
+data class MouseEvent(
+    val position: Vector2,
+    val rotation: Vector2,
+    val dragDisplacement: Vector2,
+    val type: MouseEventType,
+    val button: MouseButton,
+    val modifiers: Set<KeyModifier>,
+    val source: ScrollSource = ScrollSource.UNKNOWN
+) {
     /**
      * specifies if the propagation of this event is cancelled
      * @see cancelPropagation
@@ -37,6 +46,28 @@ data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisp
     fun cancelPropagation() {
         propagationCancelled = true
     }
+}
+
+/**
+ * The device that produced a scroll event, see [MouseEvent.source]
+ */
+enum class ScrollSource {
+    /**
+     * The scroll is not known to come from a wheel or a touchpad
+     */
+    UNKNOWN,
+
+    /**
+     * The scroll comes from a mouse wheel
+     */
+    WHEEL,
+
+    /**
+     * The scroll comes from a scroll gesture on a touchpad. Back-ends only report touchpad scrolls when they also
+     * report the pinch gestures of the touchpad in [Program.gestures], a program can zoom on pinches and ignore
+     * touchpad scrolls without losing zoom on back-ends that have no pinch gestures.
+     */
+    TOUCHPAD
 }
 
 /**

@@ -19,6 +19,8 @@ import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLMouse.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicksNS
+import org.lwjgl.sdl.SDLTouch.SDL_GetTouchDeviceType
+import org.lwjgl.sdl.SDLTouch.SDL_TOUCH_DEVICE_INDIRECT_RELATIVE
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
 import org.lwjgl.system.MemoryStack.stackPush
@@ -312,6 +314,44 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     }
 
     private var focusedWindowId = -1
+
+    /**
+     * The fingers that are down on a touchpad, touch devices of type [SDL_TOUCH_DEVICE_INDIRECT_RELATIVE]. Wheel events
+     * while two or more fingers are down are touchpad scrolls, see [scrollSource].
+     */
+    private val touchpadFingers = mutableSetOf<Long>()
+
+    /** Have touchpad fingers been reported? Wheel events are only known to come from a wheel when they have */
+    private var touchpadFingersReported = false
+
+    /** The time of the last touchpad scroll in nanoseconds, the momentum of a scroll continues after the fingers lift */
+    private var lastTouchpadScroll = Long.MIN_VALUE
+
+    /**
+     * The source of a wheel event at [time] in nanoseconds: a touchpad while two or more fingers are down on it, or
+     * while the wheel events of a touchpad scroll follow each other, which they do during its momentum
+     */
+    private fun scrollSource(time: Long): ScrollSource {
+        val touchpad = touchpadFingers.size >= 2 || time - lastTouchpadScroll < 150_000_000L
+        return when {
+            touchpad -> ScrollSource.TOUCHPAD.also { lastTouchpadScroll = time }
+            touchpadFingersReported -> ScrollSource.WHEEL
+            else -> ScrollSource.UNKNOWN
+        }
+    }
+
+    /** Tracks the fingers of touchpads, [down] is false when the finger is lifted or canceled */
+    private fun trackTouchpadFinger(touchID: Long, fingerID: Long, down: Boolean) {
+        if (SDL_GetTouchDeviceType(touchID) != SDL_TOUCH_DEVICE_INDIRECT_RELATIVE) {
+            return
+        }
+        touchpadFingersReported = true
+        if (down) {
+            touchpadFingers.add(fingerID)
+        } else {
+            touchpadFingers.remove(fingerID)
+        }
+    }
     private fun handleSDLEvent(event: SDL_Event) {
         when (event.type()) {
             SDL_EVENT_QUIT -> {
@@ -637,7 +677,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 eventWindow.program.mouse.scrolled.trigger(
                     MouseEvent(
                         cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
-                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
+                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt()),
+                        scrollSource(mouseEvent.timestamp())
                     )
                 )
             }
@@ -648,7 +689,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_BEGIN) for unknown window id (=${windowId}): " }; return };
 
-                eventWindow.program.gestures.pinchStarted.trigger(PinchEvent(1.0))
+                // pinch events have no position, a touchpad pinch happens at the cursor
+                eventWindow.program.gestures.pinchStarted.trigger(PinchEvent(1.0, eventWindow.cursorPosition))
             }
             SDL_EVENT_PINCH_UPDATE -> {
                 val pinchEvent = event.pinch()
@@ -656,7 +698,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_END) for unknown window id (=${windowId}): " }; return };
 
-                eventWindow.program.gestures.pinchUpdated.trigger(PinchEvent(pinchEvent.scale().toDouble()))
+                eventWindow.program.gestures.pinchUpdated.trigger(
+                    PinchEvent(pinchEvent.scale().toDouble(), eventWindow.cursorPosition)
+                )
             }
 
 
@@ -666,10 +710,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_PINCH_END) for unknown window id (=${windowId}): " }; return };
 
-                eventWindow.program.gestures.pinchEnded.trigger(PinchEvent(1.0))
+                eventWindow.program.gestures.pinchEnded.trigger(PinchEvent(1.0, eventWindow.cursorPosition))
             }
 
             SDL_EVENT_FINGER_DOWN -> {
+                trackTouchpadFinger(event.tfinger().touchID(), event.tfinger().fingerID(), down = true)
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                     ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
@@ -686,6 +731,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_UP -> {
+                trackTouchpadFinger(event.tfinger().touchID(), event.tfinger().fingerID(), down = false)
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
@@ -718,6 +764,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_CANCELED -> {
+                trackTouchpadFinger(event.tfinger().touchID(), event.tfinger().fingerID(), down = false)
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId) ?: windowById(focusedWindowId)
                 ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };

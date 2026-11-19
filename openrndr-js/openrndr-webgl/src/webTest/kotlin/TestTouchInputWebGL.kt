@@ -83,10 +83,10 @@ class TestTouchInputWebGL : AbstractApplicationTestFixture() {
 
     @Test
     fun twoTouchesPinch() {
-        val pinches = mutableListOf<Pair<String, Double>>()
-        program.gestures.pinchStarted.listen { pinches += "started" to it.scale }
-        program.gestures.pinchUpdated.listen { pinches += "updated" to it.scale }
-        program.gestures.pinchEnded.listen { pinches += "ended" to it.scale }
+        val pinches = mutableListOf<Pair<String, PinchEvent>>()
+        program.gestures.pinchStarted.listen { pinches += "started" to it }
+        program.gestures.pinchUpdated.listen { pinches += "updated" to it }
+        program.gestures.pinchEnded.listen { pinches += "ended" to it }
 
         dispatchPointer(canvas, "pointerdown", 1, "touch", 10.0, 10.0)
         dispatchPointer(canvas, "pointerdown", 2, "touch", 50.0, 10.0)
@@ -97,8 +97,13 @@ class TestTouchInputWebGL : AbstractApplicationTestFixture() {
         dispatchPointer(canvas, "pointerup", 1, "touch", 10.0, 10.0)
 
         assertEquals(listOf("started", "updated", "updated", "ended"), pinches.map { it.first })
-        assertEquals(2.0, pinches[1].second, 1E-6)
-        assertEquals(0.5, pinches[2].second, 1E-6)
+        assertEquals(2.0, pinches[1].second.scale, 1E-6)
+        assertEquals(0.5, pinches[2].second.scale, 1E-6)
+        // pinches are centred between the touches, and end where they were last updated
+        close(Vector2(30.0, 10.0), pinches[0].second.position)
+        close(Vector2(50.0, 10.0), pinches[1].second.position)
+        close(Vector2(30.0, 10.0), pinches[2].second.position)
+        close(Vector2(30.0, 10.0), pinches[3].second.position)
     }
 
     @Test
