@@ -3,6 +3,7 @@ package org.openrndr.internal.gl3
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformArchitecture
 import org.openrndr.platform.PlatformType
+import java.io.File
 
 /**
  * DriverGL3 configuration object
@@ -90,6 +91,21 @@ object DriverGL3Configuration {
      */
     val deleteAngleOnExit by lazy {
         Platform.property("org.openrndr.gl3.delete_angle_on_exit") != "false"
+    }
+
+    /**
+     * The directory that `ShaderError.glsl` is written to when a shader fails to compile. It is the directory in
+     * `-Dorg.openrndr.gl3.shader_error_directory=<directory>` when that is set, otherwise the working directory, where
+     * IntelliJ can link to it. When the working directory can't be written to, or is inside a macOS application bundle,
+     * where writing would break its signature, it is the temporary directory of this process.
+     * @since openrndr 0.5.1
+     */
+    val shaderErrorDirectory: File by lazy {
+        Platform.property("org.openrndr.gl3.shader_error_directory")?.let { File(it) } ?: run {
+            val workingDirectory = File(System.getProperty("user.dir")).absoluteFile
+            val inBundle = generateSequence(workingDirectory) { it.parentFile }.any { it.name.endsWith(".app") }
+            if (workingDirectory.canWrite() && !inBundle) workingDirectory else Platform.tempDirectory()
+        }
     }
 
     val useBackBufferExtension by lazy {

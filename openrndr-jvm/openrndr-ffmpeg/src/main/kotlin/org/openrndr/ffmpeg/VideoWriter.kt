@@ -14,6 +14,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.WritableByteChannel
+import java.util.concurrent.atomic.AtomicInteger
 
 private val logger = KotlinLogging.logger {}
 
@@ -22,6 +23,8 @@ private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
 /** the directory of the last ffmpeg executable that was found, it is logged when it changes */
 @Volatile
 private var loggedFfmpegDirectory: File? = null
+
+private val writerCount = AtomicInteger(0)
 
 /**
  * Finds the ffmpeg executable the user provided, see [VideoWriter.findFfmpeg]
@@ -251,7 +254,11 @@ class H264Profile : VideoWriterProfile() {
 class VideoWriter(
     val useVariableFrameRate: Boolean = false
 ) {
-    internal var ffmpegOutput = File("ffmpegOutput.txt")
+    /**
+     * The file that receives the output of the ffmpeg process, or null to discard it. Defaults to a file of its own in
+     * the temporary directory of this process, which is deleted when the JVM exits.
+     */
+    var ffmpegOutput: File? = File(Platform.tempDirectory(), "ffmpegOutput-${writerCount.incrementAndGet()}.txt")
     private var stopped = false
 
     var frameRate: Number = 25
@@ -368,7 +375,7 @@ class VideoWriter(
 
         val pb = ProcessBuilder().command(*command.toTypedArray())
         pb.redirectErrorStream(true)
-        pb.redirectOutput(ffmpegOutput)
+        pb.redirectOutput(ffmpegOutput?.let { ProcessBuilder.Redirect.to(it) } ?: ProcessBuilder.Redirect.DISCARD)
 
         try {
             ffmpeg = pb.start()

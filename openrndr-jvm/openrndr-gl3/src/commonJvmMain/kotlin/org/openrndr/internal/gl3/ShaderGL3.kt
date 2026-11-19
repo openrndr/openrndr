@@ -39,7 +39,7 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
             1
         } ?: 1
 
-        val errorLogFile = File("ShaderError.glsl")
+        val errorLogFile = File(DriverGL3Configuration.shaderErrorDirectory.apply { mkdirs() }, "ShaderError.glsl")
 
         if (errorLogFile.exists()) {
             if (!errorLogFile.canWrite()) {
@@ -61,6 +61,9 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
 
         // This is to trick IntelliJ into displaying a clickable link.
         System.err.println("click.to.see.shader.code(ShaderError.glsl:$firstErrorLine)")
+        if (errorLogFile.absoluteFile.parentFile != File(System.getProperty("user.dir")).absoluteFile) {
+            System.err.println("shader code written to ${errorLogFile.absolutePath}")
+        }
         logger.error { "GLSL shader compilation failed for $sourceFile" }
         throw Exception("Shader error: $sourceFile")
     }
