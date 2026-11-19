@@ -389,7 +389,24 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             versionIndex++
         }
         if (window == NULL) {
-            throw IllegalStateException("Window creation failed. ${DriverGL3Configuration.driverType}")
+            val reason = lastGlfwError()
+            // no context is current yet, the primary context tells how many samples the renderer supports
+            val maxSamples = try {
+                glfwMakeContextCurrent(primaryWindow)
+                when (DriverGL3Configuration.driverType) {
+                    DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
+                    DriverTypeGL.GLES -> GLES.createCapabilities()
+                }
+                currentMaxSamples()
+            } catch (e: Exception) {
+                null
+            }
+            throw IllegalStateException(
+                windowCreationFailedMessage(
+                    "${DriverGL3Configuration.driverType} window", reason, configuration.multisample, maxSamples,
+                    configuration
+                )
+            )
         }
 
         if (configuration.windowSetIcon) {

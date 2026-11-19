@@ -686,7 +686,10 @@ fun createApplicationWindowSDL(
 
     var window = SDL_CreateWindowWithProperties(props)
 
-    require(window != 0L) { "Failed to create window with configuration $configuration" }
+    // the primary context is current, it tells how many samples the renderer supports
+    require(window != 0L) {
+        windowCreationFailedMessage("window", SDL_GetError(), configuration.multisample, currentMaxSamples(), configuration)
+    }
     val glContext: Long
 
 
@@ -721,7 +724,11 @@ fun createApplicationWindowSDL(
 
     glContext = SDL_GL_CreateContext(window)
     scrgbCallback?.let { uninstallScrgbLinearEglSurface(it) }
-    require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
+    require(glContext != 0L) {
+        windowCreationFailedMessage(
+            "OpenGL context", SDL_GetError(), configuration.multisample, currentMaxSamples(), configuration
+        )
+    }
 
     if (configuration.hdr) {
         if (!isDefaultFramebufferFloat()) {

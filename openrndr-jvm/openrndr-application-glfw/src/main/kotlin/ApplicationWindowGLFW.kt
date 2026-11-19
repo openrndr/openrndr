@@ -641,6 +641,12 @@ fun createApplicationWindowGlfw(
         primaryWindow
     )
 
+    // the context of the parent window is current, it tells how many samples the renderer supports
+    require(childWindow != MemoryUtil.NULL) {
+        windowCreationFailedMessage(
+            "child window", lastGlfwError(), configuration.multisample, currentMaxSamples(), configuration
+        )
+    }
     logger.debug { "created child window $childWindow" }
 
     glfwMakeContextCurrent(childWindow)
@@ -659,4 +665,12 @@ fun createApplicationWindowGlfw(
 
     window.setDefaultIcon()
     return window
+}
+
+/**
+ * The description of the last GLFW error, null when there was none
+ */
+internal fun lastGlfwError(): String? = MemoryStack.stackPush().use {
+    val description = it.mallocPointer(1)
+    if (glfwGetError(description) == GLFW_NO_ERROR) null else description.getStringUTF8(0)
 }
