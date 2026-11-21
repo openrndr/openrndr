@@ -81,4 +81,10 @@ class TestVector3 {
         Vector3.ONE dot Vector3.ONE shouldBe 3.0
     }
 
+    @Test
+    fun axesHaveTheirOwnDirections() {
+        Vector3.Axis.X.direction shouldBe Vector3.UNIT_X
+        Vector3.Axis.Y.direction shouldBe Vector3.UNIT_Y
+        Vector3.Axis.Z.direction shouldBe Vector3.UNIT_Z
+    }
 }

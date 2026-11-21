@@ -12,7 +12,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     enum class Axis(val direction: Vector3) {
         X(UNIT_X),
         Y(UNIT_Y),
-        Z(UNIT_Y)
+        Z(UNIT_Z)
     }
 
     constructor(x: Double) : this(x, x, x)
