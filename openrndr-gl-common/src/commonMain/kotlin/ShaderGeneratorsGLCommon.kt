@@ -975,6 +975,10 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |
         |void main(void) {
         |   vec2 ml_x = gl_FragCoord.xy;
+        |#if defined(OR_MESH_LINE_PER_SAMPLE) && ((defined(OR_GL) && __VERSION__ >= 400) || (defined(OR_GLES) && __VERSION__ >= 320))
+        |   // using gl_SamplePosition runs the shader for every sample, the outline is cut out at every sample position
+        |   ml_x = floor(gl_FragCoord.xy) + gl_SamplePosition;
+        |#endif
         |   vec2 ml_start = v_meshLineSegment.xy;
         |   vec2 ml_end = v_meshLineSegment.zw;
         |   float ml_length = length(ml_end - ml_start);

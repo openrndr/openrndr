@@ -15,12 +15,21 @@ import org.openrndr.math.Vector3
  * With [LineWidthMode.PERSPECTIVE] a stroke weight of 1 is 1 pixel wide at w = 1, lines get thinner with distance,
  * with [LineWidthMode.SCREEN] it is 1 pixel wide at any distance.
  * With [DrawStyle.lineBlendOnce] every pixel of a draw is blended once, also where lines overlap.
+ * Without [DrawStyle.smooth] on a multisampled target the outline is cut out for every sample, where the driver
+ * supports it, so that multisampling anti-aliases it.
  */
 class MeshLineDrawer {
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "mesh-line",
         vsGenerator = Driver.instance.shaderGenerators::meshLineVertexShader,
         fsGenerator = Driver.instance.shaderGenerators::meshLineFragmentShader
+    )
+
+    /** the shaders that cut out the outline for every sample instead of for every pixel */
+    private val perSampleShaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+        "mesh-line-per-sample",
+        vsGenerator = Driver.instance.shaderGenerators::meshLineVertexShader,
+        fsGenerator = { "#define OR_MESH_LINE_PER_SAMPLE\n" + Driver.instance.shaderGenerators.meshLineFragmentShader(it) }
     )
 
     /** every vertex holds its whole segment: the start is the position attribute */
@@ -174,7 +183,9 @@ class MeshLineDrawer {
     ) {
         if (segmentCount == 0) return
         val vertices = vertices(segmentCount * 6)
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormats)
+        val multisample = RenderTarget.active.multisample
+        val perSample = !drawStyle.smooth && multisample is BufferMultisample.SampleCount && multisample.sampleCount > 1
+        val shader = (if (perSample) perSampleShaderManager else shaderManager).shader(drawStyle.shadeStyle, vertexFormats)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)

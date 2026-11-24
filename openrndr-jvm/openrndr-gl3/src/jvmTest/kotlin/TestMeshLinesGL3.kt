@@ -1,6 +1,8 @@
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.BufferMultisample
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
+import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.DrawQuality
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.LineCap
@@ -33,8 +35,9 @@ class TestMeshLinesGL3 : AbstractApplicationTestFixture() {
         fun all() = (0 until size).flatMap { y -> (0 until size).flatMap { x -> (0 until 4).map { channel(x, y, it) } } }
     }
 
-    private fun draw(stencil: Boolean = false, draw: Drawer.() -> Unit): Pixels {
-        val target = renderTarget(size, size, 1.0) {
+    private fun draw(stencil: Boolean = false, samples: Int = 0, draw: Drawer.() -> Unit): Pixels {
+        val multisample = if (samples > 1) BufferMultisample.SampleCount(samples) else BufferMultisample.Disabled
+        val target = renderTarget(size, size, 1.0, multisample) {
             colorBuffer(ColorFormat.RGBa, ColorType.FLOAT32)
             if (stencil) depthBuffer()
         }
@@ -46,7 +49,10 @@ class TestMeshLinesGL3 : AbstractApplicationTestFixture() {
             draw()
         }
         val data = ByteBuffer.allocateDirect(size * size * 16).order(ByteOrder.nativeOrder())
-        target.colorBuffer(0).read(data, ColorFormat.RGBa, ColorType.FLOAT32)
+        val resolved = colorBuffer(size, size, 1.0, ColorFormat.RGBa, ColorType.FLOAT32)
+        target.colorBuffer(0).copyTo(resolved)
+        resolved.read(data, ColorFormat.RGBa, ColorType.FLOAT32)
+        resolved.destroy()
         target.destroy()
         return Pixels(data, size)
     }
@@ -83,6 +89,21 @@ class TestMeshLinesGL3 : AbstractApplicationTestFixture() {
         // the edge lies at y = 37.25, the pixel center at 37.5
         assertAlpha(0.25, pixels.alpha(32, 37), "lower edge")
         assertAlpha(0.25, pixels.alpha(32, 26), "upper edge")
+        assertAlpha(1.0, pixels.alpha(32, 36), "inside")
+    }
+
+    @Test
+    fun `edges are anti-aliased by multisampling without smooth`() {
+        val pixels = draw(samples = 4) {
+            drawStyle.smooth = false
+            strokeWeight = 10.5
+            lineStrip(strip(10.0 to 32.0, 54.0 to 32.0))
+        }
+        // the edges lie a quarter pixel into the pixels, some of their samples are covered
+        for ((y, name) in listOf(37 to "lower edge", 26 to "upper edge")) {
+            val alpha = pixels.alpha(32, y)
+            assertTrue(alpha > 0.05f && alpha < 0.95f, "$name: expected partial coverage, was $alpha")
+        }
         assertAlpha(1.0, pixels.alpha(32, 36), "inside")
     }
 
