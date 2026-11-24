@@ -1,0 +1,222 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ColorBufferPool</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<link href="../../../images/logo-icon.svg">
+<link href="../../../styles/extra.css" rel="Stylesheet"></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    openrndr
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.5.1-dev.1+3e507cd
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":openrndr-draw/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":openrndr-draw/commonMain" data-filter=":openrndr-draw/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    openrndr
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw/ColorBufferPool///PointingToDeclaration//1036293014">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw</a><span class="delimiter">/</span><span class="current">ColorBufferPool</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Color</span><wbr><span>Buffer</span><wbr><span><span>Pool</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">ColorBufferPool</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/ColorBufferPool.kt#L23">source</a>)</span></span></div><p class="paragraph">A pool of color buffers, for intermediates that are needed for a short time, such as the passes of a multi-pass filter. <a href="acquire.html">acquire</a> hands out a free buffer of the requested size and format or creates one, <a href="release.html">release</a> gives it back to be handed out again. A pool is not thread safe, it is used from the thread of its share group.</p><p class="paragraph">The buffers of a pool are not tracked by a <a href="../-session/index.html">Session</a>, they are destroyed by <a href="trim.html">trim</a> or <a href="destroy.html">destroy</a>.</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">val pool = colorBufferPool()<br>pool.borrow(width, height, type = ColorType.FLOAT16) { intermediate -&gt;<br>    horizontal.apply(source, intermediate)<br>    vertical.apply(intermediate, target)<br>}<br>pool.trim(60) // once per frame, destroys buffers that were not acquired in the last 60 frames</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><h4 class="tableheader">See also</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../color-buffer-pool.html"><span>color</span><wbr><span>Buffer</span><wbr><span><span>Pool</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1676404111%2FProperties%2F1036293014" anchor-label="size" id="-1676404111%2FProperties%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1676404111%2FProperties%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="size.html">size</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">the number of buffers in the pool, acquired and free</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="493306670%2FFunctions%2F1036293014" anchor-label="acquire" id="493306670%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="acquire.html"><span><span>acquire</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="493306670%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="acquire.html"><span class="token function">acquire</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="../-color-format/index.html">ColorFormat</a><span class="token operator"> = </span>ColorFormat.RGBa<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span><a href="../-color-type/index.html">ColorType</a><span class="token operator"> = </span>defaultColorType(format)<span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span><a href="../-buffer-multisample/index.html">BufferMultisample</a><span class="token operator"> = </span>BufferMultisample.Disabled<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">1</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-color-buffer/index.html">ColorBuffer</a></div><div class="brief "><p class="paragraph">A color buffer with these properties, free in the pool or new. Its contents are undefined, it holds what it held when it was released.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1066267839%2FFunctions%2F1036293014" anchor-label="borrow" id="-1066267839%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../borrow.html"><span><span>borrow</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1066267839%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../borrow.html">T</a><span class="token operator">&gt; </span><a href="index.html">ColorBufferPool</a><span class="token punctuation">.</span><a href="../borrow.html"><span class="token function">borrow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">contentScale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">1.0</span><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="../-color-format/index.html">ColorFormat</a><span class="token operator"> = </span>ColorFormat.RGBa<span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span><a href="../-color-type/index.html">ColorType</a><span class="token operator"> = </span>defaultColorType(format)<span class="token punctuation">, </span></span><span class="parameter ">multisample<span class="token operator">: </span><a href="../-buffer-multisample/index.html">BufferMultisample</a><span class="token operator"> = </span>BufferMultisample.Disabled<span class="token punctuation">, </span></span><span class="parameter ">levels<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">1</span><span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><span class="token punctuation">(</span><a href="../-color-buffer/index.html">ColorBuffer</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../borrow.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../borrow.html">T</a></div><div class="brief "><p class="paragraph">Acquires a color buffer from this pool for the length of <a href="../borrow.html">block</a> and releases it afterwards</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1938024782%2FFunctions%2F1036293014" anchor-label="destroy" id="1938024782%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy.html"><span><span>destroy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1938024782%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="destroy.html"><span class="token function">destroy</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Destroys the buffers of the pool, also the acquired ones</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-693867688%2FFunctions%2F1036293014" anchor-label="release" id="-693867688%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="release.html"><span><span>release</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-693867688%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="release.html"><span class="token function">release</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">buffer<span class="token operator">: </span><a href="../-color-buffer/index.html">ColorBuffer</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Gives <a href="release.html">buffer</a> back to the pool, the next <a href="acquire.html">acquire</a> of its properties may hand it out again</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-837702898%2FFunctions%2F1036293014" anchor-label="trim" id="-837702898%2FFunctions%2F1036293014" data-filterable-set=":openrndr-draw/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":openrndr-draw/commonMain" data-filterable-set=":openrndr-draw/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="trim.html"><span><span>trim</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-837702898%2FFunctions%2F1036293014"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="trim.html"><span class="token function">trim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">frames<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Ends a frame of the pool and destroys the free buffers that were not acquired in the last <a href="trim.html">frames</a> frames, all free buffers when <a href="trim.html">frames</a> is 0. A buffer counts as used in the frames it was acquired or released in, buffers that are acquired are kept. Called once per frame it keeps the buffers that are in use from frame to frame.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
