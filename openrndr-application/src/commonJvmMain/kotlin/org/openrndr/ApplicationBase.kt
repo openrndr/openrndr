@@ -10,6 +10,27 @@ private val logger = KotlinLogging.logger {}
  */
 actual abstract class ApplicationBase {
     companion object {
+        private const val AWT_BASE = "org.openrndr.awt.ApplicationBaseAWT"
+
+        private fun available(className: String) = try {
+            ApplicationBase::class.java.classLoader.loadClass(className)
+            true
+        } catch (e: ClassNotFoundException) {
+            false
+        }
+
+        /**
+         * Is the AWT application back-end selected, with the `org.openrndr.application` property or as the only
+         * back-end available?
+         */
+        internal fun awtSelected(): Boolean = when (System.getProperty("org.openrndr.application")?.uppercase()) {
+            "AWT" -> true
+            null, "" -> available(AWT_BASE) &&
+                    !available("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") &&
+                    !available("org.openrndr.application.sdl.ApplicationBaseSDL")
+            else -> false
+        }
+
         fun initialize(): ApplicationBase {
             val applicationBaseClass = loadApplicationBase()
             return applicationBaseClass.declaredConstructors[0].newInstance() as ApplicationBase
@@ -56,6 +77,10 @@ actual abstract class ApplicationBase {
                         cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL")
                     } catch (e: ClassNotFoundException) {
                         null
+                    } ?: try {
+                        cl.loadClass(AWT_BASE)
+                    } catch (e: ClassNotFoundException) {
+                        null
                     }
                     c ?: error("No application backend not available")
                 }
@@ -80,6 +105,12 @@ actual abstract class ApplicationBase {
                         null
                     }
                     c ?: error("SDL application backend not available")
+                }
+
+                "AWT" -> try {
+                    cl.loadClass(AWT_BASE)
+                } catch (e: ClassNotFoundException) {
+                    error("AWT application backend not available")
                 }
 
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")

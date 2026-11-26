@@ -89,6 +89,11 @@ private fun restartJVM(): Boolean {
         return false
     }
 
+    // AWT runs AppKit on the first thread itself, it does not start with -XstartOnFirstThread
+    if (ApplicationBase.awtSelected()) {
+        return false
+    }
+
     // based on http://www.java-gaming.org/topics/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/37697/view.html
     val osName = System.getProperty("os.name")
 
